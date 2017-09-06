@@ -37,7 +37,6 @@ pub enum PersonaState {
     Max,
 }
 
-#[link(name="steam_api")]
 extern "C" {
     pub fn SteamAPI_Init() -> u8;
     pub fn SteamAPI_Shutdown();

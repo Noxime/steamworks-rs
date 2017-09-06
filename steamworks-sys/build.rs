@@ -8,10 +8,12 @@ fn main() {
     let sdk_loc = Path::new(&sdk_loc);
 
     let triple = env::var("TARGET").unwrap();
+    let mut lib = "steam_api";
     let path = if triple.contains("windows") {
         if triple.contains("i686") {
             sdk_loc.join("redistributable_bin/")
         } else {
+            lib = "steam_api64";
             sdk_loc.join("redistributable_bin/win64")
         }
     } else if triple.contains("linux") {
@@ -26,4 +28,5 @@ fn main() {
         panic!("Unsupported OS");
     };
     println!("cargo:rustc-link-search={}", path.display());
+    println!("cargo:rustc-link-lib=dylib={}", lib);
 }
