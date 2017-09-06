@@ -1,0 +1,14 @@
+[package]
+name = "steamworks"
+version = "0.1.0"
+authors = ["matt"]
+
+[workspace]
+members = [
+    "./steamworks-sys"
+]
+
+[dependencies]
+steamworks-sys = {path = "./steamworks-sys"}
+error-chain = "0.11.0"
+bitflags = "0.9.1"

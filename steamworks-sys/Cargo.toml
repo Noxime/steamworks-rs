@@ -1,0 +1,8 @@
+[package]
+name = "steamworks-sys"
+version = "0.1.0"
+authors = ["matt"]
+build = "build.rs"
+
+[dependencies]
+libc = "0.2"
