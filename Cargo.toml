@@ -12,3 +12,4 @@ members = [
 steamworks-sys = {path = "./steamworks-sys"}
 error-chain = "0.11.0"
 bitflags = "0.9.1"
+libc = "0.2"

@@ -37,10 +37,30 @@ pub enum PersonaState {
     Max,
 }
 
+#[repr(C)]
+pub struct PersonaStateChange_t {
+    pub steam_id: u64,
+    pub flags: c_int,
+}
+
 extern "C" {
+    // Helpers from lib.cpp
+
+    pub fn register_rust_steam_callback(
+        parameter_size: c_int,
+        userdata: *mut c_void,
+        run_func: extern "C" fn (*mut c_void, *mut c_void),
+        dealloc: extern "C" fn (*mut c_void),
+        callback_id: c_int
+    ) -> *mut c_void;
+    pub fn unregister_rust_steam_callback(
+        ty: *mut c_void,
+    );
+    //
+
     pub fn SteamAPI_Init() -> u8;
     pub fn SteamAPI_Shutdown();
-    pub fn SteamAPI_GetHSteamUser() -> HSteamUser;
+    pub fn SteamAPI_RunCallbacks();
 
     pub fn SteamInternal_CreateInterface(version: *const c_char) -> *mut ISteamClient;
 
@@ -73,4 +93,5 @@ extern "C" {
     pub fn SteamAPI_ISteamFriends_GetFriendByIndex(instance: *mut ISteamFriends, friend: c_int, flags: c_int) -> u64;
     pub fn SteamAPI_ISteamFriends_GetFriendPersonaName(instance: *mut ISteamFriends, friend: u64) -> *const c_char;
     pub fn SteamAPI_ISteamFriends_GetFriendPersonaState(instance: *mut ISteamFriends, friend: u64) -> PersonaState;
+    pub fn SteamAPI_ISteamFriends_RequestUserInformation(instance: *mut ISteamFriends, user_id: u64, name_only: u8) -> u8;
 }

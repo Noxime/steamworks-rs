@@ -1,4 +1,5 @@
 
+extern crate libc;
 extern crate steamworks_sys as sys;
 #[macro_use]
 extern crate error_chain;
@@ -17,6 +18,7 @@ mod friends;
 pub use friends::*;
 
 use std::rc::Rc;
+use std::cell::RefCell;
 use std::ffi::CStr;
 use std::borrow::Cow;
 use std::fmt::{
@@ -30,6 +32,8 @@ pub struct Client {
 struct ClientInner {
     client: *mut sys::ISteamClient,
     pipe: sys::HSteamPipe,
+
+    callbacks: RefCell<Vec<*mut libc::c_void>>,
 }
 
 impl Client {
@@ -42,10 +46,54 @@ impl Client {
             let client = Rc::new(ClientInner {
                 client: client,
                 pipe: sys::SteamAPI_ISteamClient_CreateSteamPipe(client),
+                callbacks: RefCell::new(Vec::new()),
             });
             Ok(Client {
                 inner: client,
             })
+        }
+    }
+
+    pub fn run_callbacks(&self) {
+        unsafe {
+            sys::SteamAPI_RunCallbacks();
+        }
+    }
+
+    pub fn register_callback<C, F>(&self, f: F)
+        where C: Callback,
+              F: FnMut(C) + 'static
+    {
+        unsafe {
+            let userdata = Box::into_raw(Box::new(f));
+
+            extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void)
+                where C: Callback,
+                      F: FnMut(C) + 'static
+            {
+                unsafe {
+                    let func: &mut F = &mut *(userdata as *mut F);
+                    let param = C::from_raw(param);
+                    func(param);
+                }
+            }
+            extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
+                where C: Callback,
+                      F: FnMut(C) + 'static
+            {
+                let func: Box<F> = unsafe { Box::from_raw(userdata as _) };
+                drop(func);
+            }
+
+            let ptr = sys::register_rust_steam_callback(
+                C::size() as _,
+                userdata as _,
+                run_func::<C, F>,
+                dealloc::<C, F>,
+                C::id() as _
+            );
+            let mut cbs = self.inner.callbacks.borrow_mut();
+            cbs.push(ptr);
         }
     }
 
@@ -98,6 +146,9 @@ impl Client {
 impl Drop for ClientInner {
     fn drop(&mut self) {
         unsafe {
+            for cb in &**self.callbacks.borrow() {
+                sys::unregister_rust_steam_callback(*cb);
+            }
             debug_assert!(sys::SteamAPI_ISteamClient_BReleaseSteamPipe(self.client, self.pipe) != 0);
             sys::SteamAPI_Shutdown();
         }
@@ -107,12 +158,22 @@ impl Drop for ClientInner {
 #[derive(Clone, Copy, Debug)]
 pub struct SteamId(pub(crate) u64);
 
+pub unsafe trait Callback {
+    fn id() -> i32;
+    fn size() -> i32;
+    unsafe fn from_raw(raw: *mut libc::c_void) -> Self;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn basic_test() {
         let client = Client::init().unwrap();
+
+        client.register_callback(|p: PersonaStateChange| {
+            println!("Got callback: {:?}", p);
+        });
 
         let utils = client.utils();
         println!("Utils:");
@@ -135,6 +196,13 @@ mod tests {
         println!("{:?}", list);
         for f in &list {
             println!("Friend: {:?} - {}({:?})", f.id(), f.name(), f.state());
+            friends.request_user_information(f.id(), true);
+        }
+        friends.request_user_information(SteamId(76561198174976054), true);
+
+        for _ in 0 .. 50 {
+            client.run_callbacks();
+            ::std::thread::sleep_ms(100);
         }
     }
 }

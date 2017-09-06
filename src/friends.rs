@@ -44,6 +44,35 @@ impl Friends {
             friends
         }
     }
+
+    pub fn request_user_information(&self, user: SteamId, name_only: bool) {
+        unsafe {
+            println!("rui: {}", sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only as u8));
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct PersonaStateChange {
+    pub steam_id: SteamId,
+    pub flags: i32, // TODO:
+}
+
+unsafe impl Callback for PersonaStateChange {
+    fn id() -> i32 {
+        304
+    }
+    fn size() -> i32 {
+        ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32
+    }
+
+    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+        let val = &mut *(raw as *mut sys::PersonaStateChange_t);
+        PersonaStateChange {
+            steam_id: SteamId(val.steam_id),
+            flags: val.flags as i32,
+        }
+    }
 }
 
 pub struct Friend {
