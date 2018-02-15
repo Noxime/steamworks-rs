@@ -19,7 +19,7 @@ pub use friends::*;
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ffi::CStr;
+use std::ffi::{CString, CStr};
 use std::borrow::Cow;
 use std::fmt::{
     Debug, Formatter, self
@@ -192,7 +192,7 @@ mod tests {
 
         let friends = client.friends();
         println!("Friends");
-        let list = friends.get_friends(FRIEND_FLAG_IMMEDIATE);
+        let list = friends.get_friends(FriendFlags::IMMEDIATE);
         println!("{:?}", list);
         for f in &list {
             println!("Friend: {:?} - {}({:?})", f.id(), f.name(), f.state());

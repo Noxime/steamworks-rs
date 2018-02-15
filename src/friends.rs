@@ -4,24 +4,43 @@ use super::*;
 bitflags! {
     #[repr(C)]
     pub struct FriendFlags: u16 {
-        const FRIEND_FLAG_NONE                  = 0x0000;
-        const FRIEND_FLAG_BLOCKED               = 0x0001;
-        const FRIEND_FLAG_FRIENDSHIP_REQUESTED  = 0x0002;
-        const FRIEND_FLAG_IMMEDIATE             = 0x0004;
-        const FRIEND_FLAG_CLAN_MEMBER           = 0x0008;
-        const FRIEND_FLAG_ON_GAME_SERVER        = 0x0010;
+        const NONE                  = 0x0000;
+        const BLOCKED               = 0x0001;
+        const FRIENDSHIP_REQUESTED  = 0x0002;
+        const IMMEDIATE             = 0x0004;
+        const CLAN_MEMBER           = 0x0008;
+        const ON_GAME_SERVER        = 0x0010;
         // Unused
         // Unused
-        const FRIEND_FLAG_REQUESTING_FRIENDSHIP = 0x0080;
-        const FRIEND_FLAG_REQUESTING_INFO       = 0x0100;
-        const FRIEND_FLAG_IGNORED               = 0x0200;
-        const FRIEND_FLAG_IGNORED_FRIEND        = 0x0400;
+        const REQUESTING_FRIENDSHIP = 0x0080;
+        const REQUESTING_INFO       = 0x0100;
+        const IGNORED               = 0x0200;
+        const IGNORED_FRIEND        = 0x0400;
         // Unused
-        const FRIEND_FLAG_CHAT_MEMBER           = 0x1000;
-        const FRIEND_FLAG_ALL                   = 0xFFFF;
+        const CHAT_MEMBER           = 0x1000;
+        const ALL                   = 0xFFFF;
     }
 }
 
+bitflags! {
+    #[repr(C)]
+    pub struct PersonaChange: i32 {
+        const NAME                = 0x0001;
+        const STATUS              = 0x0002;
+        const COME_ONLINE         = 0x0004;
+        const GONE_OFFLINE        = 0x0008;
+        const GAME_PLAYED         = 0x0010;
+        const GAME_SERVER         = 0x0020;
+        const AVATAR              = 0x0040;
+        const JOINED_SOURCE       = 0x0080;
+        const LEFT_SOURCE         = 0x0100;
+        const RELATIONSHIP_CHANGE = 0x0200;
+        const NAME_FIRST_SET      = 0x0400;
+        const FACEBOOK_INFO       = 0x0800;
+        const NICKNAME            = 0x1000;
+        const STEAM_LEVEL         = 0x2000;
+    }
+}
 pub struct Friends {
     pub(crate) friends: *mut sys::ISteamFriends,
     pub(crate) _client: Rc<ClientInner>,
@@ -47,7 +66,15 @@ impl Friends {
 
     pub fn request_user_information(&self, user: SteamId, name_only: bool) {
         unsafe {
-            println!("rui: {}", sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only as u8));
+            sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only as u8);
+        }
+    }
+
+    // I don't know why this is part of friends either
+    pub fn activate_game_overlay_to_web_page(&self, url: &str) {
+        unsafe {
+            let url = CString::new(url).unwrap();
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(self.friends, url.as_ptr() as *const _);
         }
     }
 }
@@ -55,7 +82,7 @@ impl Friends {
 #[derive(Debug)]
 pub struct PersonaStateChange {
     pub steam_id: SteamId,
-    pub flags: i32, // TODO:
+    pub flags: PersonaChange,
 }
 
 unsafe impl Callback for PersonaStateChange {
@@ -70,7 +97,7 @@ unsafe impl Callback for PersonaStateChange {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
         PersonaStateChange {
             steam_id: SteamId(val.steam_id),
-            flags: val.flags as i32,
+            flags: PersonaChange::from_bits_truncate(val.flags as i32),
         }
     }
 }
