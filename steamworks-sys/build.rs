@@ -1,5 +1,5 @@
 
-extern crate gcc;
+extern crate cc;
 
 use std::env;
 use std::path::Path;
@@ -32,7 +32,7 @@ fn main() {
     println!("cargo:rustc-link-search={}", path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
-    gcc::Build::new()
+    cc::Build::new()
         .cpp(true)
         .include(sdk_loc.join("public/steam"))
         .file("src/lib.cpp")
