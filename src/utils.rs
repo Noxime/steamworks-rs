@@ -3,7 +3,7 @@ use super::*;
 
 pub struct Utils {
     pub(crate) utils: *mut sys::ISteamUtils,
-    pub(crate) _client: Rc<ClientInner>,
+    pub(crate) _client: Arc<ClientInner>,
 }
 
 impl Utils {

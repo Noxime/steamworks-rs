@@ -5,7 +5,7 @@ pub struct AppId(pub u32);
 
 pub struct Apps {
     pub(crate) apps: *mut sys::ISteamApps,
-    pub(crate) _client: Rc<ClientInner>,
+    pub(crate) _client: Arc<ClientInner>,
 }
 
 impl Apps {

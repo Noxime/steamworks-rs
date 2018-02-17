@@ -17,23 +17,28 @@ pub use app::*;
 mod friends;
 pub use friends::*;
 
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc, Mutex};
 use std::ffi::{CString, CStr};
 use std::borrow::Cow;
 use std::fmt::{
     Debug, Formatter, self
 };
 
+// A note about thread-safety:
+// The steam api is assumed to be thread safe unless
+// the documentation for a method states otherwise,
+// however this is never stated anywhere in the docs
+// that I could see.
+
 pub struct Client {
-    inner: Rc<ClientInner>,
+    inner: Arc<ClientInner>,
 }
 
 struct ClientInner {
     client: *mut sys::ISteamClient,
     pipe: sys::HSteamPipe,
 
-    callbacks: RefCell<Vec<*mut libc::c_void>>,
+    callbacks: Mutex<Vec<*mut libc::c_void>>,
 }
 
 impl Client {
@@ -43,10 +48,10 @@ impl Client {
                 bail!(ErrorKind::InitFailed);
             }
             let client = sys::SteamInternal_CreateInterface(sys::STEAMCLIENT_INTERFACE_VERSION.as_ptr() as *const _);
-            let client = Rc::new(ClientInner {
+            let client = Arc::new(ClientInner {
                 client: client,
                 pipe: sys::SteamAPI_ISteamClient_CreateSteamPipe(client),
-                callbacks: RefCell::new(Vec::new()),
+                callbacks: Mutex::new(Vec::new()),
             });
             Ok(Client {
                 inner: client,
@@ -62,7 +67,7 @@ impl Client {
 
     pub fn register_callback<C, F>(&self, f: F)
         where C: Callback,
-              F: FnMut(C) + 'static
+              F: FnMut(C) + 'static + Send + Sync
     {
         unsafe {
             let userdata = Box::into_raw(Box::new(f));
@@ -92,7 +97,7 @@ impl Client {
                 dealloc::<C, F>,
                 C::id() as _
             );
-            let mut cbs = self.inner.callbacks.borrow_mut();
+            let mut cbs = self.inner.callbacks.lock().unwrap();
             cbs.push(ptr);
         }
     }
@@ -146,7 +151,7 @@ impl Client {
 impl Drop for ClientInner {
     fn drop(&mut self) {
         unsafe {
-            for cb in &**self.callbacks.borrow() {
+            for cb in &**self.callbacks.lock().unwrap() {
                 sys::unregister_rust_steam_callback(*cb);
             }
             debug_assert!(sys::SteamAPI_ISteamClient_BReleaseSteamPipe(self.client, self.pipe) != 0);

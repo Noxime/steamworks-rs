@@ -43,7 +43,7 @@ bitflags! {
 }
 pub struct Friends {
     pub(crate) friends: *mut sys::ISteamFriends,
-    pub(crate) _client: Rc<ClientInner>,
+    pub(crate) _client: Arc<ClientInner>,
 }
 
 impl Friends {
@@ -105,7 +105,7 @@ unsafe impl Callback for PersonaStateChange {
 pub struct Friend {
     id: SteamId,
     friends: *mut sys::ISteamFriends,
-    _client: Rc<ClientInner>,
+    _client: Arc<ClientInner>,
 }
 
 impl Debug for Friend {
