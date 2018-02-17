@@ -30,6 +30,10 @@ use std::fmt::{
 // however this is never stated anywhere in the docs
 // that I could see.
 
+/// The main entry point into the steam client.
+///
+/// This provides access to all of the steamworks api.
+#[derive(Clone)]
 pub struct Client {
     inner: Arc<ClientInner>,
 }
@@ -42,6 +46,23 @@ struct ClientInner {
 }
 
 impl Client {
+    /// Attempts to initialize the steamworks api and returns
+    /// a client to access the rest of the api.
+    ///
+    /// This should only ever have one instance per a program.
+    ///
+    /// # Errors
+    ///
+    /// This can fail if:
+    /// * The steam client isn't running
+    /// * The app ID of the game couldn't be determined.
+    ///
+    ///   If the game isn't being run through steam this can be provided by
+    ///   placing a `steam_appid.txt` with the ID inside in the current
+    ///   working directory
+    /// * The game isn't running on the same user/level as the steam client
+    /// * The user doesn't own a license for the game.
+    /// * The app ID isn't completely set up.
     pub fn init() -> SResult<Client> {
         unsafe {
             if sys::SteamAPI_Init() == 0 {
@@ -59,12 +80,24 @@ impl Client {
         }
     }
 
+    /// Runs any currently pending callbacks
+    ///
+    /// This runs all currently pending callbacks on the current
+    /// thread.
+    ///
+    /// This should be called frequently (e.g. once per a frame)
+    /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
         unsafe {
             sys::SteamAPI_RunCallbacks();
         }
     }
 
+    /// Registers the passed function as a callback for the
+    /// given type.
+    ///
+    /// The callback will be run on the thread that `run_callbacks`
+    /// is called when the event arrives.
     pub fn register_callback<C, F>(&self, f: F)
         where C: Callback,
               F: FnMut(C) + 'static + Send + Sync
@@ -102,6 +135,7 @@ impl Client {
         }
     }
 
+    /// Returns an accessor to the steam utils interface
     pub fn utils(&self) -> Utils {
         unsafe {
             let utils = sys::SteamAPI_ISteamClient_GetISteamUtils(
@@ -116,6 +150,7 @@ impl Client {
         }
     }
 
+    /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps {
         unsafe {
             let user = sys::SteamAPI_ISteamClient_ConnectToGlobalUser(self.inner.client, self.inner.pipe);
@@ -131,6 +166,7 @@ impl Client {
         }
     }
 
+    /// Returns an accessor to the steam friends interface
     pub fn friends(&self) -> Friends {
         unsafe {
             let user = sys::SteamAPI_ISteamClient_ConnectToGlobalUser(self.inner.client, self.inner.pipe);
@@ -160,6 +196,7 @@ impl Drop for ClientInner {
     }
 }
 
+/// A user's steam id
 #[derive(Clone, Copy, Debug)]
 pub struct SteamId(pub(crate) u64);
 
