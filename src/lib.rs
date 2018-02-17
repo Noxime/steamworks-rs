@@ -207,7 +207,7 @@ mod tests {
 
         for _ in 0 .. 50 {
             client.run_callbacks();
-            ::std::thread::sleep_ms(100);
+            ::std::thread::sleep(::std::time::Duration::from_millis(100));
         }
     }
 }
