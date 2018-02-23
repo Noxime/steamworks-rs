@@ -45,6 +45,9 @@ struct ClientInner {
     callbacks: Mutex<Vec<*mut libc::c_void>>,
 }
 
+unsafe impl Send for ClientInner {}
+unsafe impl Sync for ClientInner {}
+
 impl Client {
     /// Attempts to initialize the steamworks api and returns
     /// a client to access the rest of the api.
