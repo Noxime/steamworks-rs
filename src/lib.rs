@@ -16,13 +16,16 @@ mod app;
 pub use app::*;
 mod friends;
 pub use friends::*;
+mod matchmaking;
+pub use matchmaking::*;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, Weak};
 use std::ffi::{CString, CStr};
 use std::borrow::Cow;
 use std::fmt::{
     Debug, Formatter, self
 };
+use std::collections::HashMap;
 
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
@@ -39,10 +42,13 @@ pub struct Client {
 }
 
 struct ClientInner {
-    client: *mut sys::ISteamClient,
-    pipe: sys::HSteamPipe,
+    _client: *mut sys::ISteamClient,
+    callbacks: Mutex<ClientCallbacks>,
+}
 
-    callbacks: Mutex<Vec<*mut libc::c_void>>,
+struct ClientCallbacks {
+    callbacks: Vec<*mut libc::c_void>,
+    call_results: HashMap<sys::SteamAPICall, *mut libc::c_void>,
 }
 
 unsafe impl Send for ClientInner {}
@@ -71,11 +77,13 @@ impl Client {
             if sys::SteamAPI_Init() == 0 {
                 bail!(ErrorKind::InitFailed);
             }
-            let client = sys::SteamInternal_CreateInterface(sys::STEAMCLIENT_INTERFACE_VERSION.as_ptr() as *const _);
+            let client = sys::steam_rust_get_client();
             let client = Arc::new(ClientInner {
-                client: client,
-                pipe: sys::SteamAPI_ISteamClient_CreateSteamPipe(client),
-                callbacks: Mutex::new(Vec::new()),
+                _client: client,
+                callbacks: Mutex::new(ClientCallbacks {
+                    callbacks: Vec::new(),
+                    call_results: HashMap::new(),
+                }),
             });
             Ok(Client {
                 inner: client,
@@ -110,7 +118,7 @@ impl Client {
 
             extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void)
                 where C: Callback,
-                      F: FnMut(C) + 'static
+                      F: FnMut(C) + 'static + Send + Sync
             {
                 unsafe {
                     let func: &mut F = &mut *(userdata as *mut F);
@@ -120,7 +128,7 @@ impl Client {
             }
             extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
                 where C: Callback,
-                      F: FnMut(C) + 'static
+                      F: FnMut(C) + 'static + Send + Sync
             {
                 let func: Box<F> = unsafe { Box::from_raw(userdata as _) };
                 drop(func);
@@ -134,18 +142,63 @@ impl Client {
                 C::id() as _
             );
             let mut cbs = self.inner.callbacks.lock().unwrap();
-            cbs.push(ptr);
+            cbs.callbacks.push(ptr);
         }
+    }
+
+    pub(crate) unsafe fn register_call_result<C, F>(inner: &Arc<ClientInner>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
+        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+    {
+        use std::mem;
+
+        struct Info<F> {
+            func: F,
+            api_call: sys::SteamAPICall,
+            client: Weak<ClientInner>,
+        }
+
+        let userdata = Box::into_raw(Box::new(Info {
+            func: f,
+            api_call,
+            client: Arc::downgrade(&inner),
+        }));
+
+        extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void, io_error: bool)
+            where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+        {
+            unsafe {
+                let func: &mut Info<F> = &mut *(userdata as *mut Info<F>);
+                (func.func)(&*(param as *const _), io_error);
+            }
+        }
+        extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
+            where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+        {
+            let func: Box<Info<F>> = unsafe { Box::from_raw(userdata as _) };
+            if let Some(inner) = func.client.upgrade() {
+                let mut cbs = inner.callbacks.lock().unwrap();
+                cbs.call_results.remove(&func.api_call);
+            }
+            drop(func);
+        }
+
+        let ptr = sys::register_rust_steam_call_result(
+            mem::size_of::<C>() as _,
+            userdata as _,
+            run_func::<C, F>,
+            dealloc::<C, F>,
+            api_call,
+            callback_id as _,
+        );
+        let mut cbs = inner.callbacks.lock().unwrap();
+        cbs.call_results.insert(api_call, ptr);
     }
 
     /// Returns an accessor to the steam utils interface
     pub fn utils(&self) -> Utils {
         unsafe {
-            let utils = sys::SteamAPI_ISteamClient_GetISteamUtils(
-                self.inner.client, self.inner.pipe,
-                sys::STEAMUTILS_INTERFACE_VERSION.as_ptr() as *const _
-            );
-            assert!(!utils.is_null());
+            let utils = sys::steam_rust_get_utils();
+            debug_assert!(!utils.is_null());
             Utils {
                 utils: utils,
                 _client: self.inner.clone(),
@@ -153,15 +206,23 @@ impl Client {
         }
     }
 
+    /// Returns an accessor to the steam matchmaking interface
+    pub fn matchmaking(&self) -> Matchmaking {
+        unsafe {
+            let mm = sys::steam_rust_get_matchmaking();
+            debug_assert!(!mm.is_null());
+            Matchmaking {
+                mm: mm,
+                client: self.inner.clone(),
+            }
+        }
+    }
+
     /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps {
         unsafe {
-            let user = sys::SteamAPI_ISteamClient_ConnectToGlobalUser(self.inner.client, self.inner.pipe);
-            let apps = sys::SteamAPI_ISteamClient_GetISteamApps(
-                self.inner.client, user, self.inner.pipe,
-                sys::STEAMAPPS_INTERFACE_VERSION.as_ptr() as *const _
-            );
-            assert!(!apps.is_null());
+            let apps = sys::steam_rust_get_apps();
+            debug_assert!(!apps.is_null());
             Apps {
                 apps: apps,
                 _client: self.inner.clone(),
@@ -172,12 +233,8 @@ impl Client {
     /// Returns an accessor to the steam friends interface
     pub fn friends(&self) -> Friends {
         unsafe {
-            let user = sys::SteamAPI_ISteamClient_ConnectToGlobalUser(self.inner.client, self.inner.pipe);
-            let friends = sys::SteamAPI_ISteamClient_GetISteamFriends(
-                self.inner.client, user, self.inner.pipe,
-                sys::STEAMFRIENDS_INTERFACE_VERSION.as_ptr() as *const _
-            );
-            assert!(!friends.is_null());
+            let friends = sys::steam_rust_get_friends();
+            debug_assert!(!friends.is_null());
             Friends {
                 friends: friends,
                 _client: self.inner.clone(),
@@ -190,10 +247,15 @@ impl Client {
 impl Drop for ClientInner {
     fn drop(&mut self) {
         unsafe {
-            for cb in &**self.callbacks.lock().unwrap() {
-                sys::unregister_rust_steam_callback(*cb);
+            {
+                let callbacks = self.callbacks.lock().unwrap();
+                for cb in &callbacks.callbacks {
+                    sys::unregister_rust_steam_callback(*cb);
+                }
+                for cb in callbacks.call_results.values() {
+                    sys::unregister_rust_steam_call_result(*cb);
+                }
             }
-            debug_assert!(sys::SteamAPI_ISteamClient_BReleaseSteamPipe(self.client, self.pipe) != 0);
             sys::SteamAPI_Shutdown();
         }
     }
