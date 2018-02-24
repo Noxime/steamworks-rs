@@ -61,6 +61,14 @@ pub struct LobbyMatchList {
 }
 
 #[repr(C)]
+pub enum NotificationPosition {
+    TopLeft = 0,
+    TopRight = 1,
+    BottomLeft = 2,
+    BottomRight = 3,
+}
+
+#[repr(C)]
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub enum SResult {
     Ok = 1,
@@ -220,6 +228,7 @@ extern "C" {
     pub fn SteamAPI_ISteamUtils_GetAppID(instance: *mut ISteamUtils) -> u32;
     pub fn SteamAPI_ISteamUtils_GetSteamUILanguage(instance: *mut ISteamUtils) -> *const c_char;
     pub fn SteamAPI_ISteamUtils_IsAPICallCompleted(instance: *mut ISteamUtils, api_call: SteamAPICall, failed: *mut bool) -> bool;
+    pub fn SteamAPI_ISteamUtils_SetOverlayNotificationPosition(instance: *mut ISteamUtils, position: NotificationPosition);
 
     pub fn SteamAPI_ISteamApps_BIsAppInstalled(instance: *mut ISteamApps, app_id: AppId) -> u8;
     pub fn SteamAPI_ISteamApps_BIsDlcInstalled(instance: *mut ISteamApps, app_id: AppId) -> u8;
