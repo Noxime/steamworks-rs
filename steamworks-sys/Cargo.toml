@@ -3,7 +3,7 @@ name = "steamworks-sys"
 version = "0.1.0"
 authors = ["matt"]
 build = "build.rs"
-description = "Provides raw friendly bindings to the steamworks sdk"
+description = "Provides raw bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
 repository = "https://github.com/Thinkofname/steamworks-rs"
 documentation = "https://docs.rs/steamworks-sys"
@@ -20,3 +20,6 @@ libc = "0.2.36"
 
 [build-dependencies]
 cc = "1.0.4"
+
+[package.metadata.docs.rs]
+features = [ "docs-only" ]
