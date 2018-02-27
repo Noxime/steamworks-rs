@@ -1,10 +1,15 @@
 
 extern crate cc;
 
-use std::env;
-use std::path::Path;
 
+#[cfg(feature = "docs-only")]
+fn main() {}
+
+#[cfg(not(feature = "docs-only"))]
 fn main() {
+    use std::env;
+    use std::path::Path;
+    
     let sdk_loc = env::var("STEAM_SDK_LOCATION")
         .expect("STEAM_SDK_LOCATION must be set");
     let sdk_loc = Path::new(&sdk_loc);

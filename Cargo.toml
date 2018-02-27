@@ -3,6 +3,11 @@ name = "steamworks"
 version = "0.1.0"
 authors = ["matt"]
 
+[features]
+default = []
+# Skip looking for the steamworks sdk for docs builds
+docs-only = ["steamworks-sys/docs-only"]
+
 [workspace]
 members = [
     "./steamworks-sys"

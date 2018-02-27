@@ -4,6 +4,13 @@ version = "0.1.0"
 authors = ["matt"]
 build = "build.rs"
 
+
+[features]
+default = []
+# Skip looking for the steamworks sdk for docs builds
+docs-only = []
+
+
 [dependencies]
 libc = "0.2.36"
 
