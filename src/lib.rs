@@ -18,6 +18,8 @@ mod friends;
 pub use friends::*;
 mod matchmaking;
 pub use matchmaking::*;
+mod user;
+pub use user::*;
 
 use std::sync::{Arc, Mutex, Weak};
 use std::ffi::{CString, CStr};
@@ -237,6 +239,19 @@ impl Client {
             debug_assert!(!friends.is_null());
             Friends {
                 friends: friends,
+                _client: self.inner.clone(),
+            }
+        }
+
+    }
+
+    /// Returns an accessor to the steam user interface
+    pub fn user(&self) -> User {
+        unsafe {
+            let user = sys::steam_rust_get_user();
+            debug_assert!(!user.is_null());
+            User {
+                user,
                 _client: self.inner.clone(),
             }
         }

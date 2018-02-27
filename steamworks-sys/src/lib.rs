@@ -17,6 +17,8 @@ pub struct ISteamApps(c_void);
 pub struct ISteamFriends(c_void);
 #[repr(C)]
 pub struct ISteamMatchmaking(c_void);
+#[repr(C)]
+pub struct ISteamUser(c_void);
 
 pub type HSteamPipe = i32;
 pub type HSteamUser = i32;
@@ -215,6 +217,7 @@ extern "C" {
     pub fn steam_rust_get_utils() -> *mut ISteamUtils;
     pub fn steam_rust_get_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_friends() -> *mut ISteamFriends;
+    pub fn steam_rust_get_user() -> *mut ISteamUser;
     //
 
     pub fn SteamAPI_Init() -> u8;
@@ -255,4 +258,6 @@ extern "C" {
     pub fn SteamAPI_ISteamMatchmaking_CreateLobby(instance: *mut ISteamMatchmaking, lobby_ty: LobbyType, max_members: c_int) -> SteamAPICall;
     pub fn SteamAPI_ISteamMatchmaking_RequestLobbyList(instance: *mut ISteamMatchmaking) -> SteamAPICall;
     pub fn SteamAPI_ISteamMatchmaking_GetLobbyByIndex(instance: *mut ISteamMatchmaking, lobby: c_int) -> u64;
+
+    pub fn SteamAPI_ISteamUser_GetSteamID(instance: *mut ISteamUser) -> u64;
 }

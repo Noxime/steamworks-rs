@@ -100,3 +100,4 @@ extern "C" ISteamMatchmaking *steam_rust_get_matchmaking() {
 extern "C" ISteamUtils *steam_rust_get_utils() { return SteamUtils(); }
 extern "C" ISteamApps *steam_rust_get_apps() { return SteamApps(); }
 extern "C" ISteamFriends *steam_rust_get_friends() { return SteamFriends(); }
+extern "C" ISteamUser *steam_rust_get_user() { return SteamUser(); }
