@@ -40,11 +40,12 @@ pub type SResult<T> = Result<T, SteamError>;
 ///
 /// This provides access to all of the steamworks api.
 #[derive(Clone)]
-pub struct Client {
-    inner: Arc<ClientInner>,
+pub struct Client<Manager = ClientManager> {
+    inner: Arc<Inner<Manager>>,
 }
 
-struct ClientInner {
+struct Inner<Manager> {
+    _manager: Manager,
     _client: *mut sys::ISteamClient,
     callbacks: Mutex<ClientCallbacks>,
 }
@@ -54,10 +55,10 @@ struct ClientCallbacks {
     call_results: HashMap<sys::SteamAPICall, *mut libc::c_void>,
 }
 
-unsafe impl Send for ClientInner {}
-unsafe impl Sync for ClientInner {}
+unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}
+unsafe impl <Manager: Send + Sync> Sync for Inner<Manager> {}
 
-impl Client {
+impl Client<ClientManager> {
     /// Attempts to initialize the steamworks api and returns
     /// a client to access the rest of the api.
     ///
@@ -75,13 +76,14 @@ impl Client {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SResult<Client> {
+    pub fn init() -> SResult<Client<ClientManager>> {
         unsafe {
             if sys::SteamAPI_Init() == 0 {
                 return Err(SteamError::InitFailed);
             }
             let client = sys::steam_rust_get_client();
-            let client = Arc::new(ClientInner {
+            let client = Arc::new(Inner {
+                _manager: ClientManager { _priv: () },
                 _client: client,
                 callbacks: Mutex::new(ClientCallbacks {
                     callbacks: Vec::new(),
@@ -93,7 +95,9 @@ impl Client {
             })
         }
     }
+}
 
+impl <Manager> Client<Manager> {
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -149,118 +153,70 @@ impl Client {
         }
     }
 
-    pub(crate) unsafe fn register_call_result<C, F>(inner: &Arc<ClientInner>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
-        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-    {
-        use std::mem;
-
-        struct Info<F> {
-            func: F,
-            api_call: sys::SteamAPICall,
-            client: Weak<ClientInner>,
-        }
-
-        let userdata = Box::into_raw(Box::new(Info {
-            func: f,
-            api_call,
-            client: Arc::downgrade(&inner),
-        }));
-
-        extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void, io_error: bool)
-            where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-        {
-            unsafe {
-                let func: &mut Info<F> = &mut *(userdata as *mut Info<F>);
-                (func.func)(&*(param as *const _), io_error);
-            }
-        }
-        extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
-            where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-        {
-            let func: Box<Info<F>> = unsafe { Box::from_raw(userdata as _) };
-            if let Some(inner) = func.client.upgrade() {
-                let mut cbs = inner.callbacks.lock().unwrap();
-                cbs.call_results.remove(&func.api_call);
-            }
-            drop(func);
-        }
-
-        let ptr = sys::register_rust_steam_call_result(
-            mem::size_of::<C>() as _,
-            userdata as _,
-            run_func::<C, F>,
-            dealloc::<C, F>,
-            api_call,
-            callback_id as _,
-        );
-        let mut cbs = inner.callbacks.lock().unwrap();
-        cbs.call_results.insert(api_call, ptr);
-    }
-
     /// Returns an accessor to the steam utils interface
-    pub fn utils(&self) -> Utils {
+    pub fn utils(&self) -> Utils<Manager> {
         unsafe {
             let utils = sys::steam_rust_get_utils();
             debug_assert!(!utils.is_null());
             Utils {
                 utils: utils,
-                _client: self.inner.clone(),
+                _inner: self.inner.clone(),
             }
         }
     }
 
     /// Returns an accessor to the steam matchmaking interface
-    pub fn matchmaking(&self) -> Matchmaking {
+    pub fn matchmaking(&self) -> Matchmaking<Manager> {
         unsafe {
             let mm = sys::steam_rust_get_matchmaking();
             debug_assert!(!mm.is_null());
             Matchmaking {
                 mm: mm,
-                client: self.inner.clone(),
+                inner: self.inner.clone(),
             }
         }
     }
 
     /// Returns an accessor to the steam apps interface
-    pub fn apps(&self) -> Apps {
+    pub fn apps(&self) -> Apps<Manager> {
         unsafe {
             let apps = sys::steam_rust_get_apps();
             debug_assert!(!apps.is_null());
             Apps {
                 apps: apps,
-                _client: self.inner.clone(),
+                _inner: self.inner.clone(),
             }
         }
     }
 
     /// Returns an accessor to the steam friends interface
-    pub fn friends(&self) -> Friends {
+    pub fn friends(&self) -> Friends<Manager> {
         unsafe {
             let friends = sys::steam_rust_get_friends();
             debug_assert!(!friends.is_null());
             Friends {
                 friends: friends,
-                _client: self.inner.clone(),
+                inner: self.inner.clone(),
             }
         }
 
     }
 
     /// Returns an accessor to the steam user interface
-    pub fn user(&self) -> User {
+    pub fn user(&self) -> User<Manager> {
         unsafe {
             let user = sys::steam_rust_get_user();
             debug_assert!(!user.is_null());
             User {
                 user,
-                _client: self.inner.clone(),
+                _inner: self.inner.clone(),
             }
         }
 
     }
 }
 
-impl Drop for ClientInner {
+impl <Manager> Drop for Inner<Manager> {
     fn drop(&mut self) {
         unsafe {
             {
@@ -272,6 +228,68 @@ impl Drop for ClientInner {
                     sys::unregister_rust_steam_call_result(*cb);
                 }
             }
+        }
+    }
+}
+
+
+
+pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
+    where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+{
+    use std::mem;
+
+    struct Info<F, Manager> {
+        func: F,
+        api_call: sys::SteamAPICall,
+        inner: Weak<Inner<Manager>>,
+    }
+
+    let userdata = Box::into_raw(Box::new(Info {
+        func: f,
+        api_call,
+        inner: Arc::downgrade(&inner),
+    }));
+
+    extern "C" fn run_func<C, F, Manager>(userdata: *mut libc::c_void, param: *mut libc::c_void, io_error: bool)
+        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+    {
+        unsafe {
+            let func: &mut Info<F, Manager> = &mut *(userdata as *mut Info<F, Manager>);
+            (func.func)(&*(param as *const _), io_error);
+        }
+    }
+    extern "C" fn dealloc<C, F, Manager>(userdata: *mut libc::c_void)
+        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+    {
+        let func: Box<Info<F, Manager>> = unsafe { Box::from_raw(userdata as _) };
+        if let Some(inner) = func.inner.upgrade() {
+            let mut cbs = inner.callbacks.lock().unwrap();
+            cbs.call_results.remove(&func.api_call);
+        }
+        drop(func);
+    }
+
+    let ptr = sys::register_rust_steam_call_result(
+        mem::size_of::<C>() as _,
+        userdata as _,
+        run_func::<C, F, Manager>,
+        dealloc::<C, F, Manager>,
+        api_call,
+        callback_id as _,
+    );
+    let mut cbs = inner.callbacks.lock().unwrap();
+    cbs.call_results.insert(api_call, ptr);
+}
+
+/// Manages keeping the steam api active for clients
+pub struct ClientManager {
+    _priv: (),
+}
+
+impl Drop for ClientManager {
+    fn drop(&mut self) {
+        unsafe {
             sys::SteamAPI_Shutdown();
         }
     }

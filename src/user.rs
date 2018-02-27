@@ -2,12 +2,12 @@
 use super::*;
 
 /// Access to the steam user interface
-pub struct User {
+pub struct User<Manager> {
     pub(crate) user: *mut sys::ISteamUser,
-    pub(crate) _client: Arc<ClientInner>,
+    pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
-impl User {
+impl <Manager> User<Manager> {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
         unsafe {

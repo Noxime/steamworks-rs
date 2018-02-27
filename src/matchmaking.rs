@@ -2,9 +2,9 @@
 use super::*;
 
 /// Access to the steam matchmaking interface
-pub struct Matchmaking {
+pub struct Matchmaking<Manager> {
     pub(crate) mm: *mut sys::ISteamMatchmaking,
-    pub(crate) client: Arc<ClientInner>,
+    pub(crate) inner: Arc<Inner<Manager>>,
 }
 
 const CALLBACK_BASE_ID: i32 = 500;
@@ -19,15 +19,15 @@ pub enum LobbyType {
 #[derive(Debug)]
 pub struct LobbyId(u64);
 
-impl Matchmaking {
+impl <Manager> Matchmaking<Manager> {
 
     pub fn request_lobby_list<F>(&self, mut cb: F)
         where F: FnMut(Result<Vec<LobbyId>, SteamError>) + 'static + Send + Sync
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
-            Client::register_call_result::<sys::LobbyMatchList, _>(
-                &self.client, api_call, CALLBACK_BASE_ID + 10,
+            register_call_result::<sys::LobbyMatchList, _, _>(
+                &self.inner, api_call, CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
                    cb(if io_error {
                       Err(SteamError::IOFailure)
@@ -53,8 +53,8 @@ impl Matchmaking {
                 LobbyType::Invisible => sys::LobbyType::Invisible,
             };
             let api_call = sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
-            Client::register_call_result::<sys::LobbyCreated, _>(
-                &self.client, api_call, CALLBACK_BASE_ID + 13,
+            register_call_result::<sys::LobbyCreated, _, _>(
+                &self.inner, api_call, CALLBACK_BASE_ID + 13,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)

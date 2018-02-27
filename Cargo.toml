@@ -1,10 +1,9 @@
 [package]
 name = "steamworks"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["matt"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
-license-file = "LICENSE-MIT"
 repository = "https://github.com/Thinkofname/steamworks-rs"
 documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]

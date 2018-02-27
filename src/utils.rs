@@ -2,9 +2,9 @@
 use super::*;
 
 /// Access to the steam utils interface
-pub struct Utils {
+pub struct Utils<Manager> {
     pub(crate) utils: *mut sys::ISteamUtils,
-    pub(crate) _client: Arc<ClientInner>,
+    pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
 pub enum NotificationPosition {
@@ -14,7 +14,7 @@ pub enum NotificationPosition {
     BottomRight,
 }
 
-impl Utils {
+impl <Manager> Utils<Manager> {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
         unsafe {

@@ -41,13 +41,15 @@ bitflags! {
         const STEAM_LEVEL         = 0x2000;
     }
 }
-pub struct Friends {
+
+/// Access to the steam friends interface
+pub struct Friends<Manager> {
     pub(crate) friends: *mut sys::ISteamFriends,
-    pub(crate) _client: Arc<ClientInner>,
+    pub(crate) inner: Arc<Inner<Manager>>,
 }
 
-impl Friends {
-    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend> {
+impl <Manager> Friends<Manager> {
+    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend<Manager>> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(self.friends, flags.bits() as _);
             let mut friends = Vec::with_capacity(count as usize);
@@ -56,7 +58,7 @@ impl Friends {
                 friends.push(Friend {
                     id: friend,
                     friends: self.friends,
-                    _client: self._client.clone(),
+                    _inner: self.inner.clone(),
                 });
             }
 
@@ -102,19 +104,19 @@ unsafe impl Callback for PersonaStateChange {
     }
 }
 
-pub struct Friend {
+pub struct Friend<Manager> {
     id: SteamId,
     friends: *mut sys::ISteamFriends,
-    _client: Arc<ClientInner>,
+    _inner: Arc<Inner<Manager>>,
 }
 
-impl Debug for Friend {
+impl <Manager> Debug for Friend<Manager> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "Friend({:?})", self.id)
     }
 }
 
-impl Friend {
+impl <Manager> Friend<Manager> {
     pub fn id(&self) -> SteamId {
         self.id
     }
