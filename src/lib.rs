@@ -262,7 +262,7 @@ impl Drop for ClientInner {
 }
 
 /// A user's steam id
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct SteamId(pub(crate) u64);
 
 pub unsafe trait Callback {
