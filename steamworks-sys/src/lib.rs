@@ -71,7 +71,7 @@ pub enum NotificationPosition {
 }
 
 #[repr(C)]
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub enum SResult {
     Ok = 1,
     Fail = 2,

@@ -22,7 +22,7 @@ pub struct LobbyId(u64);
 impl Matchmaking {
 
     pub fn request_lobby_list<F>(&self, mut cb: F)
-        where F: FnMut(Result<Vec<LobbyId>, ()>) + 'static + Send + Sync // TODO
+        where F: FnMut(Result<Vec<LobbyId>, SteamError>) + 'static + Send + Sync
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
@@ -30,7 +30,7 @@ impl Matchmaking {
                 &self.client, api_call, CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
                    cb(if io_error {
-                      Err(()) // TODO
+                      Err(SteamError::IOFailure)
                    } else {
                        let mut out = Vec::with_capacity(v.lobbies_matching as usize);
                        for idx in 0 .. v.lobbies_matching {
@@ -43,7 +43,7 @@ impl Matchmaking {
     }
 
     pub fn create_lobby<F>(&self, ty: LobbyType, max_members: u32, mut cb: F)
-        where F: FnMut(Result<LobbyId, ()>) + 'static + Send + Sync
+        where F: FnMut(Result<LobbyId, SteamError>) + 'static + Send + Sync
     {
         unsafe {
             let ty = match ty {
@@ -56,8 +56,10 @@ impl Matchmaking {
             Client::register_call_result::<sys::LobbyCreated, _>(
                 &self.client, api_call, CALLBACK_BASE_ID + 13,
                 move |v, io_error| {
-                    cb(if io_error || v.result != sys::SResult::Ok {
-                        Err(()) // TODO
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.result != sys::SResult::Ok {
+                        Err(v.result.into())
                     } else {
                         Ok(LobbyId(v.lobby_steam_id))
                     })

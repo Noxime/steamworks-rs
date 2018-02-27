@@ -10,6 +10,6 @@ members = [
 
 [dependencies]
 steamworks-sys = {path = "./steamworks-sys", version = "0.1.0"}
-error-chain = "0.11.0"
+failure = "0.1.1"
 bitflags = "1.0.1"
 libc = "0.2.36"

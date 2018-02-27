@@ -2,13 +2,12 @@
 extern crate libc;
 extern crate steamworks_sys as sys;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 #[macro_use]
 extern crate bitflags;
 
-pub mod error;
-pub use error::Result as SResult;
-use error::ErrorKind;
+mod error;
+pub use error::*;
 
 mod utils;
 pub use utils::*;
@@ -28,6 +27,8 @@ use std::fmt::{
     Debug, Formatter, self
 };
 use std::collections::HashMap;
+
+pub type SResult<T> = Result<T, SteamError>;
 
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
@@ -77,7 +78,7 @@ impl Client {
     pub fn init() -> SResult<Client> {
         unsafe {
             if sys::SteamAPI_Init() == 0 {
-                bail!(ErrorKind::InitFailed);
+                return Err(SteamError::InitFailed);
             }
             let client = sys::steam_rust_get_client();
             let client = Arc::new(ClientInner {
