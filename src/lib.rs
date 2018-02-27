@@ -281,6 +281,24 @@ impl Drop for ClientInner {
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct SteamId(pub(crate) u64);
 
+impl SteamId {
+    /// Creates a `SteamId` from a raw 64 bit value.
+    ///
+    /// May be useful for deserializing steam ids from
+    /// a network or save format.
+    pub fn from_raw(id: u64) -> SteamId {
+        SteamId(id)
+    }
+
+    /// Returns the raw 64 bit value of the steam id
+    ///
+    /// May be useful for serializing steam ids over a
+    /// network or to a save format.
+    pub fn raw(&self) -> u64 {
+        self.0
+    }
+}
+
 pub unsafe trait Callback {
     fn id() -> i32;
     fn size() -> i32;
