@@ -1,3 +1,4 @@
+#![allow(non_camel_case_types)]
 
 extern crate libc;
 
@@ -22,6 +23,7 @@ pub struct ISteamUser(c_void);
 
 pub type HSteamPipe = i32;
 pub type HSteamUser = i32;
+pub type HAuthTicket = u32;
 pub type AppId = u32;
 pub type SteamAPICall = u64;
 
@@ -53,6 +55,19 @@ pub struct PersonaStateChange_t {
 }
 
 #[repr(C)]
+pub struct GetAuthSessionTicketResponse_t {
+    pub auth_ticket: HAuthTicket,
+    pub result: SResult,
+}
+
+#[repr(C)]
+pub struct ValidateAuthTicketResponse_t {
+    pub steam_id: u64,
+    pub response: AuthSessionResponse,
+    pub owner_steam_id: u64,
+}
+
+#[repr(C)]
 pub struct LobbyCreated {
     pub result: SResult,
     pub lobby_steam_id: u64,
@@ -68,6 +83,30 @@ pub enum NotificationPosition {
     TopRight = 1,
     BottomLeft = 2,
     BottomRight = 3,
+}
+
+#[repr(C)]
+pub enum BeginAuthSessionResult {
+    Ok = 0,
+    InvalidTicket = 1,
+    DuplicateRequest = 2,
+    InvalidVersion = 3,
+    GameMismatch = 4,
+    ExpiredTicket = 5,
+}
+
+#[repr(C)]
+pub enum AuthSessionResponse {
+    Ok = 0,
+    UserNotConnectedToSteam = 1,
+    NoLicenseOrExpired = 2,
+    VACBanned = 3,
+    LoggedInElseWhere = 4,
+    VACCheckTimedOut = 5,
+    AuthTicketCancelled = 6,
+    AuthTicketInvalidAlreadyUsed = 7,
+    AuthTicketInvalid = 8,
+    PublisherIssuedBan = 9,
 }
 
 #[repr(C)]
@@ -260,4 +299,8 @@ extern "C" {
     pub fn SteamAPI_ISteamMatchmaking_GetLobbyByIndex(instance: *mut ISteamMatchmaking, lobby: c_int) -> u64;
 
     pub fn SteamAPI_ISteamUser_GetSteamID(instance: *mut ISteamUser) -> u64;
+    pub fn SteamAPI_ISteamUser_GetAuthSessionTicket(instance: *mut ISteamUser, ticket: *mut c_void, max_ticket: c_int, ticket_size: *mut u32) -> HAuthTicket;
+    pub fn SteamAPI_ISteamUser_BeginAuthSession(instance: *mut ISteamUser, ticket: *const c_void, ticket_size: *mut u32, steam_id: u64) -> BeginAuthSessionResult;
+    pub fn SteamAPI_ISteamUser_EndAuthSession(instance: *mut ISteamUser, steam_id: u64);
+    pub fn SteamAPI_ISteamUser_CancelAuthTicket(instance: *mut ISteamUser, auth_ticket: HAuthTicket);
 }
