@@ -2,6 +2,13 @@
 name = "steamworks"
 version = "0.1.0"
 authors = ["matt"]
+description = "Provides rust friendly bindings to the steamworks sdk"
+license = "MIT / Apache-2.0"
+license-file = "LICENSE-MIT"
+repository = "https://github.com/Thinkofname/steamworks-rs"
+documentation = "https://docs.rs/steamworks"
+keywords = ["steam", "gamedev"]
+categories = ["games"]
 
 [features]
 default = []
@@ -18,3 +25,6 @@ steamworks-sys = {path = "./steamworks-sys", version = "0.1.0"}
 failure = "0.1.1"
 bitflags = "1.0.1"
 libc = "0.2.36"
+
+[package.metadata.docs.rs]
+features = [ "docs-only" ]
