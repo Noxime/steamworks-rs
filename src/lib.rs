@@ -9,6 +9,8 @@ extern crate bitflags;
 mod error;
 pub use error::*;
 
+mod server;
+pub use server::*;
 mod utils;
 pub use utils::*;
 mod app;
@@ -38,25 +40,28 @@ pub type SResult<T> = Result<T, SteamError>;
 
 /// The main entry point into the steam client.
 ///
-/// This provides access to all of the steamworks api.
+/// This provides access to all of the steamworks api that
+/// clients can use.
 #[derive(Clone)]
 pub struct Client<Manager = ClientManager> {
     inner: Arc<Inner<Manager>>,
+    _client: *mut sys::ISteamClient,
 }
 
 struct Inner<Manager> {
     _manager: Manager,
-    _client: *mut sys::ISteamClient,
-    callbacks: Mutex<ClientCallbacks>,
+    callbacks: Mutex<Callbacks>,
 }
 
-struct ClientCallbacks {
+struct Callbacks {
     callbacks: Vec<*mut libc::c_void>,
     call_results: HashMap<sys::SteamAPICall, *mut libc::c_void>,
 }
 
 unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}
 unsafe impl <Manager: Send + Sync> Sync for Inner<Manager> {}
+unsafe impl <Manager: Send + Sync> Send for Client<Manager> {}
+unsafe impl <Manager: Send + Sync> Sync for Client<Manager> {}
 
 impl Client<ClientManager> {
     /// Attempts to initialize the steamworks api and returns
@@ -81,17 +86,17 @@ impl Client<ClientManager> {
             if sys::SteamAPI_Init() == 0 {
                 return Err(SteamError::InitFailed);
             }
-            let client = sys::steam_rust_get_client();
+            let raw_client = sys::steam_rust_get_client();
             let client = Arc::new(Inner {
                 _manager: ClientManager { _priv: () },
-                _client: client,
-                callbacks: Mutex::new(ClientCallbacks {
+                callbacks: Mutex::new(Callbacks {
                     callbacks: Vec::new(),
                     call_results: HashMap::new(),
                 }),
             });
             Ok(Client {
                 inner: client,
+                _client: raw_client,
             })
         }
     }
@@ -121,35 +126,7 @@ impl <Manager> Client<Manager> {
               F: FnMut(C) + 'static + Send + Sync
     {
         unsafe {
-            let userdata = Box::into_raw(Box::new(f));
-
-            extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void)
-                where C: Callback,
-                      F: FnMut(C) + 'static + Send + Sync
-            {
-                unsafe {
-                    let func: &mut F = &mut *(userdata as *mut F);
-                    let param = C::from_raw(param);
-                    func(param);
-                }
-            }
-            extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
-                where C: Callback,
-                      F: FnMut(C) + 'static + Send + Sync
-            {
-                let func: Box<F> = unsafe { Box::from_raw(userdata as _) };
-                drop(func);
-            }
-
-            let ptr = sys::register_rust_steam_callback(
-                C::size() as _,
-                userdata as _,
-                run_func::<C, F>,
-                dealloc::<C, F>,
-                C::id() as _
-            );
-            let mut cbs = self.inner.callbacks.lock().unwrap();
-            cbs.callbacks.push(ptr);
+            register_callback(&self.inner, f, false);
         }
     }
 
@@ -233,6 +210,41 @@ impl <Manager> Drop for Inner<Manager> {
 }
 
 
+pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, f: F, game_server: bool)
+    where C: Callback,
+          F: FnMut(C) + 'static + Send + Sync
+{
+    let userdata = Box::into_raw(Box::new(f));
+
+    extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void)
+        where C: Callback,
+              F: FnMut(C) + 'static + Send + Sync
+    {
+        unsafe {
+            let func: &mut F = &mut *(userdata as *mut F);
+            let param = C::from_raw(param);
+            func(param);
+        }
+    }
+    extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
+        where C: Callback,
+              F: FnMut(C) + 'static + Send + Sync
+    {
+        let func: Box<F> = unsafe { Box::from_raw(userdata as _) };
+        drop(func);
+    }
+
+    let ptr = sys::register_rust_steam_callback(
+        C::size() as _,
+        userdata as _,
+        run_func::<C, F>,
+        dealloc::<C, F>,
+        C::id() as _,
+        game_server as _,
+    );
+    let mut cbs = inner.callbacks.lock().unwrap();
+    cbs.callbacks.push(ptr);
+}
 
 pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
     where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync

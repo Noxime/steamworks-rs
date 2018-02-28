@@ -20,7 +20,7 @@ members = [
 ]
 
 [dependencies]
-steamworks-sys = {path = "./steamworks-sys", version = "0.1.1"}
+steamworks-sys = {path = "./steamworks-sys", version = "0.2.0"}
 failure = "0.1.1"
 bitflags = "1.0.1"
 libc = "0.2.36"

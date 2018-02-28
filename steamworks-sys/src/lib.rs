@@ -20,6 +20,8 @@ pub struct ISteamFriends(c_void);
 pub struct ISteamMatchmaking(c_void);
 #[repr(C)]
 pub struct ISteamUser(c_void);
+#[repr(C)]
+pub struct ISteamGameServer(c_void);
 
 pub type HSteamPipe = i32;
 pub type HSteamUser = i32;
@@ -107,6 +109,14 @@ pub enum AuthSessionResponse {
     AuthTicketInvalidAlreadyUsed = 7,
     AuthTicketInvalid = 8,
     PublisherIssuedBan = 9,
+}
+
+#[repr(C)]
+pub enum ServerMode {
+    Invalid = 0,
+    NoAuthentication = 1,
+    Authentication = 2,
+    AuthenticationAndSecure = 3,
 }
 
 #[repr(C)]
@@ -235,6 +245,7 @@ extern "C" {
         run_func: extern "C" fn (*mut c_void, *mut c_void),
         dealloc: extern "C" fn (*mut c_void),
         callback_id: c_int,
+        game_server: c_int,
     ) -> *mut c_void;
     pub fn unregister_rust_steam_callback(
         ty: *mut c_void,
@@ -257,11 +268,18 @@ extern "C" {
     pub fn steam_rust_get_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_friends() -> *mut ISteamFriends;
     pub fn steam_rust_get_user() -> *mut ISteamUser;
+    pub fn steam_rust_get_server() -> *mut ISteamGameServer;
+    pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
+
+    pub fn steam_rust_game_server_init(ip: u32, steam_port: u16, game_port: u16, query_port: u16, server_mode: ServerMode, version: *const c_char) -> c_int;
     //
 
     pub fn SteamAPI_Init() -> u8;
     pub fn SteamAPI_Shutdown();
     pub fn SteamAPI_RunCallbacks();
+
+    pub fn SteamGameServer_Shutdown();
+    pub fn SteamGameServer_RunCallbacks();
 
     pub fn SteamAPI_ISteamClient_CreateSteamPipe(instance: *mut ISteamClient) -> HSteamPipe;
     pub fn SteamAPI_ISteamClient_BReleaseSteamPipe(instance: *mut ISteamClient, pipe: HSteamPipe) -> u8;
@@ -303,4 +321,14 @@ extern "C" {
     pub fn SteamAPI_ISteamUser_BeginAuthSession(instance: *mut ISteamUser, ticket: *const c_void, ticket_size: *mut u32, steam_id: u64) -> BeginAuthSessionResult;
     pub fn SteamAPI_ISteamUser_EndAuthSession(instance: *mut ISteamUser, steam_id: u64);
     pub fn SteamAPI_ISteamUser_CancelAuthTicket(instance: *mut ISteamUser, auth_ticket: HAuthTicket);
+
+    pub fn SteamAPI_ISteamGameServer_LogOnAnonymous(instance: *mut ISteamGameServer);
+    pub fn SteamAPI_ISteamGameServer_SetProduct(instance: *mut ISteamGameServer, product: *const c_char);
+    pub fn SteamAPI_ISteamGameServer_SetGameDescription(instance: *mut ISteamGameServer, description: *const c_char);
+    pub fn SteamAPI_ISteamGameServer_SetDedicatedServer(instance: *mut ISteamGameServer, dedicated: u8);
+    pub fn SteamAPI_ISteamGameServer_GetSteamID(instance: *mut ISteamGameServer) -> u64;
+    pub fn SteamAPI_ISteamGameServer_GetAuthSessionTicket(instance: *mut ISteamGameServer, ticket: *mut c_void, max_ticket: c_int, ticket_size: *mut u32) -> HAuthTicket;
+    pub fn SteamAPI_ISteamGameServer_BeginAuthSession(instance: *mut ISteamGameServer, ticket: *const c_void, ticket_size: *mut u32, steam_id: u64) -> BeginAuthSessionResult;
+    pub fn SteamAPI_ISteamGameServer_EndAuthSession(instance: *mut ISteamGameServer, steam_id: u64);
+    pub fn SteamAPI_ISteamGameServer_CancelAuthTicket(instance: *mut ISteamGameServer, auth_ticket: HAuthTicket);
 }

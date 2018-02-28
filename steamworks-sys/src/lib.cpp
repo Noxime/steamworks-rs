@@ -1,12 +1,17 @@
 #include <steam_api.h>
+#include <steam_gameserver.h>
+#include <stdint.h>
 
 class RustSteamCallback final : CCallbackBase {
 public:
   RustSteamCallback(int parameter_size, void *userdata,
                     void (*run_func)(void *, void *), void (*dealloc)(void *),
-                    int callback_id)
+                    int callback_id, int game_server)
       : parameter_size(parameter_size), userdata(userdata), run_func(run_func),
         dealloc(dealloc) {
+    if (game_server) {
+        m_nCallbackFlags |= k_ECallbackFlagsGameServer;
+    }
     SteamAPI_RegisterCallback(this, callback_id);
   }
   ~RustSteamCallback() {
@@ -31,9 +36,11 @@ extern "C" void *register_rust_steam_callback(int parameter_size,
                                               void *userdata,
                                               void (*run_func)(void *, void *),
                                               void (*dealloc)(void *),
-                                              int callback_id) {
+                                              int callback_id,
+                                              int game_server
+                                              ) {
   return new RustSteamCallback(parameter_size, userdata, run_func, dealloc,
-                               callback_id);
+                               callback_id, game_server);
 }
 
 extern "C" void unregister_rust_steam_callback(void *ty) {
@@ -93,6 +100,13 @@ extern "C" void unregister_rust_steam_call_result(void *ty) {
   delete cb;
 }
 
+extern "C" int steam_rust_game_server_init(
+    uint32_t ip, uint16_t steam_port, uint16_t game_port,
+    uint16_t query_port, EServerMode server_mode, const char* version
+) {
+    return SteamGameServer_Init(ip, steam_port, game_port, query_port, server_mode, version);
+}
+
 extern "C" ISteamClient *steam_rust_get_client() { return SteamClient(); }
 extern "C" ISteamMatchmaking *steam_rust_get_matchmaking() {
   return SteamMatchmaking();
@@ -101,3 +115,5 @@ extern "C" ISteamUtils *steam_rust_get_utils() { return SteamUtils(); }
 extern "C" ISteamApps *steam_rust_get_apps() { return SteamApps(); }
 extern "C" ISteamFriends *steam_rust_get_friends() { return SteamFriends(); }
 extern "C" ISteamUser *steam_rust_get_user() { return SteamUser(); }
+extern "C" ISteamGameServer *steam_rust_get_server() { return SteamGameServer(); }
+extern "C" ISteamApps *steam_rust_get_server_apps() { return SteamGameServerApps(); }
