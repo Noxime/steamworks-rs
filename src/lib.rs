@@ -42,10 +42,18 @@ pub type SResult<T> = Result<T, SteamError>;
 ///
 /// This provides access to all of the steamworks api that
 /// clients can use.
-#[derive(Clone)]
 pub struct Client<Manager = ClientManager> {
     inner: Arc<Inner<Manager>>,
-    _client: *mut sys::ISteamClient,
+    client: *mut sys::ISteamClient,
+}
+
+impl <Manager> Clone for Client<Manager> {
+    fn clone(&self) -> Self {
+        Client {
+            inner: self.inner.clone(),
+            client: self.client,
+        }
+    }
 }
 
 struct Inner<Manager> {
@@ -96,7 +104,7 @@ impl Client<ClientManager> {
             });
             Ok(Client {
                 inner: client,
-                _client: raw_client,
+                client: raw_client,
             })
         }
     }
