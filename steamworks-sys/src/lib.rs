@@ -311,6 +311,7 @@ extern "C" {
     pub fn SteamAPI_ISteamFriends_GetFriendPersonaState(instance: *mut ISteamFriends, friend: u64) -> PersonaState;
     pub fn SteamAPI_ISteamFriends_RequestUserInformation(instance: *mut ISteamFriends, user_id: u64, name_only: u8) -> u8;
     pub fn SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(instance: *mut ISteamFriends, url: *const c_char);
+    pub fn SteamAPI_ISteamFriends_GetPersonaName(instance: *mut ISteamFriends) -> *const c_char;
 
     pub fn SteamAPI_ISteamMatchmaking_CreateLobby(instance: *mut ISteamMatchmaking, lobby_ty: LobbyType, max_members: c_int) -> SteamAPICall;
     pub fn SteamAPI_ISteamMatchmaking_RequestLobbyList(instance: *mut ISteamMatchmaking) -> SteamAPICall;

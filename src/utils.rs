@@ -26,11 +26,11 @@ impl <Manager> Utils<Manager> {
     /// running in.
     ///
     /// Generally you want `Apps::current_game_language` instead of this
-    pub fn ui_language(&self) -> Cow<str> {
+    pub fn ui_language(&self) -> String {
         unsafe {
             let lang = sys::SteamAPI_ISteamUtils_GetSteamUILanguage(self.utils);
             let lang = CStr::from_ptr(lang);
-            lang.to_string_lossy()
+            lang.to_string_lossy().into_owned()
         }
     }
 

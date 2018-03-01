@@ -24,7 +24,6 @@ pub use user::*;
 
 use std::sync::{Arc, Mutex, Weak};
 use std::ffi::{CString, CStr};
-use std::borrow::Cow;
 use std::fmt::{
     Debug, Formatter, self
 };

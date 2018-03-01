@@ -123,11 +123,11 @@ impl <Manager> Apps<Manager> {
     ///
     /// If the language hasn't been set this returns the language
     /// used for the steam UI.
-    pub fn current_game_language(&self) -> Cow<str> {
+    pub fn current_game_language(&self) -> String {
         unsafe {
             let lang = sys::SteamAPI_ISteamApps_GetCurrentGameLanguage(self.apps);
             let lang = CStr::from_ptr(lang);
-            lang.to_string_lossy()
+            lang.to_string_lossy().into_owned()
         }
     }
 
