@@ -98,12 +98,8 @@ pub struct PersonaStateChange {
 }
 
 unsafe impl Callback for PersonaStateChange {
-    fn id() -> i32 {
-        304
-    }
-    fn size() -> i32 {
-        ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32
-    }
+    const ID: i32 = 304;
+    const SIZE: i32 = ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32;
 
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);

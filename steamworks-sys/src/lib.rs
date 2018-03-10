@@ -41,7 +41,6 @@ pub enum PersonaState {
     Max,
 }
 
-
 #[repr(C)]
 pub enum LobbyType {
     Private = 0,
@@ -235,32 +234,19 @@ pub enum SResult {
     LimitedUserAccount = 112,
 }
 
+#[repr(C)]
+pub struct CallbackData {
+    pub param_size: c_int,
+    pub userdata: *mut c_void,
+    pub run: unsafe extern "C" fn(*mut c_void, *mut c_void, *mut c_void),
+    pub run_extra: unsafe extern "C" fn(*mut c_void, *mut c_void, *mut c_void, bool, SteamAPICall),
+    pub dealloc: unsafe extern "C" fn(*mut c_void, *mut c_void),
+} 
 
 extern "C" {
     // Helpers from lib.cpp
-
-    pub fn register_rust_steam_callback(
-        parameter_size: c_int,
-        userdata: *mut c_void,
-        run_func: extern "C" fn (*mut c_void, *mut c_void),
-        dealloc: extern "C" fn (*mut c_void),
-        callback_id: c_int,
-        game_server: c_int,
-    ) -> *mut c_void;
-    pub fn unregister_rust_steam_callback(
-        ty: *mut c_void,
-    );
-    pub fn register_rust_steam_call_result(
-        parameter_size: c_int,
-        userdata: *mut c_void,
-        run_func: extern "C" fn (*mut c_void, *mut c_void, bool),
-        dealloc: extern "C" fn (*mut c_void),
-        api_call: SteamAPICall,
-        callback_id: c_int,
-    ) -> *mut c_void;
-    pub fn unregister_rust_steam_call_result(
-        ty: *mut c_void,
-    );
+    pub fn create_rust_callback(flags: u8, id: c_int, data: CallbackData) -> *mut c_void;
+    pub fn delete_rust_callback(cb: *mut c_void);
 
     pub fn steam_rust_get_client() -> *mut ISteamClient;
     pub fn steam_rust_get_matchmaking() -> *mut ISteamMatchmaking;
@@ -272,11 +258,16 @@ extern "C" {
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
 
     pub fn steam_rust_game_server_init(ip: u32, steam_port: u16, game_port: u16, query_port: u16, server_mode: ServerMode, version: *const c_char) -> c_int;
+    
     //
 
     pub fn SteamAPI_Init() -> u8;
     pub fn SteamAPI_Shutdown();
     pub fn SteamAPI_RunCallbacks();
+    pub fn SteamAPI_RegisterCallback(pCallback: *mut c_void, id: c_int);
+    pub fn SteamAPI_UnregisterCallback(pCallback: *mut c_void);
+    pub fn SteamAPI_RegisterCallResult(pCallback: *mut c_void, api_call: SteamAPICall);
+    pub fn SteamAPI_UnregisterCallResult(pCallback: *mut c_void, api_call: SteamAPICall);
 
     pub fn SteamGameServer_Shutdown();
     pub fn SteamGameServer_RunCallbacks();

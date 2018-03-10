@@ -9,6 +9,8 @@ extern crate bitflags;
 mod error;
 pub use error::*;
 
+mod callback;
+pub use callback::*;
 mod server;
 pub use server::*;
 mod utils;
@@ -22,7 +24,7 @@ pub use matchmaking::*;
 mod user;
 pub use user::*;
 
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{ Arc, Mutex };
 use std::ffi::{CString, CStr};
 use std::fmt::{
     Debug, Formatter, self
@@ -206,99 +208,14 @@ impl <Manager> Drop for Inner<Manager> {
             {
                 let callbacks = self.callbacks.lock().unwrap();
                 for cb in &callbacks.callbacks {
-                    sys::unregister_rust_steam_callback(*cb);
+                    sys::delete_rust_callback(*cb);
                 }
                 for cb in callbacks.call_results.values() {
-                    sys::unregister_rust_steam_call_result(*cb);
+                    sys::delete_rust_callback(*cb);
                 }
             }
         }
     }
-}
-
-
-pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, f: F, game_server: bool)
-    where C: Callback,
-          F: FnMut(C) + 'static + Send + Sync
-{
-    let userdata = Box::into_raw(Box::new(f));
-
-    extern "C" fn run_func<C, F>(userdata: *mut libc::c_void, param: *mut libc::c_void)
-        where C: Callback,
-              F: FnMut(C) + 'static + Send + Sync
-    {
-        unsafe {
-            let func: &mut F = &mut *(userdata as *mut F);
-            let param = C::from_raw(param);
-            func(param);
-        }
-    }
-    extern "C" fn dealloc<C, F>(userdata: *mut libc::c_void)
-        where C: Callback,
-              F: FnMut(C) + 'static + Send + Sync
-    {
-        let func: Box<F> = unsafe { Box::from_raw(userdata as _) };
-        drop(func);
-    }
-
-    let ptr = sys::register_rust_steam_callback(
-        C::size() as _,
-        userdata as _,
-        run_func::<C, F>,
-        dealloc::<C, F>,
-        C::id() as _,
-        game_server as _,
-    );
-    let mut cbs = inner.callbacks.lock().unwrap();
-    cbs.callbacks.push(ptr);
-}
-
-pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
-    where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-{
-    use std::mem;
-
-    struct Info<F, Manager> {
-        func: F,
-        api_call: sys::SteamAPICall,
-        inner: Weak<Inner<Manager>>,
-    }
-
-    let userdata = Box::into_raw(Box::new(Info {
-        func: f,
-        api_call,
-        inner: Arc::downgrade(&inner),
-    }));
-
-    extern "C" fn run_func<C, F, Manager>(userdata: *mut libc::c_void, param: *mut libc::c_void, io_error: bool)
-        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-    {
-        unsafe {
-            let func: &mut Info<F, Manager> = &mut *(userdata as *mut Info<F, Manager>);
-            (func.func)(&*(param as *const _), io_error);
-        }
-    }
-    extern "C" fn dealloc<C, F, Manager>(userdata: *mut libc::c_void)
-        where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
-    {
-        let func: Box<Info<F, Manager>> = unsafe { Box::from_raw(userdata as _) };
-        if let Some(inner) = func.inner.upgrade() {
-            let mut cbs = inner.callbacks.lock().unwrap();
-            cbs.call_results.remove(&func.api_call);
-        }
-        drop(func);
-    }
-
-    let ptr = sys::register_rust_steam_call_result(
-        mem::size_of::<C>() as _,
-        userdata as _,
-        run_func::<C, F, Manager>,
-        dealloc::<C, F, Manager>,
-        api_call,
-        callback_id as _,
-    );
-    let mut cbs = inner.callbacks.lock().unwrap();
-    cbs.call_results.insert(api_call, ptr);
 }
 
 /// Manages keeping the steam api active for clients
@@ -334,12 +251,6 @@ impl SteamId {
     pub fn raw(&self) -> u64 {
         self.0
     }
-}
-
-pub unsafe trait Callback {
-    fn id() -> i32;
-    fn size() -> i32;
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self;
 }
 
 #[cfg(test)]

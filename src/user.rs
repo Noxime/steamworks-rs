@@ -152,13 +152,9 @@ pub struct AuthSessionTicketResponse {
 }
 
 unsafe impl Callback for AuthSessionTicketResponse {
-    fn id() -> i32 {
-        163
-    }
-    fn size() -> i32 {
-        ::std::mem::size_of::<sys::GetAuthSessionTicketResponse_t>() as i32
-    }
-
+    const ID: i32 = 163;
+    const SIZE: i32 = ::std::mem::size_of::<sys::GetAuthSessionTicketResponse_t>() as i32;
+    
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
@@ -187,13 +183,9 @@ pub struct ValidateAuthTicketResponse {
 
 
 unsafe impl Callback for ValidateAuthTicketResponse {
-    fn id() -> i32 {
-        143
-    }
-    fn size() -> i32 {
-        ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32
-    }
-
+    const ID: i32 = 143;
+    const SIZE: i32 = ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32;
+    
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
         ValidateAuthTicketResponse {
