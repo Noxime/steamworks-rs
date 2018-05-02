@@ -72,6 +72,17 @@ unsafe impl <Manager: Send + Sync> Sync for Inner<Manager> {}
 unsafe impl <Manager: Send + Sync> Send for Client<Manager> {}
 unsafe impl <Manager: Send + Sync> Sync for Client<Manager> {}
 
+/// Returns true if the app wasn't launched through steam and
+/// begins relaunching it, the app should exit as soon as possible.
+///
+/// Returns false if the app was either launched through steam
+/// or has a `steam_appid.txt`
+pub fn restart_app_if_necessary(app_id: AppId) -> bool {
+    unsafe {
+        sys::SteamAPI_RestartAppIfNecessary(app_id.0) != 0
+    }
+}
+
 impl Client<ClientManager> {
     /// Attempts to initialize the steamworks api and returns
     /// a client to access the rest of the api.

@@ -241,7 +241,7 @@ pub struct CallbackData {
     pub run: unsafe extern "C" fn(*mut c_void, *mut c_void, *mut c_void),
     pub run_extra: unsafe extern "C" fn(*mut c_void, *mut c_void, *mut c_void, bool, SteamAPICall),
     pub dealloc: unsafe extern "C" fn(*mut c_void, *mut c_void),
-} 
+}
 
 extern "C" {
     // Helpers from lib.cpp
@@ -258,7 +258,7 @@ extern "C" {
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
 
     pub fn steam_rust_game_server_init(ip: u32, steam_port: u16, game_port: u16, query_port: u16, server_mode: ServerMode, version: *const c_char) -> c_int;
-    
+
     //
 
     pub fn SteamAPI_Init() -> u8;
@@ -268,6 +268,7 @@ extern "C" {
     pub fn SteamAPI_UnregisterCallback(pCallback: *mut c_void);
     pub fn SteamAPI_RegisterCallResult(pCallback: *mut c_void, api_call: SteamAPICall);
     pub fn SteamAPI_UnregisterCallResult(pCallback: *mut c_void, api_call: SteamAPICall);
+    pub fn SteamAPI_RestartAppIfNecessary(app_id: u32) -> u8;
 
     pub fn SteamGameServer_Shutdown();
     pub fn SteamGameServer_RunCallbacks();
