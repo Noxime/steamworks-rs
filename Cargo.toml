@@ -1,6 +1,6 @@
 [package]
 name = "steamworks"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Thinkofname"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
