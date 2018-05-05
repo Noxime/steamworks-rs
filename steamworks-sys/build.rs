@@ -159,7 +159,7 @@ extern "C" {
         write!(typed_constr_extern, r#"extern "C" {{
             fn __rust_helper_typed__{ty}("#, ty = ty).unwrap();
         write!(typed_constr_wrap, r#"pub unsafe fn create_{ty}("#, ty = ty).unwrap();
-        for (idx, SteamField{fieldname: ref fname, fieldtype: ref fty}) in fields.iter().enumerate() {
+        for (idx, &SteamField{fieldname: ref fname, fieldtype: ref fty}) in fields.iter().enumerate() {
             let (fty, fty_rust) = field_type_fix(fty);
             write!(cpp_wrapper, "{} {}", fty, fname).unwrap();
             write!(typed_constr_extern, "{}: {},", fname, fty_rust).unwrap();
@@ -176,7 +176,7 @@ extern "C" {
         }}"#, ty = ty).unwrap();
         write!(typed_constr_wrap, r#") -> {ty} {{
             __rust_helper_typed__{ty}("#, ty = ty).unwrap();
-        for SteamField{fieldname: ref fname, ..} in fields.iter() {
+        for &SteamField{fieldname: ref fname, ..} in fields.iter() {
             write!(cpp_wrapper, "created_type.{fname} = {fname};", fname = fname).unwrap();
             write!(typed_constr_wrap, "{},", fname).unwrap();
         }
@@ -190,7 +190,7 @@ extern "C" {
         builder = builder.raw_line(typed_constr_wrap);
 
 
-        for SteamField{fieldname: ref fname, fieldtype: ref fty} in fields.iter() {
+        for &SteamField{fieldname: ref fname, fieldtype: ref fty} in fields.iter() {
             let (fty, fty_rust) = field_type_fix(fty);
             builder = builder.whitelist_type(fty);
             // Generate getters/setters for fields
