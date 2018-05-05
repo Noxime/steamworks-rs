@@ -377,12 +377,6 @@ pub enum SteamError {
     /// max network send size
     #[fail(display = "WG network send size exceeded")]
     WGNetworkSendExceeded,
-    /// Returned when the account is not mutually friends with the user
-    #[fail(display = "account not friends")]
-    AccountNotFriends,
-    /// Returned when the user is limited
-    #[fail(display = "user limited")]
-    LimitedUserAccount,
 }
 
 impl From<sys::EResult> for SteamError {
@@ -497,8 +491,6 @@ impl From<sys::EResult> for SteamError {
             sys::EResult_k_EResultTooManyPending => SteamError::TooManyPending,
             sys::EResult_k_EResultNoSiteLicensesFound => SteamError::NoSiteLicensesFound,
             sys::EResult_k_EResultWGNetworkSendExceeded => SteamError::WGNetworkSendExceeded,
-            sys::EResult_k_EResultAccountNotFriends => SteamError::AccountNotFriends,
-            sys::EResult_k_EResultLimitedUserAccount => SteamError::LimitedUserAccount,
             _ => unreachable!(),
         }
     }
