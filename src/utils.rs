@@ -39,10 +39,10 @@ impl <Manager> Utils<Manager> {
     pub fn set_overlay_notification_position(&self, position: NotificationPosition) {
         unsafe {
             let position = match position {
-                NotificationPosition::TopLeft => sys::NotificationPosition::TopLeft,
-                NotificationPosition::TopRight => sys::NotificationPosition::TopRight,
-                NotificationPosition::BottomLeft => sys::NotificationPosition::BottomLeft,
-                NotificationPosition::BottomRight => sys::NotificationPosition::BottomRight,
+                NotificationPosition::TopLeft => sys::ENotificationPosition_k_EPositionTopLeft,
+                NotificationPosition::TopRight => sys::ENotificationPosition_k_EPositionTopRight,
+                NotificationPosition::BottomLeft => sys::ENotificationPosition_k_EPositionBottomLeft,
+                NotificationPosition::BottomRight => sys::ENotificationPosition_k_EPositionBottomRight,
             };
             sys::SteamAPI_ISteamUtils_SetOverlayNotificationPosition(self.utils, position);
         }

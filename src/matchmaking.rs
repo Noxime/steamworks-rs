@@ -9,6 +9,7 @@ pub struct Matchmaking<Manager> {
 
 const CALLBACK_BASE_ID: i32 = 500;
 
+/// The visibility of a lobby
 pub enum LobbyType {
     Private,
     FriendsOnly,
@@ -17,7 +18,7 @@ pub enum LobbyType {
 }
 
 #[derive(Debug)]
-pub struct LobbyId(u64);
+pub struct LobbyId(pub u64);
 
 impl <Manager> Matchmaking<Manager> {
 
@@ -26,44 +27,82 @@ impl <Manager> Matchmaking<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
-            register_call_result::<sys::LobbyMatchList, _, _>(
+            register_call_result::<sys::LobbyMatchList_t, _, _>(
                 &self.inner, api_call, CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
-                   cb(if io_error {
-                      Err(SteamError::IOFailure)
-                   } else {
-                       let mut out = Vec::with_capacity(v.lobbies_matching as usize);
-                       for idx in 0 .. v.lobbies_matching {
-                           out.push(LobbyId(sys::SteamAPI_ISteamMatchmaking_GetLobbyByIndex(sys::steam_rust_get_matchmaking(), idx as _)));
-                       }
-                       Ok(out)
-                   })
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else {
+                        let mut out = Vec::with_capacity(v.get_m_nLobbiesMatching() as usize);
+                        for idx in 0 .. v.get_m_nLobbiesMatching() {
+                            out.push(LobbyId(sys::SteamAPI_ISteamMatchmaking_GetLobbyByIndex(sys::steam_rust_get_matchmaking(), idx as _)));
+                        }
+                        Ok(out)
+                    })
             });
         }
     }
 
+    /// Attempts to create a new matchmaking lobby
+    ///
+    /// The lobby with have the visibility of the of the passed
+    /// `LobbyType` and a limit of `max_members` inside it.
+    /// The `max_members` may not be higher than 250.
+    ///
+    /// # Triggers
+    ///
+    /// * `LobbyEnter`
+    /// * `LobbyCreated`
     pub fn create_lobby<F>(&self, ty: LobbyType, max_members: u32, mut cb: F)
         where F: FnMut(Result<LobbyId, SteamError>) + 'static + Send + Sync
     {
+        assert!(max_members <= 250); // Steam API limits
         unsafe {
             let ty = match ty {
-                LobbyType::Private => sys::LobbyType::Private,
-                LobbyType::FriendsOnly => sys::LobbyType::FriendsOnly,
-                LobbyType::Public => sys::LobbyType::Public,
-                LobbyType::Invisible => sys::LobbyType::Invisible,
+                LobbyType::Private => sys::ELobbyType_k_ELobbyTypePrivate,
+                LobbyType::FriendsOnly => sys::ELobbyType_k_ELobbyTypeFriendsOnly,
+                LobbyType::Public => sys::ELobbyType_k_ELobbyTypePublic,
+                LobbyType::Invisible => sys::ELobbyType_k_ELobbyTypeInvisible,
             };
             let api_call = sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
-            register_call_result::<sys::LobbyCreated, _, _>(
+            register_call_result::<sys::LobbyCreated_t, _, _>(
                 &self.inner, api_call, CALLBACK_BASE_ID + 13,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.result != sys::SResult::Ok {
-                        Err(v.result.into())
+                    } else if v.get_m_eResult() != sys::EResult_k_EResultOK {
+                        Err(v.get_m_eResult().into())
                     } else {
-                        Ok(LobbyId(v.lobby_steam_id))
+                        Ok(LobbyId(v.get_m_ulSteamIDLobby()))
                     })
             });
+        }
+    }
+
+    /// Tries to join the lobby with the given ID
+    pub fn join_lobby<F>(&self, lobby: LobbyId, mut cb: F)
+        where F: FnMut(Result<LobbyId, ()>) + 'static + Send + Sync
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
+            register_call_result::<sys::LobbyEnter_t, _, _>(
+                &self.inner, api_call, CALLBACK_BASE_ID + 4,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(())
+                    } else if v.get_m_EChatRoomEnterResponse() != 1 {
+                        Err(())
+                    } else {
+                        Ok(LobbyId(v.get_m_ulSteamIDLobby()))
+                    })
+            });
+        }
+    }
+
+    /// Exits the passed lobby
+    pub fn leave_lobby(&self, lobby: LobbyId) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_LeaveLobby(self.mm, lobby.0);
         }
     }
 }

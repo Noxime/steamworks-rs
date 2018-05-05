@@ -62,9 +62,9 @@ impl Server {
             let version = CString::new(version).unwrap();
             let raw_ip: u32 = ip.into();
             let server_mode = match server_mode {
-                ServerMode::NoAuthentication => sys::ServerMode::NoAuthentication,
-                ServerMode::Authentication => sys::ServerMode::Authentication,
-                ServerMode::AuthenticationAndSecure => sys::ServerMode::AuthenticationAndSecure,
+                ServerMode::NoAuthentication => sys::EServerMode_eServerModeNoAuthentication,
+                ServerMode::Authentication => sys::EServerMode_eServerModeAuthentication,
+                ServerMode::AuthenticationAndSecure => sys::EServerMode_eServerModeAuthenticationAndSecure,
             };
             if sys::steam_rust_game_server_init(
                 raw_ip, steam_port,
@@ -170,12 +170,13 @@ impl Server {
                 user.0
             );
             Err(match res {
-                sys::BeginAuthSessionResult::Ok => return Ok(()),
-                sys::BeginAuthSessionResult::InvalidTicket => AuthSessionError::InvalidTicket,
-                sys::BeginAuthSessionResult::DuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::BeginAuthSessionResult::InvalidVersion => AuthSessionError::InvalidVersion,
-                sys::BeginAuthSessionResult::GameMismatch => AuthSessionError::GameMismatch,
-                sys::BeginAuthSessionResult::ExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                _ => unreachable!(),
             })
         }
     }

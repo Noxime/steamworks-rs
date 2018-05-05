@@ -6,7 +6,7 @@ struct CallbackData {
     int param_size;
     void* userdata;
     void (*run)(void*, void*, void*);
-    void (*run_extra)(void*, void*, void*, bool, SteamAPICall_t);
+    void (*run_extra)(void*, void*, void*, uint8_t, SteamAPICall_t);
     void (*dealloc)(void*, void*);
 };
 
@@ -26,7 +26,7 @@ public:
     }
 
     void Run(void* pvParam, bool bIOFailure, SteamAPICall_t hSteamAPICall) {
-        data.run_extra(this, data.userdata, pvParam, bIOFailure, hSteamAPICall);
+        data.run_extra(this, data.userdata, pvParam, bIOFailure ? 1 : 0, hSteamAPICall);
     }
 
     int GetCallbackSizeBytes() {

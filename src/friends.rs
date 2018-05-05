@@ -1,6 +1,8 @@
 
 use super::*;
 
+const CALLBACK_BASE_ID: i32 = 300;
+
 bitflags! {
     #[repr(C)]
     pub struct FriendFlags: u16 {
@@ -98,14 +100,33 @@ pub struct PersonaStateChange {
 }
 
 unsafe impl Callback for PersonaStateChange {
-    const ID: i32 = 304;
+    const ID: i32 = CALLBACK_BASE_ID + 4;
     const SIZE: i32 = ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32;
 
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
         PersonaStateChange {
-            steam_id: SteamId(val.steam_id),
-            flags: PersonaChange::from_bits_truncate(val.flags as i32),
+            steam_id: SteamId(val.get_m_ulSteamID()),
+            flags: PersonaChange::from_bits_truncate(val.get_m_nChangeFlags() as i32),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct GameLobbyJoinRequested {
+    pub lobby_steam_id: LobbyId,
+    pub friend_steam_id: SteamId,
+}
+
+unsafe impl Callback for GameLobbyJoinRequested {
+    const ID: i32 = CALLBACK_BASE_ID + 33;
+    const SIZE: i32 = ::std::mem::size_of::<sys::GameLobbyJoinRequested_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+        let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
+        GameLobbyJoinRequested {
+            lobby_steam_id: LobbyId(val.get_m_steamIDLobby()),
+            friend_steam_id: SteamId(val.get_m_steamIDFriend()),
         }
     }
 }
@@ -139,14 +160,14 @@ impl <Manager> Friend<Manager> {
         unsafe {
             let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0);
             match state {
-                sys::PersonaState::Offline => FriendState::Offline,
-                sys::PersonaState::Online => FriendState::Online,
-                sys::PersonaState::Busy => FriendState::Busy,
-                sys::PersonaState::Away => FriendState::Away,
-                sys::PersonaState::Snooze => FriendState::Snooze,
-                sys::PersonaState::LookingToPlay => FriendState::LookingToPlay,
-                sys::PersonaState::LookingToTrade => FriendState::LookingToTrade,
-                sys::PersonaState::Max => unreachable!(),
+                sys::EPersonaState_k_EPersonaStateOffline => FriendState::Offline,
+                sys::EPersonaState_k_EPersonaStateOnline => FriendState::Online,
+                sys::EPersonaState_k_EPersonaStateBusy => FriendState::Busy,
+                sys::EPersonaState_k_EPersonaStateAway => FriendState::Away,
+                sys::EPersonaState_k_EPersonaStateSnooze => FriendState::Snooze,
+                sys::EPersonaState_k_EPersonaStateLookingToPlay => FriendState::LookingToPlay,
+                sys::EPersonaState_k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
+                _ => unreachable!(),
             }
         }
     }

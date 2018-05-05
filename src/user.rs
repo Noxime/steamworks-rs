@@ -63,12 +63,13 @@ impl <Manager> User<Manager> {
                 user.0
             );
             Err(match res {
-                sys::BeginAuthSessionResult::Ok => return Ok(()),
-                sys::BeginAuthSessionResult::InvalidTicket => AuthSessionError::InvalidTicket,
-                sys::BeginAuthSessionResult::DuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::BeginAuthSessionResult::InvalidVersion => AuthSessionError::InvalidVersion,
-                sys::BeginAuthSessionResult::GameMismatch => AuthSessionError::GameMismatch,
-                sys::BeginAuthSessionResult::ExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                _ => unreachable!(),
             })
         }
     }
@@ -154,15 +155,15 @@ pub struct AuthSessionTicketResponse {
 unsafe impl Callback for AuthSessionTicketResponse {
     const ID: i32 = 163;
     const SIZE: i32 = ::std::mem::size_of::<sys::GetAuthSessionTicketResponse_t>() as i32;
-    
+
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
-            ticket: AuthTicket(val.auth_ticket),
-            result: if val.result == sys::SResult::Ok {
+            ticket: AuthTicket(val.get_m_hAuthTicket()),
+            result: if val.get_m_eResult() == sys::EResult_k_EResultOK  {
                 Ok(())
             } else {
-                Err(val.result.into())
+                Err(val.get_m_eResult().into())
             }
         }
     }
@@ -185,23 +186,24 @@ pub struct ValidateAuthTicketResponse {
 unsafe impl Callback for ValidateAuthTicketResponse {
     const ID: i32 = 143;
     const SIZE: i32 = ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32;
-    
+
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
         ValidateAuthTicketResponse {
-            steam_id: SteamId(val.steam_id),
-            owner_steam_id: SteamId(val.owner_steam_id),
-            response: match val.response {
-                sys::AuthSessionResponse::Ok => Ok(()),
-                sys::AuthSessionResponse::UserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
-                sys::AuthSessionResponse::NoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
-                sys::AuthSessionResponse::VACBanned => Err(AuthSessionValidateError::VACBanned),
-                sys::AuthSessionResponse::LoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
-                sys::AuthSessionResponse::VACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
-                sys::AuthSessionResponse::AuthTicketCancelled => Err(AuthSessionValidateError::AuthTicketCancelled),
-                sys::AuthSessionResponse::AuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
-                sys::AuthSessionResponse::AuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
-                sys::AuthSessionResponse::PublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
+            steam_id: SteamId(val.get_m_SteamID()),
+            owner_steam_id: SteamId(val.get_m_OwnerSteamID()),
+            response: match val.get_m_eAuthSessionResponse() {
+                sys::EAuthSessionResponse_k_EAuthSessionResponseOK => Ok(()),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
+                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
+                sys::EAuthSessionResponse_k_EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
+                _ => unreachable!(),
             }
         }
     }
