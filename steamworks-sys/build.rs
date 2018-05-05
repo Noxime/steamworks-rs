@@ -129,7 +129,7 @@ extern "C" {
         (fty, fty_rust)
     }
 
-    for SteamStruct{struct_: ref ty, ref fields} in &steam_api.structs {
+    for &SteamStruct{struct_: ref ty, ref fields} in &steam_api.structs {
         if ty.contains("::") || !ty.ends_with("_t") || fields.iter().any(|v| v.fieldtype.contains('['))
             || ty.chars().next().map_or(true, |v| v.is_lowercase())
             || ty.starts_with("GSStats")

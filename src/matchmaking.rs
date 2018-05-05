@@ -54,7 +54,7 @@ impl <Manager> Matchmaking<Manager> {
     /// * `LobbyEnter`
     /// * `LobbyCreated`
     pub fn create_lobby<F>(&self, ty: LobbyType, max_members: u32, mut cb: F)
-        where F: FnMut(Result<LobbyId, SteamError>) + 'static + Send + Sync
+        where F: FnMut(Result<LobbyId, SteamError>) + 'static + Send
     {
         assert!(max_members <= 250); // Steam API limits
         unsafe {
@@ -81,7 +81,7 @@ impl <Manager> Matchmaking<Manager> {
 
     /// Tries to join the lobby with the given ID
     pub fn join_lobby<F>(&self, lobby: LobbyId, mut cb: F)
-        where F: FnMut(Result<LobbyId, ()>) + 'static + Send + Sync
+        where F: FnMut(Result<LobbyId, ()>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
@@ -109,7 +109,7 @@ impl <Manager> Matchmaking<Manager> {
 
 #[test]
 fn test_lobby() {
-    let client = Client::init().unwrap();
+    let (client, single) = Client::init().unwrap();
     let mm = client.matchmaking();
 
     mm.request_lobby_list(|v| {
@@ -120,7 +120,7 @@ fn test_lobby() {
     });
 
     for _ in 0 .. 100 {
-        client.run_callbacks();
+        single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
     }
 }

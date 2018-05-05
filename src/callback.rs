@@ -27,11 +27,11 @@ fn print_err(err: Box<Any>) {
 
 pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, f: F, game_server: bool)
     where C: Callback,
-          F: FnMut(C) + Send + Sync + 'static
+          F: FnMut(C) + Send + 'static
 {
     unsafe extern "C" fn run<C, F>(_: *mut c_void, userdata: *mut c_void, param: *mut c_void)
             where C: Callback,
-                  F: FnMut(C) + Send + Sync + 'static
+                  F: FnMut(C) + Send + 'static
     {
         let func: &mut F = &mut *(userdata as *mut F);
         let param = C::from_raw(param);
@@ -40,14 +40,14 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
 
     unsafe extern "C" fn run_extra<C, F>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, _: u8, _: sys::SteamAPICall)
         where C: Callback,
-              F: FnMut(C) + Send + Sync + 'static
+              F: FnMut(C) + Send + 'static
     {
         run::<C, F>(cb, userdata, param);
     }
 
     unsafe extern "C" fn dealloc<C, F>(cb: *mut c_void, userdata: *mut c_void)
         where C: Callback,
-              F: FnMut(C) + Send + Sync + 'static
+              F: FnMut(C) + Send + 'static
     {
         sys::SteamAPI_UnregisterCallback(cb);
 
@@ -73,7 +73,7 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
 }
 
 pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
-    where F: for <'a> FnMut(&'a C, bool) + 'static + Send + Sync
+    where F: for <'a> FnMut(&'a C, bool) + 'static + Send
 {
     struct CallData<F, Manager> {
         func: F,
@@ -82,7 +82,7 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
     }
 
     unsafe extern "C" fn run<C, F, Manager>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void)
-        where F: for<'a> FnMut(&'a C, bool) + Send + Sync + 'static
+        where F: for<'a> FnMut(&'a C, bool) + Send + 'static
     {
         let data: &mut CallData<F, Manager> = &mut *(userdata as *mut CallData<F, Manager>);
         #[cfg(debug_assertions)]
@@ -105,7 +105,7 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
     }
 
     unsafe extern "C" fn run_extra<C, F, Manager>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, io_error: u8, api_call: sys::SteamAPICall)
-        where F: for<'a> FnMut(&'a C, bool) + Send + Sync + 'static
+        where F: for<'a> FnMut(&'a C, bool) + Send + 'static
     {
         let data: &mut CallData<F, Manager> = &mut *(userdata as *mut CallData<F, Manager>);
 
@@ -129,8 +129,8 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
         }
     }
 
-    unsafe extern "C" fn dealloc<C, F, Manager>(cb: *mut c_void, userdata: *mut c_void)
-        where F: for <'a> FnMut(&'a C, bool) + Send + Sync + 'static
+    unsafe extern "C" fn dealloc<C, F, Manager>(_cb: *mut c_void, userdata: *mut c_void)
+        where F: for <'a> FnMut(&'a C, bool) + Send + 'static
     {
         let data: Box<CallData<F, Manager>> = Box::from_raw(userdata as _);
 

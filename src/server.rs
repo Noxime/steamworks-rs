@@ -57,7 +57,7 @@ impl Server {
         ip: Ipv4Addr, steam_port: u16,
         game_port: u16, query_port: u16,
         server_mode: ServerMode, version: &str,
-    ) -> SResult<Server> {
+    ) -> SResult<(Server, SingleClient<ServerManager>)> {
         unsafe {
             let version = CString::new(version).unwrap();
             let raw_ip: u32 = ip.into();
@@ -82,22 +82,13 @@ impl Server {
                     call_results: HashMap::new(),
                 }),
             });
-            Ok(Server {
-                inner: server,
+            Ok((Server {
+                inner: server.clone(),
                 server: server_raw,
-            })
-        }
-    }
-    /// Runs any currently pending callbacks
-    ///
-    /// This runs all currently pending callbacks on the current
-    /// thread.
-    ///
-    /// This should be called frequently (e.g. once per a frame)
-    /// in order to reduce the latency between recieving events.
-    pub fn run_callbacks(&self) {
-        unsafe {
-            sys::SteamGameServer_RunCallbacks();
+            }, SingleClient {
+                _inner: server,
+                _not_sync: PhantomData,
+            }))
         }
     }
 
@@ -245,7 +236,7 @@ impl Server {
 
 #[test]
 fn test() {
-    let server = Server::init(
+    let (server, single) = Server::init(
         [127, 0, 0, 1].into(),
         23333, 23334, 23335,
         ServerMode::Authentication, "0.0.1"
@@ -269,7 +260,7 @@ fn test() {
     println!("{:?}", server.begin_authentication_session(id, &ticket));
 
     for _ in 0 .. 20 {
-        server.run_callbacks();
+        single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
@@ -278,7 +269,7 @@ fn test() {
     server.cancel_authentication_ticket(auth);
 
     for _ in 0 .. 20 {
-        server.run_callbacks();
+        single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
@@ -289,6 +280,12 @@ fn test() {
 /// Manages keeping the steam api active for servers
 pub struct ServerManager {
     _priv: (),
+}
+
+unsafe impl Manager for ServerManager {
+    unsafe fn run_callbacks() {
+        sys::SteamGameServer_RunCallbacks();
+    }
 }
 
 impl Drop for ServerManager {

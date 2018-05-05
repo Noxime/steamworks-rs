@@ -108,7 +108,7 @@ pub enum AuthSessionError {
 
 #[test]
 fn test() {
-    let client = Client::init().unwrap();
+    let (client, single) = Client::init().unwrap();
     let user = client.user();
 
     client.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
@@ -120,7 +120,7 @@ fn test() {
     println!("{:?}", user.begin_authentication_session(id, &ticket));
 
     for _ in 0 .. 20 {
-        client.run_callbacks();
+        single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
@@ -129,7 +129,7 @@ fn test() {
     user.cancel_authentication_ticket(auth);
 
     for _ in 0 .. 20 {
-        client.run_callbacks();
+        single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 

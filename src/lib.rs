@@ -29,6 +29,7 @@ use std::ffi::{CString, CStr};
 use std::fmt::{
     Debug, Formatter, self
 };
+use std::marker::PhantomData;
 use std::collections::HashMap;
 
 pub type SResult<T> = Result<T, SteamError>;
@@ -57,6 +58,13 @@ impl <Manager> Clone for Client<Manager> {
     }
 }
 
+/// Allows access parts of the steam api that can only be called
+/// on a single thread at any given time.
+pub struct SingleClient<Manager = ClientManager> {
+    _inner: Arc<Inner<Manager>>,
+    _not_sync: PhantomData<*mut ()>,
+}
+
 struct Inner<Manager> {
     _manager: Manager,
     callbacks: Mutex<Callbacks>,
@@ -71,6 +79,7 @@ unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}
 unsafe impl <Manager: Send + Sync> Sync for Inner<Manager> {}
 unsafe impl <Manager: Send + Sync> Send for Client<Manager> {}
 unsafe impl <Manager: Send + Sync> Sync for Client<Manager> {}
+unsafe impl <Manager: Send + Sync> Send for SingleClient<Manager> {}
 
 /// Returns true if the app wasn't launched through steam and
 /// begins relaunching it, the app should exit as soon as possible.
@@ -82,6 +91,9 @@ pub fn restart_app_if_necessary(app_id: AppId) -> bool {
         sys::SteamAPI_RestartAppIfNecessary(app_id.0) != 0
     }
 }
+
+fn static_assert_send<T: Send>() {}
+fn static_assert_sync<T>() where T: Sync {}
 
 impl Client<ClientManager> {
     /// Attempts to initialize the steamworks api and returns
@@ -101,7 +113,10 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SResult<Client<ClientManager>> {
+    pub fn init() -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+        static_assert_send::<Client<ClientManager>>();
+        static_assert_sync::<Client<ClientManager>>();
+        static_assert_send::<SingleClient<ClientManager>>();
         unsafe {
             if sys::SteamAPI_Init() == 0 {
                 return Err(SteamError::InitFailed);
@@ -114,15 +129,17 @@ impl Client<ClientManager> {
                     call_results: HashMap::new(),
                 }),
             });
-            Ok(Client {
-                inner: client,
+            Ok((Client {
+                inner: client.clone(),
                 client: raw_client,
-            })
+            }, SingleClient {
+                _inner: client,
+                _not_sync: PhantomData,
+            }))
         }
     }
 }
-
-impl <Manager> Client<Manager> {
+impl <M> SingleClient<M> where M: Manager{
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -132,10 +149,12 @@ impl <Manager> Client<Manager> {
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
         unsafe {
-            sys::SteamAPI_RunCallbacks();
+            M::run_callbacks();
         }
     }
+}
 
+impl <Manager> Client<Manager> {
     /// Registers the passed function as a callback for the
     /// given type.
     ///
@@ -143,7 +162,7 @@ impl <Manager> Client<Manager> {
     /// is called when the event arrives.
     pub fn register_callback<C, F>(&self, f: F)
         where C: Callback,
-              F: FnMut(C) + 'static + Send + Sync
+              F: FnMut(C) + 'static + Send
     {
         unsafe {
             register_callback(&self.inner, f, false);
@@ -229,9 +248,20 @@ impl <Manager> Drop for Inner<Manager> {
     }
 }
 
+/// Used to seperate client and game server modes
+pub unsafe trait Manager {
+    unsafe fn run_callbacks();
+}
+
 /// Manages keeping the steam api active for clients
 pub struct ClientManager {
     _priv: (),
+}
+
+unsafe impl Manager for ClientManager {
+    unsafe fn run_callbacks() {
+        sys::SteamAPI_RunCallbacks();
+    }
 }
 
 impl Drop for ClientManager {
@@ -269,7 +299,7 @@ mod tests {
     use super::*;
     #[test]
     fn basic_test() {
-        let client = Client::init().unwrap();
+        let (client, single) = Client::init().unwrap();
 
         client.register_callback(|p: PersonaStateChange| {
             println!("Got callback: {:?}", p);
@@ -301,7 +331,7 @@ mod tests {
         friends.request_user_information(SteamId(76561198174976054), true);
 
         for _ in 0 .. 50 {
-            client.run_callbacks();
+            single.run_callbacks();
             ::std::thread::sleep(::std::time::Duration::from_millis(100));
         }
     }
