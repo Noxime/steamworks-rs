@@ -5,8 +5,11 @@ use sys;
 
 use std::mem;
 use std::sync::{ Arc, Weak };
+#[cfg(debug_assertions)]
 use std::panic::*;
+#[cfg(debug_assertions)]
 use std::any::Any;
+#[cfg(debug_assertions)]
 use std::process::abort;
 
 pub unsafe trait Callback {
@@ -15,6 +18,29 @@ pub unsafe trait Callback {
     unsafe fn from_raw(raw: *mut c_void) -> Self;
 }
 
+/// A handled that can be used to remove a callback
+/// at a later point.
+///
+/// Removes the callback when dropped
+pub struct CallbackHandle<Manager = ClientManager> {
+    handle: *mut c_void,
+    inner: Weak<Inner<Manager>>,
+}
+unsafe impl <Manager> Send for CallbackHandle<Manager> {}
+
+impl <Manager> Drop for CallbackHandle<Manager> {
+    fn drop(&mut self) {
+        if let Some(inner) = self.inner.upgrade() {
+            let mut cb = inner.callbacks.lock().unwrap();
+            if let Some(pos) = cb.callbacks.iter().position(|v| *v == self.handle) {
+                cb.callbacks.swap_remove(pos);
+                unsafe { sys::delete_rust_callback(self.handle); }
+            }
+        }
+    }
+}
+
+#[cfg(debug_assertions)]
 fn print_err(err: Box<Any>) {
     if let Some(err) = err.downcast_ref::<&str>() {
         println!("Steam callback paniced: {}", err);
@@ -25,7 +51,7 @@ fn print_err(err: Box<Any>) {
     }
 }
 
-pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, f: F, game_server: bool)
+pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, f: F, game_server: bool) -> CallbackHandle<Manager>
     where C: Callback,
           F: FnMut(C) + Send + 'static
 {
@@ -70,6 +96,11 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
 
     let mut cbs = inner.callbacks.lock().unwrap();
     cbs.callbacks.push(ptr);
+
+    CallbackHandle {
+        handle: ptr,
+        inner: Arc::downgrade(inner),
+    }
 }
 
 pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)

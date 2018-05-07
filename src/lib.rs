@@ -21,6 +21,8 @@ mod friends;
 pub use friends::*;
 mod matchmaking;
 pub use matchmaking::*;
+mod networking;
+pub use networking::*;
 mod user;
 pub use user::*;
 
@@ -160,12 +162,12 @@ impl <Manager> Client<Manager> {
     ///
     /// The callback will be run on the thread that `run_callbacks`
     /// is called when the event arrives.
-    pub fn register_callback<C, F>(&self, f: F)
+    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<Manager>
         where C: Callback,
               F: FnMut(C) + 'static + Send
     {
         unsafe {
-            register_callback(&self.inner, f, false);
+            register_callback(&self.inner, f, false)
         }
     }
 
@@ -189,6 +191,18 @@ impl <Manager> Client<Manager> {
             Matchmaking {
                 mm: mm,
                 inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam networking interface
+    pub fn networking(&self) -> Networking<Manager> {
+        unsafe {
+            let net = sys::steam_rust_get_networking();
+            debug_assert!(!net.is_null());
+            Networking {
+                net: net,
+                _inner: self.inner.clone(),
             }
         }
     }
@@ -273,7 +287,7 @@ impl Drop for ClientManager {
 }
 
 /// A user's steam id
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct SteamId(pub(crate) u64);
 
 impl SteamId {
@@ -292,6 +306,51 @@ impl SteamId {
     pub fn raw(&self) -> u64 {
         self.0
     }
+
+    /// Returns whether this id is valid or not
+    pub fn is_valid(&self) -> bool {
+        unsafe {
+            sys::steam_rust_is_steam_id_valid(self.0) != 0
+        }
+    }
+}
+
+/// A game id
+///
+/// Combines `AppId` and other information
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub struct GameId(pub(crate) u64);
+
+impl GameId {
+    /// Creates a `GameId` from a raw 64 bit value.
+    ///
+    /// May be useful for deserializing game ids from
+    /// a network or save format.
+    pub fn from_raw(id: u64) -> GameId {
+        GameId(id)
+    }
+
+    /// Returns the raw 64 bit value of the game id
+    ///
+    /// May be useful for serializing game ids over a
+    /// network or to a save format.
+    pub fn raw(&self) -> u64 {
+        self.0
+    }
+
+    /// Returns the app id of this game
+    pub fn app_id(&self) -> AppId {
+        unsafe {
+            AppId(sys::steam_rust_get_game_id_app(self.0))
+        }
+    }
+
+    /// Returns whether this id is valid or not
+    pub fn is_valid(&self) -> bool {
+        unsafe {
+            sys::steam_rust_is_game_id_valid(self.0) != 0
+        }
+    }
 }
 
 #[cfg(test)]
@@ -301,7 +360,7 @@ mod tests {
     fn basic_test() {
         let (client, single) = Client::init().unwrap();
 
-        client.register_callback(|p: PersonaStateChange| {
+        let _cb = client.register_callback(|p: PersonaStateChange| {
             println!("Got callback: {:?}", p);
         });
 

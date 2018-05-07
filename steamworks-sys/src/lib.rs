@@ -26,6 +26,8 @@ pub struct ISteamMatchmaking(c_void);
 pub struct ISteamUser(c_void);
 #[repr(C)]
 pub struct ISteamGameServer(c_void);
+#[repr(C)]
+pub struct ISteamNetworking(c_void);
 
 pub type HSteamPipe = i32;
 pub type AppId = u32;
@@ -53,8 +55,13 @@ extern "C" {
     pub fn steam_rust_get_user() -> *mut ISteamUser;
     pub fn steam_rust_get_server() -> *mut ISteamGameServer;
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
+    pub fn steam_rust_get_networking() -> *mut ISteamNetworking;
 
     pub fn steam_rust_game_server_init(ip: u32, steam_port: u16, game_port: u16, query_port: u16, server_mode: EServerMode, version: *const c_char) -> c_int;
+    pub fn steam_rust_is_steam_id_valid(id: u64) -> c_int;
+    pub fn steam_rust_is_game_id_valid(id: u64) -> c_int;
+    pub fn steam_rust_get_game_id_mod(id: u64) -> u32;
+    pub fn steam_rust_get_game_id_app(id: u64) -> u32;
 
     //
 
@@ -76,8 +83,10 @@ extern "C" {
 
     pub fn SteamAPI_ISteamUtils_GetAppID(instance: *mut ISteamUtils) -> u32;
     pub fn SteamAPI_ISteamUtils_GetSteamUILanguage(instance: *mut ISteamUtils) -> *const c_char;
-    pub fn SteamAPI_ISteamUtils_IsAPICallCompleted(instance: *mut ISteamUtils, api_call: SteamAPICall, failed: *mut bool) -> bool;
+    pub fn SteamAPI_ISteamUtils_IsAPICallCompleted(instance: *mut ISteamUtils, api_call: SteamAPICall, failed: *mut bool) -> u8;
     pub fn SteamAPI_ISteamUtils_SetOverlayNotificationPosition(instance: *mut ISteamUtils, position: ENotificationPosition);
+    pub fn SteamAPI_ISteamUtils_GetImageSize(instance: *mut ISteamUtils, image: c_int, width: *mut u32, height: *mut u32) -> u8;
+    pub fn SteamAPI_ISteamUtils_GetImageRGBA(instance: *mut ISteamUtils, image: c_int, dest: *mut u8, dest_size: c_int) -> u8;
 
     pub fn SteamAPI_ISteamApps_BIsAppInstalled(instance: *mut ISteamApps, app_id: AppId) -> u8;
     pub fn SteamAPI_ISteamApps_BIsDlcInstalled(instance: *mut ISteamApps, app_id: AppId) -> u8;
@@ -101,12 +110,25 @@ extern "C" {
     pub fn SteamAPI_ISteamFriends_RequestUserInformation(instance: *mut ISteamFriends, user_id: u64, name_only: u8) -> u8;
     pub fn SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(instance: *mut ISteamFriends, url: *const c_char);
     pub fn SteamAPI_ISteamFriends_GetPersonaName(instance: *mut ISteamFriends) -> *const c_char;
+    pub fn SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(instance: *mut ISteamFriends, lobby: u64);
+    pub fn SteamAPI_ISteamFriends_GetSmallFriendAvatar(instance: *mut ISteamFriends, friend: u64) -> c_int;
+    pub fn SteamAPI_ISteamFriends_GetMediumFriendAvatar(instance: *mut ISteamFriends, friend: u64) -> c_int;
+    pub fn SteamAPI_ISteamFriends_GetFriendGamePlayed(instance: *mut ISteamFriends, friend: u64, game_info: *mut FriendGameInfo_t) -> u8;
 
     pub fn SteamAPI_ISteamMatchmaking_CreateLobby(instance: *mut ISteamMatchmaking, lobby_ty: ELobbyType, max_members: c_int) -> SteamAPICall;
     pub fn SteamAPI_ISteamMatchmaking_RequestLobbyList(instance: *mut ISteamMatchmaking) -> SteamAPICall;
     pub fn SteamAPI_ISteamMatchmaking_GetLobbyByIndex(instance: *mut ISteamMatchmaking, lobby: c_int) -> u64;
     pub fn SteamAPI_ISteamMatchmaking_LeaveLobby(instance: *mut ISteamMatchmaking, lobby: u64);
     pub fn SteamAPI_ISteamMatchmaking_JoinLobby(instance: *mut ISteamMatchmaking, lobby: u64) -> SteamAPICall;
+    pub fn SteamAPI_ISteamMatchmaking_GetLobbyOwner(instance: *mut ISteamMatchmaking, lobby: u64) -> u64;
+    pub fn SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(instance: *mut ISteamMatchmaking, lobby: u64) -> c_int;
+    pub fn SteamAPI_ISteamMatchmaking_GetLobbyMemberByIndex(instance: *mut ISteamMatchmaking, lobby: u64, member: c_int) -> u64;
+
+    pub fn SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(instance: *mut ISteamNetworking, remote: u64) -> u8;
+    pub fn SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(instance: *mut ISteamNetworking, remote: u64) -> u8;
+    pub fn SteamAPI_ISteamNetworking_SendP2PPacket(instance: *mut ISteamNetworking, remote: u64, data: *const c_void, data_len: u32, send_type: EP2PSend, channel: c_int) -> u8;
+    pub fn SteamAPI_ISteamNetworking_IsP2PPacketAvailable(instance: *mut ISteamNetworking, msg_size: *mut u32, channel: c_int) -> u8;
+    pub fn SteamAPI_ISteamNetworking_ReadP2PPacket(instance: *mut ISteamNetworking, data: *mut c_void, data_len: u32, msg_size: *mut u32, remote: *mut u64, channel: c_int) -> u8;
 
     pub fn SteamAPI_ISteamUser_GetSteamID(instance: *mut ISteamUser) -> u64;
     pub fn SteamAPI_ISteamUser_GetAuthSessionTicket(instance: *mut ISteamUser, ticket: *mut c_void, max_ticket: c_int, ticket_size: *mut u32) -> HAuthTicket;

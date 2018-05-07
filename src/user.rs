@@ -111,8 +111,8 @@ fn test() {
     let (client, single) = Client::init().unwrap();
     let user = client.user();
 
-    client.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
-    client.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
+    let _cb = client.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
+    let _cb = client.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = user.steam_id();
     let (auth, ticket) = user.authentication_session_ticket();

@@ -17,8 +17,33 @@ pub enum LobbyType {
     Invisible,
 }
 
-#[derive(Debug)]
-pub struct LobbyId(pub u64);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LobbyId(pub(crate) u64);
+
+impl LobbyId {
+    /// Creates a `LobbyId` from a raw 64 bit value.
+    ///
+    /// May be useful for deserializing lobby ids from
+    /// a network or save format.
+    pub fn from_raw(id: u64) -> LobbyId {
+        LobbyId(id)
+    }
+
+    /// Returns the raw 64 bit value of the lobby id
+    ///
+    /// May be useful for serializing lobby ids over a
+    /// network or to a save format.
+    pub fn raw(&self) -> u64 {
+        self.0
+    }
+
+    /// Returns whether this id is valid or not
+    pub fn is_valid(&self) -> bool {
+        unsafe {
+            sys::steam_rust_is_steam_id_valid(self.0) != 0
+        }
+    }
+}
 
 impl <Manager> Matchmaking<Manager> {
 
@@ -103,6 +128,37 @@ impl <Manager> Matchmaking<Manager> {
     pub fn leave_lobby(&self, lobby: LobbyId) {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_LeaveLobby(self.mm, lobby.0);
+        }
+    }
+
+    /// Returns the steam id of the current owner of the passed lobby
+    pub fn lobby_owner(&self, lobby: LobbyId) -> SteamId {
+        unsafe {
+            SteamId(sys::SteamAPI_ISteamMatchmaking_GetLobbyOwner(self.mm, lobby.0))
+        }
+    }
+
+    /// Returns the number of players in a lobby.
+    ///
+    /// Useful if you are not currently in the lobby
+    pub fn lobby_member_count(&self, lobby: LobbyId) -> usize  {
+        unsafe {
+            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
+            count as usize
+        }
+    }
+
+    /// Returns a list of members currently in the lobby
+    pub fn lobby_members(&self, lobby: LobbyId) -> Vec<SteamId> {
+        unsafe {
+            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
+            let mut members = Vec::with_capacity(count as usize);
+            for idx in 0 .. count {
+                members.push(SteamId(
+                    sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberByIndex(self.mm, lobby.0, idx)
+                ))
+            }
+            members
         }
     }
 }

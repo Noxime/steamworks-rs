@@ -52,8 +52,33 @@ extern "C" {
         return SteamGameServer_Init(ip, steam_port, game_port, query_port, server_mode, version);
     }
 
+    int steam_rust_is_steam_id_valid(uint64_t steam_id) {
+        CSteamID id = CSteamID();
+        id.SetFromUint64(steam_id);
+        return id.IsValid();
+    }
+
+    int steam_rust_is_game_id_valid(uint64_t game_id) {
+        CGameID id = CGameID();
+        id.Set(game_id);
+        return id.IsValid();
+    }
+
+    uint32_t steam_rust_get_game_id_mod(uint64_t game_id) {
+        CGameID id = CGameID();
+        id.Set(game_id);
+        return id.ModID();
+    }
+
+    uint32_t steam_rust_get_game_id_app(uint64_t game_id) {
+        CGameID id = CGameID();
+        id.Set(game_id);
+        return id.AppID();
+    }
+
     ISteamClient* steam_rust_get_client() { return SteamClient(); }
     ISteamMatchmaking* steam_rust_get_matchmaking() { return SteamMatchmaking(); }
+    ISteamNetworking* steam_rust_get_networking() { return SteamNetworking(); }
     ISteamUtils* steam_rust_get_utils() { return SteamUtils(); }
     ISteamApps* steam_rust_get_apps() { return SteamApps(); }
     ISteamFriends* steam_rust_get_friends() { return SteamFriends(); }

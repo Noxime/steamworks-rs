@@ -97,12 +97,12 @@ impl Server {
     ///
     /// The callback will be run on the thread that `run_callbacks`
     /// is called when the event arrives.
-    pub fn register_callback<C, F>(&self, f: F)
+    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<ServerManager>
         where C: Callback,
               F: FnMut(C) + 'static + Send + Sync
     {
         unsafe {
-            register_callback(&self.inner, f, true);
+            register_callback(&self.inner, f, true)
         }
     }
 
@@ -251,8 +251,8 @@ fn test() {
 
     println!("{:?}", server.steam_id());
 
-    server.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
-    server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
+    let _cb = server.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
+    let _cb = server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = server.steam_id();
     let (auth, ticket) = server.authentication_session_ticket();

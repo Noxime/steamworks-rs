@@ -1,5 +1,6 @@
 
 use super::*;
+use std::net::Ipv4Addr;
 
 const CALLBACK_BASE_ID: i32 = 300;
 
@@ -78,6 +79,14 @@ impl <Manager> Friends<Manager> {
         }
     }
 
+    pub fn get_friend(&self, friend: SteamId) -> Friend<Manager> {
+        Friend {
+            id: friend,
+            friends: self.friends,
+            _inner: self.inner.clone(),
+        }
+    }
+
     pub fn request_user_information(&self, user: SteamId, name_only: bool) {
         unsafe {
             sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only as u8);
@@ -91,6 +100,29 @@ impl <Manager> Friends<Manager> {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(self.friends, url.as_ptr() as *const _);
         }
     }
+
+    /// Opens up an invite dialog for the given lobby
+    pub fn activate_invite_dialog(&self, lobby: LobbyId) {
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(self.friends, lobby.0);
+        }
+    }
+}
+
+/// Information about a friend's current state in a game
+#[derive(Debug)]
+pub struct FriendGame {
+    /// The id of the game that the friend is
+    /// playing
+    pub game: GameId,
+    /// The address of the server the player is in
+    pub game_address: Ipv4Addr,
+    /// The game port of the server the player is in
+    pub game_port: u16,
+    /// The query port of the server the player is in
+    pub query_port: u16,
+    /// Optional id of the lobby the player is in
+    pub lobby: LobbyId,
 }
 
 #[derive(Debug)]
@@ -169,6 +201,70 @@ impl <Manager> Friend<Manager> {
                 sys::EPersonaState_k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
                 _ => unreachable!(),
             }
+        }
+    }
+
+    /// Returns information about the game the player is current playing if any
+    pub fn game_played(&self) -> Option<FriendGame> {
+        unsafe {
+            let mut info = sys::create_empty_FriendGameInfo_t();
+            if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, self.id.0, &mut info) != 0 {
+                Some(FriendGame {
+                    game: GameId(info.get_m_gameID()),
+                    game_address: info.get_m_unGameIP().into(),
+                    game_port: info.get_m_usGamePort(),
+                    query_port: info.get_m_usQueryPort(),
+                    lobby: LobbyId(info.get_m_steamIDLobby()),
+                })
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Returns a small (32x32) avatar for the user
+    pub fn small_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let utils = sys::steam_rust_get_utils();
+            let img = sys::SteamAPI_ISteamFriends_GetSmallFriendAvatar(self.friends, self.id.0);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) == 0 {
+                return None;
+            }
+            assert_eq!(width, 32);
+            assert_eq!(height, 32);
+            let mut dest = vec![0; 32 * 32 * 4];
+            if sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 32 * 32 * 4) == 0 {
+                return None;
+            }
+            Some(dest)
+        }
+    }
+
+    /// Returns a small (64x64) avatar for the user
+    pub fn medium_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let utils = sys::steam_rust_get_utils();
+            let img = sys::SteamAPI_ISteamFriends_GetMediumFriendAvatar(self.friends, self.id.0);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) == 0 {
+                return None;
+            }
+            assert_eq!(width, 64);
+            assert_eq!(height, 64);
+            let mut dest = vec![0; 64 * 64 * 4];
+            if sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) == 0 {
+                return None;
+            }
+            Some(dest)
         }
     }
 }
