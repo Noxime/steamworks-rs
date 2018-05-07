@@ -136,7 +136,8 @@ extern "C" {
         {
             continue;
         }
-        builder = builder.whitelist_type(ty);
+        builder = builder.whitelist_type(ty)
+                         .opaque_type(ty);
 
         // Make a raw constructor
         writeln!(cpp_wrapper, r#"{ty} __rust_helper_raw__{ty}() {{
@@ -194,15 +195,34 @@ extern "C" {
             let (fty, fty_rust) = field_type_fix(fty);
             builder = builder.whitelist_type(fty);
             // Generate getters/setters for fields
-
-            writeln!(cpp_wrapper, r#"
-            {fty} __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
-                return from->{fname};
-            }}
-            void __rust_helper_setter__{ty}_{fname}({ty}* to, {fty} val) {{
-                to->{fname} = val;
-            }}
-            "#, ty = ty, fty = fty, fname = fname).unwrap();
+            if fty == "class CSteamID" {
+                writeln!(cpp_wrapper, r#"
+                uint64_t __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
+                    return from->{fname}.ConvertToUint64();
+                }}
+                void __rust_helper_setter__{ty}_{fname}({ty}* to, uint64_t val) {{
+                    to->{fname}.SetFromUint64(val);
+                }}
+                "#, ty = ty, fname = fname).unwrap();
+            } else if fty == "class CGameID" {
+                writeln!(cpp_wrapper, r#"
+                uint64_t __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
+                    return from->{fname}.ToUint64();
+                }}
+                void __rust_helper_setter__{ty}_{fname}({ty}* to, uint64_t val) {{
+                    to->{fname}.Set(val);
+                }}
+                "#, ty = ty, fname = fname).unwrap();
+            } else {
+                writeln!(cpp_wrapper, r#"
+                {fty} __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
+                    return from->{fname};
+                }}
+                void __rust_helper_setter__{ty}_{fname}({ty}* to, {fty} val) {{
+                    to->{fname} = val;
+                }}
+                "#, ty = ty, fty = fty, fname = fname).unwrap();
+            };
 
             builder = builder.raw_line(format!(r#"
                 extern "C" {{
