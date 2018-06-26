@@ -65,6 +65,9 @@ impl <Manager> Friends<Manager> {
     pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend<Manager>> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(self.friends, flags.bits() as _);
+            if count == -1 {
+                return Vec::new();
+            }
             let mut friends = Vec::with_capacity(count as usize);
             for idx in 0 .. count {
                 let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendByIndex(self.friends, idx, flags.bits() as _));
