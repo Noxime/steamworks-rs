@@ -83,6 +83,7 @@ extern "C" {
     ISteamApps* steam_rust_get_apps() { return SteamApps(); }
     ISteamFriends* steam_rust_get_friends() { return SteamFriends(); }
     ISteamUser* steam_rust_get_user() { return SteamUser(); }
+    ISteamUserStats* steam_rust_get_user_stats() { return SteamUserStats(); }
     ISteamGameServer* steam_rust_get_server() { return SteamGameServer(); }
     ISteamApps* steam_rust_get_server_apps() { return SteamGameServerApps(); }
 }

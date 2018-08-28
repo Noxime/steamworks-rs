@@ -25,6 +25,8 @@ mod networking;
 pub use networking::*;
 mod user;
 pub use user::*;
+mod user_stats;
+pub use user_stats::*;
 
 use std::sync::{ Arc, Mutex };
 use std::ffi::{CString, CStr};
@@ -242,7 +244,18 @@ impl <Manager> Client<Manager> {
                 _inner: self.inner.clone(),
             }
         }
+    }
 
+    /// Returns an accessor to the steam user stats interface
+    pub fn user_stats(&self) -> UserStats<Manager> {
+        unsafe {
+            let us = sys::steam_rust_get_user_stats();
+            debug_assert!(!us.is_null());
+            UserStats {
+                user_stats: us,
+                inner: self.inner.clone(),
+            }
+        }
     }
 }
 

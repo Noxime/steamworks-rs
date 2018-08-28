@@ -25,6 +25,8 @@ pub struct ISteamMatchmaking(c_void);
 #[repr(C)]
 pub struct ISteamUser(c_void);
 #[repr(C)]
+pub struct ISteamUserStats(c_void);
+#[repr(C)]
 pub struct ISteamGameServer(c_void);
 #[repr(C)]
 pub struct ISteamNetworking(c_void);
@@ -53,6 +55,7 @@ extern "C" {
     pub fn steam_rust_get_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_friends() -> *mut ISteamFriends;
     pub fn steam_rust_get_user() -> *mut ISteamUser;
+    pub fn steam_rust_get_user_stats() -> *mut ISteamUserStats;
     pub fn steam_rust_get_server() -> *mut ISteamGameServer;
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_networking() -> *mut ISteamNetworking;
@@ -135,6 +138,12 @@ extern "C" {
     pub fn SteamAPI_ISteamUser_BeginAuthSession(instance: *mut ISteamUser, ticket: *const c_void, ticket_size: *mut u32, steam_id: u64) -> EBeginAuthSessionResult;
     pub fn SteamAPI_ISteamUser_EndAuthSession(instance: *mut ISteamUser, steam_id: u64);
     pub fn SteamAPI_ISteamUser_CancelAuthTicket(instance: *mut ISteamUser, auth_ticket: HAuthTicket);
+
+    pub fn SteamAPI_ISteamUserStats_FindLeaderboard(instance: *mut ISteamUserStats, name: *const c_char) -> SteamAPICall;
+    pub fn SteamAPI_ISteamUserStats_FindOrCreateLeaderboard(instance: *mut ISteamUserStats, name: *const c_char, sort_method: ELeaderboardSortMethod, display_type: ELeaderboardDisplayType) -> SteamAPICall;
+    pub fn SteamAPI_ISteamUserStats_UploadLeaderboardScore(instance: *mut ISteamUserStats, leaderboard: u64, method: ELeaderboardUploadScoreMethod, score: i32, details: *const i32, details_count: c_int) -> SteamAPICall;
+    pub fn SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(instance: *mut ISteamUserStats, leaderboard: u64, data_request: ELeaderboardDataRequest, start: c_int, end: c_int) -> SteamAPICall;
+    pub fn SteamAPI_ISteamUserStats_GetDownloadedLeaderboardEntry(instance: *mut ISteamUserStats, entries: SteamLeaderboardEntries_t, index: c_int, entry: *mut LeaderboardEntry_t, details: *mut i32, details_max: c_int) -> u8;
 
     pub fn SteamAPI_ISteamGameServer_LogOnAnonymous(instance: *mut ISteamGameServer);
     pub fn SteamAPI_ISteamGameServer_SetProduct(instance: *mut ISteamGameServer, product: *const c_char);
