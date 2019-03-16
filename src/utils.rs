@@ -18,7 +18,7 @@ impl <Manager> Utils<Manager> {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
         unsafe {
-            AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils))
+            AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils).0)
         }
     }
 
@@ -39,10 +39,10 @@ impl <Manager> Utils<Manager> {
     pub fn set_overlay_notification_position(&self, position: NotificationPosition) {
         unsafe {
             let position = match position {
-                NotificationPosition::TopLeft => sys::ENotificationPosition_k_EPositionTopLeft,
-                NotificationPosition::TopRight => sys::ENotificationPosition_k_EPositionTopRight,
-                NotificationPosition::BottomLeft => sys::ENotificationPosition_k_EPositionBottomLeft,
-                NotificationPosition::BottomRight => sys::ENotificationPosition_k_EPositionBottomRight,
+                NotificationPosition::TopLeft => sys::ENotificationPosition::EPositionTopLeft,
+                NotificationPosition::TopRight => sys::ENotificationPosition::EPositionTopRight,
+                NotificationPosition::BottomLeft => sys::ENotificationPosition::EPositionBottomLeft,
+                NotificationPosition::BottomRight => sys::ENotificationPosition::EPositionBottomRight,
             };
             sys::SteamAPI_ISteamUtils_SetOverlayNotificationPosition(self.utils, position);
         }

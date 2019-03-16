@@ -9,6 +9,9 @@ documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
 
+[package.metadata.docs.rs]
+features = [ "docs-only" ]
+
 [features]
 default = []
 # Skip looking for the steamworks sdk for docs builds
@@ -21,9 +24,6 @@ members = [
 
 [dependencies]
 steamworks-sys = {path = "./steamworks-sys", version = "0.3.0"}
-failure = "0.1.1"
-bitflags = "1.0.1"
-libc = "0.2.36"
-
-[package.metadata.docs.rs]
-features = [ "docs-only" ]
+failure = "0.1.5"
+bitflags = "1.0.4"
+libc = "0.2.50"

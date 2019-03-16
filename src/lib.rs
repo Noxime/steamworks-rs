@@ -76,7 +76,7 @@ struct Inner<Manager> {
 
 struct Callbacks {
     callbacks: Vec<*mut libc::c_void>,
-    call_results: HashMap<sys::SteamAPICall, *mut libc::c_void>,
+    call_results: HashMap<sys::SteamAPICall_t, *mut libc::c_void>,
 }
 
 unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}

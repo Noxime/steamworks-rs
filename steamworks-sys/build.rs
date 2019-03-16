@@ -6,13 +6,28 @@ extern crate serde_derive;
 
 #[derive(Deserialize)]
 struct SteamApi {
+    typedefs: Vec<SteamTypedef>,
     structs: Vec<SteamStruct>,
     enums: Vec<SteamEnum>,
+}
+#[derive(Deserialize)]
+struct SteamTypedef {
+    typedef: String,
+    #[serde(rename = "type")]
+    ty: String,
 }
 
 #[derive(Deserialize)]
 struct SteamEnum {
     enumname: String,
+    values: Vec<SteamEnumValue>,
+}
+
+
+#[derive(Deserialize)]
+struct SteamEnumValue {
+    name: String,
+    value: String,
 }
 
 #[derive(Deserialize)]
@@ -32,12 +47,12 @@ struct SteamField {
 fn main() {}
 
 #[cfg(not(feature = "docs-only"))]
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::env;
     use std::path::{Path, PathBuf};
-    use std::io::Write;
-    use std::fmt::Write as FWrite;
-    use std::fs::File;
+    use std::fmt::Write as _;
+    use std::fs::{self, File};
+    use std::borrow::Cow;
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let sdk_loc = env::var("STEAM_SDK_LOCATION")
@@ -46,6 +61,7 @@ fn main() {
 
     let triple = env::var("TARGET").unwrap();
     let mut lib = "steam_api";
+    let mut packing = 8;
     let path = if triple.contains("windows") {
         if triple.contains("i686") {
             sdk_loc.join("redistributable_bin/")
@@ -54,12 +70,14 @@ fn main() {
             sdk_loc.join("redistributable_bin/win64")
         }
     } else if triple.contains("linux") {
+        packing = 4;
         if triple.contains("i686") {
             sdk_loc.join("redistributable_bin/linux32")
         } else {
             sdk_loc.join("redistributable_bin/linux64")
         }
     } else if triple.contains("darwin") {
+        packing = 4;
         sdk_loc.join("redistributable_bin/osx64")
     } else {
         panic!("Unsupported OS");
@@ -67,30 +85,24 @@ fn main() {
     println!("cargo:rustc-link-search={}", path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
-    let mut builder = bindgen::builder()
-        .header("wrapper.hpp")
-        .clang_arg(format!("-I{}", sdk_loc.join("public/steam").display()))
-        .ctypes_prefix("libc")
-        .rustfmt_bindings(false);
-
     // Steamworks uses packed structs making them hard to work
     // with normally
-    let steam_api: SteamApi = serde_json::from_reader(File::open(sdk_loc.join("public/steam/steam_api.json")).unwrap())
-        .unwrap();
+    let steam_api: SteamApi = serde_json::from_reader(File::open(sdk_loc.join("public/steam/steam_api.json"))?)?;
 
-    let mut cpp_wrapper = String::from(r#"
-#include <steam_api.h>
-#include <steam_gameserver.h>
-#include <stdint.h>
-extern "C" {
-    "#);
+    let mut bindings = r##"
+use libc::*;
+"##.to_owned();
 
-    fn field_type_fix(fty: &str) -> (&str, String){
+    fn c_to_rust<'a>(fty: &'a str) -> Option<(&'a str, Cow<'a, str>)> {
+        // Generics
+        if fty == "T *" {
+            return None;
+        }
         let fty = {
             if fty.contains("enum") {
-                fty.trim_left_matches("enum ")
+                fty.trim_start_matches("enum ")
             } else if fty.contains("struct") {
-                fty.trim_left_matches("struct ")
+                fty.trim_start_matches("struct ")
             } else if fty == "_Bool" {
                 "bool"
             } else {
@@ -98,173 +110,136 @@ extern "C" {
             }
         };
         let fty_rust = if fty == "const char*" || fty ==  "*const char" || fty ==  "const char *" {
-            "*const libc::c_char".to_owned()
+            "*const libc::c_char".into()
         } else if fty == "char*" {
-            "*mut libc::c_char".to_owned()
+            "*mut libc::c_char".into()
         } else if fty == "const char **" {
-            "*mut *const libc::c_char".to_owned()
+            "*mut *const libc::c_char".into()
         }else if fty.ends_with("*") {
             if fty.starts_with("const") {
-                let trimmed = fty.trim_left_matches("const ").trim_right_matches("*");
-                format!("*const {}", trimmed)
+                let trimmed = fty.trim_start_matches("const ").trim_end_matches("*").trim();
+                format!("*const {}", c_to_rust(trimmed)?.1).into()
             } else {
-                let trimmed = fty.trim_right_matches("*");
-                format!("*mut {}", trimmed)
+                let trimmed = fty.trim_end_matches("*").trim();
+                format!("*mut {}", c_to_rust(trimmed)?.1).into()
             }
         } else if fty.contains("[") {
-            panic!("Unsupported field type array")
-        } else if fty == "class CSteamID" {
-            "u64".to_owned()
-        } else if fty == "class CGameID" {
-            "u64".to_owned()
-        } else if fty == "int" {
-            "libc::c_int".to_owned()
-        } else if fty == "float" {
-            "libc::c_float".to_owned()
-        } else if fty == "double" {
-            "libc::c_double".to_owned()
+            let num_start = fty.chars().position(|v| v == '[').unwrap_or(0);
+            let num_end = fty.chars().position(|v| v == ']').unwrap_or(0);
+            format!("[{}; {}]", c_to_rust(&fty[..num_start].trim())?.1, &fty[num_start + 1 .. num_end]).into()
+        } else if fty.contains("(") {
+            eprintln!("Unsupported field type function pointer: {:?}", fty);
+            return None;
         } else {
-            fty.to_owned()
+            match fty {
+                "int" => "c_int".into(),
+                "float" => "c_float".into(),
+                "double" => "c_double".into(),
+                "void" => "c_void".into(),
+                "uint8" => "u8".into(),
+                "int8" => "i8".into(),
+                "uint16" => "u16".into(),
+                "int16" => "i16".into(),
+                "uint32" => "u32".into(),
+                "int32" => "i32".into(),
+                "uint64" => "u64".into(),
+                "int64" => "i64".into(),
+                "lint64" => "i64".into(),
+                "ulint64" => "u64".into(),
+                "intp" => "isize".into(),
+                "uintp" => "usize".into(),
+                "class CSteamID" => "CSteamID".into(),
+                "class CGameID" => "CGameID".into(),
+                val if val.contains("class") => return None,
+                val => val.into(),
+            }
         };
-        (fty, fty_rust)
+
+        Some((fty, fty_rust))
     }
 
-    for &SteamStruct{struct_: ref ty, ref fields} in &steam_api.structs {
-        if ty.contains("::") || !ty.ends_with("_t") || fields.iter().any(|v| v.fieldtype.contains('['))
-            || ty.chars().next().map_or(true, |v| v.is_lowercase())
-            || ty.starts_with("GSStats")
-        {
+    for def in steam_api.typedefs {
+        if def.typedef.chars().next().map_or(true, |v| v.is_lowercase()) {
             continue;
         }
-        builder = builder.whitelist_type(ty)
-                         .opaque_type(ty);
 
-        // Make a raw constructor
-        writeln!(cpp_wrapper, r#"{ty} __rust_helper_raw__{ty}() {{
-            {ty} created_type = {{}};
-            return created_type;
-        }}"#, ty = ty).unwrap();
-        builder = builder.raw_line(format!(r#"
-            extern "C" {{
-                fn __rust_helper_raw__{ty}() -> {ty};
-            }}
-            pub unsafe fn create_empty_{ty}() -> {ty} {{
-                __rust_helper_raw__{ty}()
-            }}
-        "#, ty = ty));
+        if let Some(rty) = c_to_rust(&def.ty) {
+            if def.typedef == rty.1 || def.typedef.contains("::") {
+                continue;
+            }
+            writeln!(bindings, r#"
+#[repr(transparent)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct {}(pub {});"#, def.typedef, rty.1)?;
+        } else {
+            eprintln!("Could not typedef {:?}", def.typedef);
+        }
+    }
 
-        // Make a typed constructor
-        let mut typed_constr_extern = String::new();
-        let mut typed_constr_wrap = String::new();
-        write!(cpp_wrapper, r#"{ty} __rust_helper_typed__{ty}("#, ty = ty).unwrap();
-        write!(typed_constr_extern, r#"extern "C" {{
-            fn __rust_helper_typed__{ty}("#, ty = ty).unwrap();
-        write!(typed_constr_wrap, r#"pub unsafe fn create_{ty}("#, ty = ty).unwrap();
-        for (idx, &SteamField{fieldname: ref fname, fieldtype: ref fty}) in fields.iter().enumerate() {
-            let (fty, fty_rust) = field_type_fix(fty);
-            write!(cpp_wrapper, "{} {}", fty, fname).unwrap();
-            write!(typed_constr_extern, "{}: {},", fname, fty_rust).unwrap();
-            write!(typed_constr_wrap, "{}: {},", fname, fty_rust).unwrap();
-            if idx != fields.len() - 1 {
-                cpp_wrapper.push(',');
+    for e in steam_api.enums {
+        if e.enumname.contains("::") {
+            continue;
+        }
+        writeln!(bindings, r#"
+#[repr(C)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub enum {} {{"#, e.enumname)?;
+
+        for v in e.values {
+            // Known duplicate
+            if v.name == "k_EWorkshopFileTypeFirst" {
+                continue;
+            }
+            writeln!(bindings, r#"    {} = {},"#, v.name.trim_start_matches("k_"), v.value)?;
+        }
+
+        writeln!(bindings, r#"}}"#)?;
+
+    }
+
+    'structs:
+    for s in steam_api.structs {
+        if s.struct_ == "CSteamID" || s.struct_ == "CGameID" || s.struct_.contains("::") {
+            continue;
+        }
+        // TODO: Remove special case for SteamUGCDetails_t
+        let derive = if !s.fields.iter().any(|v|
+            v.fieldtype == "float"
+            || v.fieldtype == "double"
+            || v.fieldtype == "struct SteamUGCDetails_t"
+            || v.fieldtype.contains('['))
+        {
+            "#[derive(Clone, Copy, PartialEq, Eq, Hash)]"
+        } else {
+            "#[derive(Clone, Copy)]"
+        };
+        let mut s_builder = String::new();
+        writeln!(s_builder, r#"
+#[repr(C, packed({}))]
+{}
+pub struct {} {{"#, packing, derive, s.struct_)?;
+
+        for f in s.fields {
+            if let Some(rty) = c_to_rust(&f.fieldtype) {
+                writeln!(s_builder, "    pub {}: {},", f.fieldname, rty.1)?;
+            } else {
+                continue 'structs;
             }
         }
 
-        write!(cpp_wrapper, r#") {{
-            {ty} created_type = {{}};
-        "#, ty = ty).unwrap();
-        write!(typed_constr_extern, r#") -> {ty};
-        }}"#, ty = ty).unwrap();
-        write!(typed_constr_wrap, r#") -> {ty} {{
-            __rust_helper_typed__{ty}("#, ty = ty).unwrap();
-        for &SteamField{fieldname: ref fname, ..} in fields.iter() {
-            write!(cpp_wrapper, "created_type.{fname} = {fname};", fname = fname).unwrap();
-            write!(typed_constr_wrap, "{},", fname).unwrap();
-        }
-        writeln!(cpp_wrapper, r#"
-            return created_type;
-        }}"#).unwrap();
-        writeln!(typed_constr_wrap, r#")
-        }}"#).unwrap();
+        writeln!(s_builder, r#"}}"#)?;
 
-        builder = builder.raw_line(typed_constr_extern);
-        builder = builder.raw_line(typed_constr_wrap);
-
-
-        for &SteamField{fieldname: ref fname, fieldtype: ref fty} in fields.iter() {
-            let (fty, fty_rust) = field_type_fix(fty);
-            builder = builder.whitelist_type(fty);
-            // Generate getters/setters for fields
-            if fty == "class CSteamID" {
-                writeln!(cpp_wrapper, r#"
-                uint64_t __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
-                    return from->{fname}.ConvertToUint64();
-                }}
-                void __rust_helper_setter__{ty}_{fname}({ty}* to, uint64_t val) {{
-                    to->{fname}.SetFromUint64(val);
-                }}
-                "#, ty = ty, fname = fname).unwrap();
-            } else if fty == "class CGameID" {
-                writeln!(cpp_wrapper, r#"
-                uint64_t __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
-                    return from->{fname}.ToUint64();
-                }}
-                void __rust_helper_setter__{ty}_{fname}({ty}* to, uint64_t val) {{
-                    to->{fname}.Set(val);
-                }}
-                "#, ty = ty, fname = fname).unwrap();
-            } else {
-                writeln!(cpp_wrapper, r#"
-                {fty} __rust_helper_getter__{ty}_{fname}(const {ty}* from) {{
-                    return from->{fname};
-                }}
-                void __rust_helper_setter__{ty}_{fname}({ty}* to, {fty} val) {{
-                    to->{fname} = val;
-                }}
-                "#, ty = ty, fty = fty, fname = fname).unwrap();
-            };
-
-            builder = builder.raw_line(format!(r#"
-                extern "C" {{
-                    fn __rust_helper_getter__{ty}_{fname}(from: *const {ty}) -> {fty_rust};
-                    fn __rust_helper_setter__{ty}_{fname}(from: *mut {ty}, val: {fty_rust});
-                }}
-                impl {ty} {{
-                    pub unsafe fn get_{fname}(&self) -> {fty_rust} {{
-                        __rust_helper_getter__{ty}_{fname}(self)
-                    }}
-                    pub unsafe fn set_{fname}(&mut self, val: {fty_rust}) {{
-                        __rust_helper_setter__{ty}_{fname}(self, val)
-                    }}
-                }}
-            "#, ty = ty, fty_rust = fty_rust, fname = fname))
-        }
+        bindings.push_str(&s_builder);
     }
-    for e in steam_api.enums {
-        builder = builder.whitelist_type(e.enumname);
-    }
-    builder = builder.whitelist_type("EServerMode");
 
-    cpp_wrapper.push_str("}");
+    // fs::write("/tmp/steam-bindings.rs", &bindings)?;
+    fs::write(out_path.join("bindings.rs"), bindings)?;
 
-    File::create(out_path.join("steam_gen.cpp"))
-        .unwrap()
-        .write_all(cpp_wrapper.as_bytes())
-        .unwrap();
-
-    // panic!("{}", out_path.join("steam_gen.cpp").display());
     cc::Build::new()
         .cpp(true)
         .include(sdk_loc.join("public/steam"))
         .file("src/lib.cpp")
-        .file(out_path.join("steam_gen.cpp"))
         .compile("steamrust");
 
-    let bindings = builder
-        .generate()
-        .unwrap();
-    // panic!("{}", bindings.to_string());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+    Ok(())
 }

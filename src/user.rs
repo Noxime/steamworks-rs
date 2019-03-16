@@ -11,7 +11,7 @@ impl <Manager> User<Manager> {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
         unsafe {
-            SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user))
+            SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user).0)
         }
     }
 
@@ -60,16 +60,15 @@ impl <Manager> User<Manager> {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
                 ticket.as_ptr() as *const _, ticket.len() as _,
-                user.0
+                sys::CSteamID(user.0)
             );
             Err(match res {
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
-                _ => unreachable!(),
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
             })
         }
     }
@@ -81,7 +80,7 @@ impl <Manager> User<Manager> {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamUser_EndAuthSession(self.user, user.0);
+            sys::SteamAPI_ISteamUser_EndAuthSession(self.user, sys::CSteamID(user.0));
         }
     }
 }
@@ -111,7 +110,7 @@ fn test() {
     let (client, single) = Client::init().unwrap();
     let user = client.user();
 
-    let _cb = client.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
+    let _cb = client.register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
     let _cb = client.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = user.steam_id();
@@ -138,13 +137,11 @@ fn test() {
 
 /// A handle for an authentication ticket that can be used to cancel
 /// it.
-#[derive(Debug)]
 pub struct AuthTicket(pub(crate) sys::HAuthTicket);
 
 /// Called when generating a authentication session ticket.
 ///
 /// This can be used to verify the ticket was created successfully.
-#[derive(Debug)]
 pub struct AuthSessionTicketResponse {
     /// The ticket in question
     pub ticket: AuthTicket,
@@ -159,11 +156,11 @@ unsafe impl Callback for AuthSessionTicketResponse {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
-            ticket: AuthTicket(val.get_m_hAuthTicket()),
-            result: if val.get_m_eResult() == sys::EResult_k_EResultOK  {
+            ticket: AuthTicket(val.m_hAuthTicket),
+            result: if val.m_eResult == sys::EResult::EResultOK  {
                 Ok(())
             } else {
-                Err(val.get_m_eResult().into())
+                Err(val.m_eResult.into())
             }
         }
     }
@@ -190,20 +187,19 @@ unsafe impl Callback for ValidateAuthTicketResponse {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
         ValidateAuthTicketResponse {
-            steam_id: SteamId(val.get_m_SteamID()),
-            owner_steam_id: SteamId(val.get_m_OwnerSteamID()),
-            response: match val.get_m_eAuthSessionResponse() {
-                sys::EAuthSessionResponse_k_EAuthSessionResponseOK => Ok(()),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
-                sys::EAuthSessionResponse_k_EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
-                sys::EAuthSessionResponse_k_EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
-                _ => unreachable!(),
+            steam_id: SteamId(val.m_SteamID.0),
+            owner_steam_id: SteamId(val.m_OwnerSteamID.0),
+            response: match val.m_eAuthSessionResponse {
+                sys::EAuthSessionResponse::EAuthSessionResponseOK => Ok(()),
+                sys::EAuthSessionResponse::EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
+                sys::EAuthSessionResponse::EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
+                sys::EAuthSessionResponse::EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
+                sys::EAuthSessionResponse::EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
+                sys::EAuthSessionResponse::EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
+                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
+                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
+                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
+                sys::EAuthSessionResponse::EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
             }
         }
     }

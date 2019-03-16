@@ -62,9 +62,9 @@ impl Server {
             let version = CString::new(version).unwrap();
             let raw_ip: u32 = ip.into();
             let server_mode = match server_mode {
-                ServerMode::NoAuthentication => sys::EServerMode_eServerModeNoAuthentication,
-                ServerMode::Authentication => sys::EServerMode_eServerModeAuthentication,
-                ServerMode::AuthenticationAndSecure => sys::EServerMode_eServerModeAuthenticationAndSecure,
+                ServerMode::NoAuthentication => sys::EServerMode::ServerModeNoAuthentication,
+                ServerMode::Authentication => sys::EServerMode::ServerModeAuthentication,
+                ServerMode::AuthenticationAndSecure => sys::EServerMode::ServerModeAuthenticationAndSecure,
             };
             if sys::steam_rust_game_server_init(
                 raw_ip, steam_port,
@@ -109,7 +109,7 @@ impl Server {
     /// Returns the steam id of the current server
     pub fn steam_id(&self) -> SteamId {
         unsafe {
-            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server))
+            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server).0)
         }
     }
 
@@ -158,16 +158,15 @@ impl Server {
             let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
                 self.server,
                 ticket.as_ptr() as *const _, ticket.len() as _,
-                user.0
+                sys::CSteamID(user.0)
             );
             Err(match res {
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult_k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
-                _ => unreachable!(),
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult::EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
             })
         }
     }
@@ -179,7 +178,7 @@ impl Server {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server, user.0);
+            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server, sys::CSteamID(user.0));
         }
     }
 
@@ -251,7 +250,7 @@ fn test() {
 
     println!("{:?}", server.steam_id());
 
-    let _cb = server.register_callback(|v: AuthSessionTicketResponse| println!("{:?}", v));
+    let _cb = server.register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
     let _cb = server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = server.steam_id();

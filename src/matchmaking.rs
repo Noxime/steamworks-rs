@@ -58,9 +58,9 @@ impl <Manager> Matchmaking<Manager> {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
                     } else {
-                        let mut out = Vec::with_capacity(v.get_m_nLobbiesMatching() as usize);
-                        for idx in 0 .. v.get_m_nLobbiesMatching() {
-                            out.push(LobbyId(sys::SteamAPI_ISteamMatchmaking_GetLobbyByIndex(sys::steam_rust_get_matchmaking(), idx as _)));
+                        let mut out = Vec::with_capacity(v.m_nLobbiesMatching as usize);
+                        for idx in 0 .. v.m_nLobbiesMatching {
+                            out.push(LobbyId(sys::SteamAPI_ISteamMatchmaking_GetLobbyByIndex(sys::steam_rust_get_matchmaking(), idx as _).0));
                         }
                         Ok(out)
                     })
@@ -84,10 +84,10 @@ impl <Manager> Matchmaking<Manager> {
         assert!(max_members <= 250); // Steam API limits
         unsafe {
             let ty = match ty {
-                LobbyType::Private => sys::ELobbyType_k_ELobbyTypePrivate,
-                LobbyType::FriendsOnly => sys::ELobbyType_k_ELobbyTypeFriendsOnly,
-                LobbyType::Public => sys::ELobbyType_k_ELobbyTypePublic,
-                LobbyType::Invisible => sys::ELobbyType_k_ELobbyTypeInvisible,
+                LobbyType::Private => sys::ELobbyType::ELobbyTypePrivate,
+                LobbyType::FriendsOnly => sys::ELobbyType::ELobbyTypeFriendsOnly,
+                LobbyType::Public => sys::ELobbyType::ELobbyTypePublic,
+                LobbyType::Invisible => sys::ELobbyType::ELobbyTypeInvisible,
             };
             let api_call = sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
             register_call_result::<sys::LobbyCreated_t, _, _>(
@@ -95,10 +95,10 @@ impl <Manager> Matchmaking<Manager> {
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.get_m_eResult() != sys::EResult_k_EResultOK {
-                        Err(v.get_m_eResult().into())
+                    } else if v.m_eResult != sys::EResult::EResultOK {
+                        Err(v.m_eResult.into())
                     } else {
-                        Ok(LobbyId(v.get_m_ulSteamIDLobby()))
+                        Ok(LobbyId(v.m_ulSteamIDLobby))
                     })
             });
         }
@@ -109,16 +109,16 @@ impl <Manager> Matchmaking<Manager> {
         where F: FnMut(Result<LobbyId, ()>) + 'static + Send
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
+            let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, sys::CSteamID(lobby.0));
             register_call_result::<sys::LobbyEnter_t, _, _>(
                 &self.inner, api_call, CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(())
-                    } else if v.get_m_EChatRoomEnterResponse() != 1 {
+                    } else if v.m_EChatRoomEnterResponse != 1 {
                         Err(())
                     } else {
-                        Ok(LobbyId(v.get_m_ulSteamIDLobby()))
+                        Ok(LobbyId(v.m_ulSteamIDLobby))
                     })
             });
         }
@@ -127,14 +127,14 @@ impl <Manager> Matchmaking<Manager> {
     /// Exits the passed lobby
     pub fn leave_lobby(&self, lobby: LobbyId) {
         unsafe {
-            sys::SteamAPI_ISteamMatchmaking_LeaveLobby(self.mm, lobby.0);
+            sys::SteamAPI_ISteamMatchmaking_LeaveLobby(self.mm, sys::CSteamID(lobby.0));
         }
     }
 
     /// Returns the steam id of the current owner of the passed lobby
     pub fn lobby_owner(&self, lobby: LobbyId) -> SteamId {
         unsafe {
-            SteamId(sys::SteamAPI_ISteamMatchmaking_GetLobbyOwner(self.mm, lobby.0))
+            SteamId(sys::SteamAPI_ISteamMatchmaking_GetLobbyOwner(self.mm, sys::CSteamID(lobby.0)).0)
         }
     }
 
@@ -143,7 +143,7 @@ impl <Manager> Matchmaking<Manager> {
     /// Useful if you are not currently in the lobby
     pub fn lobby_member_count(&self, lobby: LobbyId) -> usize  {
         unsafe {
-            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
+            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, sys::CSteamID(lobby.0));
             count as usize
         }
     }
@@ -151,11 +151,11 @@ impl <Manager> Matchmaking<Manager> {
     /// Returns a list of members currently in the lobby
     pub fn lobby_members(&self, lobby: LobbyId) -> Vec<SteamId> {
         unsafe {
-            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
+            let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, sys::CSteamID(lobby.0));
             let mut members = Vec::with_capacity(count as usize);
             for idx in 0 .. count {
                 members.push(SteamId(
-                    sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberByIndex(self.mm, lobby.0, idx)
+                    sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberByIndex(self.mm, sys::CSteamID(lobby.0), idx).0
                 ))
             }
             members

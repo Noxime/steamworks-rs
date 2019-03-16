@@ -70,7 +70,7 @@ impl <Manager> Friends<Manager> {
             }
             let mut friends = Vec::with_capacity(count as usize);
             for idx in 0 .. count {
-                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendByIndex(self.friends, idx, flags.bits() as _));
+                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendByIndex(self.friends, idx, flags.bits() as _).0);
                 friends.push(Friend {
                     id: friend,
                     friends: self.friends,
@@ -92,7 +92,7 @@ impl <Manager> Friends<Manager> {
 
     pub fn request_user_information(&self, user: SteamId, name_only: bool) {
         unsafe {
-            sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only as u8);
+            sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, sys::CSteamID(user.0), name_only as u8);
         }
     }
 
@@ -107,7 +107,7 @@ impl <Manager> Friends<Manager> {
     /// Opens up an invite dialog for the given lobby
     pub fn activate_invite_dialog(&self, lobby: LobbyId) {
         unsafe {
-            sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(self.friends, lobby.0);
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(self.friends, sys::CSteamID(lobby.0));
         }
     }
 }
@@ -141,8 +141,8 @@ unsafe impl Callback for PersonaStateChange {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
         PersonaStateChange {
-            steam_id: SteamId(val.get_m_ulSteamID()),
-            flags: PersonaChange::from_bits_truncate(val.get_m_nChangeFlags() as i32),
+            steam_id: SteamId(val.m_ulSteamID),
+            flags: PersonaChange::from_bits_truncate(val.m_nChangeFlags as i32),
         }
     }
 }
@@ -160,8 +160,8 @@ unsafe impl Callback for GameLobbyJoinRequested {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
         GameLobbyJoinRequested {
-            lobby_steam_id: LobbyId(val.get_m_steamIDLobby()),
-            friend_steam_id: SteamId(val.get_m_steamIDFriend()),
+            lobby_steam_id: LobbyId(val.m_steamIDLobby.0),
+            friend_steam_id: SteamId(val.m_steamIDFriend.0),
         }
     }
 }
@@ -185,7 +185,7 @@ impl <Manager> Friend<Manager> {
 
     pub fn name(&self) -> String {
         unsafe {
-            let name = sys::SteamAPI_ISteamFriends_GetFriendPersonaName(self.friends, self.id.0);
+            let name = sys::SteamAPI_ISteamFriends_GetFriendPersonaName(self.friends, sys::CSteamID(self.id.0));
             let name = CStr::from_ptr(name);
             name.to_string_lossy().into_owned()
         }
@@ -193,15 +193,15 @@ impl <Manager> Friend<Manager> {
 
     pub fn state(&self) -> FriendState {
         unsafe {
-            let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0);
+            let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, sys::CSteamID(self.id.0));
             match state {
-                sys::EPersonaState_k_EPersonaStateOffline => FriendState::Offline,
-                sys::EPersonaState_k_EPersonaStateOnline => FriendState::Online,
-                sys::EPersonaState_k_EPersonaStateBusy => FriendState::Busy,
-                sys::EPersonaState_k_EPersonaStateAway => FriendState::Away,
-                sys::EPersonaState_k_EPersonaStateSnooze => FriendState::Snooze,
-                sys::EPersonaState_k_EPersonaStateLookingToPlay => FriendState::LookingToPlay,
-                sys::EPersonaState_k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
+                sys::EPersonaState::EPersonaStateOffline => FriendState::Offline,
+                sys::EPersonaState::EPersonaStateOnline => FriendState::Online,
+                sys::EPersonaState::EPersonaStateBusy => FriendState::Busy,
+                sys::EPersonaState::EPersonaStateAway => FriendState::Away,
+                sys::EPersonaState::EPersonaStateSnooze => FriendState::Snooze,
+                sys::EPersonaState::EPersonaStateLookingToPlay => FriendState::LookingToPlay,
+                sys::EPersonaState::EPersonaStateLookingToTrade => FriendState::LookingToTrade,
                 _ => unreachable!(),
             }
         }
@@ -210,14 +210,14 @@ impl <Manager> Friend<Manager> {
     /// Returns information about the game the player is current playing if any
     pub fn game_played(&self) -> Option<FriendGame> {
         unsafe {
-            let mut info = sys::create_empty_FriendGameInfo_t();
-            if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, self.id.0, &mut info) != 0 {
+            let mut info: sys::FriendGameInfo_t = std::mem::uninitialized();
+            if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, sys::CSteamID(self.id.0), &mut info) != 0 {
                 Some(FriendGame {
-                    game: GameId(info.get_m_gameID()),
-                    game_address: info.get_m_unGameIP().into(),
-                    game_port: info.get_m_usGamePort(),
-                    query_port: info.get_m_usQueryPort(),
-                    lobby: LobbyId(info.get_m_steamIDLobby()),
+                    game: GameId(info.m_gameID.0),
+                    game_address: info.m_unGameIP.into(),
+                    game_port: info.m_usGamePort,
+                    query_port: info.m_usQueryPort,
+                    lobby: LobbyId(info.m_steamIDLobby.0),
                 })
             } else {
                 None
@@ -229,7 +229,7 @@ impl <Manager> Friend<Manager> {
     pub fn small_avatar(&self) -> Option<Vec<u8>> {
         unsafe {
             let utils = sys::steam_rust_get_utils();
-            let img = sys::SteamAPI_ISteamFriends_GetSmallFriendAvatar(self.friends, self.id.0);
+            let img = sys::SteamAPI_ISteamFriends_GetSmallFriendAvatar(self.friends, sys::CSteamID(self.id.0));
             if img == 0 {
                 return None;
             }
@@ -252,7 +252,7 @@ impl <Manager> Friend<Manager> {
     pub fn medium_avatar(&self) -> Option<Vec<u8>> {
         unsafe {
             let utils = sys::steam_rust_get_utils();
-            let img = sys::SteamAPI_ISteamFriends_GetMediumFriendAvatar(self.friends, self.id.0);
+            let img = sys::SteamAPI_ISteamFriends_GetMediumFriendAvatar(self.friends, sys::CSteamID(self.id.0));
             if img == 0 {
                 return None;
             }

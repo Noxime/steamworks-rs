@@ -64,7 +64,7 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
         func(param);
     }
 
-    unsafe extern "C" fn run_extra<C, F>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, _: u8, _: sys::SteamAPICall)
+    unsafe extern "C" fn run_extra<C, F>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, _: u8, _: sys::SteamAPICall_t)
         where C: Callback,
               F: FnMut(C) + Send + 'static
     {
@@ -103,12 +103,12 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
     }
 }
 
-pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall, callback_id: i32, f: F)
+pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall_t, callback_id: i32, f: F)
     where F: for <'a> FnMut(&'a C, bool) + 'static + Send
 {
     struct CallData<F, Manager> {
         func: F,
-        api_call: sys::SteamAPICall,
+        api_call: sys::SteamAPICall_t,
         inner: Weak<Inner<Manager>>,
     }
 
@@ -135,7 +135,7 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
         sys::delete_rust_callback(cb);
     }
 
-    unsafe extern "C" fn run_extra<C, F, Manager>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, io_error: u8, api_call: sys::SteamAPICall)
+    unsafe extern "C" fn run_extra<C, F, Manager>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, io_error: u8, api_call: sys::SteamAPICall_t)
         where F: for<'a> FnMut(&'a C, bool) + Send + 'static
     {
         let data: &mut CallData<F, Manager> = &mut *(userdata as *mut CallData<F, Manager>);
