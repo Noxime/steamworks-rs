@@ -1,4 +1,3 @@
-extern crate bindgen;
 extern crate cc;
 extern crate serde_json;
 #[macro_use]
