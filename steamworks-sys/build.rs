@@ -99,6 +99,9 @@ use libc::*;
         }
         let fty = {
             if fty.contains("enum") {
+                if fty.contains("::") {
+                    return None;
+                }
                 fty.trim_start_matches("enum ")
             } else if fty.contains("struct") {
                 fty.trim_start_matches("struct ")
