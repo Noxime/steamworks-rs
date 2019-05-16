@@ -151,6 +151,39 @@ extern "C" {
     pub fn SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(instance: *mut ISteamUserStats, leaderboard: SteamLeaderboard_t, data_request: ELeaderboardDataRequest, start: c_int, end: c_int) -> SteamAPICall_t;
     pub fn SteamAPI_ISteamUserStats_GetDownloadedLeaderboardEntry(instance: *mut ISteamUserStats, entries: SteamLeaderboardEntries_t, index: c_int, entry: *mut LeaderboardEntry_t, details: *mut i32, details_max: c_int) -> u8;
 
+    /// https://partner.steamgames.com/doc/api/ISteamUserStats#RequestCurrentStats
+    ///
+    /// Returns true if successful
+    pub fn SteamAPI_ISteamUserStats_RequestCurrentStats(
+        instance: *mut ISteamUserStats,
+    ) -> bool;
+    /// https://partner.steamgames.com/doc/api/ISteamUserStats#GetAchievement
+    ///
+    /// Returns true if successful
+    pub fn SteamAPI_ISteamUserStats_GetAchievement(
+        instance: *mut ISteamUserStats,
+        name: *const c_char,
+        achieved: *mut bool,
+    ) -> bool;
+    /// https://partner.steamgames.com/doc/api/ISteamUserStats#SetAchievement
+    ///
+    /// Returns true if successful
+    pub fn SteamAPI_ISteamUserStats_SetAchievement(
+        instance: *mut ISteamUserStats,
+        name: *const c_char,
+    ) -> bool;
+    /// https://partner.steamgames.com/doc/api/ISteamUserStats#ClearAchievement
+    ///
+    /// Returns true if successful
+    pub fn SteamAPI_ISteamUserStats_ClearAchievement(
+        instance: *mut ISteamUserStats,
+        name: *const c_char,
+    ) -> bool;
+    /// https://partner.steamgames.com/doc/api/ISteamUserStats#StoreStats
+    ///
+    /// Returns true if successful
+    pub fn SteamAPI_ISteamUserStats_StoreStats(instance: *mut ISteamUserStats) -> bool;
+
     pub fn SteamAPI_ISteamGameServer_LogOnAnonymous(instance: *mut ISteamGameServer);
     pub fn SteamAPI_ISteamGameServer_SetProduct(instance: *mut ISteamGameServer, product: *const c_char);
     pub fn SteamAPI_ISteamGameServer_SetGameDescription(instance: *mut ISteamGameServer, description: *const c_char);
