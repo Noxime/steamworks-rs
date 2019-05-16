@@ -112,12 +112,12 @@ use libc::*;
             }
         };
         let fty_rust = if fty == "const char*" || fty ==  "*const char" || fty ==  "const char *" {
-            "*const libc::c_char".into()
+            "*const c_char".into()
         } else if fty == "char*" {
-            "*mut libc::c_char".into()
+            "*mut c_char".into()
         } else if fty == "const char **" {
-            "*mut *const libc::c_char".into()
-        }else if fty.ends_with("*") {
+            "*mut *const c_char".into()
+        } else if fty.ends_with("*") {
             if fty.starts_with("const") {
                 let trimmed = fty.trim_start_matches("const ").trim_end_matches("*").trim();
                 format!("*const {}", c_to_rust(trimmed)?.1).into()
@@ -126,9 +126,13 @@ use libc::*;
                 format!("*mut {}", c_to_rust(trimmed)?.1).into()
             }
         } else if fty.contains("[") {
-            let num_start = fty.chars().position(|v| v == '[').unwrap_or(0);
-            let num_end = fty.chars().position(|v| v == ']').unwrap_or(0);
-            format!("[{}; {}]", c_to_rust(&fty[..num_start].trim())?.1, &fty[num_start + 1 .. num_end]).into()
+            let open_square = fty.char_indices().find(|ic| ic.1 == '[').unwrap().0;
+            let close_square = fty.char_indices().find(|ic| ic.1 == ']').unwrap().0;
+            format!(
+                "[{}; {}]",
+                c_to_rust(&fty[..open_square].trim())?.1,
+                &fty[open_square + 1..close_square],
+            ).into()
         } else if fty.contains("(") {
             eprintln!("Unsupported field type function pointer: {:?}", fty);
             return None;
@@ -152,6 +156,7 @@ use libc::*;
                 "uintp" => "usize".into(),
                 "class CSteamID" => "CSteamID".into(),
                 "class CGameID" => "CGameID".into(),
+                "char" => "c_char".into(),
                 val if val.contains("class") => return None,
                 val => val.into(),
             }

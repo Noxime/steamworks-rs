@@ -1,4 +1,7 @@
+pub mod stats;
+mod stat_callback;
 
+pub use self::stat_callback::*;
 use super::*;
 
 /// Access to the steam user interface
@@ -140,6 +143,34 @@ impl <Manager> UserStats<Manager> {
                     })
             });
         }
+    }
+
+    /// Triggers a [`UserStatsReceived`](./struct.UserStatsReceived.html) callback.
+    pub fn request_current_stats(&self) {
+        unsafe { sys::SteamAPI_ISteamUserStats_RequestCurrentStats(self.user_stats); }
+    }
+
+    /// Send the changed stats and achievements data to the server for permanent storage.
+    ///
+    /// * Triggers a [`UserStatsStored`](../struct.UserStatsStored.html) callback if successful.
+    /// * Triggers a [`UserAchievementStored`](../struct.UserAchievementStored.html) callback
+    ///   if achievements have been unlocked.
+    ///
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    pub fn store_stats(&self) -> Result<(), ()> {
+        let success = unsafe { sys::SteamAPI_ISteamUserStats_StoreStats(self.user_stats) };
+        if success { Ok(()) } else { Err(()) }
+    }
+
+    /// Access achievement API for a given achievement 'API Name'.
+    ///
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    #[inline]
+    #[must_use]
+    pub fn achievement(&self, name: &str) -> stats::AchievementHelper<'_, Manager> {
+        stats::AchievementHelper { name: CString::new(name).unwrap(), parent: self }
     }
 }
 
