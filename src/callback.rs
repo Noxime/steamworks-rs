@@ -5,11 +5,8 @@ use crate::sys;
 
 use std::mem;
 use std::sync::{ Arc, Weak };
-#[cfg(debug_assertions)]
 use std::panic::*;
-#[cfg(debug_assertions)]
 use std::any::Any;
-#[cfg(debug_assertions)]
 use std::process::abort;
 
 pub unsafe trait Callback {
@@ -40,7 +37,6 @@ impl <Manager> Drop for CallbackHandle<Manager> {
     }
 }
 
-#[cfg(debug_assertions)]
 fn print_err(err: Box<dyn Any>) {
     if let Some(err) = err.downcast_ref::<&str>() {
         println!("Steam callback paniced: {}", err);
@@ -61,7 +57,13 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
     {
         let func: &mut F = &mut *(userdata as *mut F);
         let param = C::from_raw(param);
-        func(param);
+        let res = catch_unwind(AssertUnwindSafe(||
+            func(param)
+        ));
+        if let Err(err) = res {
+            print_err(err);
+            abort();
+        }
     }
 
     unsafe extern "C" fn run_extra<C, F>(cb: *mut c_void, userdata: *mut c_void, param: *mut c_void, _: u8, _: sys::SteamAPICall_t)
@@ -78,7 +80,15 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
         sys::SteamAPI_UnregisterCallback(cb);
 
         let func: Box<F> = Box::from_raw(userdata as _);
-        drop(func);
+
+        let res = catch_unwind(AssertUnwindSafe(move ||
+            // Its possible for callback to panic whilst being dropped
+            drop(func)
+        ));
+        if let Err(err) = res {
+            print_err(err);
+            abort();
+        }
     }
 
     let data = sys::CallbackData {
@@ -116,20 +126,12 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
         where F: for<'a> FnMut(&'a C, bool) + Send + 'static
     {
         let data: &mut CallData<F, Manager> = &mut *(userdata as *mut CallData<F, Manager>);
-        #[cfg(debug_assertions)]
-        {
-            let res = catch_unwind(AssertUnwindSafe(||
-                (data.func)(&*(param as *const _), false)
-            ));
-            if let Err(err) = res {
-                print_err(err);
-                abort();
-            }
-
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            (data.func)(&*(param as *const _), false);
+        let res = catch_unwind(AssertUnwindSafe(||
+            (data.func)(&*(param as *const _), false)
+        ));
+        if let Err(err) = res {
+            print_err(err);
+            abort();
         }
 
         sys::delete_rust_callback(cb);
@@ -141,20 +143,12 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
         let data: &mut CallData<F, Manager> = &mut *(userdata as *mut CallData<F, Manager>);
 
         if api_call == data.api_call {
-            #[cfg(debug_assertions)]
-            {
-                let res = catch_unwind(AssertUnwindSafe(||
-                    (data.func)(&*(param as *const _), io_error != 0)
-                ));
-                if let Err(err) = res {
-                    print_err(err);
-                    abort();
-                }
-
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                (data.func)(&*(param as *const _), io_error != 0);
+            let res = catch_unwind(AssertUnwindSafe(||
+                (data.func)(&*(param as *const _), io_error != 0)
+            ));
+            if let Err(err) = res {
+                print_err(err);
+                abort();
             }
             sys::delete_rust_callback(cb);
         }
@@ -170,7 +164,14 @@ pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manag
             cbs.call_results.remove(&data.api_call);
         }
 
-        drop(data);
+        let res = catch_unwind(AssertUnwindSafe(move ||
+            // Its possible for callback to panic whilst being dropped
+            drop(data)
+        ));
+        if let Err(err) = res {
+            print_err(err);
+            abort();
+        }
     }
 
     let userdata = CallData {
