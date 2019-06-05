@@ -1,5 +1,5 @@
 
-extern crate libc;
+use libc;
 extern crate steamworks_sys as sys;
 #[macro_use]
 extern crate failure;
@@ -7,26 +7,28 @@ extern crate failure;
 extern crate bitflags;
 
 mod error;
-pub use error::*;
+pub use crate::error::*;
 
 mod callback;
-pub use callback::*;
+pub use crate::callback::*;
 mod server;
-pub use server::*;
+pub use crate::server::*;
 mod utils;
-pub use utils::*;
+pub use crate::utils::*;
 mod app;
-pub use app::*;
+pub use crate::app::*;
 mod friends;
-pub use friends::*;
+pub use crate::friends::*;
 mod matchmaking;
-pub use matchmaking::*;
+pub use crate::matchmaking::*;
 mod networking;
-pub use networking::*;
+pub use crate::networking::*;
 mod user;
-pub use user::*;
+pub use crate::user::*;
 mod user_stats;
-pub use user_stats::*;
+pub use crate::user_stats::*;
+mod remote_storage;
+pub use crate::remote_storage::*;
 
 use std::sync::{ Arc, Mutex };
 use std::ffi::{CString, CStr};
@@ -253,6 +255,21 @@ impl <Manager> Client<Manager> {
             debug_assert!(!us.is_null());
             UserStats {
                 user_stats: us,
+                inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam remote storage interface
+    pub fn remote_storage(&self) -> RemoteStorage<Manager> {
+        unsafe {
+            let rs = sys::steam_rust_get_remote_storage();
+            debug_assert!(!rs.is_null());
+            let util = sys::steam_rust_get_utils();
+            debug_assert!(!util.is_null());
+            RemoteStorage {
+                rs,
+                util,
                 inner: self.inner.clone(),
             }
         }

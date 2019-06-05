@@ -173,7 +173,7 @@ pub struct Friend<Manager> {
 }
 
 impl <Manager> Debug for Friend<Manager> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Friend({:?})", self.id)
     }
 }

@@ -1,7 +1,7 @@
 use super::*;
 
 use libc::{ c_void };
-use sys;
+use crate::sys;
 
 use std::mem;
 use std::sync::{ Arc, Weak };
@@ -41,7 +41,7 @@ impl <Manager> Drop for CallbackHandle<Manager> {
 }
 
 #[cfg(debug_assertions)]
-fn print_err(err: Box<Any>) {
+fn print_err(err: Box<dyn Any>) {
     if let Some(err) = err.downcast_ref::<&str>() {
         println!("Steam callback paniced: {}", err);
     } else if let Some(err) = err.downcast_ref::<String>() {

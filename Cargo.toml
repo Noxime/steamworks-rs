@@ -8,6 +8,7 @@ repository = "https://github.com/Thinkofname/steamworks-rs"
 documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
+edition = "2018"
 
 [package.metadata.docs.rs]
 features = [ "docs-only" ]

@@ -21,6 +21,8 @@ pub struct ISteamUser(c_void);
 #[repr(transparent)]
 pub struct ISteamUserStats(c_void);
 #[repr(transparent)]
+pub struct ISteamRemoteStorage(c_void);
+#[repr(transparent)]
 pub struct ISteamGameServer(c_void);
 #[repr(transparent)]
 pub struct ISteamNetworking(c_void);
@@ -62,6 +64,7 @@ extern "C" {
     pub fn steam_rust_get_friends() -> *mut ISteamFriends;
     pub fn steam_rust_get_user() -> *mut ISteamUser;
     pub fn steam_rust_get_user_stats() -> *mut ISteamUserStats;
+    pub fn steam_rust_get_remote_storage() -> *mut ISteamRemoteStorage;
     pub fn steam_rust_get_server() -> *mut ISteamGameServer;
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_networking() -> *mut ISteamNetworking;
@@ -92,7 +95,8 @@ extern "C" {
 
     pub fn SteamAPI_ISteamUtils_GetAppID(instance: *mut ISteamUtils) -> AppId_t;
     pub fn SteamAPI_ISteamUtils_GetSteamUILanguage(instance: *mut ISteamUtils) -> *const c_char;
-    pub fn SteamAPI_ISteamUtils_IsAPICallCompleted(instance: *mut ISteamUtils, api_call: SteamAPICall_t, failed: *mut bool) -> u8;
+    pub fn SteamAPI_ISteamUtils_IsAPICallCompleted(instance: *mut ISteamUtils, api_call: SteamAPICall_t, failed: *mut bool) -> bool;
+    pub fn SteamAPI_ISteamUtils_GetAPICallResult(instance: *mut ISteamUtils, api_call: SteamAPICall_t, callback: *mut c_void, callbackSize: c_int, callback_expected: c_int, failed: *mut bool) -> bool;
     pub fn SteamAPI_ISteamUtils_SetOverlayNotificationPosition(instance: *mut ISteamUtils, position: ENotificationPosition);
     pub fn SteamAPI_ISteamUtils_GetImageSize(instance: *mut ISteamUtils, image: c_int, width: *mut u32, height: *mut u32) -> u8;
     pub fn SteamAPI_ISteamUtils_GetImageRGBA(instance: *mut ISteamUtils, image: c_int, dest: *mut u8, dest_size: c_int) -> u8;
@@ -183,6 +187,25 @@ extern "C" {
     ///
     /// Returns true if successful
     pub fn SteamAPI_ISteamUserStats_StoreStats(instance: *mut ISteamUserStats) -> bool;
+
+    pub fn SteamAPI_ISteamRemoteStorage_IsCloudEnabledForAccount(instance: *mut ISteamRemoteStorage) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_IsCloudEnabledForApp(instance: *mut ISteamRemoteStorage) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_SetCloudEnabledForApp(instance: *mut ISteamRemoteStorage, enabled: bool);
+    pub fn SteamAPI_ISteamRemoteStorage_GetFileCount(instance: *mut ISteamRemoteStorage) -> i32;
+    pub fn SteamAPI_ISteamRemoteStorage_GetFileNameAndSize(instance: *mut ISteamRemoteStorage, file: c_int, sizeInBytes: *mut i32) -> *const c_char;
+    pub fn SteamAPI_ISteamRemoteStorage_FileForget(instance: *mut ISteamRemoteStorage, file: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_FileDelete(instance: *mut ISteamRemoteStorage, file: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_FileExists(instance: *mut ISteamRemoteStorage, file: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_FilePersisted(instance: *mut ISteamRemoteStorage, file: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_GetFileSize(instance: *mut ISteamRemoteStorage, file: *const c_char) -> i32;
+    pub fn SteamAPI_ISteamRemoteStorage_GetFileTimestamp(instance: *mut ISteamRemoteStorage, file: *const c_char) -> i64;
+
+    pub fn SteamAPI_ISteamRemoteStorage_FileWriteStreamOpen(instance: *mut ISteamRemoteStorage, file: *const c_char) -> UGCFileWriteStreamHandle_t;
+    pub fn SteamAPI_ISteamRemoteStorage_FileWriteStreamWriteChunk(instance: *mut ISteamRemoteStorage, handle: UGCFileWriteStreamHandle_t, data: *const c_void, size: i32) -> bool;
+    pub fn SteamAPI_ISteamRemoteStorage_FileWriteStreamClose(instance: *mut ISteamRemoteStorage, handle: UGCFileWriteStreamHandle_t) -> bool;
+
+    pub fn SteamAPI_ISteamRemoteStorage_FileReadAsync(instance: *mut ISteamRemoteStorage, file: *const c_char, offset: u32, size: u32) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamRemoteStorage_FileReadAsyncComplete(instance: *mut ISteamRemoteStorage, api_call: SteamAPICall_t, buffer: *mut c_void, size: u32) -> bool;
 
     pub fn SteamAPI_ISteamGameServer_LogOnAnonymous(instance: *mut ISteamGameServer);
     pub fn SteamAPI_ISteamGameServer_SetProduct(instance: *mut ISteamGameServer, product: *const c_char);
