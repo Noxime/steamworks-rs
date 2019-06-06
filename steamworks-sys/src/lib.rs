@@ -74,6 +74,7 @@ extern "C" {
     pub fn steam_rust_is_game_id_valid(id: u64) -> c_int;
     pub fn steam_rust_get_game_id_mod(id: u64) -> u32;
     pub fn steam_rust_get_game_id_app(id: u64) -> u32;
+    pub fn steam_rust_get_account_id_from_steam_id(steam_id: u64) -> AccountID_t;
 
     //
 

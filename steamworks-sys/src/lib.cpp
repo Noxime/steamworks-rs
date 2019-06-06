@@ -76,6 +76,12 @@ extern "C" {
         return id.AppID();
     }
 
+    AccountID_t steam_rust_get_account_id_from_steam_id(uint64_t steam_id) {
+        CSteamID id;
+        id.SetFromUint64(steam_id);
+        return id.GetAccountID();
+    }
+
     ISteamClient* steam_rust_get_client() { return SteamClient(); }
     ISteamMatchmaking* steam_rust_get_matchmaking() { return SteamMatchmaking(); }
     ISteamNetworking* steam_rust_get_networking() { return SteamNetworking(); }
