@@ -31,6 +31,8 @@ mod user_stats;
 pub use crate::user_stats::*;
 mod remote_storage;
 pub use crate::remote_storage::*;
+mod ugc;
+pub use crate::ugc::*;
 
 use std::sync::{ Arc, Mutex };
 use std::ffi::{CString, CStr};
@@ -272,6 +274,18 @@ impl <Manager> Client<Manager> {
             RemoteStorage {
                 rs,
                 util,
+                inner: self.inner.clone()
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam UGC interface (steam workshop)
+    pub fn ugc(&self) -> UGC<Manager> {
+        unsafe {
+            let ugc = sys::steam_rust_get_ugc();
+            debug_assert!(!ugc.is_null());
+            UGC {
+                ugc,
                 inner: self.inner.clone(),
             }
         }

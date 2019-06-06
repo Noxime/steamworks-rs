@@ -93,4 +93,5 @@ extern "C" {
     ISteamRemoteStorage* steam_rust_get_remote_storage() { return SteamRemoteStorage(); }
     ISteamGameServer* steam_rust_get_server() { return SteamGameServer(); }
     ISteamApps* steam_rust_get_server_apps() { return SteamGameServerApps(); }
+    ISteamUGC* steam_rust_get_ugc() { return SteamUGC(); }
 }
