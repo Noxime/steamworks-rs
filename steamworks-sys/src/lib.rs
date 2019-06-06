@@ -26,6 +26,8 @@ pub struct ISteamRemoteStorage(c_void);
 pub struct ISteamGameServer(c_void);
 #[repr(transparent)]
 pub struct ISteamNetworking(c_void);
+#[repr(transparent)]
+pub struct ISteamUGC(c_void);
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -68,6 +70,7 @@ extern "C" {
     pub fn steam_rust_get_server() -> *mut ISteamGameServer;
     pub fn steam_rust_get_server_apps() -> *mut ISteamApps;
     pub fn steam_rust_get_networking() -> *mut ISteamNetworking;
+    pub fn steam_rust_get_ugc() -> *mut ISteamUGC;
 
     pub fn steam_rust_game_server_init(ip: u32, steam_port: u16, game_port: u16, query_port: u16, server_mode: EServerMode, version: *const c_char) -> c_int;
     pub fn steam_rust_is_steam_id_valid(id: u64) -> c_int;
@@ -156,6 +159,28 @@ extern "C" {
     pub fn SteamAPI_ISteamUserStats_UploadLeaderboardScore(instance: *mut ISteamUserStats, leaderboard: SteamLeaderboard_t, method: ELeaderboardUploadScoreMethod, score: i32, details: *const i32, details_count: c_int) -> SteamAPICall_t;
     pub fn SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(instance: *mut ISteamUserStats, leaderboard: SteamLeaderboard_t, data_request: ELeaderboardDataRequest, start: c_int, end: c_int) -> SteamAPICall_t;
     pub fn SteamAPI_ISteamUserStats_GetDownloadedLeaderboardEntry(instance: *mut ISteamUserStats, entries: SteamLeaderboardEntries_t, index: c_int, entry: *mut LeaderboardEntry_t, details: *mut i32, details_max: c_int) -> u8;
+
+    pub fn SteamAPI_ISteamUGC_SuspendDownload(instance: *mut ISteamUGC, suspend: bool);
+    pub fn SteamAPI_ISteamUGC_SubscribeItem(instance: *mut ISteamUGC, publisher_field_id: u64) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_UnsubscribeItem(instance: *mut ISteamUGC, publisher_field_id: u64) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_GetItemState(instance: *mut ISteamUGC, publisher_field_id: u64) -> u32;
+    pub fn SteamAPI_ISteamUGC_GetNumSubscribedItems(instance: *mut ISteamUGC) -> u32;
+    pub fn SteamAPI_ISteamUGC_GetSubscribedItems(instance: *mut ISteamUGC, vec: *mut u64, max_entries: u32) -> u32;
+    pub fn SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(instance: *mut ISteamUGC, accountt_id: AccountID_t, list: EUserUGCList, matching: EUGCMatchingUGCType, oreder: EUserUGCListSortOrder, creator_app: AppId_t, consumer_app: AppId_t, page: u32) -> UGCQueryHandle_t;
+    pub fn SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(instance: *mut ISteamUGC, handle: UGCQueryHandle_t) -> bool;
+    pub fn SteamAPI_ISteamUGC_AddExcludedTag(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, tag: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamUGC_AddRequiredTag(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, tag: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetLanguage(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, language: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetMatchAnyTag(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnLongDescription(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnMetadata(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnChildren(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnOnlyIDs(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetReturnTotalOnly(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, any: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetAllowCachedResponse(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, timeout: u32) -> bool;
+    pub fn SteamAPI_ISteamUGC_SendQueryUGCRequest(instance: *mut ISteamUGC, handle: UGCQueryHandle_t) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_GetQueryUGCResult(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, index: u32, details: *mut SteamUGCDetails_t) -> bool;
 
     /// https://partner.steamgames.com/doc/api/ISteamUserStats#RequestCurrentStats
     ///
