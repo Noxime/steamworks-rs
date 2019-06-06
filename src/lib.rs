@@ -345,6 +345,13 @@ impl SteamId {
             sys::steam_rust_is_steam_id_valid(self.0) != 0
         }
     }
+
+    /// Returns the account id for this steam id
+    pub fn account_id(&self) -> u32 {
+        unsafe {
+            sys::steam_rust_get_account_id_from_steam_id(self.0).0
+        }
+    }
 }
 
 /// A game id
