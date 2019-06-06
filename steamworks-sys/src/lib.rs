@@ -100,6 +100,7 @@ extern "C" {
     pub fn SteamAPI_ISteamUtils_SetOverlayNotificationPosition(instance: *mut ISteamUtils, position: ENotificationPosition);
     pub fn SteamAPI_ISteamUtils_GetImageSize(instance: *mut ISteamUtils, image: c_int, width: *mut u32, height: *mut u32) -> u8;
     pub fn SteamAPI_ISteamUtils_GetImageRGBA(instance: *mut ISteamUtils, image: c_int, dest: *mut u8, dest_size: c_int) -> u8;
+    pub fn SteamAPI_ISteamUtils_SetWarningMessageHook(instance: *mut ISteamUtils, func: unsafe extern "cdecl" fn(i32, *const c_char));
 
     pub fn SteamAPI_ISteamApps_BIsAppInstalled(instance: *mut ISteamApps, app_id: AppId_t) -> u8;
     pub fn SteamAPI_ISteamApps_BIsDlcInstalled(instance: *mut ISteamApps, app_id: AppId_t) -> u8;
