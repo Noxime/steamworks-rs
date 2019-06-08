@@ -236,7 +236,7 @@ impl <Manager> UGC<Manager> {
             Ok(UserListQuery {
                 ugc: self.ugc,
                 inner: Arc::clone(&self.inner),
-                handle: res,
+                handle: Some(res),
             })
         }
     }
@@ -248,12 +248,17 @@ impl <Manager> UGC<Manager> {
 pub struct UserListQuery<Manager> {
     ugc: *mut sys::ISteamUGC,
     inner: Arc<Inner<Manager>>,
-    handle: sys::UGCQueryHandle_t,
+
+    // Note: this is always filled except in `fetch`, where it must be taken
+    // to prevent the handle from being dropped when this query is dropped.
+    handle: Option<sys::UGCQueryHandle_t>,
 }
 impl <Manager> Drop for UserListQuery<Manager> {
     fn drop(&mut self) {
-        unsafe {
-            sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, self.handle);
+        if let Some(handle) = self.handle.as_mut() {
+            unsafe {
+                sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, *handle);
+            }
         }
     }
 }
@@ -264,7 +269,7 @@ impl <Manager> UserListQuery<Manager> {
     pub fn exclude_tag(self, tag: &str) -> Self {
         let cstr = CString::new(tag).expect("String passed to exclude_tag could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle, cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
         debug_assert!(ok);
         self
@@ -276,7 +281,7 @@ impl <Manager> UserListQuery<Manager> {
     pub fn require_tag(self, tag: &str) -> Self {
         let cstr = CString::new(tag).expect("String passed to require_tag could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle, cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
         debug_assert!(ok);
         self
@@ -285,7 +290,7 @@ impl <Manager> UserListQuery<Manager> {
     /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
     pub fn any_required(self, any: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle, any)
+            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), any)
         };
         debug_assert!(ok);
         self
@@ -297,7 +302,7 @@ impl <Manager> UserListQuery<Manager> {
     pub fn language(self, language: &str) -> Self {
         let cstr = CString::new(language).expect("String passed to language could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle, cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
         debug_assert!(ok);
         self
@@ -308,7 +313,7 @@ impl <Manager> UserListQuery<Manager> {
     /// Age is in seconds.
     pub fn allow_cached_response(self, max_age_s: u32) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(self.ugc, self.handle, max_age_s)
+            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(self.ugc, self.handle.unwrap(), max_age_s)
         };
         debug_assert!(ok);
         self
@@ -317,7 +322,7 @@ impl <Manager> UserListQuery<Manager> {
     /// Include the full description in results
     pub fn include_long_desc(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(self.ugc, self.handle, include)
+            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
@@ -326,7 +331,7 @@ impl <Manager> UserListQuery<Manager> {
     /// Include children in results
     pub fn include_children(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle, include)
+            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
@@ -335,7 +340,7 @@ impl <Manager> UserListQuery<Manager> {
     /// Include metadata in results
     pub fn include_metadata(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle, include)
+            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
@@ -344,20 +349,20 @@ impl <Manager> UserListQuery<Manager> {
     /// Include additional previews in results
     pub fn include_additional_previews(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(self.ugc, self.handle, include)
+            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
     }
 
     /// Runs the query
-    pub fn fetch<F>(self, mut cb: F)
+    pub fn fetch<F>(mut self, mut cb: F)
         where F: FnMut(Result<QueryResults,SteamError>) + 'static + Send
     {
         let ugc = self.ugc;
         let inner = Arc::clone(&self.inner);
-        let handle = self.handle;
-        mem::forget(self); // Don't run destructor since we need the handle still
+        let handle = self.handle.take().unwrap();
+        mem::drop(self);
 
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
@@ -389,7 +394,7 @@ impl <Manager> UserListQuery<Manager> {
         where F: FnMut(Result<u32, SteamError>) + 'static + Send
     {
         unsafe {
-            let ok = sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(self.ugc, self.handle, true);
+            let ok = sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(self.ugc, self.handle.unwrap(), true);
             debug_assert!(ok);
         }
 
@@ -401,7 +406,7 @@ impl <Manager> UserListQuery<Manager> {
         where F: FnMut(Result<Vec<u64>, SteamError>) + 'static + Send
     {
         unsafe {
-            let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(self.ugc, self.handle, true);
+            let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(self.ugc, self.handle.unwrap(), true);
             debug_assert!(ok);
         }
 
