@@ -212,7 +212,7 @@ impl <Manager> UGC<Manager> {
 
     /// Queries a list of workshop itmes, related to a user in some way (Ex. user's subscriptions, favorites, upvoted, ...)
     pub fn query_user(&self,
-        account: u32,
+        account: AccountId,
         list_type: UserList,
         item_type: UGCType,
         sort_order: UserListOrder,
@@ -222,7 +222,7 @@ impl <Manager> UGC<Manager> {
         unsafe {
             let res = sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
                 self.ugc,
-                sys::AccountID_t(account),
+                sys::AccountID_t(account.0),
                 list_type.into(),
                 item_type.into(),
                 sort_order.into(),

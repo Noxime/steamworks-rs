@@ -361,12 +361,16 @@ impl SteamId {
     }
 
     /// Returns the account id for this steam id
-    pub fn account_id(&self) -> u32 {
+    pub fn account_id(&self) -> AccountId {
         unsafe {
-            sys::steam_rust_get_account_id_from_steam_id(self.0).0
+            AccountId(sys::steam_rust_get_account_id_from_steam_id(self.0).0)
         }
     }
 }
+
+/// A user's account id
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct AccountId(pub(crate) u32);
 
 /// A game id
 ///
