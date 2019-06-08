@@ -1,10 +1,11 @@
 
 use super::*;
 
-use std::ffi::{CStr, CString};
-use std::mem;
-use std::fmt;
 use std::error;
+use std::ffi::{CStr, CString};
+use std::fmt;
+use std::marker;
+use std::mem;
 
 pub struct UGC<Manager> {
     pub(crate) ugc: *mut sys::ISteamUGC,
@@ -357,7 +358,7 @@ impl <Manager> UserListQuery<Manager> {
 
     /// Runs the query
     pub fn fetch<F>(mut self, mut cb: F)
-        where F: FnMut(Result<QueryResults,SteamError>) + 'static + Send
+        where F: for<'a> FnMut(Result<QueryResults<'a>,SteamError>) + 'static + Send
     {
         let ugc = self.ugc;
         let inner = Arc::clone(&self.inner);
@@ -383,6 +384,7 @@ impl <Manager> UserListQuery<Manager> {
                         num_results_returned: v.m_unNumResultsReturned,
                         num_results_total: v.m_unTotalMatchingResults,
                         was_cached: v.m_bCachedData,
+                        _phantom: Default::default(),
                     };
                     cb(Ok(result));
             });
@@ -415,21 +417,22 @@ impl <Manager> UserListQuery<Manager> {
 }
 
 /// Query results
-pub struct QueryResults {
+pub struct QueryResults<'a> {
     ugc: *mut sys::ISteamUGC,
     handle: sys::UGCQueryHandle_t,
     num_results_returned: u32,
     num_results_total: u32,
     was_cached: bool,
+    _phantom: marker::PhantomData<&'a sys::ISteamUGC>,
 }
-impl Drop for QueryResults {
+impl<'a> Drop for QueryResults<'a> {
     fn drop(&mut self) {
         unsafe {
             sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, self.handle);
         }
     }
 }
-impl QueryResults {
+impl<'a> QueryResults<'a> {
     /// Were these results retreived from a cache?
     pub fn was_cached(&self) -> bool {
         self.was_cached
@@ -496,7 +499,7 @@ impl QueryResults {
     }
 
     /// Returns an iterator that runs over all the fetched results
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item=QueryResult> + 'a {
+    pub fn iter<'b>(&'b self) -> impl Iterator<Item=QueryResult> + 'b {
         (0..self.returned_results())
             .map(move |i| self.get(i).unwrap())
     }
