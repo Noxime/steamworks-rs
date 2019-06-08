@@ -19,6 +19,10 @@ const CALLBACK_REMOTE_STORAGE_BASE_ID: i32 = 1300;
 #[allow(non_upper_case_globals)]
 const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
 
+/// Worshop item ID
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct PublishedFileId(pub u64);
+
 /// Workshop item types to search for
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum UGCType {
@@ -161,11 +165,11 @@ impl <Manager> UGC<Manager> {
     }
 
     /// Subscribes to a workshop item
-    pub fn subscribe_item<F>(&self, published_file_id: u64, mut cb: F)
+    pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
         where F: FnMut(Result<(), SteamError>) + 'static + Send + Sync
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id);
+            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
             register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _, _>(
                 &self.inner, api_call, CALLBACK_REMOTE_STORAGE_BASE_ID + 13,
                 move |v, io_error| {
@@ -180,11 +184,11 @@ impl <Manager> UGC<Manager> {
         }
     }
 
-    pub fn unsubscribe_item<F>(&self, published_file_id: u64, mut cb: F)
+    pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
         where F: FnMut(Result<(), SteamError>) + 'static + Send + Sync
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id);
+            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
             register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _, _>(
                 &self.inner, api_call, CALLBACK_REMOTE_STORAGE_BASE_ID + 15,
                 move |v, io_error| {
@@ -408,14 +412,15 @@ impl <Manager> UserListQuery<Manager> {
 
     /// Runs the query, only fetchind the IDs.
     pub fn fetch_ids<F>(self, mut cb: F)
-        where F: FnMut(Result<Vec<u64>, SteamError>) + 'static + Send
+        where F: FnMut(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send
     {
         unsafe {
             let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(self.ugc, self.handle.unwrap(), true);
             debug_assert!(ok);
         }
 
-        self.fetch(move |res| cb(res.map(|qr| qr.iter().map(|v| v.published_file_id).collect::<Vec<_>>())))
+        self.fetch(move |res|
+            cb(res.map(|qr| qr.iter().map(|v| PublishedFileId(v.published_file_id.0)).collect::<Vec<_>>())))
     }
 }
 
@@ -474,7 +479,7 @@ impl<'a> QueryResults<'a> {
                 .collect::<Vec<_>>();
 
             Some(QueryResult {
-                published_file_id: raw_details.m_nPublishedFileId.0,
+                published_file_id: PublishedFileId(raw_details.m_nPublishedFileId.0),
                 creator_app_id: if raw_details.m_nCreatorAppID.0 != 0 { Some(AppId(raw_details.m_nCreatorAppID.0)) } else { None },
                 consumer_app_id: if raw_details.m_nConsumerAppID.0 != 0 { Some(AppId(raw_details.m_nConsumerAppID.0)) } else { None },
                 title: CStr::from_ptr(raw_details.m_rgchTitle.as_ptr())
@@ -511,7 +516,7 @@ impl<'a> QueryResults<'a> {
 /// Query result
 #[derive(Debug,Clone)]
 pub struct QueryResult {
-    pub published_file_id: u64,
+    pub published_file_id: PublishedFileId,
     pub creator_app_id: Option<AppId>,
     pub consumer_app_id: Option<AppId>,
     pub title: String,
