@@ -22,7 +22,6 @@ struct SteamEnum {
     values: Vec<SteamEnumValue>,
 }
 
-
 #[derive(Deserialize)]
 struct SteamEnumValue {
     name: String,
@@ -61,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let triple = env::var("TARGET").unwrap();
     let mut lib = "steam_api";
     let mut packing = 8;
-    let path = if triple.contains("windows") {
+    let link_path = if triple.contains("windows") {
         if triple.contains("i686") {
             sdk_loc.join("redistributable_bin/")
         } else {
@@ -77,16 +76,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     } else if triple.contains("darwin") {
         packing = 4;
-        sdk_loc.join("redistributable_bin/osx64")
+        sdk_loc.join("redistributable_bin/osx")
     } else {
         panic!("Unsupported OS");
     };
-    println!("cargo:rustc-link-search={}", path.display());
+    println!("cargo:rustc-link-search={}", link_path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
     // Steamworks uses packed structs making them hard to work
     // with normally
-    let steam_api: SteamApi = serde_json::from_reader(File::open(sdk_loc.join("public/steam/steam_api.json"))?)?;
+    let steam_api_json_loc = sdk_loc.join("public/steam/steam_api.json");
+    let file = File::open(&steam_api_json_loc).expect(&format!("open {:?}", steam_api_json_loc));
+    let steam_api: SteamApi = serde_json::from_reader(file)?;
 
     let mut bindings = r##"
 use libc::*;
@@ -239,14 +240,21 @@ pub struct {} {{"#, packing, derive, s.struct_)?;
         bindings.push_str(&s_builder);
     }
 
-    // fs::write("/tmp/steam-bindings.rs", &bindings)?;
     fs::write(out_path.join("bindings.rs"), bindings)?;
 
-    cc::Build::new()
+    if triple.contains("darwin") {
+        fs::copy(link_path.join("libsteam_api.dylib"), out_path.join("libsteam_api.dylib"))?;
+    }
+
+    let mut compiler = cc::Build::new();
+    compiler
         .cpp(true)
         .include(sdk_loc.join("public/steam"))
-        .file("src/lib.cpp")
-        .compile("steamrust");
+        .file("src/lib.cpp");
+    if triple.contains("darwin") {
+        compiler.flag("-std=c++11");
+    }
+    compiler.compile("steamrust");
 
     Ok(())
 }
