@@ -1,5 +1,6 @@
-
 use super::*;
+#[cfg(test)]
+use serial_test_derive::serial;
 
 /// Access to the steam user interface
 pub struct User<Manager> {
@@ -106,6 +107,7 @@ pub enum AuthSessionError {
 }
 
 #[test]
+#[serial]
 fn test() {
     let (client, single) = Client::init().unwrap();
     let user = client.user();

@@ -1,5 +1,6 @@
-
 use super::*;
+#[cfg(test)]
+use serial_test_derive::serial;
 
 /// Access to the steam matchmaking interface
 pub struct Matchmaking<Manager> {
@@ -164,6 +165,7 @@ impl <Manager> Matchmaking<Manager> {
 }
 
 #[test]
+#[serial]
 fn test_lobby() {
     let (client, single) = Client::init().unwrap();
     let mm = client.matchmaking();
