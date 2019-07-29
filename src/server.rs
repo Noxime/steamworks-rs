@@ -1,6 +1,7 @@
 use super::*;
-
 use std::net::Ipv4Addr;
+#[cfg(test)]
+use serial_test_derive::serial;
 
 /// The main entry point into the steam client for servers.
 ///
@@ -234,6 +235,7 @@ impl Server {
 }
 
 #[test]
+#[serial]
 fn test() {
     let (server, single) = Server::init(
         [127, 0, 0, 1].into(),

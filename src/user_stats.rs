@@ -3,6 +3,8 @@ mod stat_callback;
 
 pub use self::stat_callback::*;
 use super::*;
+#[cfg(test)]
+use serial_test_derive::serial;
 
 /// Access to the steam user interface
 pub struct UserStats<Manager> {
@@ -216,6 +218,7 @@ pub enum LeaderboardDisplayType {
 pub struct Leaderboard(u64);
 
 #[test]
+#[serial]
 fn test() {
     let (client, single) = Client::init().unwrap();
 

@@ -413,7 +413,10 @@ impl GameId {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test_derive::serial;
+
     #[test]
+    #[serial]
     fn basic_test() {
         let (client, single) = Client::init().unwrap();
 
