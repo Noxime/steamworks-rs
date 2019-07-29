@@ -78,7 +78,7 @@ impl <Manager> Apps<Manager> {
         }
     }
 
-    /// Returns the buildid of this app.
+    /// Returns the build id of this app.
     pub fn app_build_id(&self) -> i32 {
         unsafe {
             sys::SteamAPI_ISteamApps_GetAppBuildId(self.apps) as i32

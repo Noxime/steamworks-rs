@@ -13,7 +13,7 @@ const CALLBACK_BASE_ID: i32 = 500;
 pub enum LobbyType {
     Private,
     FriendsOnly,
-    Public ,
+    Public,
     Invisible,
 }
 
