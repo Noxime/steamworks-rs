@@ -60,23 +60,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let triple = env::var("TARGET").unwrap();
     let mut lib = "steam_api";
     let mut packing = 8;
-    let link_path = if triple.contains("windows") {
-        if triple.contains("i686") {
-            sdk_loc.join("redistributable_bin/")
-        } else {
+    let mut link_path = sdk_loc.join("redistributable_bin");
+    if triple.contains("windows") {
+        if !triple.contains("i686") {
             lib = "steam_api64";
-            sdk_loc.join("redistributable_bin/win64")
+            link_path.push("win64");
         }
     } else if triple.contains("linux") {
         packing = 4;
         if triple.contains("i686") {
-            sdk_loc.join("redistributable_bin/linux32")
+            link_path.push("linux32");
         } else {
-            sdk_loc.join("redistributable_bin/linux64")
+            link_path.push("linux64");
         }
     } else if triple.contains("darwin") {
         packing = 4;
-        sdk_loc.join("redistributable_bin/osx")
+        link_path.push("osx");
     } else {
         panic!("Unsupported OS");
     };
@@ -242,7 +241,10 @@ pub struct {} {{"#, packing, derive, s.struct_)?;
 
     fs::write(out_path.join("bindings.rs"), bindings)?;
 
-    if triple.contains("darwin") {
+    if triple.contains("windows") {
+        let file_name = format!("{}.dll", lib);
+        fs::copy(link_path.join(&file_name), out_path.join(file_name))?;
+    } else if triple.contains("darwin") {
         fs::copy(link_path.join("libsteam_api.dylib"), out_path.join("libsteam_api.dylib"))?;
     }
 
