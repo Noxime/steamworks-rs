@@ -9,6 +9,7 @@ struct SteamApi {
     structs: Vec<SteamStruct>,
     enums: Vec<SteamEnum>,
 }
+
 #[derive(Deserialize)]
 struct SteamTypedef {
     typedef: String,
@@ -246,6 +247,8 @@ pub struct {} {{"#, packing, derive, s.struct_)?;
         fs::copy(link_path.join(&file_name), out_path.join(file_name))?;
     } else if triple.contains("darwin") {
         fs::copy(link_path.join("libsteam_api.dylib"), out_path.join("libsteam_api.dylib"))?;
+    } else if triple.contains("linux") {
+        fs::copy(link_path.join("libsteam_api.so"), out_path.join("libsteam_api.so"))?;
     }
 
     let mut compiler = cc::Build::new();
@@ -253,7 +256,7 @@ pub struct {} {{"#, packing, derive, s.struct_)?;
         .cpp(true)
         .include(sdk_loc.join("public/steam"))
         .file("src/lib.cpp");
-    if triple.contains("darwin") {
+    if triple.contains("darwin") || triple.contains("linux") {
         compiler.flag("-std=c++11");
     }
     compiler.compile("steamrust");
