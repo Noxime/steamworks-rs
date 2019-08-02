@@ -7,7 +7,7 @@ pub struct Networking<Manager> {
 }
 
 /// The method used to send a packet
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SendType {
     /// Send the packet directly over udp.
     ///
@@ -89,7 +89,7 @@ impl <Manager> Networking<Manager> {
 }
 
 /// Called when a user wants to communicate via p2p
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct P2PSessionRequest {
     /// The steam ID of the user requesting a p2p
     /// session

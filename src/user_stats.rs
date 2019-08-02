@@ -68,7 +68,8 @@ impl <Manager> UserStats<Manager> {
                             None
                         })
                     })
-            });
+                }
+            );
         }
     }
 
@@ -103,11 +104,11 @@ impl <Manager> UserStats<Manager> {
     }
 
     pub fn download_leaderboard_entries<F>(
-            &self,
-            leaderboard: &Leaderboard,
-            request: LeaderboardDataRequest, start: usize, end: usize,
-            max_details_len: usize,
-            mut cb: F
+        &self,
+        leaderboard: &Leaderboard,
+        request: LeaderboardDataRequest, start: usize, end: usize,
+        max_details_len: usize,
+        mut cb: F
     )
         where F: FnMut(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send + Sync
     {
@@ -176,7 +177,7 @@ impl <Manager> UserStats<Manager> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LeaderboardEntry {
     pub user: SteamId,
     pub global_rank: i32,
@@ -190,7 +191,7 @@ pub enum LeaderboardDataRequest {
     Friends,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LeaderboardScoreUploaded {
     pub score: i32,
     pub was_changed: bool,
@@ -198,23 +199,26 @@ pub struct LeaderboardScoreUploaded {
     pub global_rank_previous: i32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UploadScoreMethod {
     KeepBest,
     ForceUpdate,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LeaderboardSortMethod {
     Ascending,
     Descending,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LeaderboardDisplayType {
     Numeric,
     TimeSeconds,
     TimeMilliSeconds,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Leaderboard(u64);
 
 #[test]

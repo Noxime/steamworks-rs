@@ -34,13 +34,14 @@ pub use crate::remote_storage::*;
 mod ugc;
 pub use crate::ugc::*;
 
-use std::sync::{ Arc, Mutex };
+use std::sync::{Arc, Mutex};
 use std::ffi::{CString, CStr};
 use std::fmt::{
     Debug, Formatter, self
 };
 use std::marker::PhantomData;
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
 pub type SResult<T> = Result<T, SteamError>;
 
@@ -149,7 +150,7 @@ impl Client<ClientManager> {
         }
     }
 }
-impl <M> SingleClient<M> where M: Manager{
+impl <M> SingleClient<M> where M: Manager {
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -308,7 +309,7 @@ impl <Manager> Drop for Inner<Manager> {
     }
 }
 
-/// Used to seperate client and game server modes
+/// Used to separate client and game server modes
 pub unsafe trait Manager {
     unsafe fn run_callbacks();
 }
@@ -333,7 +334,7 @@ impl Drop for ClientManager {
 }
 
 /// A user's steam id
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct SteamId(pub(crate) u64);
 
 impl SteamId {
@@ -369,13 +370,13 @@ impl SteamId {
 }
 
 /// A user's account id
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct AccountId(pub(crate) u32);
 
 /// A game id
 ///
 /// Combines `AppId` and other information
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GameId(pub(crate) u64);
 
 impl GameId {
