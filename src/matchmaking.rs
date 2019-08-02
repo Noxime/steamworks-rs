@@ -52,7 +52,7 @@ impl LobbyId {
 impl <Manager> Matchmaking<Manager> {
 
     pub fn request_lobby_list<F>(&self, mut cb: F)
-        where F: FnMut(Result<Vec<LobbyId>, SteamError>) + 'static + Send + Sync
+        where F: FnMut(SResult<Vec<LobbyId>>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);

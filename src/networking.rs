@@ -109,3 +109,22 @@ unsafe impl Callback for P2PSessionRequest {
         }
     }
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct P2PSessionConnectFail {
+    pub remote: SteamId,
+    pub error: u8,
+}
+
+unsafe impl Callback for P2PSessionConnectFail {
+    const ID: i32 = 1203;
+    const SIZE: i32 = ::std::mem::size_of::<sys::P2PSessionConnectFail_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+        let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);
+        P2PSessionConnectFail {
+            remote: SteamId(val.m_steamIDRemote.0),
+            error: val.m_eP2PSessionError,
+        }
+    }
+}
