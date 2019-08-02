@@ -20,7 +20,7 @@ pub enum NotificationPosition {
     BottomRight,
 }
 
-lazy_static!{
+lazy_static! {
     /// Global rust warning callback
     static ref WARNING_CALLBACK: RwLock<Option<Box<Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
 }
@@ -40,11 +40,11 @@ unsafe extern "cdecl" fn c_warning_callback(level: i32, msg: *const c_char) {
     ));
     if let Err(err) = res {
         if let Some(err) = err.downcast_ref::<&str>() {
-            println!("Steam warning callback paniced: {}", err);
+            println!("Steam warning callback panicked: {}", err);
         } else if let Some(err) = err.downcast_ref::<String>() {
-            println!("Steam warning callback paniced: {}", err);
+            println!("Steam warning callback panicked: {}", err);
         } else {
-            println!("Steam warning callback paniced");
+            println!("Steam warning callback panicked");
         }
         abort();
     }

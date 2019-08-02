@@ -1,7 +1,7 @@
 use super::*;
 
 /// An id for a steam app/game
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AppId(pub u32);
 
 /// Access to the steam apps interface

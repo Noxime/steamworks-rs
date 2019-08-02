@@ -71,7 +71,7 @@ impl Server {
                 raw_ip, steam_port,
                 game_port, query_port,
                 server_mode,
-                version.as_ptr() as *const _,
+                version.as_ptr(),
             ) == 0 {
                 return Err(SteamError::InitFailed);
             }

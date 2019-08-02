@@ -11,6 +11,7 @@ pub struct Matchmaking<Manager> {
 const CALLBACK_BASE_ID: i32 = 500;
 
 /// The visibility of a lobby
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum LobbyType {
     Private,
     FriendsOnly,
@@ -18,7 +19,7 @@ pub enum LobbyType {
     Invisible,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LobbyId(pub(crate) u64);
 
 impl LobbyId {
@@ -65,7 +66,8 @@ impl <Manager> Matchmaking<Manager> {
                         }
                         Ok(out)
                     })
-            });
+                }
+            );
         }
     }
 
@@ -101,7 +103,8 @@ impl <Manager> Matchmaking<Manager> {
                     } else {
                         Ok(LobbyId(v.m_ulSteamIDLobby))
                     })
-            });
+                }
+            );
         }
     }
 
@@ -121,7 +124,8 @@ impl <Manager> Matchmaking<Manager> {
                     } else {
                         Ok(LobbyId(v.m_ulSteamIDLobby))
                     })
-            });
+                }
+            );
         }
     }
 

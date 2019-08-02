@@ -39,11 +39,11 @@ impl <Manager> Drop for CallbackHandle<Manager> {
 
 fn print_err(err: Box<dyn Any>) {
     if let Some(err) = err.downcast_ref::<&str>() {
-        println!("Steam callback paniced: {}", err);
+        println!("Steam callback panicked: {}", err);
     } else if let Some(err) = err.downcast_ref::<String>() {
-        println!("Steam callback paniced: {}", err);
+        println!("Steam callback panicked: {}", err);
     } else {
-        println!("Steam callback paniced");
+        println!("Steam callback panicked");
     }
 }
 
