@@ -177,7 +177,8 @@ impl <Manager> UserStats<Manager> {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LeaderboardEntry {
     pub user: SteamId,
     pub global_rank: i32,
@@ -191,7 +192,8 @@ pub enum LeaderboardDataRequest {
     Friends,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LeaderboardScoreUploaded {
     pub score: i32,
     pub was_changed: bool,
@@ -199,26 +201,30 @@ pub struct LeaderboardScoreUploaded {
     pub global_rank_previous: i32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum UploadScoreMethod {
     KeepBest,
     ForceUpdate,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum LeaderboardSortMethod {
     Ascending,
     Descending,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum LeaderboardDisplayType {
     Numeric,
     TimeSeconds,
     TimeMilliSeconds,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Leaderboard(u64);
 
 #[test]
