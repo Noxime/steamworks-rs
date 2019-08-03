@@ -5,7 +5,7 @@ use std::net::Ipv4Addr;
 const CALLBACK_BASE_ID: i32 = 300;
 
 bitflags! {
-    #[derive(Serialize, Deserialize)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
     pub struct FriendFlags: u16 {
         const NONE                  = 0x0000;
@@ -27,7 +27,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(Serialize, Deserialize)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
     pub struct PersonaChange: i32 {
         const NAME                = 0x0001;
@@ -115,7 +115,8 @@ impl <Manager> Friends<Manager> {
 }
 
 /// Information about a friend's current state in a game
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct FriendGame {
     /// The id of the game that the friend is
     /// playing
@@ -130,7 +131,8 @@ pub struct FriendGame {
     pub lobby: LobbyId,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PersonaStateChange {
     pub steam_id: SteamId,
     pub flags: PersonaChange,
@@ -149,7 +151,8 @@ unsafe impl Callback for PersonaStateChange {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GameLobbyJoinRequested {
     pub lobby_steam_id: LobbyId,
     pub friend_steam_id: SteamId,

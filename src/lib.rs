@@ -41,6 +41,8 @@ use std::fmt::{
 };
 use std::marker::PhantomData;
 use std::collections::HashMap;
+
+#[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
 pub type SResult<T> = Result<T, SteamError>;
@@ -334,7 +336,8 @@ impl Drop for ClientManager {
 }
 
 /// A user's steam id
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamId(pub(crate) u64);
 
 impl SteamId {
@@ -370,13 +373,15 @@ impl SteamId {
 }
 
 /// A user's account id
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AccountId(pub(crate) u32);
 
 /// A game id
 ///
 /// Combines `AppId` and other information
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GameId(pub(crate) u64);
 
 impl GameId {

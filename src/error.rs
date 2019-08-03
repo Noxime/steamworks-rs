@@ -1,11 +1,14 @@
+#[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
+
 use crate::sys;
 
 /// Covers errors that can be returned by the steamworks API
 ///
 /// Documentation is based on official documentation which doesn't
 /// always explain when an error could be returned or its meaning.
-#[derive(Debug, Fail, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Fail, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SteamError {
     /// Returned if the steamworks API fails to initialize.
     #[fail(display = "failed to init the steamworks API")]
