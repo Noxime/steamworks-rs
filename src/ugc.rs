@@ -20,7 +20,8 @@ const CALLBACK_REMOTE_STORAGE_BASE_ID: i32 = 1300;
 const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
 
 /// Worshop item ID
-#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PublishedFileId(pub u64);
 
 /// Workshop item types to search for

@@ -250,7 +250,8 @@ impl <Manager> std::io::Seek for SteamFileReader<Manager> {
 }
 
 /// Name and size information about a file in the steam cloud
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamFileInfo {
     /// The file name
     pub name: String,
