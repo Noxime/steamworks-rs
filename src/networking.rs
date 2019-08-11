@@ -110,7 +110,8 @@ unsafe impl Callback for P2PSessionRequest {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct P2PSessionConnectFail {
     pub remote: SteamId,
     pub error: u8,

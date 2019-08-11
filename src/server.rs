@@ -183,25 +183,26 @@ impl Server {
         }
     }
 
-    /// Sets the game product identifier.
+    /// Sets the game product identifier. This is currently used by the master server for version
+    /// checking purposes. Converting the games app ID to a string for this is recommended.
     ///
-    /// Used by the master server for version checking. Required
-    /// field but it will go away eventually.
+    /// This is required for all game servers and can only be set before calling
+    /// log_on() or log_on_anonymous().
     pub fn set_product(&self, product: &str) {
+        let product = CString::new(product).unwrap();
         unsafe {
-            let product = CString::new(product).unwrap();
             sys::SteamAPI_ISteamGameServer_SetProduct(self.server, product.as_ptr() as *const _);
         }
     }
 
-    /// Sets the game description.
+    /// Sets the game description. Setting this to the full name of your game is recommended.
     ///
-    /// Displayed in the steam server browser (for now). Required
-    /// field but it will go away eventually.
+    /// This is required for all game servers and can only be set before calling
+    /// log_on() or log_on_anonymous().
     pub fn set_game_description(&self, desc: &str) {
+        let desc = CString::new(desc).unwrap();
         unsafe {
-            let desc = CString::new(desc).unwrap();
-            sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server, desc.as_ptr() as *const _);
+            sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server, desc.as_ptr());
         }
     }
 
@@ -216,6 +217,49 @@ impl Server {
     pub fn log_on_anonymous(&self) {
         unsafe {
             sys::SteamAPI_ISteamGameServer_LogOnAnonymous(self.server);
+        }
+    }
+
+    /// If active, updates the master server with this server's presence so players can find it via
+    /// the steam matchmaking/server browser interfaces.
+    pub fn enable_heartbeats(&self, active: bool) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_EnableHeartbeats(self.server, active);
+        }
+    }
+
+	/// If your game is a "mod," pass the string that identifies it.  The default is an empty
+    /// string, meaning this application is the original game, not a mod.
+    pub fn set_mod_dir(&self, mod_dir: &str) {
+        let mod_dir = CString::new(mod_dir).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetModDir(self.server, mod_dir.as_ptr());
+        }
+    }
+
+	/// Set name of map to report in the server browser
+    pub fn set_map_name(&self, map_name: &str) {
+        let map_name = CString::new(map_name).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, map_name.as_ptr());
+        }
+    }
+
+    /// Set the name of server as it will appear in the server browser
+    pub fn set_server_name(&self, server_name: &str) {
+        let server_name = CString::new(server_name).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, server_name.as_ptr());
+        }
+    }
+
+
+    /// Sets the maximum number of players allowed on the server at once.
+    ///
+    /// This value may be changed at any time.
+    pub fn set_max_players(&self, count: i32) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetMaxPlayerCount(self.server, count);
         }
     }
 

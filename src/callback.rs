@@ -15,7 +15,7 @@ pub unsafe trait Callback {
     unsafe fn from_raw(raw: *mut c_void) -> Self;
 }
 
-/// A handled that can be used to remove a callback
+/// A handle that can be used to remove a callback
 /// at a later point.
 ///
 /// Removes the callback when dropped
@@ -82,7 +82,7 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
         let func: Box<F> = Box::from_raw(userdata as _);
 
         let res = catch_unwind(AssertUnwindSafe(move ||
-            // Its possible for callback to panic whilst being dropped
+            // It's possible for callback to panic whilst being dropped
             drop(func)
         ));
         if let Err(err) = res {
