@@ -243,4 +243,9 @@ extern "C" {
     pub fn SteamAPI_ISteamGameServer_BeginAuthSession(instance: *mut ISteamGameServer, ticket: *const c_void, ticket_size: *mut u32, steam_id: CSteamID) -> EBeginAuthSessionResult;
     pub fn SteamAPI_ISteamGameServer_EndAuthSession(instance: *mut ISteamGameServer, steam_id: CSteamID);
     pub fn SteamAPI_ISteamGameServer_CancelAuthTicket(instance: *mut ISteamGameServer, auth_ticket: HAuthTicket);
+    pub fn SteamAPI_ISteamGameServer_EnableHeartbeats(instance: *mut ISteamGameServer, active: bool);
+    pub fn SteamAPI_ISteamGameServer_SetModDir(instance: *mut ISteamGameServer, mod_dir: *const c_char);
+    pub fn SteamAPI_ISteamGameServer_SetServerName(instance: *mut ISteamGameServer, server_name: *const c_char);
+    pub fn SteamAPI_ISteamGameServer_SetMapName(instance: *mut ISteamGameServer, map_name: *const c_char);
+    pub fn SteamAPI_ISteamGameServer_SetMaxPlayerCount(instance: *mut ISteamGameServer, players_max: c_int);
 }
