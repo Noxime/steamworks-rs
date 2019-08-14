@@ -228,7 +228,7 @@ impl Server {
         }
     }
 
-	/// If your game is a "mod," pass the string that identifies it.  The default is an empty
+    /// If your game is a "mod," pass the string that identifies it.  The default is an empty
     /// string, meaning this application is the original game, not a mod.
     pub fn set_mod_dir(&self, mod_dir: &str) {
         let mod_dir = CString::new(mod_dir).unwrap();
@@ -237,7 +237,7 @@ impl Server {
         }
     }
 
-	/// Set name of map to report in the server browser
+    /// Set name of map to report in the server browser
     pub fn set_map_name(&self, map_name: &str) {
         let map_name = CString::new(map_name).unwrap();
         unsafe {
