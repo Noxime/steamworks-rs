@@ -84,7 +84,7 @@ impl <Manager> Matchmaking<Manager> {
     /// * `LobbyEnter`
     /// * `LobbyCreated`
     pub fn create_lobby<F>(&self, ty: LobbyType, max_members: u32, mut cb: F)
-        where F: FnMut(Result<LobbyId, SteamError>) + 'static + Send
+        where F: FnMut(SResult<LobbyId>) + 'static + Send
     {
         assert!(max_members <= 250); // Steam API limits
         unsafe {

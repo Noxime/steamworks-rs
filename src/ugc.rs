@@ -167,7 +167,7 @@ impl <Manager> UGC<Manager> {
 
     /// Subscribes to a workshop item
     pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
-        where F: FnMut(Result<(), SteamError>) + 'static + Send + Sync
+        where F: FnMut(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
@@ -186,7 +186,7 @@ impl <Manager> UGC<Manager> {
     }
 
     pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
-        where F: FnMut(Result<(), SteamError>) + 'static + Send + Sync
+        where F: FnMut(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);

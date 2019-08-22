@@ -100,7 +100,7 @@ impl Server {
     /// is called when the event arrives.
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<ServerManager>
         where C: Callback,
-              F: FnMut(C) + 'static + Send + Sync
+              F: FnMut(C) + 'static + Send
     {
         unsafe {
             register_callback(&self.inner, f, true)

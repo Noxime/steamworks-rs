@@ -7,7 +7,7 @@ use crate::sys;
 ///
 /// Documentation is based on official documentation which doesn't
 /// always explain when an error could be returned or its meaning.
-#[derive(Debug, Fail, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Fail, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SteamError {
     /// Returned if the steamworks API fails to initialize.
@@ -56,7 +56,7 @@ pub enum SteamError {
     #[fail(display = "access denied")]
     AccessDenied,
     /// Returned when the operation timed out
-    #[fail(display = "operation timed")]
+    #[fail(display = "operation timed out")]
     Timeout,
     /// Returned when the user is VAC2 banned
     #[fail(display = "VAC2 banned")]
