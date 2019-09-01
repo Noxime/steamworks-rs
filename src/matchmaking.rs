@@ -168,6 +168,23 @@ impl <Manager> Matchmaking<Manager> {
             members
         }
     }
+
+    /// Sets whether or not a lobby is joinable by other players. This always defaults to enabled
+    /// for a new lobby.
+    ///
+    /// If joining is disabled, then no players can join, even if they are a friend or have been
+    /// invited.
+    ///
+    /// Lobbies with joining disabled will not be returned from a lobby search.
+    ///
+    /// Returns true on success, false if the current user doesn't own the lobby.
+    pub fn set_lobby_joinable(&self, lobby: LobbyId, joinable: bool) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_SetLobbyJoinable(
+                self.mm, sys::CSteamID(lobby.0), joinable
+            ) != 0
+        }
+    }
 }
 
 #[test]

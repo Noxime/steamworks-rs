@@ -1,4 +1,3 @@
-
 use super::*;
 use std::net::Ipv4Addr;
 
@@ -230,7 +229,7 @@ impl <Manager> Friend<Manager> {
         }
     }
 
-    /// Returns a small (32x32) avatar for the user
+    /// Returns a small (32x32) avatar for the user in RGBA format
     pub fn small_avatar(&self) -> Option<Vec<u8>> {
         unsafe {
             let utils = sys::steam_rust_get_utils();
@@ -253,7 +252,7 @@ impl <Manager> Friend<Manager> {
         }
     }
 
-    /// Returns a small (64x64) avatar for the user
+    /// Returns a medium (64x64) avatar for the user in RGBA format
     pub fn medium_avatar(&self) -> Option<Vec<u8>> {
         unsafe {
             let utils = sys::steam_rust_get_utils();
@@ -277,7 +276,7 @@ impl <Manager> Friend<Manager> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FriendState {
     Offline,
     Online,
