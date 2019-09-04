@@ -141,6 +141,7 @@ extern "C" {
     pub fn SteamAPI_ISteamMatchmaking_GetLobbyOwner(instance: *mut ISteamMatchmaking, lobby: CSteamID) -> CSteamID;
     pub fn SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(instance: *mut ISteamMatchmaking, lobby: CSteamID) -> c_int;
     pub fn SteamAPI_ISteamMatchmaking_GetLobbyMemberByIndex(instance: *mut ISteamMatchmaking, lobby: CSteamID, member: c_int) -> CSteamID;
+    pub fn SteamAPI_ISteamMatchmaking_SetLobbyJoinable(instance: *mut ISteamMatchmaking, lobby: CSteamID, lobbyJoinable: bool) -> u8;
 
     pub fn SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(instance: *mut ISteamNetworking, remote: CSteamID) -> u8;
     pub fn SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(instance: *mut ISteamNetworking, remote: CSteamID) -> u8;

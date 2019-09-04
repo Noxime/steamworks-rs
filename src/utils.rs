@@ -22,7 +22,7 @@ pub enum NotificationPosition {
 
 lazy_static! {
     /// Global rust warning callback
-    static ref WARNING_CALLBACK: RwLock<Option<Box<Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
+    static ref WARNING_CALLBACK: RwLock<Option<Box<dyn Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
 }
 
 /// C function to pass as the real callback, which forwards to the `WARNING_CALLBACK` if any
