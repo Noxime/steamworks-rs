@@ -1,0 +1,3 @@
+[submodule "steamworks-sdk"]
+	path = steamworks-sdk
+	url = https://github.com/Candunc/steamworks-sdk.git

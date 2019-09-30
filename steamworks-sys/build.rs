@@ -42,10 +42,6 @@ struct SteamField {
     fieldtype: String,
 }
 
-#[cfg(feature = "docs-only")]
-fn main() {}
-
-#[cfg(not(feature = "docs-only"))]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::env;
     use std::path::{Path, PathBuf};
@@ -54,8 +50,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::borrow::Cow;
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let sdk_loc = env::var("STEAM_SDK_LOCATION")
-        .expect("STEAM_SDK_LOCATION must be set");
+    let mut sdk_loc = env::var("CARGO_MANIFEST_DIR")
+        .expect("Error getting SDK directory");
+    sdk_loc.push_str("/../steamworks-sdk");
+
     let sdk_loc = Path::new(&sdk_loc);
 
     let triple = env::var("TARGET").unwrap();
