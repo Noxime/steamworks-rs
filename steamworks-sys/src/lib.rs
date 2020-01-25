@@ -4,7 +4,7 @@
 
 extern crate libc;
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!("bindings.rs");
 
 #[repr(transparent)]
 pub struct ISteamClient(c_void);
