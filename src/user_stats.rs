@@ -129,7 +129,7 @@ impl <Manager> UserStats<Manager> {
                         let len = v.m_cEntryCount;
                         let mut entries = Vec::with_capacity(len as usize);
                         for idx in 0 .. len {
-                            let mut entry: sys::LeaderboardEntry_t = std::mem::uninitialized();
+                            let mut entry: sys::LeaderboardEntry_t = std::mem::zeroed();
                             let mut details = Vec::with_capacity(max_details_len);
 
                             sys::SteamAPI_ISteamUserStats_GetDownloadedLeaderboardEntry(user_stats as *mut _, v.m_hSteamLeaderboardEntries, idx, &mut entry, details.as_mut_ptr(), max_details_len as _);

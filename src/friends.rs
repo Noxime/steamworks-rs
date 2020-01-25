@@ -214,7 +214,7 @@ impl <Manager> Friend<Manager> {
     /// Returns information about the game the player is current playing if any
     pub fn game_played(&self) -> Option<FriendGame> {
         unsafe {
-            let mut info: sys::FriendGameInfo_t = std::mem::uninitialized();
+            let mut info: sys::FriendGameInfo_t = std::mem::zeroed();
             if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, sys::CSteamID(self.id.0), &mut info) != 0 {
                 Some(FriendGame {
                     game: GameId(info.m_gameID.0),

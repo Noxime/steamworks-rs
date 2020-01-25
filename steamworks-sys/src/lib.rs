@@ -161,12 +161,21 @@ extern "C" {
     pub fn SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(instance: *mut ISteamUserStats, leaderboard: SteamLeaderboard_t, data_request: ELeaderboardDataRequest, start: c_int, end: c_int) -> SteamAPICall_t;
     pub fn SteamAPI_ISteamUserStats_GetDownloadedLeaderboardEntry(instance: *mut ISteamUserStats, entries: SteamLeaderboardEntries_t, index: c_int, entry: *mut LeaderboardEntry_t, details: *mut i32, details_max: c_int) -> u8;
 
+    pub fn SteamAPI_ISteamUGC_CreateItem(instance: *mut ISteamUGC, app_id: AppId_t, file_type: EWorkshopFileType) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_StartItemUpdate(instance: *mut ISteamUGC, app_id: AppId_t, published_file_id: PublishedFileId_t) -> UGCUpdateHandle_t;
+    pub fn SteamAPI_ISteamUGC_SetItemTitle(instance: *mut ISteamUGC, handle: UGCUpdateHandle_t, title: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamUGC_SetItemContent(instance: *mut ISteamUGC, handle: UGCUpdateHandle_t, content_folder: *const c_char) -> bool;
+    pub fn SteamAPI_ISteamUGC_SubmitItemUpdate(instance: *mut ISteamUGC, handle: UGCUpdateHandle_t, change_note: *const c_char) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_GetItemUpdateProgress(instance: *mut ISteamUGC, handle: UGCUpdateHandle_t, processed: *mut u64, total: *mut u64) -> EItemUpdateStatus;
     pub fn SteamAPI_ISteamUGC_SuspendDownload(instance: *mut ISteamUGC, suspend: bool);
-    pub fn SteamAPI_ISteamUGC_SubscribeItem(instance: *mut ISteamUGC, publisher_field_id: u64) -> SteamAPICall_t;
-    pub fn SteamAPI_ISteamUGC_UnsubscribeItem(instance: *mut ISteamUGC, publisher_field_id: u64) -> SteamAPICall_t;
-    pub fn SteamAPI_ISteamUGC_GetItemState(instance: *mut ISteamUGC, publisher_field_id: u64) -> u32;
+    pub fn SteamAPI_ISteamUGC_GetItemDownloadInfo(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t, bytes_downloaded: *mut u64, bytes_total: *mut u64) -> bool;
+    pub fn SteamAPI_ISteamUGC_DownloadItem(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t, high_priority: bool) -> bool;
+    pub fn SteamAPI_ISteamUGC_SubscribeItem(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_UnsubscribeItem(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t) -> SteamAPICall_t;
+    pub fn SteamAPI_ISteamUGC_GetItemState(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t) -> u32;
+    pub fn SteamAPI_ISteamUGC_GetItemInstallInfo(instance: *mut ISteamUGC, published_file_id: PublishedFileId_t, size_on_disk: *mut u64, folder: *const c_char, folder_size: u32, timestamp: *mut u32) -> bool;
     pub fn SteamAPI_ISteamUGC_GetNumSubscribedItems(instance: *mut ISteamUGC) -> u32;
-    pub fn SteamAPI_ISteamUGC_GetSubscribedItems(instance: *mut ISteamUGC, vec: *mut u64, max_entries: u32) -> u32;
+    pub fn SteamAPI_ISteamUGC_GetSubscribedItems(instance: *mut ISteamUGC, vec: *mut PublishedFileId_t, max_entries: u32) -> u32;
     pub fn SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(instance: *mut ISteamUGC, accountt_id: AccountID_t, list: EUserUGCList, matching: EUGCMatchingUGCType, oreder: EUserUGCListSortOrder, creator_app: AppId_t, consumer_app: AppId_t, page: u32) -> UGCQueryHandle_t;
     pub fn SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(instance: *mut ISteamUGC, handle: UGCQueryHandle_t) -> bool;
     pub fn SteamAPI_ISteamUGC_AddExcludedTag(instance: *mut ISteamUGC, handle: UGCQueryHandle_t, tag: *const c_char) -> bool;

@@ -6,6 +6,7 @@ use std::ffi::{CStr, CString};
 use std::fmt;
 use std::marker;
 use std::mem;
+use std::path::Path;
 
 pub struct UGC<Manager> {
     pub(crate) ugc: *mut sys::ISteamUGC,
@@ -25,7 +26,7 @@ const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
 pub struct PublishedFileId(pub u64);
 
 /// Workshop item types to search for
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UGCType {
     Items,
     ItemsMtx,
@@ -63,15 +64,59 @@ impl Into<sys::EUGCMatchingUGCType> for UGCType {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileType {
+    Community,
+    Microtransaction,
+    Collection,
+    Art,
+    Video,
+    Screenshot,
+    Game,
+    Software,
+    Concept,
+    WebGuide,
+    IntegratedGuide,
+    Merch,
+    ControllerBinding,
+    SteamworksAccessInvite,
+    SteamVideo,
+    GameManagedItem,
+}
+
+impl Into<sys::EWorkshopFileType> for FileType {
+    fn into(self) -> sys::EWorkshopFileType {
+        match self {
+            FileType::Community => sys::EWorkshopFileType::EWorkshopFileTypeCommunity,
+            FileType::Microtransaction => sys::EWorkshopFileType::EWorkshopFileTypeMicrotransaction,
+            FileType::Collection => sys::EWorkshopFileType::EWorkshopFileTypeCollection,
+            FileType::Art => sys::EWorkshopFileType::EWorkshopFileTypeArt,
+            FileType::Video => sys::EWorkshopFileType::EWorkshopFileTypeVideo,
+            FileType::Screenshot => sys::EWorkshopFileType::EWorkshopFileTypeScreenshot,
+            FileType::Game => sys::EWorkshopFileType::EWorkshopFileTypeGame,
+            FileType::Software => sys::EWorkshopFileType::EWorkshopFileTypeSoftware,
+            FileType::Concept => sys::EWorkshopFileType::EWorkshopFileTypeConcept,
+            FileType::WebGuide => sys::EWorkshopFileType::EWorkshopFileTypeWebGuide,
+            FileType::IntegratedGuide => sys::EWorkshopFileType::EWorkshopFileTypeIntegratedGuide,
+            FileType::Merch => sys::EWorkshopFileType::EWorkshopFileTypeMerch,
+            FileType::ControllerBinding => sys::EWorkshopFileType::EWorkshopFileTypeControllerBinding,
+            FileType::SteamworksAccessInvite => sys::EWorkshopFileType::EWorkshopFileTypeSteamworksAccessInvite,
+            FileType::SteamVideo => sys::EWorkshopFileType::EWorkshopFileTypeSteamVideo,
+            FileType::GameManagedItem => sys::EWorkshopFileType::EWorkshopFileTypeGameManagedItem,
+        }
+    }
+}
+
 /// AppID filter for queries.
 /// The "consumer" app is the app that the content is for.
 /// The "creator" app is a separate editor to create the content in, if applicable.
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppIDs {
     CreatorAppId(AppId),
     ConsumerAppId(AppId),
     Both { creator: AppId, consumer: AppId },
 }
+
 impl AppIDs {
     pub fn creator_app_id(&self) -> Option<AppId> {
         match self {
@@ -90,7 +135,7 @@ impl AppIDs {
 }
 
 /// Query result sorting
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UserListOrder {
     CreationOrderAsc,
     CreationOrderDesc,
@@ -100,6 +145,7 @@ pub enum UserListOrder {
     VoteScoreDesc,
     ForModeration,
 }
+
 impl Into<sys::EUserUGCListSortOrder> for UserListOrder {
     fn into(self) -> sys::EUserUGCListSortOrder {
         match self {
@@ -155,7 +201,49 @@ impl Into<sys::EUserUGCList> for UserList {
     }
 }
 
+bitflags! {
+    pub struct ItemState: u32 {
+        const NONE = 0;
+        const SUBSCRIBED = 1;
+        const LEGACY_ITEM = 2;
+        const INSTALLED = 4;
+        const NEEDS_UPDATE = 8;
+        const DOWNLOADING = 16;
+        const DOWNLOAD_PENDING = 32;
+    }
+}
 
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct DownloadItemResult {
+    pub app_id: AppId,
+    pub published_file_id: PublishedFileId,
+}
+
+unsafe impl Callback for Result<DownloadItemResult, SteamError> {
+    const ID: i32 = CALLBACK_BASE_ID + 6;
+    const SIZE: i32 = ::std::mem::size_of::<sys::DownloadItemResult_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+        let val = &mut *(raw as *mut sys::DownloadItemResult_t);
+        if val.m_eResult == sys::EResult::EResultOK {
+            Ok(DownloadItemResult {
+                app_id: AppId(val.m_unAppID.0),
+                published_file_id: PublishedFileId(val.m_nPublishedFileId.0),
+            })
+        } else {
+            Err(val.m_eResult.into())
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct InstallInfo {
+    pub folder: String,
+    pub size_on_disk: u64,
+    pub timestamp: u32,
+}
 
 impl <Manager> UGC<Manager> {
     /// Suspends or resumes all workshop downloads
@@ -165,12 +253,49 @@ impl <Manager> UGC<Manager> {
         }
     }
 
+    /// Creates a workshop item
+    pub fn create_item<F>(&self, app_id: AppId, file_type: FileType, mut cb: F)
+        where F: FnMut(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, sys::AppId_t(app_id.0), file_type.into());
+            register_call_result::<sys::CreateItemResult_t, _, _>(
+                &self.inner, api_call, CALLBACK_BASE_ID + 3,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok((
+                            PublishedFileId(v.m_nPublishedFileId.0),
+                            v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
+                        ))
+                    })
+            });
+        }
+    }
+
+    /// Starts an item update process
+    #[must_use]
+    pub fn start_item_update(&self, app_id: AppId, file_id: PublishedFileId) -> UpdateHandle<Manager> {
+        unsafe {
+            let handle = sys::SteamAPI_ISteamUGC_StartItemUpdate(self.ugc, sys::AppId_t(app_id.0), sys::PublishedFileId_t(file_id.0));
+            UpdateHandle {
+                ugc: self.ugc,
+                inner: self.inner.clone(),
+
+                handle,
+            }
+        }
+    }
+
     /// Subscribes to a workshop item
     pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
         where F: FnMut(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
+            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, sys::PublishedFileId_t(published_file_id.0));
             register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _, _>(
                 &self.inner, api_call, CALLBACK_REMOTE_STORAGE_BASE_ID + 13,
                 move |v, io_error| {
@@ -189,7 +314,7 @@ impl <Manager> UGC<Manager> {
         where F: FnMut(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
+            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, sys::PublishedFileId_t(published_file_id.0));
             register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _, _>(
                 &self.inner, api_call, CALLBACK_REMOTE_STORAGE_BASE_ID + 15,
                 move |v, io_error| {
@@ -205,13 +330,59 @@ impl <Manager> UGC<Manager> {
     }
 
     /// Gets the publisher file IDs of all currently subscribed items.
-    pub fn subscribed_items(&self) -> Vec<u64> {
+    pub fn subscribed_items(&self) -> Vec<PublishedFileId> {
         unsafe {
             let count = sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc);
-            let mut vec: Vec<u64> = vec![0; count as usize];
-            let gotten_count = sys::SteamAPI_ISteamUGC_GetSubscribedItems(self.ugc, vec.as_mut_ptr(), count);
+            let mut data: Vec<sys::PublishedFileId_t> = vec![sys::PublishedFileId_t(0); count as usize];
+            let gotten_count = sys::SteamAPI_ISteamUGC_GetSubscribedItems(self.ugc, data.as_mut_ptr(), count);
             debug_assert!(count == gotten_count);
-            vec
+            data.into_iter()
+                .map(|v| PublishedFileId(v.0))
+                .collect()
+        }
+    }
+
+    pub fn item_state(&self, item: PublishedFileId) -> ItemState {
+        unsafe {
+            let state = sys::SteamAPI_ISteamUGC_GetItemState(self.ugc, sys::PublishedFileId_t(item.0));
+            ItemState::from_bits_truncate(state)
+        }
+    }
+
+    pub fn item_download_info(&self, item: PublishedFileId) -> Option<(u64, u64)> {
+        unsafe {
+            let mut current = 0u64;
+            let mut total = 0u64;
+            if sys::SteamAPI_ISteamUGC_GetItemDownloadInfo(self.ugc, sys::PublishedFileId_t(item.0), &mut current, &mut total) {
+                Some((current, total))
+            } else {
+                None
+            }
+        }
+    }
+
+    pub fn item_install_info(&self, item: PublishedFileId) -> Option<InstallInfo> {
+        unsafe {
+            let mut size_on_disk = 0u64;
+            let mut folder = [0 as libc::c_char; 4096];
+            let mut timestamp = 0u32;
+            if sys::SteamAPI_ISteamUGC_GetItemInstallInfo(self.ugc, sys::PublishedFileId_t(item.0), &mut size_on_disk, folder.as_mut_ptr(), folder.len() as _, &mut timestamp) {
+                Some(InstallInfo {
+                    folder: CStr::from_ptr(folder.as_ptr() as *const _ as *const _)
+                        .to_string_lossy()
+                        .into_owned(),
+                    size_on_disk,
+                    timestamp,
+                })
+            } else {
+                None
+            }
+        }
+    }
+
+    pub fn download_item(&self, item: PublishedFileId, high_priority: bool) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamUGC_DownloadItem(self.ugc, sys::PublishedFileId_t(item.0), high_priority)
         }
     }
 
@@ -248,7 +419,104 @@ impl <Manager> UGC<Manager> {
     }
 }
 
+/// A handle to update a published item
+pub struct UpdateHandle<Manager> {
+    ugc: *mut sys::ISteamUGC,
+    inner: Arc<Inner<Manager>>,
 
+    handle: sys::UGCUpdateHandle_t,
+}
+
+impl <Manager> UpdateHandle<Manager> {
+    #[must_use]
+    pub fn title(self, title: &str) -> Self {
+        unsafe {
+            let title = CString::new(title).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemTitle(self.ugc, self.handle, title.as_ptr()));
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn content_path(self, path: &Path) -> Self {
+        unsafe {
+            let path = path.canonicalize().unwrap();
+            let content_path = CString::new(&*path.to_string_lossy()).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemContent(self.ugc, self.handle, content_path.as_ptr()));
+        }
+        self
+    }
+
+    pub fn submit<F>(self, change_note: Option<&str>, mut cb: F) -> UpdateWatchHandle<Manager>
+        where F: FnMut(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+    {
+        use std::ptr;
+        unsafe {
+            let change_note = change_note.and_then(|v| CString::new(v).ok());
+            let note = change_note.as_ref().map_or(ptr::null(), |v| v.as_ptr());
+            let api_call = sys::SteamAPI_ISteamUGC_SubmitItemUpdate(self.ugc, self.handle, note);
+            register_call_result::<sys::SubmitItemUpdateResult_t, _, _>(
+                &self.inner, api_call, CALLBACK_BASE_ID + 4,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok((
+                            PublishedFileId(v.m_nPublishedFileId.0),
+                            v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
+                        ))
+                    })
+            });
+        }
+        UpdateWatchHandle {
+            ugc: self.ugc,
+            _inner: self.inner,
+            handle: self.handle,
+        }
+    }
+}
+
+/// A handle to watch an update of a published item
+pub struct UpdateWatchHandle<Manager> {
+    ugc: *mut sys::ISteamUGC,
+    _inner: Arc<Inner<Manager>>,
+
+    handle: sys::UGCUpdateHandle_t,
+}
+
+unsafe impl <Manager> Send for UpdateWatchHandle<Manager> {}
+unsafe impl <Manager> Sync for UpdateWatchHandle<Manager> {}
+
+impl <Manager> UpdateWatchHandle<Manager> {
+    pub fn progress(&self) -> (UpdateStatus, u64, u64) {
+        unsafe {
+            let mut progress = 0;
+            let mut total = 0;
+            let status = sys::SteamAPI_ISteamUGC_GetItemUpdateProgress(self.ugc, self.handle, &mut progress, &mut total);
+            let status = match status {
+                sys::EItemUpdateStatus::EItemUpdateStatusInvalid => UpdateStatus::Invalid,
+                sys::EItemUpdateStatus::EItemUpdateStatusPreparingConfig => UpdateStatus::PreparingConfig,
+                sys::EItemUpdateStatus::EItemUpdateStatusPreparingContent => UpdateStatus::PreparingContent,
+                sys::EItemUpdateStatus::EItemUpdateStatusUploadingContent => UpdateStatus::UploadingContent,
+                sys::EItemUpdateStatus::EItemUpdateStatusUploadingPreviewFile => UpdateStatus::UploadingPreviewFile,
+                sys::EItemUpdateStatus::EItemUpdateStatusCommittingChanges => UpdateStatus::CommittingChanges,
+            };
+            (status, progress, total)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UpdateStatus {
+    Invalid,
+    PreparingConfig,
+    PreparingContent,
+    UploadingContent,
+    UploadingPreviewFile,
+    CommittingChanges,
+}
 
 /// Query object from `query_user`, to allow for more filtering.
 pub struct UserListQuery<Manager> {
