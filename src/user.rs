@@ -12,7 +12,7 @@ impl <Manager> User<Manager> {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
         unsafe {
-            SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user).0)
+            SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user))
         }
     }
 
@@ -61,15 +61,16 @@ impl <Manager> User<Manager> {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
                 ticket.as_ptr() as *const _, ticket.len() as _,
-                sys::CSteamID(user.0)
+                user.0
             );
             Err(match res {
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                _ => unreachable!(),
             })
         }
     }
@@ -81,7 +82,7 @@ impl <Manager> User<Manager> {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamUser_EndAuthSession(self.user, sys::CSteamID(user.0));
+            sys::SteamAPI_ISteamUser_EndAuthSession(self.user, user.0);
         }
     }
 }
@@ -159,7 +160,7 @@ unsafe impl Callback for AuthSessionTicketResponse {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
             ticket: AuthTicket(val.m_hAuthTicket),
-            result: if val.m_eResult == sys::EResult::EResultOK  {
+            result: if val.m_eResult == sys::EResult::k_EResultOK  {
                 Ok(())
             } else {
                 Err(val.m_eResult.into())
@@ -189,19 +190,20 @@ unsafe impl Callback for ValidateAuthTicketResponse {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
         ValidateAuthTicketResponse {
-            steam_id: SteamId(val.m_SteamID.0),
-            owner_steam_id: SteamId(val.m_OwnerSteamID.0),
+            steam_id: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
+            owner_steam_id: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
             response: match val.m_eAuthSessionResponse {
-                sys::EAuthSessionResponse::EAuthSessionResponseOK => Ok(()),
-                sys::EAuthSessionResponse::EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
-                sys::EAuthSessionResponse::EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
-                sys::EAuthSessionResponse::EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
-                sys::EAuthSessionResponse::EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
-                sys::EAuthSessionResponse::EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
-                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
-                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
-                sys::EAuthSessionResponse::EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
-                sys::EAuthSessionResponse::EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseOK => Ok(()),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
+                sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
+                _ => unreachable!(),
             }
         }
     }

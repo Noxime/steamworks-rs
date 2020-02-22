@@ -28,10 +28,10 @@ unsafe impl Callback for UserStatsReceived {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserStatsReceived_t);
         Self {
-            steam_id: SteamId(val.m_steamIDUser.0),
+            steam_id: SteamId(val.m_steamIDUser.m_steamid.m_unAll64Bits),
             game_id: GameId(val.m_nGameID),
             result: match val.m_eResult {
-                sys::EResult::EResultOK => Ok(()),
+                sys::EResult::k_EResultOK => Ok(()),
                 err => Err(err.into()),
             },
         }
@@ -66,7 +66,7 @@ unsafe impl Callback for UserStatsStored {
         Self {
             game_id: GameId(val.m_nGameID),
             result: match val.m_eResult {
-                sys::EResult::EResultOK => Ok(()),
+                sys::EResult::k_EResultOK => Ok(()),
                 err => Err(err.into()),
             },
         }

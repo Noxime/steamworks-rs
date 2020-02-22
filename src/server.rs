@@ -63,23 +63,23 @@ impl Server {
             let version = CString::new(version).unwrap();
             let raw_ip: u32 = ip.into();
             let server_mode = match server_mode {
-                ServerMode::NoAuthentication => sys::EServerMode::ServerModeNoAuthentication,
-                ServerMode::Authentication => sys::EServerMode::ServerModeAuthentication,
-                ServerMode::AuthenticationAndSecure => sys::EServerMode::ServerModeAuthenticationAndSecure,
+                ServerMode::NoAuthentication => sys::EServerMode::eServerModeNoAuthentication,
+                ServerMode::Authentication => sys::EServerMode::eServerModeAuthentication,
+                ServerMode::AuthenticationAndSecure => sys::EServerMode::eServerModeAuthenticationAndSecure,
             };
-            if sys::steam_rust_game_server_init(
+            if !sys::SteamInternal_GameServer_Init(
                 raw_ip, steam_port,
                 game_port, query_port,
                 server_mode,
                 version.as_ptr(),
-            ) == 0 {
+            ) {
                 return Err(SteamError::InitFailed);
             }
-            let server_raw = sys::steam_rust_get_server();
+            let server_raw = sys::SteamAPI_SteamGameServer_v013();
             let server = Arc::new(Inner {
                 _manager: ServerManager { _priv: () },
                 callbacks: Mutex::new(Callbacks {
-                    callbacks: Vec::new(),
+                    callbacks: HashMap::new(),
                     call_results: HashMap::new(),
                 }),
             });
@@ -87,7 +87,7 @@ impl Server {
                 inner: server.clone(),
                 server: server_raw,
             }, SingleClient {
-                _inner: server,
+                inner: server,
                 _not_sync: PhantomData,
             }))
         }
@@ -110,7 +110,7 @@ impl Server {
     /// Returns the steam id of the current server
     pub fn steam_id(&self) -> SteamId {
         unsafe {
-            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server).0)
+            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server))
         }
     }
 
@@ -159,15 +159,16 @@ impl Server {
             let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
                 self.server,
                 ticket.as_ptr() as *const _, ticket.len() as _,
-                sys::CSteamID(user.0)
+                user.0
             );
             Err(match res {
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult::EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                _ => unreachable!(),
             })
         }
     }
@@ -179,7 +180,7 @@ impl Server {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server, sys::CSteamID(user.0));
+            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server, user.0);
         }
     }
 
@@ -209,7 +210,7 @@ impl Server {
     /// Sets whether this server is dedicated or a listen server.
     pub fn set_dedicated_server(&self, dedicated: bool) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetDedicatedServer(self.server, dedicated as u8);
+            sys::SteamAPI_ISteamGameServer_SetDedicatedServer(self.server, dedicated);
         }
     }
 
@@ -328,8 +329,8 @@ pub struct ServerManager {
 }
 
 unsafe impl Manager for ServerManager {
-    unsafe fn run_callbacks() {
-        sys::SteamGameServer_RunCallbacks();
+    unsafe fn get_pipe() -> sys::HSteamPipe {
+        sys::SteamGameServer_GetHSteamPipe()
     }
 }
 

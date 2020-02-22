@@ -26,7 +26,7 @@ lazy_static! {
 }
 
 /// C function to pass as the real callback, which forwards to the `WARNING_CALLBACK` if any
-unsafe extern "cdecl" fn c_warning_callback(level: i32, msg: *const c_char) {
+unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
     let lock = WARNING_CALLBACK.read().expect("warning func lock poisoned");
     let cb = match lock.as_ref() {
         Some(cb) => cb,
@@ -54,7 +54,7 @@ impl <Manager> Utils<Manager> {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
         unsafe {
-            AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils).0)
+            AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils))
         }
     }
 
@@ -75,10 +75,10 @@ impl <Manager> Utils<Manager> {
     pub fn set_overlay_notification_position(&self, position: NotificationPosition) {
         unsafe {
             let position = match position {
-                NotificationPosition::TopLeft => sys::ENotificationPosition::EPositionTopLeft,
-                NotificationPosition::TopRight => sys::ENotificationPosition::EPositionTopRight,
-                NotificationPosition::BottomLeft => sys::ENotificationPosition::EPositionBottomLeft,
-                NotificationPosition::BottomRight => sys::ENotificationPosition::EPositionBottomRight,
+                NotificationPosition::TopLeft => sys::ENotificationPosition::k_EPositionTopLeft,
+                NotificationPosition::TopRight => sys::ENotificationPosition::k_EPositionTopRight,
+                NotificationPosition::BottomLeft => sys::ENotificationPosition::k_EPositionBottomLeft,
+                NotificationPosition::BottomRight => sys::ENotificationPosition::k_EPositionBottomRight,
             };
             sys::SteamAPI_ISteamUtils_SetOverlayNotificationPosition(self.utils, position);
         }
@@ -96,7 +96,7 @@ impl <Manager> Utils<Manager> {
         let mut lock = WARNING_CALLBACK.write().expect("warning func lock poisoned");
         *lock = Some(Box::new(cb));
         unsafe {
-            sys::SteamAPI_ISteamUtils_SetWarningMessageHook(self.utils, c_warning_callback);
+            sys::SteamAPI_ISteamUtils_SetWarningMessageHook(self.utils, Some(c_warning_callback));
         }
     }
 }

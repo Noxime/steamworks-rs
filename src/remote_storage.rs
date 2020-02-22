@@ -211,7 +211,7 @@ impl <Manager> std::io::Read for SteamFileReader<Manager> {
             let mut callback: sys::RemoteStorageFileReadAsyncComplete_t = std::mem::zeroed();
             sys::SteamAPI_ISteamUtils_GetAPICallResult(self.file.util, api_call, (&mut callback) as *mut _ as *mut _, std::mem::size_of::<sys::RemoteStorageFileReadAsyncComplete_t>() as _, 1332, &mut failed);
 
-            if callback.m_eResult != sys::EResult::EResultOK {
+            if callback.m_eResult != sys::EResult::k_EResultOK {
                 return Err(std::io::ErrorKind::Other.into());
             }
             let size = callback.m_cubRead as usize;

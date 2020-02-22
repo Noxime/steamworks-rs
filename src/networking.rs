@@ -32,14 +32,14 @@ impl <Manager> Networking<Manager> {
     /// Should only be called in response to a `P2PSessionRequest`.
     pub fn accept_p2p_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(self.net, sys::CSteamID(user.0));
+            sys::SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(self.net, user.0);
         }
     }
 
     /// Closes the p2p connection between the given user
     pub fn close_p2p_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, sys::CSteamID(user.0));
+            sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, user.0);
         }
     }
 
@@ -48,12 +48,12 @@ impl <Manager> Networking<Manager> {
     pub fn send_p2p_packet(&self, remote: SteamId, send_type: SendType, data: &[u8]) -> bool {
         unsafe {
             let send_type = match send_type {
-                SendType::Unreliable => sys::EP2PSend::EP2PSendUnreliable,
-                SendType::UnreliableNoDelay => sys::EP2PSend::EP2PSendUnreliableNoDelay,
-                SendType::Reliable => sys::EP2PSend::EP2PSendReliable,
-                SendType::ReliableWithBuffering => sys::EP2PSend::EP2PSendReliableWithBuffering,
+                SendType::Unreliable => sys::EP2PSend::k_EP2PSendUnreliable,
+                SendType::UnreliableNoDelay => sys::EP2PSend::k_EP2PSendUnreliableNoDelay,
+                SendType::Reliable => sys::EP2PSend::k_EP2PSendReliable,
+                SendType::ReliableWithBuffering => sys::EP2PSend::k_EP2PSendReliableWithBuffering,
             };
-            sys::SteamAPI_ISteamNetworking_SendP2PPacket(self.net, sys::CSteamID(remote.0), data.as_ptr() as *const _, data.len() as u32, send_type, 0) != 0
+            sys::SteamAPI_ISteamNetworking_SendP2PPacket(self.net, remote.0, data.as_ptr() as *const _, data.len() as u32, send_type, 0)
         }
     }
 
@@ -63,7 +63,7 @@ impl <Manager> Networking<Manager> {
     pub fn is_p2p_packet_available(&self) -> Option<usize> {
         unsafe {
             let mut size = 0;
-            if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, 0) != 0 {
+            if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, 0) {
                 Some(size as usize)
             } else {
                 None
@@ -79,9 +79,9 @@ impl <Manager> Networking<Manager> {
     pub fn read_p2p_packet(&self, buf: &mut [u8]) -> Option<(SteamId, usize)> {
         unsafe {
             let mut size = 0;
-            let mut remote = sys::CSteamID(0);
-            if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(self.net, buf.as_mut_ptr() as *mut _, buf.len() as _, &mut size, &mut remote, 0) != 0 {
-                Some((SteamId(remote.0), size as usize))
+            let mut remote = 0;
+            if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(self.net, buf.as_mut_ptr() as *mut _, buf.len() as _, &mut size, &mut remote as *mut _ as *mut _, 0) {
+                Some((SteamId(remote), size as usize))
             } else {
                 None
             }
@@ -105,7 +105,7 @@ unsafe impl Callback for P2PSessionRequest {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionRequest_t);
         P2PSessionRequest {
-            remote: SteamId(val.m_steamIDRemote.0),
+            remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
         }
     }
 }
@@ -124,7 +124,7 @@ unsafe impl Callback for P2PSessionConnectFail {
     unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);
         P2PSessionConnectFail {
-            remote: SteamId(val.m_steamIDRemote.0),
+            remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
             error: val.m_eP2PSessionError,
         }
     }

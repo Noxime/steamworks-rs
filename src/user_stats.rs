@@ -29,7 +29,7 @@ impl <Manager> UserStats<Manager> {
                         Err(SteamError::IOFailure)
                     } else {
                         Ok(if v.m_bLeaderboardFound != 0 {
-                            Some(Leaderboard(v.m_hSteamLeaderboard.0))
+                            Some(Leaderboard(v.m_hSteamLeaderboard))
                         } else {
                             None
                         })
@@ -45,14 +45,14 @@ impl <Manager> UserStats<Manager> {
             let name = CString::new(name).unwrap();
 
             let sort_method = match sort_method {
-                LeaderboardSortMethod::Ascending => sys::ELeaderboardSortMethod::ELeaderboardSortMethodAscending,
-                LeaderboardSortMethod::Descending => sys::ELeaderboardSortMethod::ELeaderboardSortMethodDescending,
+                LeaderboardSortMethod::Ascending => sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending,
+                LeaderboardSortMethod::Descending => sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending,
             };
 
             let display_type = match display_type {
-	            LeaderboardDisplayType::Numeric => sys::ELeaderboardDisplayType::ELeaderboardDisplayTypeNumeric,
-	            LeaderboardDisplayType::TimeSeconds => sys::ELeaderboardDisplayType::ELeaderboardDisplayTypeTimeSeconds,
-	            LeaderboardDisplayType::TimeMilliSeconds => sys::ELeaderboardDisplayType::ELeaderboardDisplayTypeTimeMilliSeconds,
+	            LeaderboardDisplayType::Numeric => sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric,
+	            LeaderboardDisplayType::TimeSeconds => sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds,
+	            LeaderboardDisplayType::TimeMilliSeconds => sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds,
             };
 
             let api_call = sys::SteamAPI_ISteamUserStats_FindOrCreateLeaderboard(self.user_stats, name.as_ptr() as *const _, sort_method, display_type);
@@ -63,7 +63,7 @@ impl <Manager> UserStats<Manager> {
                         Err(SteamError::IOFailure)
                     } else {
                         Ok(if v.m_bLeaderboardFound != 0 {
-                            Some(Leaderboard(v.m_hSteamLeaderboard.0))
+                            Some(Leaderboard(v.m_hSteamLeaderboard))
                         } else {
                             None
                         })
@@ -78,10 +78,10 @@ impl <Manager> UserStats<Manager> {
     {
         unsafe {
             let method = match method {
-                UploadScoreMethod::KeepBest => sys::ELeaderboardUploadScoreMethod::ELeaderboardUploadScoreMethodKeepBest,
-                UploadScoreMethod::ForceUpdate => sys::ELeaderboardUploadScoreMethod::ELeaderboardUploadScoreMethodForceUpdate,
+                UploadScoreMethod::KeepBest => sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodKeepBest,
+                UploadScoreMethod::ForceUpdate => sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodForceUpdate,
             };
-            let api_call = sys::SteamAPI_ISteamUserStats_UploadLeaderboardScore(self.user_stats, sys::SteamLeaderboard_t(leaderboard.0), method, score, details.as_ptr(), details.len() as _);
+            let api_call = sys::SteamAPI_ISteamUserStats_UploadLeaderboardScore(self.user_stats, leaderboard.0, method, score, details.as_ptr(), details.len() as _);
             register_call_result::<sys::LeaderboardScoreUploaded_t , _, _>(
                 &self.inner, api_call, CALLBACK_BASE_ID + 6,
                 move |v, io_error| {
@@ -114,11 +114,11 @@ impl <Manager> UserStats<Manager> {
     {
         unsafe {
             let request = match request {
-                LeaderboardDataRequest::Global => sys::ELeaderboardDataRequest::ELeaderboardDataRequestGlobal,
-                LeaderboardDataRequest::GlobalAroundUser => sys::ELeaderboardDataRequest::ELeaderboardDataRequestGlobalAroundUser,
-                LeaderboardDataRequest::Friends => sys::ELeaderboardDataRequest::ELeaderboardDataRequestFriends,
+                LeaderboardDataRequest::Global => sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobal,
+                LeaderboardDataRequest::GlobalAroundUser => sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobalAroundUser,
+                LeaderboardDataRequest::Friends => sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestFriends,
             };
-            let api_call = sys::SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(self.user_stats, sys::SteamLeaderboard_t(leaderboard.0), request, start as _, end as _);
+            let api_call = sys::SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(self.user_stats, leaderboard.0, request, start as _, end as _);
             let user_stats = self.user_stats as isize;
             register_call_result::<sys::LeaderboardScoresDownloaded_t , _, _>(
                 &self.inner, api_call, CALLBACK_BASE_ID + 5,
@@ -136,7 +136,7 @@ impl <Manager> UserStats<Manager> {
                             details.set_len(entry.m_cDetails as usize);
 
                             entries.push(LeaderboardEntry {
-                                user: SteamId(entry.m_steamIDUser.0),
+                                user: SteamId(entry.m_steamIDUser.m_steamid.m_unAll64Bits),
                                 global_rank: entry.m_nGlobalRank,
                                 score: entry.m_nScore,
                                 details,
