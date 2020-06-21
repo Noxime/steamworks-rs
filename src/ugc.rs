@@ -438,6 +438,25 @@ impl <Manager> UpdateHandle<Manager> {
     }
 
     #[must_use]
+    pub fn description(self, description: &str) -> Self {
+        unsafe {
+            let description = CString::new(description).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemDescription(self.ugc, self.handle, description.as_ptr()));
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn preview_path(self, path: &Path) -> Self {
+        unsafe {
+            let path = path.canonicalize().unwrap();
+            let preview_path = CString::new(&*path.to_string_lossy()).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemPreview(self.ugc, self.handle, preview_path.as_ptr()));
+        }
+        self
+    }
+
+    #[must_use]
     pub fn content_path(self, path: &Path) -> Self {
         unsafe {
             let path = path.canonicalize().unwrap();
