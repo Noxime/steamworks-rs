@@ -83,7 +83,7 @@ struct Inner<Manager> {
 
 struct Callbacks {
     callbacks: HashMap<i32, Box<dyn FnMut(*mut libc::c_void) + Send + 'static>>,
-    call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnMut(*mut libc::c_void, bool) + Send + 'static>>,
+    call_results: HashMap<sys::SteamAPICall_t, Box<dyn Fn(*mut libc::c_void, bool) + Send + 'static>>,
 }
 
 unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}
@@ -173,7 +173,7 @@ impl <M> SingleClient<M> where M: Manager {
                         apicall_result.as_mut_ptr() as *mut _, apicall.m_cubParam as _,
                         apicall.m_iCallback, &mut failed
                     ) {
-                        if let Some(mut cb) = callbacks.call_results.remove(&apicall.m_hAsyncCall) {
+                        if let Some(cb) = callbacks.call_results.remove(&apicall.m_hAsyncCall) {
                             cb(apicall_result.as_mut_ptr() as *mut _, failed);
                         }
                     }

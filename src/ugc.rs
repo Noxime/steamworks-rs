@@ -254,8 +254,8 @@ impl <Manager> UGC<Manager> {
     }
 
     /// Creates a workshop item
-    pub fn create_item<F>(&self, app_id: AppId, file_type: FileType, mut cb: F)
-        where F: FnMut(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+    pub fn create_item<F>(&self, app_id: AppId, file_type: FileType, cb: F)
+        where F: Fn(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
@@ -291,8 +291,8 @@ impl <Manager> UGC<Manager> {
     }
 
     /// Subscribes to a workshop item
-    pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
-        where F: FnMut(Result<(), SteamError>) + 'static + Send
+    pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, cb: F)
+        where F: Fn(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
@@ -310,8 +310,8 @@ impl <Manager> UGC<Manager> {
         }
     }
 
-    pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, mut cb: F)
-        where F: FnMut(Result<(), SteamError>) + 'static + Send
+    pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, cb: F)
+        where F: Fn(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
@@ -466,8 +466,8 @@ impl <Manager> UpdateHandle<Manager> {
         self
     }
 
-    pub fn submit<F>(self, change_note: Option<&str>, mut cb: F) -> UpdateWatchHandle<Manager>
-        where F: FnMut(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+    pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle<Manager>
+        where F: Fn(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
     {
         use std::ptr;
         unsafe {
@@ -650,8 +650,8 @@ impl <Manager> UserListQuery<Manager> {
     }
 
     /// Runs the query
-    pub fn fetch<F>(mut self, mut cb: F)
-        where F: for<'a> FnMut(Result<QueryResults<'a>,SteamError>) + 'static + Send
+    pub fn fetch<F>(mut self, cb: F)
+        where F: for<'a> Fn(Result<QueryResults<'a>,SteamError>) + 'static + Send
     {
         let ugc = self.ugc;
         let inner = Arc::clone(&self.inner);
@@ -688,8 +688,8 @@ impl <Manager> UserListQuery<Manager> {
     }
 
     /// Runs the query, only fetching the total number of results.
-    pub fn fetch_total<F>(self, mut cb: F)
-        where F: FnMut(Result<u32, SteamError>) + 'static + Send
+    pub fn fetch_total<F>(self, cb: F)
+        where F: Fn(Result<u32, SteamError>) + 'static + Send
     {
         unsafe {
             let ok = sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(self.ugc, self.handle.unwrap(), true);
@@ -700,8 +700,8 @@ impl <Manager> UserListQuery<Manager> {
     }
 
     /// Runs the query, only fetchind the IDs.
-    pub fn fetch_ids<F>(self, mut cb: F)
-        where F: FnMut(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send
+    pub fn fetch_ids<F>(self, cb: F)
+        where F: Fn(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send
     {
         unsafe {
             let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(self.ugc, self.handle.unwrap(), true);
