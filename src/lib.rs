@@ -83,7 +83,7 @@ struct Inner<Manager> {
 
 struct Callbacks {
     callbacks: HashMap<i32, Box<dyn FnMut(*mut libc::c_void) + Send + 'static>>,
-    call_results: HashMap<sys::SteamAPICall_t, Box<dyn Fn(*mut libc::c_void, bool) + Send + 'static>>,
+    call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut libc::c_void, bool) + Send + 'static>>,
 }
 
 unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}

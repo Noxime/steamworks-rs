@@ -17,7 +17,7 @@ const CALLBACK_BASE_ID: i32 = 1100;
 impl <Manager> UserStats<Manager> {
 
     pub fn find_leaderboard<F>(&self, name: &str, cb: F)
-        where F: Fn(Result<Option<Leaderboard>, SteamError>) + 'static + Send
+        where F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send
     {
         unsafe {
             let name = CString::new(name).unwrap();
@@ -39,7 +39,7 @@ impl <Manager> UserStats<Manager> {
     }
 
     pub fn find_or_create_leaderboard<F>(&self, name: &str, sort_method: LeaderboardSortMethod, display_type: LeaderboardDisplayType, cb: F)
-        where F: Fn(Result<Option<Leaderboard>, SteamError>) + 'static + Send
+        where F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send
     {
         unsafe {
             let name = CString::new(name).unwrap();
@@ -74,7 +74,7 @@ impl <Manager> UserStats<Manager> {
     }
 
     pub fn upload_leaderboard_score<F>(&self, leaderboard: &Leaderboard, method: UploadScoreMethod, score: i32, details: &[i32], cb: F)
-        where F: Fn(Result<Option<LeaderboardScoreUploaded>, SteamError>) + 'static + Send
+        where F: FnOnce(Result<Option<LeaderboardScoreUploaded>, SteamError>) + 'static + Send
     {
         unsafe {
             let method = match method {
@@ -110,7 +110,7 @@ impl <Manager> UserStats<Manager> {
         max_details_len: usize,
         cb: F
     )
-        where F: Fn(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send
+        where F: FnOnce(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send
     {
         unsafe {
             let request = match request {

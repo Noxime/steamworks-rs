@@ -48,7 +48,7 @@ pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>
 }
 
 pub(crate) unsafe fn register_call_result<C, F, Manager>(inner: &Arc<Inner<Manager>>, api_call: sys::SteamAPICall_t, _callback_id: i32, f: F)
-    where F: for <'a> Fn(&'a C, bool) + 'static + Send
+    where F: for <'a> FnOnce(&'a C, bool) + 'static + Send
 {
     let mut callbacks = inner.callbacks.lock().unwrap();
     callbacks.call_results.insert(api_call, Box::new(move |param, failed| {

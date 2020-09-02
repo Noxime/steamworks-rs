@@ -255,7 +255,7 @@ impl <Manager> UGC<Manager> {
 
     /// Creates a workshop item
     pub fn create_item<F>(&self, app_id: AppId, file_type: FileType, cb: F)
-        where F: Fn(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+        where F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
@@ -292,7 +292,7 @@ impl <Manager> UGC<Manager> {
 
     /// Subscribes to a workshop item
     pub fn subscribe_item<F>(&self, published_file_id: PublishedFileId, cb: F)
-        where F: Fn(Result<(), SteamError>) + 'static + Send
+        where F: FnOnce(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
@@ -311,7 +311,7 @@ impl <Manager> UGC<Manager> {
     }
 
     pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, cb: F)
-        where F: Fn(Result<(), SteamError>) + 'static + Send
+        where F: FnOnce(Result<(), SteamError>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
@@ -467,7 +467,7 @@ impl <Manager> UpdateHandle<Manager> {
     }
 
     pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle<Manager>
-        where F: Fn(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
+        where F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send
     {
         use std::ptr;
         unsafe {
@@ -651,7 +651,7 @@ impl <Manager> UserListQuery<Manager> {
 
     /// Runs the query
     pub fn fetch<F>(mut self, cb: F)
-        where F: for<'a> Fn(Result<QueryResults<'a>,SteamError>) + 'static + Send
+        where F: for<'a> FnOnce(Result<QueryResults<'a>,SteamError>) + 'static + Send
     {
         let ugc = self.ugc;
         let inner = Arc::clone(&self.inner);

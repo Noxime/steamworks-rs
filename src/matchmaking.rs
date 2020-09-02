@@ -45,7 +45,7 @@ impl LobbyId {
 impl <Manager> Matchmaking<Manager> {
 
     pub fn request_lobby_list<F>(&self, cb: F)
-        where F: Fn(SResult<Vec<LobbyId>>) + 'static + Send
+        where F: FnOnce(SResult<Vec<LobbyId>>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
@@ -77,7 +77,7 @@ impl <Manager> Matchmaking<Manager> {
     /// * `LobbyEnter`
     /// * `LobbyCreated`
     pub fn create_lobby<F>(&self, ty: LobbyType, max_members: u32, cb: F)
-        where F: Fn(SResult<LobbyId>) + 'static + Send
+        where F: FnOnce(SResult<LobbyId>) + 'static + Send
     {
         assert!(max_members <= 250); // Steam API limits
         unsafe {
@@ -105,7 +105,7 @@ impl <Manager> Matchmaking<Manager> {
 
     /// Tries to join the lobby with the given ID
     pub fn join_lobby<F>(&self, lobby: LobbyId, cb: F)
-        where F: Fn(Result<LobbyId, ()>) + 'static + Send
+        where F: FnOnce(Result<LobbyId, ()>) + 'static + Send
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
