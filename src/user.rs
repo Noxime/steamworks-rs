@@ -88,22 +88,22 @@ impl <Manager> User<Manager> {
 }
 
 /// Errors from `begin_authentication_session`
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum AuthSessionError {
     /// The ticket is invalid
-    #[fail(display = "invalid ticket")]
+    #[error("invalid ticket")]
     InvalidTicket,
     /// A ticket has already been submitted for this steam ID
-    #[fail(display = "duplicate ticket request")]
+    #[error("duplicate ticket request")]
     DuplicateRequest,
     /// The ticket is from an incompatible interface version
-    #[fail(display = "incompatible interface version")]
+    #[error("incompatible interface version")]
     InvalidVersion,
     /// The ticket is not for this game
-    #[fail(display = "incorrect game for ticket")]
+    #[error("incorrect game for ticket")]
     GameMismatch,
     /// The ticket has expired
-    #[fail(display = "ticket has expired")]
+    #[error("ticket has expired")]
     ExpiredTicket,
 }
 
@@ -210,36 +210,36 @@ unsafe impl Callback for ValidateAuthTicketResponse {
 }
 
 /// Errors from `ValidateAuthTicketResponse`
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum AuthSessionValidateError {
     /// The user in question is not connected to steam
-    #[fail(display = "user not connected to steam")]
+    #[error("user not connected to steam")]
     UserNotConnectedToSteam,
     /// The license has expired
-    #[fail(display = "the license has expired")]
+    #[error("the license has expired")]
     NoLicenseOrExpired,
     /// The user is VAC banned from the game
-    #[fail(display = "the user is VAC banned from this game")]
+    #[error("the user is VAC banned from this game")]
     VACBanned,
     /// The user has logged in elsewhere and the session
     /// has been disconnected
-    #[fail(display = "the user is logged in elsewhere")]
+    #[error("the user is logged in elsewhere")]
     LoggedInElseWhere,
     /// VAC has been unable to perform anti-cheat checks on this
     /// user
-    #[fail(display = "VAC check timed out")]
+    #[error("VAC check timed out")]
     VACCheckTimedOut,
     /// The ticket has been cancelled by the issuer
-    #[fail(display = "the authentication ticket has been cancelled")]
+    #[error("the authentication ticket has been cancelled")]
     AuthTicketCancelled,
     /// The ticket has already been used
-    #[fail(display = "the authentication ticket has already been used")]
+    #[error("the authentication ticket has already been used")]
     AuthTicketInvalidAlreadyUsed,
     /// The ticket is not from a user instance currently connected
     /// to steam
-    #[fail(display = "the authentication ticket is invalid")]
+    #[error("the authentication ticket is invalid")]
     AuthTicketInvalid,
     /// The user is banned from the game (not VAC)
-    #[fail(display = "the user is banned")]
+    #[error("the user is banned")]
     PublisherIssuedBan,
 }
