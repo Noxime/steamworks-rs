@@ -7,379 +7,379 @@ use crate::sys;
 ///
 /// Documentation is based on official documentation which doesn't
 /// always explain when an error could be returned or its meaning.
-#[derive(Copy, Clone, Debug, Fail, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Error, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SteamError {
     /// Returned if the steamworks API fails to initialize.
-    #[fail(display = "failed to init the steamworks API")]
+    #[error("failed to init the steamworks API")]
     InitFailed,
     /// Returned if the steamworks API fails to perform an action
-    #[fail(display = "a generic failure from the steamworks API")]
+    #[error("a generic failure from the steamworks API")]
     Generic,
     /// Returned when steam fails performing a network request
-    #[fail(display = "there isn't a network connection to steam or it failed to connect")]
+    #[error("there isn't a network connection to steam or it failed to connect")]
     NoConnection,
     /// Return when the password or ticked used is invalid
-    #[fail(display = "password or ticket is invalid")]
+    #[error("password or ticket is invalid")]
     InvalidPassword,
     /// Returned when the user is already logged in at another location
-    #[fail(display = "user logged in elsewhere")]
+    #[error("user logged in elsewhere")]
     LoggedInElsewhere,
     /// Returned when the protocol version is incorrect
-    #[fail(display = "the protocol version is incorrect")]
+    #[error("the protocol version is incorrect")]
     InvalidProtocolVersion,
     /// Returned when a passed parameter is invalid
-    #[fail(display = "a parameter is invalid")]
+    #[error("a parameter is invalid")]
     InvalidParameter,
     /// Returned when a file is not found
-    #[fail(display = "a file was not found")]
+    #[error("a file was not found")]
     FileNotFound,
     /// Returned when the called method was busy
     ///
     /// No action was performed
-    #[fail(display = "method busy")]
+    #[error("method busy")]
     Busy,
     /// Returned when the called object was in an
     /// invalid state
-    #[fail(display = "object in invalid state")]
+    #[error("object in invalid state")]
     InvalidState,
     /// Returned when the name is invalid
-    #[fail(display = "name is invalid")]
+    #[error("name is invalid")]
     InvalidName,
     /// Returned when the email is invalid
-    #[fail(display = "email is invalid")]
+    #[error("email is invalid")]
     InvalidEmail,
     /// Returned when the name is not unique
-    #[fail(display = "name is not unique")]
+    #[error("name is not unique")]
     DuplicateName,
     /// Returned when access is denied
-    #[fail(display = "access denied")]
+    #[error("access denied")]
     AccessDenied,
     /// Returned when the operation timed out
-    #[fail(display = "operation timed out")]
+    #[error("operation timed out")]
     Timeout,
     /// Returned when the user is VAC2 banned
-    #[fail(display = "VAC2 banned")]
+    #[error("VAC2 banned")]
     Banned,
     /// Returned when the account is not found
-    #[fail(display = "account not found")]
+    #[error("account not found")]
     AccountNotFound,
     /// Returned when the passed steam id is invalid
-    #[fail(display = "steamID is invalid")]
+    #[error("steamID is invalid")]
     InvalidSteamID,
     /// Returned when the requested service in unavailable
-    #[fail(display = "requested service is unavailable")]
+    #[error("requested service is unavailable")]
     ServiceUnavailable,
     /// Returned when the user is not logged on
-    #[fail(display = "user not logged on")]
+    #[error("user not logged on")]
     NotLoggedOn,
     /// Returned when the request is pending (e.g. in progress/waiting)
-    #[fail(display = "request is pending")]
+    #[error("request is pending")]
     Pending,
     /// Returned when encryption or decryption fails
-    #[fail(display = "encryption/decryption failed")]
+    #[error("encryption/decryption failed")]
     EncryptionFailure,
     /// Returned when you have insufficient privilege to perform
     /// the action
-    #[fail(display = "insufficient privilege")]
+    #[error("insufficient privilege")]
     InsufficientPrivilege,
     /// Returned when you have hit the API limits
-    #[fail(display = "limit exceeded")]
+    #[error("limit exceeded")]
     LimitExceeded,
     /// Returned when the user's access has been revoked (e.g. revoked
     /// guess passes)
-    #[fail(display = "access revoked")]
+    #[error("access revoked")]
     Revoked,
     /// Returned when the user's access has expired
-    #[fail(display = "access expired")]
+    #[error("access expired")]
     Expired,
     /// Returned when the licence/guest pass has already been redeemed
-    #[fail(display = "licence/guest pass already redeemed")]
+    #[error("licence/guest pass already redeemed")]
     AlreadyRedeemed,
     /// Returned when the requested action is a duplicate and has
     /// already occurred.
     ///
     /// The action will be ignored
-    #[fail(display = "request is a duplicate")]
+    #[error("request is a duplicate")]
     DuplicateRequest,
     /// Returned when all the games in the guest pass are already
     /// owned by the user
-    #[fail(display = "all games requested already owned")]
+    #[error("all games requested already owned")]
     AlreadyOwned,
     /// Returned when the ip address is not found
-    #[fail(display = "ip address not found")]
+    #[error("ip address not found")]
     IPNotFound,
     /// Returned when the change failed to write to the data store
-    #[fail(display = "failed to write change")]
+    #[error("failed to write change")]
     PersistFailed,
     /// Returned when the operation failed to acquire the access lock
-    #[fail(display = "failed to acquire access lock")]
+    #[error("failed to acquire access lock")]
     LockingFailed,
     /// Undocumented
-    #[fail(display = "logon session replaced")]
+    #[error("logon session replaced")]
     LogonSessionReplaced,
     /// Undocumented
-    #[fail(display = "connect failed")]
+    #[error("connect failed")]
     ConnectFailed,
     /// Undocumented
-    #[fail(display = "handshake failed")]
+    #[error("handshake failed")]
     HandshakeFailed,
     /// Undocumented
-    #[fail(display = "IO failure")]
+    #[error("IO failure")]
     IOFailure,
     /// Undocumented
-    #[fail(display = "remote disconnect")]
+    #[error("remote disconnect")]
     RemoteDisconnect,
     /// Returned when the requested shopping cart wasn't found
-    #[fail(display = "failed to find the requested shopping cart")]
+    #[error("failed to find the requested shopping cart")]
     ShoppingCartNotFound,
     /// Returned when the user blocks an action
-    #[fail(display = "action blocked")]
+    #[error("action blocked")]
     Blocked,
     /// Returned when the target user is ignoring the sender
-    #[fail(display = "target is ignoring sender")]
+    #[error("target is ignoring sender")]
     Ignored,
     /// Returned when nothing matching the request is found
-    #[fail(display = "no matches found")]
+    #[error("no matches found")]
     NoMatch,
     /// Undocumented
-    #[fail(display = "account disabled")]
+    #[error("account disabled")]
     AccountDisabled,
     /// Returned when the service isn't accepting content changes at
     /// this moment
-    #[fail(display = "service is read only")]
+    #[error("service is read only")]
     ServiceReadOnly,
     /// Returned when the account doesn't have value so the feature
     /// isn't available
-    #[fail(display = "account not featured")]
+    #[error("account not featured")]
     AccountNotFeatured,
     /// Allowed to take this action but only because the requester is
     /// an admin
-    #[fail(display = "administrator ok")]
+    #[error("administrator ok")]
     AdministratorOK,
     /// Returned when there is a version mismatch in content transmitted
     /// within the steam protocol
-    #[fail(display = "version mismatch with transmitted content")]
+    #[error("version mismatch with transmitted content")]
     ContentVersion,
     /// Returned when the current CM cannot service the user's request.
     ///
     /// The user should try another.
-    #[fail(display = "CM cannot service user")]
+    #[error("CM cannot service user")]
     TryAnotherCM,
     /// Returned when the user is already logged in elsewhere and the
     /// cached credential login failed.
-    #[fail(display = "user already logged in, cached login failed")]
+    #[error("user already logged in, cached login failed")]
     PasswordRequiredToKickSession,
     /// Returned when the user is already logged in elsewhere, you
     /// must wait before trying again
-    #[fail(display = "user already logged in, please wait")]
+    #[error("user already logged in, please wait")]
     AlreadyLoggedInElsewhere,
     /// Returned when a long running operation (e.g. download) is
     /// suspended/paused.
-    #[fail(display = "operation suspended/paused")]
+    #[error("operation suspended/paused")]
     Suspended,
     /// Returned when an operation is cancelled
-    #[fail(display = "operation cancelled")]
+    #[error("operation cancelled")]
     Cancelled,
     /// Returned when an operation is cancelled due to data corruption
-    #[fail(display = "operation cancelled due to data corruption")]
+    #[error("operation cancelled due to data corruption")]
     DataCorruption,
     /// Returned when an operation is cancelled due to running out of disk
     /// space
-    #[fail(display = "operation cancelled due to the disk being full")]
+    #[error("operation cancelled due to the disk being full")]
     DiskFull,
     /// Returned when a remote call or an IPC call failed
-    #[fail(display = "remote/IPC call failed")]
+    #[error("remote/IPC call failed")]
     RemoteCallFailed,
     /// Returned when a password could not be verified as its unset
     /// server side
-    #[fail(display = "cannot verify unset password")]
+    #[error("cannot verify unset password")]
     PasswordUnset,
     /// Returned when the external account is not linked to a steam
     /// account
-    #[fail(display = "external account not linked to steam")]
+    #[error("external account not linked to steam")]
     ExternalAccountUnlinked,
     /// Returned when the PSN ticket is invalid
-    #[fail(display = "PSN ticket invalid")]
+    #[error("PSN ticket invalid")]
     PSNTicketInvalid,
     /// Returned when the external account is already linked to a steam
     /// account
-    #[fail(display = "external account already linked")]
+    #[error("external account already linked")]
     ExternalAccountAlreadyLinked,
     /// Returned when sync cannot resume due to a file conflict
-    #[fail(display = "sync conflict between remote and local files")]
+    #[error("sync conflict between remote and local files")]
     RemoteFileConflict,
     /// Returned when the requested new password is not legal
-    #[fail(display = "new password is illegal")]
+    #[error("new password is illegal")]
     IllegalPassword,
     /// Returned when the new value is the same as the previous value
-    #[fail(display = "new value is the same as old value")]
+    #[error("new value is the same as old value")]
     SameAsPreviousValue,
     /// Returned when the account logon is denied to 2nd factor authentication
     /// failure
-    #[fail(display = "2nd factor authentication failed")]
+    #[error("2nd factor authentication failed")]
     AccountLogonDenied,
     /// Returned when the requested new password is the same as the
     /// previous password
-    #[fail(display = "cannot use old password")]
+    #[error("cannot use old password")]
     CannotUseOldPassword,
     /// Returned when logging in is denied due to an invalid auth code
-    #[fail(display = "invalid login auth code")]
+    #[error("invalid login auth code")]
     InvalidLoginAuthCode,
     /// Returned when logging in fails due to no email being set for 2nd
     /// factor authentication
-    #[fail(display = "no email for 2nd factor authentication")]
+    #[error("no email for 2nd factor authentication")]
     AccountLogonDeniedNoMail,
     /// Undocumented
-    #[fail(display = "hardware not capable of IPT")]
+    #[error("hardware not capable of IPT")]
     HardwareNotCapableOfIPT,
     /// Undocumented
-    #[fail(display = "IPT init error")]
+    #[error("IPT init error")]
     IPTInitError,
     /// Returned when a operation fails due to parental control restrictions
     /// for a user
-    #[fail(display = "restricted due to parental controls")]
+    #[error("restricted due to parental controls")]
     ParentalControlRestricted,
     /// Returned when a facebook query returns an error
-    #[fail(display = "facebook query failed")]
+    #[error("facebook query failed")]
     FacebookQueryError,
     /// Returned when account login is denied due to an expired auth code
-    #[fail(display = "login denied due to exipred auth code")]
+    #[error("login denied due to exipred auth code")]
     ExpiredLoginAuthCode,
     /// Undocumented
-    #[fail(display = "IP login restriction failed")]
+    #[error("IP login restriction failed")]
     IPLoginRestrictionFailed,
     /// Undocumented
-    #[fail(display = "account locked down")]
+    #[error("account locked down")]
     AccountLockedDown,
     /// Undocumented
-    #[fail(display = "account logon denied verified email required")]
+    #[error("account logon denied verified email required")]
     AccountLogonDeniedVerifiedEmailRequired,
     /// Undocumented
-    #[fail(display = "no matching URL")]
+    #[error("no matching URL")]
     NoMatchingURL,
     /// Returned when something fails to parse/has a missing field
-    #[fail(display = "bad response")]
+    #[error("bad response")]
     BadResponse,
     /// Returned when a user cannot complete the action until they
     /// re-enter their password
-    #[fail(display = "password re-entry required")]
+    #[error("password re-entry required")]
     RequirePasswordReEntry,
     /// Returned when an entered value is outside the acceptable range
-    #[fail(display = "value is out of range")]
+    #[error("value is out of range")]
     ValueOutOfRange,
     /// Returned when an error happens that the steamworks API didn't
     /// expect to happen
-    #[fail(display = "unexpected error")]
+    #[error("unexpected error")]
     UnexpectedError,
     /// Returned when the requested service is disabled
-    #[fail(display = "service disabled")]
+    #[error("service disabled")]
     Disabled,
     /// Returned when the set of files submitted to the CEG server
     /// are not valid
-    #[fail(display = "submitted files to CEG are invalid")]
+    #[error("submitted files to CEG are invalid")]
     InvalidCEGSubmission,
     /// Returned when the device being used is not allowed to perform
     /// this action
-    #[fail(display = "device is restricted from action")]
+    #[error("device is restricted from action")]
     RestrictedDevice,
     /// Returned when an action is prevented due to region restrictions
-    #[fail(display = "region restrictions prevented action")]
+    #[error("region restrictions prevented action")]
     RegionLocked,
     /// Returned when an action failed due to a temporary rate limit
-    #[fail(display = "temporary rate limit exceeded")]
+    #[error("temporary rate limit exceeded")]
     RateLimitExceeded,
     /// Returned when a account needs to use a two-factor code to login
-    #[fail(display = "two-factor authetication required for login")]
+    #[error("two-factor authetication required for login")]
     AccountLoginDeniedNeedTwoFactor,
     /// Returned when the item attempting to be accessed has been deleted
-    #[fail(display = "item deleted")]
+    #[error("item deleted")]
     ItemDeleted,
     /// Returned when the account login failed and you should throttle the
     /// response to the possible attacker
-    #[fail(display = "account login denied, throttled")]
+    #[error("account login denied, throttled")]
     AccountLoginDeniedThrottle,
     /// Returned when the two factor code provided mismatched the expected
     /// one
-    #[fail(display = "two-factor code mismatched")]
+    #[error("two-factor code mismatched")]
     TwoFactorCodeMismatch,
     /// Returned when the two factor activation code mismatched the expected
     /// one
-    #[fail(display = "two-factor activation code mismatched")]
+    #[error("two-factor activation code mismatched")]
     TwoFactorActivationCodeMismatch,
     /// Returned when the account has been associated with multiple partners
-    #[fail(display = "account associated to multiple partners")]
+    #[error("account associated to multiple partners")]
     AccountAssociatedToMultiplePartners,
     /// Returned when the data wasn't modified
-    #[fail(display = "data not modified")]
+    #[error("data not modified")]
     NotModified,
     /// Returned when the account doesn't have a mobile device associated with
     /// it
-    #[fail(display = "no mobile device associated with account")]
+    #[error("no mobile device associated with account")]
     NoMobileDevice,
     /// Returned when the current time is out of range or tolerance
-    #[fail(display = "time not synced correctly")]
+    #[error("time not synced correctly")]
     TimeNotSynced,
     /// Returned when the sms code failed to validate
-    #[fail(display = "sms code validation failed")]
+    #[error("sms code validation failed")]
     SmsCodeFailed,
     /// Returned when too many accounts are accessing the requested
     /// resource
-    #[fail(display = "account limit exceeded for resource")]
+    #[error("account limit exceeded for resource")]
     AccountLimitExceeded,
     /// Returned when there have been too many changes to the account
-    #[fail(display = "account activity limit exceeded")]
+    #[error("account activity limit exceeded")]
     AccountActivityLimitExceeded,
     /// Returned when there have been too many changes to the phone
-    #[fail(display = "phone activity limited exceeded")]
+    #[error("phone activity limited exceeded")]
     PhoneActivityLimitExceeded,
     /// Returned when the refund can not be sent to the payment method
     /// and the steam wallet must be used
-    #[fail(display = "must refund to wallet instead of payment method")]
+    #[error("must refund to wallet instead of payment method")]
     RefundToWallet,
     /// Returned when steam failed to send an email
-    #[fail(display = "email sending failed")]
+    #[error("email sending failed")]
     EmailSendFailure,
     /// Returned when an action cannot be performed until the payment
     /// has settled
-    #[fail(display = "action cannot be performed until payment has settled")]
+    #[error("action cannot be performed until payment has settled")]
     NotSettled,
     /// Returned when the user needs to provide a valid captcha
-    #[fail(display = "valid captcha required")]
+    #[error("valid captcha required")]
     NeedCaptcha,
     /// Returned when the game server login token owned by the token's owner
     /// been banned
-    #[fail(display = "game server login token has been banned")]
+    #[error("game server login token has been banned")]
     GSLTDenied,
     /// Returned when the game server owner has been denied for other reasons
     /// (account lock, community ban, vac ban, missing phone)
-    #[fail(display = "game server owner denied")]
+    #[error("game server owner denied")]
     GSOwnerDenied,
     /// Returned when the type of item attempted to be acted on is invalid
-    #[fail(display = "invalid item type")]
+    #[error("invalid item type")]
     InvalidItemType,
     /// Returned when the IP address has been banned for taking this action
-    #[fail(display = "IP banned from action")]
+    #[error("IP banned from action")]
     IPBanned,
     /// Returned when the game server login token has expired
     ///
     /// It can be reset for use
-    #[fail(display = "game server login token expired")]
+    #[error("game server login token expired")]
     GSLTExpired,
     /// Returned when the user does not have the wallet funds to complete
     /// the action
-    #[fail(display = "insufficient wallet funds for action")]
+    #[error("insufficient wallet funds for action")]
     InsufficientFunds,
     /// Returned when there are too many of the requested action pending
     /// already
-    #[fail(display = "too many actions pending")]
+    #[error("too many actions pending")]
     TooManyPending,
     /// Returned when there is no site licenses found
-    #[fail(display = "no site licenses found")]
+    #[error("no site licenses found")]
     NoSiteLicensesFound,
     /// Returned when WG could not send a response because it exceeded the
     /// max network send size
-    #[fail(display = "WG network send size exceeded")]
+    #[error("WG network send size exceeded")]
     WGNetworkSendExceeded,
 }
 
