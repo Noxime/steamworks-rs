@@ -37,11 +37,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
     let bindings = bindgen::Builder::default()
-        .header("src/fixes.hpp")
         .header(sdk_loc.join("public/steam/steam_api_flat.h").to_string_lossy())
         .header(sdk_loc.join("public/steam/steam_gameserver.h").to_string_lossy())
         .clang_arg("-xc++")
-        .opaque_type("SteamTVRegion_t")
         .clang_arg(format!("-I{}", sdk_loc.join("public").display()))
         .rustfmt_bindings(true)
         .default_enum_style(bindgen::EnumVariation::Rust {
