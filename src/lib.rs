@@ -206,7 +206,7 @@ impl <Manager> Client<Manager> {
     /// Returns an accessor to the steam utils interface
     pub fn utils(&self) -> Utils<Manager> {
         unsafe {
-            let utils = sys::SteamAPI_SteamUtils_v009();
+            let utils = sys::SteamAPI_SteamUtils_v010();
             debug_assert!(!utils.is_null());
             Utils {
                 utils: utils,
@@ -267,7 +267,7 @@ impl <Manager> Client<Manager> {
     /// Returns an accessor to the steam user interface
     pub fn user(&self) -> User<Manager> {
         unsafe {
-            let user = sys::SteamAPI_SteamUser_v020();
+            let user = sys::SteamAPI_SteamUser_v021();
             debug_assert!(!user.is_null());
             User {
                 user,
@@ -279,7 +279,7 @@ impl <Manager> Client<Manager> {
     /// Returns an accessor to the steam user stats interface
     pub fn user_stats(&self) -> UserStats<Manager> {
         unsafe {
-            let us = sys::SteamAPI_SteamUserStats_v011();
+            let us = sys::SteamAPI_SteamUserStats_v012();
             debug_assert!(!us.is_null());
             UserStats {
                 user_stats: us,
@@ -293,7 +293,7 @@ impl <Manager> Client<Manager> {
         unsafe {
             let rs = sys::SteamAPI_SteamRemoteStorage_v014();
             debug_assert!(!rs.is_null());
-            let util = sys::SteamAPI_SteamUtils_v009();
+            let util = sys::SteamAPI_SteamUtils_v010();
             debug_assert!(!util.is_null());
             RemoteStorage {
                 rs,
@@ -306,7 +306,7 @@ impl <Manager> Client<Manager> {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC<Manager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v014();
+            let ugc = sys::SteamAPI_SteamUGC_v015();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,

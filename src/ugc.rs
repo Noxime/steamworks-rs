@@ -663,7 +663,7 @@ impl <Manager> UserListQuery<Manager> {
             register_call_result::<sys::SteamUGCQueryCompleted_t, _, _>(
                 &inner, api_call, CALLBACK_BASE_ID + 1,
                 move |v, io_error| {
-                    let ugc = sys::SteamAPI_SteamUGC_v014();
+                    let ugc = sys::SteamAPI_SteamUGC_v015();
                     if io_error {
                         sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
                         cb(Err(SteamError::IOFailure));

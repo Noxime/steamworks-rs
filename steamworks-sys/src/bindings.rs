@@ -23031,7 +23031,7 @@ extern "C" {
     ) -> *mut ISteamRemotePlay;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUser_v020() -> *mut ISteamUser;
+    pub fn SteamAPI_SteamUser_v021() -> *mut ISteamUser;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUser_GetHSteamUser(self_: *mut ISteamUser) -> HSteamUser;
@@ -23674,7 +23674,7 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn SteamAPI_SteamUtils_v009() -> *mut ISteamUtils;
+    pub fn SteamAPI_SteamUtils_v010() -> *mut ISteamUtils;
 }
 extern "C" {
     pub fn SteamAPI_SteamGameServerUtils_v009() -> *mut ISteamUtils;
@@ -24895,7 +24895,7 @@ extern "C" {
     ) -> SteamAPICall_t;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUserStats_v011() -> *mut ISteamUserStats;
+    pub fn SteamAPI_SteamUserStats_v012() -> *mut ISteamUserStats;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUserStats_RequestCurrentStats(self_: *mut ISteamUserStats) -> bool;
@@ -26426,7 +26426,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUGC_v014() -> *mut ISteamUGC;
+    pub fn SteamAPI_SteamUGC_v015() -> *mut ISteamUGC;
 }
 extern "C" {
     pub fn SteamAPI_SteamGameServerUGC_v014() -> *mut ISteamUGC;
