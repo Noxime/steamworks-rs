@@ -4,4 +4,8 @@
 
 extern crate libc;
 
+#[cfg(not(feature = "docs-only"))]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+#[cfg(feature = "docs-only")]
+include!("bindings.rs");

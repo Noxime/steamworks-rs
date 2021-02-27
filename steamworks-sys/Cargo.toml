@@ -19,7 +19,7 @@ docs-only = []
 
 
 [dependencies]
-libc = "0.2.50"
+libc = "0.2.86"
 
 [build-dependencies]
-bindgen = "0.53.1"
+bindgen = "0.57.0"
