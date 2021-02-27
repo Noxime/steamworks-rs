@@ -1,6 +1,6 @@
 [package]
 name = "steamworks"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["Thinkofname"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
@@ -24,7 +24,7 @@ members = [
 ]
 
 [dependencies]
-steamworks-sys = {path = "./steamworks-sys", version = "0.6.0"}
+steamworks-sys = {path = "./steamworks-sys", version = "0.7.0"}
 thiserror = "1.0"
 bitflags = "1.0.4"
 libc = "0.2.50"
