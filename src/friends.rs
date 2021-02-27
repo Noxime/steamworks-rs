@@ -278,6 +278,29 @@ impl <Manager> Friend<Manager> {
             Some(dest)
         }
     }
+
+    /// Returns a large (184x184) avatar for the user in RGBA format
+    pub fn large_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let utils = sys::SteamAPI_SteamUtils_v010();
+            let img = sys::SteamAPI_ISteamFriends_GetLargeFriendAvatar(self.friends, self.id.0);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
+            }
+            assert_eq!(width, 184);
+            assert_eq!(height, 184);
+            let mut dest = vec![0; 184 * 184 * 4];
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4) {
+                return None;
+            }
+            Some(dest)
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
