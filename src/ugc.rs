@@ -368,7 +368,7 @@ impl <Manager> UGC<Manager> {
             let mut timestamp = 0u32;
             if sys::SteamAPI_ISteamUGC_GetItemInstallInfo(self.ugc, item.0, &mut size_on_disk, folder.as_mut_ptr(), folder.len() as _, &mut timestamp) {
                 Some(InstallInfo {
-                    folder: CStr::from_ptr(folder.as_ptr() as *const _ as *const _)
+                    folder: CStr::from_ptr(folder.as_ptr() as *const _)
                         .to_string_lossy()
                         .into_owned(),
                     size_on_disk,
