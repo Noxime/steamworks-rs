@@ -745,6 +745,25 @@ impl<'a> QueryResults<'a> {
         self.num_results_returned
     }
 
+    /// Gets the preview URL of the published file at the specified index.
+    pub fn preview_url(&self, index: u32) -> Option<String> {
+        let mut url = [0 as libc::c_char; 4096];
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCPreviewURL(self.ugc, self.handle, index, url.as_mut_ptr(), url.len() as u32)
+        };
+
+        if ok {
+            Some(unsafe {
+                CStr::from_ptr(url.as_ptr() as *const _)
+                    .to_string_lossy()
+                    .into_owned()
+            })
+        } else {
+            None
+        }
+    }
+
     /// Gets a result.
     ///
     /// Returns None if index was out of bounds.
