@@ -750,7 +750,7 @@ impl<'a> QueryResults<'a> {
         let mut url = [0 as libc::c_char; 4096];
 
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_GetQueryUGCPreviewURL(self.ugc, self.handle, index, url.as_mut_ptr(), url.len() as u32)
+            sys::SteamAPI_ISteamUGC_GetQueryUGCPreviewURL(self.ugc, self.handle, index, url.as_mut_ptr(), url.len() as _)
         };
 
         if ok {
