@@ -699,7 +699,7 @@ impl <Manager> UserListQuery<Manager> {
         self.fetch(move |res| cb(res.map(|qr| qr.total_results())))
     }
 
-    /// Runs the query, only fetchind the IDs.
+    /// Runs the query, only fetching the IDs.
     pub fn fetch_ids<F>(self, cb: F)
         where F: Fn(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send
     {
