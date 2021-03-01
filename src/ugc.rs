@@ -445,8 +445,8 @@ impl <Manager> UGC<Manager> {
         appids: AppIDs,
         page: u32
     ) -> Result<UserListQuery<Manager>, CreateQueryError> {
-        unsafe {
-            let res = sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
+        let res = unsafe {
+            sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
                 self.ugc,
                 account.0,
                 list_type.into(),
@@ -455,16 +455,19 @@ impl <Manager> UGC<Manager> {
                 appids.creator_app_id().unwrap_or(AppId(0)).0,
                 appids.consumer_app_id().unwrap_or(AppId(0)).0,
                 page,
-            );
-            if res == UGCQueryHandleInvalid {
-                return Err(CreateQueryError);
-            }
+            )
+        };
 
-            Ok(UserListQuery {
-                ugc: self.ugc,
-                inner: Arc::clone(&self.inner),
-                handle: Some(res),
-            })
+        if res == UGCQueryHandleInvalid {
+            return Err(CreateQueryError);
+        }
+
+        Ok(UserListQuery {
+            ugc: self.ugc,
+            inner: Arc::clone(&self.inner),
+            handle: Some(res),
+        })
+    }
         }
     }
 }
