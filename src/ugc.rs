@@ -368,7 +368,7 @@ impl <Manager> UGC<Manager> {
             let mut timestamp = 0u32;
             if sys::SteamAPI_ISteamUGC_GetItemInstallInfo(self.ugc, item.0, &mut size_on_disk, folder.as_mut_ptr(), folder.len() as _, &mut timestamp) {
                 Some(InstallInfo {
-                    folder: CStr::from_ptr(folder.as_ptr() as *const _ as *const _)
+                    folder: CStr::from_ptr(folder.as_ptr() as *const _)
                         .to_string_lossy()
                         .into_owned(),
                     size_on_disk,
@@ -699,7 +699,7 @@ impl <Manager> UserListQuery<Manager> {
         self.fetch(move |res| cb(res.map(|qr| qr.total_results())))
     }
 
-    /// Runs the query, only fetchind the IDs.
+    /// Runs the query, only fetching the IDs.
     pub fn fetch_ids<F>(self, cb: F)
         where F: Fn(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send
     {
@@ -743,6 +743,25 @@ impl<'a> QueryResults<'a> {
     /// Gets the number of results in this page.
     pub fn returned_results(&self) -> u32 {
         self.num_results_returned
+    }
+
+    /// Gets the preview URL of the published file at the specified index.
+    pub fn preview_url(&self, index: u32) -> Option<String> {
+        let mut url = [0 as libc::c_char; 4096];
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCPreviewURL(self.ugc, self.handle, index, url.as_mut_ptr(), url.len() as _)
+        };
+
+        if ok {
+            Some(unsafe {
+                CStr::from_ptr(url.as_ptr() as *const _)
+                    .to_string_lossy()
+                    .into_owned()
+            })
+        } else {
+            None
+        }
     }
 
     /// Gets a result.
