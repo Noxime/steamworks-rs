@@ -201,6 +201,56 @@ impl Into<sys::EUserUGCList> for UserList {
     }
 }
 
+/// Available published item statistic types.
+#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+pub enum UGCStatisticType {
+    /// The number of subscriptions.
+    Subscriptions,
+    /// The number of favorites.
+    Favorites,
+    /// The number of followers.
+    Followers,
+    /// The number of unique subscriptions.
+    UniqueSubscriptions,
+    /// The number of unique favorites.
+    UniqueFavorites,
+    /// The number of unique followers.
+    UniqueFollowers,
+    /// The number of unique views the item has on its Steam Workshop page.
+    UniqueWebsiteViews,
+    /// The number of times the item has been reported.
+    Reports,
+    /// The total number of seconds this item has been used across all players.
+    SecondsPlayed,
+    /// The total number of play sessions this item has been used in.
+    PlaytimeSessions,
+    /// The number of comments on the items steam has on its Steam Workshop page.
+    Comments,
+    /// The number of seconds this item has been used over the given time period.
+    SecondsPlayedDuringTimePeriod,
+    /// The number of sessions this item has been used in over the given time period.
+    PlaytimeSessionsDuringTimePeriod,
+}
+impl Into<sys::EItemStatistic> for UGCStatisticType {
+    fn into(self) -> sys::EItemStatistic {
+        match self {
+            UGCStatisticType::Subscriptions => sys::EItemStatistic::k_EItemStatistic_NumSubscriptions,
+            UGCStatisticType::Favorites => sys::EItemStatistic::k_EItemStatistic_NumFavorites,
+            UGCStatisticType::Followers => sys::EItemStatistic::k_EItemStatistic_NumFollowers,
+            UGCStatisticType::UniqueSubscriptions => sys::EItemStatistic::k_EItemStatistic_NumUniqueSubscriptions,
+            UGCStatisticType::UniqueFavorites => sys::EItemStatistic::k_EItemStatistic_NumUniqueFavorites,
+            UGCStatisticType::UniqueFollowers => sys::EItemStatistic::k_EItemStatistic_NumUniqueFollowers,
+            UGCStatisticType::UniqueWebsiteViews => sys::EItemStatistic::k_EItemStatistic_NumUniqueWebsiteViews,
+            UGCStatisticType::Reports => sys::EItemStatistic::k_EItemStatistic_ReportScore,
+            UGCStatisticType::SecondsPlayed => sys::EItemStatistic::k_EItemStatistic_NumSecondsPlayed,
+            UGCStatisticType::PlaytimeSessions => sys::EItemStatistic::k_EItemStatistic_NumPlaytimeSessions,
+            UGCStatisticType::Comments => sys::EItemStatistic::k_EItemStatistic_NumComments,
+            UGCStatisticType::SecondsPlayedDuringTimePeriod => sys::EItemStatistic::k_EItemStatistic_NumSecondsPlayedDuringTimePeriod,
+            UGCStatisticType::PlaytimeSessionsDuringTimePeriod => sys::EItemStatistic::k_EItemStatistic_NumPlaytimeSessionsDuringTimePeriod,
+        }
+    }
+}
+
 bitflags! {
     pub struct ItemState: u32 {
         const NONE = 0;
@@ -743,6 +793,23 @@ impl<'a> QueryResults<'a> {
     /// Gets the number of results in this page.
     pub fn returned_results(&self) -> u32 {
         self.num_results_returned
+    }
+
+    /// Gets a UGC statistic about the published file at the specified index.
+    pub fn statistic(&self, index: u32, stat_type: UGCStatisticType) -> Option<u64> {
+        let mut value = 0u64;
+        
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCStatistic(self.ugc, self.handle, index, stat_type.into(), &mut value)
+        };
+
+        debug_assert!(ok);
+
+        if ok {
+            Some(value)
+        } else {
+            None
+        }
     }
 
     /// Gets a result.
