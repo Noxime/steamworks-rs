@@ -445,8 +445,8 @@ impl <Manager> UGC<Manager> {
         appids: AppIDs,
         page: u32
     ) -> Result<UserListQuery<Manager>, CreateQueryError> {
-        unsafe {
-            let res = sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
+        let res = unsafe {
+            sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
                 self.ugc,
                 account.0,
                 list_type.into(),
@@ -455,17 +455,62 @@ impl <Manager> UGC<Manager> {
                 appids.creator_app_id().unwrap_or(AppId(0)).0,
                 appids.consumer_app_id().unwrap_or(AppId(0)).0,
                 page,
-            );
-            if res == UGCQueryHandleInvalid {
-                return Err(CreateQueryError);
-            }
+            )
+        };
 
-            Ok(UserListQuery {
-                ugc: self.ugc,
-                inner: Arc::clone(&self.inner),
-                handle: Some(res),
-            })
+        if res == UGCQueryHandleInvalid {
+            return Err(CreateQueryError);
         }
+
+        Ok(UserListQuery {
+            ugc: self.ugc,
+            inner: Arc::clone(&self.inner),
+            handle: Some(res),
+        })
+    }
+
+    pub fn query_items(&self, mut items: Vec<PublishedFileId>) -> Result<ItemListDetailsQuery<Manager>, CreateQueryError> {
+        debug_assert!(items.len() > 0);
+
+        let res = unsafe {
+            sys::SteamAPI_ISteamUGC_CreateQueryUGCDetailsRequest(
+                self.ugc,
+                items.as_mut_ptr() as _,
+                items.len() as _
+            )
+        };
+
+        if res == UGCQueryHandleInvalid {
+            return Err(CreateQueryError);
+        }
+
+        Ok(ItemListDetailsQuery {
+            ugc: self.ugc,
+            inner: Arc::clone(&self.inner),
+            handle: Some(res),
+        })
+    }
+
+    pub fn query_item(&self, item: PublishedFileId) -> Result<ItemDetailsQuery<Manager>, CreateQueryError> {
+        let mut items = vec![item];
+
+        let res = unsafe {
+            sys::SteamAPI_ISteamUGC_CreateQueryUGCDetailsRequest(
+                self.ugc,
+                items.as_mut_ptr() as _,
+                1 as _
+            )
+        };
+
+        if res == UGCQueryHandleInvalid {
+            return Err(CreateQueryError);
+        }
+
+        Ok(ItemDetailsQuery {
+            ugc: self.ugc,
+            inner: Arc::clone(&self.inner),
+            handle: Some(res),
+        })
     }
 }
 
@@ -760,6 +805,261 @@ impl <Manager> UserListQuery<Manager> {
 
         self.fetch(move |res|
             cb(res.map(|qr| qr.iter().map(|v| PublishedFileId(v.published_file_id.0)).collect::<Vec<_>>())))
+    }
+}
+
+/// Query object from `query_items`, to allow for more filtering.
+pub struct ItemListDetailsQuery<Manager> {
+    ugc: *mut sys::ISteamUGC,
+    inner: Arc<Inner<Manager>>,
+
+    // Note: this is always filled except in `fetch`, where it must be taken
+    // to prevent the handle from being dropped when this query is dropped.
+    handle: Option<sys::UGCQueryHandle_t>,
+}
+impl <Manager> Drop for ItemListDetailsQuery<Manager> {
+    fn drop(&mut self) {
+        if let Some(handle) = self.handle.as_mut() {
+            unsafe {
+                sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, *handle);
+            }
+        }
+    }
+}
+impl <Manager> ItemListDetailsQuery<Manager> {
+    /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
+    pub fn any_required(self, any: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), any)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets the language to return the title and description in for the items on a pending UGC Query.
+    ///
+    /// Defaults to "english"
+    pub fn language(self, language: &str) -> Self {
+        let cstr = CString::new(language).expect("String passed to language could not be converted to a c string");
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets whether results will be returned from the cache for the specific period of time on a pending UGC Query.
+    ///
+    /// Age is in seconds.
+    pub fn allow_cached_response(self, max_age_s: u32) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(self.ugc, self.handle.unwrap(), max_age_s)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include the full description in results
+    pub fn include_long_desc(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include children in results
+    pub fn include_children(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include metadata in results
+    pub fn include_metadata(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include additional previews in results
+    pub fn include_additional_previews(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Runs the query
+    pub fn fetch<F>(mut self, cb: F)
+        where F: for<'a> FnOnce(Result<QueryResults<'a>,SteamError>) + 'static + Send
+    {
+        let ugc = self.ugc;
+        let inner = Arc::clone(&self.inner);
+        let handle = self.handle.take().unwrap();
+        mem::drop(self);
+
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
+            register_call_result::<sys::SteamUGCQueryCompleted_t, _, _>(
+                &inner, api_call, CALLBACK_BASE_ID + 1,
+                move |v, io_error| {
+                    let ugc = sys::SteamAPI_SteamUGC_v015();
+                    if io_error {
+                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
+                        cb(Err(SteamError::IOFailure));
+                        return;
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
+                        cb(Err(v.m_eResult.into()));
+                        return;
+                    }
+
+                    let result = QueryResults {
+                        ugc,
+                        handle,
+                        num_results_returned: v.m_unNumResultsReturned,
+                        num_results_total: v.m_unTotalMatchingResults,
+                        was_cached: v.m_bCachedData,
+                        _phantom: Default::default(),
+                    };
+                    cb(Ok(result));
+            });
+        }
+    }
+
+    /// Runs the query, only fetching the total number of results.
+    pub fn fetch_total<F>(self, cb: F)
+        where F: Fn(Result<u32, SteamError>) + 'static + Send
+    {
+        unsafe {
+            let ok = sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(self.ugc, self.handle.unwrap(), true);
+            debug_assert!(ok);
+        }
+
+        self.fetch(move |res| cb(res.map(|qr| qr.total_results())))
+    }
+}
+
+/// Query object from `query_item`, to allow for more filtering.
+pub struct ItemDetailsQuery<Manager> {
+    ugc: *mut sys::ISteamUGC,
+    inner: Arc<Inner<Manager>>,
+
+    // Note: this is always filled except in `fetch`, where it must be taken
+    // to prevent the handle from being dropped when this query is dropped.
+    handle: Option<sys::UGCQueryHandle_t>,
+}
+impl <Manager> Drop for ItemDetailsQuery<Manager> {
+    fn drop(&mut self) {
+        if let Some(handle) = self.handle.as_mut() {
+            unsafe {
+                sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, *handle);
+            }
+        }
+    }
+}
+impl <Manager> ItemDetailsQuery<Manager> {
+    /// Sets the language to return the title and description in for the items on a pending UGC Query.
+    ///
+    /// Defaults to "english"
+    pub fn language(self, language: &str) -> Self {
+        let cstr = CString::new(language).expect("String passed to language could not be converted to a c string");
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets whether results will be returned from the cache for the specific period of time on a pending UGC Query.
+    ///
+    /// Age is in seconds.
+    pub fn allow_cached_response(self, max_age_s: u32) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(self.ugc, self.handle.unwrap(), max_age_s)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include the full description in results
+    pub fn include_long_desc(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include children in results
+    pub fn include_children(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include metadata in results
+    pub fn include_metadata(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include additional previews in results
+    pub fn include_additional_previews(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Runs the query
+    pub fn fetch<F>(mut self, cb: F)
+        where F: for<'a> FnOnce(Result<QueryResults<'a>,SteamError>) + 'static + Send
+    {
+        let ugc = self.ugc;
+        let inner = Arc::clone(&self.inner);
+        let handle = self.handle.take().unwrap();
+        mem::drop(self);
+
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
+            register_call_result::<sys::SteamUGCQueryCompleted_t, _, _>(
+                &inner, api_call, CALLBACK_BASE_ID + 1,
+                move |v, io_error| {
+                    let ugc = sys::SteamAPI_SteamUGC_v015();
+                    if io_error {
+                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
+                        cb(Err(SteamError::IOFailure));
+                        return;
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
+                        cb(Err(v.m_eResult.into()));
+                        return;
+                    }
+
+                    let result = QueryResults {
+                        ugc,
+                        handle,
+                        num_results_returned: v.m_unNumResultsReturned,
+                        num_results_total: v.m_unTotalMatchingResults,
+                        was_cached: v.m_bCachedData,
+                        _phantom: Default::default(),
+                    };
+                    cb(Ok(result));
+            });
+        }
     }
 }
 
