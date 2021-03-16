@@ -91,9 +91,9 @@ impl <Manager> Friends<Manager> {
         }
     }
 
-    pub fn request_user_information(&self, user: SteamId, name_only: bool) {
+    pub fn request_user_information(&self, user: SteamId, name_only: bool) -> bool {
         unsafe {
-            sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only);
+            sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only)
         }
     }
 
