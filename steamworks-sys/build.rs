@@ -13,6 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sdk_loc = env::var("STEAM_SDK_LOCATION")
         .expect("STEAM_SDK_LOCATION must be set");
     let sdk_loc = Path::new(&sdk_loc);
+    println!("cargo:rerun-if-env-changed=STEAM_SDK_LOCATION");
 
     let triple = env::var("TARGET").unwrap();
     let mut lib = "steam_api";
