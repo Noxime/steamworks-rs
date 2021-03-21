@@ -1,6 +1,5 @@
 use super::*;
 
-use libc::{ c_void };
 use crate::sys;
 
 use std::sync::{ Arc, Weak };

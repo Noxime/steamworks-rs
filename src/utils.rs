@@ -1,7 +1,7 @@
 
 use super::*;
 
-use libc::c_char;
+use std::os::raw::c_char;
 use std::ffi::CStr;
 use std::panic;
 use std::process::abort;

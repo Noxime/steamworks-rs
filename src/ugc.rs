@@ -7,6 +7,7 @@ use std::fmt;
 use std::marker;
 use std::mem;
 use std::path::Path;
+use std::os::raw::c_char;
 
 pub struct UGC<Manager> {
     pub(crate) ugc: *mut sys::ISteamUGC,
@@ -274,7 +275,7 @@ unsafe impl Callback for Result<DownloadItemResult, SteamError> {
     const ID: i32 = CALLBACK_BASE_ID + 6;
     const SIZE: i32 = ::std::mem::size_of::<sys::DownloadItemResult_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::DownloadItemResult_t);
         if val.m_eResult == sys::EResult::k_EResultOK {
             Ok(DownloadItemResult {
@@ -414,7 +415,7 @@ impl <Manager> UGC<Manager> {
     pub fn item_install_info(&self, item: PublishedFileId) -> Option<InstallInfo> {
         unsafe {
             let mut size_on_disk = 0u64;
-            let mut folder = [0 as libc::c_char; 4096];
+            let mut folder = [0 as c_char; 4096];
             let mut timestamp = 0u32;
             if sys::SteamAPI_ISteamUGC_GetItemInstallInfo(self.ugc, item.0, &mut size_on_disk, folder.as_mut_ptr(), folder.len() as _, &mut timestamp) {
                 Some(InstallInfo {
@@ -1097,7 +1098,7 @@ impl<'a> QueryResults<'a> {
 
     /// Gets the preview URL of the published file at the specified index.
     pub fn preview_url(&self, index: u32) -> Option<String> {
-        let mut url = [0 as libc::c_char; 4096];
+        let mut url = [0 as c_char; 4096];
 
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_GetQueryUGCPreviewURL(self.ugc, self.handle, index, url.as_mut_ptr(), url.len() as _)

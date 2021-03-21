@@ -1,5 +1,3 @@
-
-use libc;
 extern crate steamworks_sys as sys;
 #[macro_use]
 extern crate thiserror;
@@ -34,6 +32,7 @@ pub use crate::remote_storage::*;
 mod ugc;
 pub use crate::ugc::*;
 
+use core::ffi::c_void;
 use std::sync::{Arc, Mutex};
 use std::ffi::{CString, CStr};
 use std::fmt::{
@@ -82,8 +81,8 @@ struct Inner<Manager> {
 }
 
 struct Callbacks {
-    callbacks: HashMap<i32, Box<dyn FnMut(*mut libc::c_void) + Send + 'static>>,
-    call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut libc::c_void, bool) + Send + 'static>>,
+    callbacks: HashMap<i32, Box<dyn FnMut(*mut c_void) + Send + 'static>>,
+    call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>,
 }
 
 unsafe impl <Manager: Send + Sync> Send for Inner<Manager> {}
