@@ -759,7 +759,7 @@ impl <Manager> UserListQuery<Manager> {
         }
 
         self.fetch(move |res|
-            cb(res.map(|qr| qr.iter().map(|v| PublishedFileId(v.published_file_id.0)).collect::<Vec<_>>())))
+            cb(res.map(|qr| qr.iter().filter_map(|v| v.map(|v| PublishedFileId(v.published_file_id.0))).collect::<Vec<_>>())))
     }
 }
 
@@ -881,13 +881,7 @@ impl<'a> QueryResults<'a> {
     }
 
     /// Returns an iterator that runs over all the fetched results
-    pub fn iter<'b>(&'b self) -> impl Iterator<Item=QueryResult> + 'b {
-        (0..self.returned_results())
-            .map(move |i| self.get(i).unwrap())
-    }
-
-    /// Returns an iterator that runs over all the fetched results, but doesn't panic if one of those results failed
-    pub fn iter_maybe<'b>(&'b self) -> impl Iterator<Item=Option<QueryResult>> + 'b {
+    pub fn iter<'b>(&'b self) -> impl Iterator<Item=Option<QueryResult>> + 'b {
         (0..self.returned_results())
             .map(move |i| self.get(i))
     }
