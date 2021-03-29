@@ -804,7 +804,7 @@ impl <Manager> UserListQuery<Manager> {
         }
 
         self.fetch(move |res|
-            cb(res.map(|qr| qr.iter().map(|v| PublishedFileId(v.published_file_id.0)).collect::<Vec<_>>())))
+            cb(res.map(|qr| qr.iter().filter_map(|v| v.map(|v| PublishedFileId(v.published_file_id.0))).collect::<Vec<_>>())))
     }
 }
 
@@ -1144,8 +1144,7 @@ impl<'a> QueryResults<'a> {
             let ok = sys::SteamAPI_ISteamUGC_GetQueryUGCResult(self.ugc, self.handle, index, &mut raw_details);
             debug_assert!(ok);
 
-            // TODO: is this always true? we don't get this from an async call...
-            debug_assert!(raw_details.m_eResult == sys::EResult::k_EResultOK);
+            if raw_details.m_eResult != sys::EResult::k_EResultOK { return None }
 
             let tags = CStr::from_ptr(raw_details.m_rgchTags.as_ptr())
                 .to_string_lossy()
@@ -1182,9 +1181,9 @@ impl<'a> QueryResults<'a> {
     }
 
     /// Returns an iterator that runs over all the fetched results
-    pub fn iter<'b>(&'b self) -> impl Iterator<Item=QueryResult> + 'b {
+    pub fn iter<'b>(&'b self) -> impl Iterator<Item=Option<QueryResult>> + 'b {
         (0..self.returned_results())
-            .map(move |i| self.get(i).unwrap())
+            .map(move |i| self.get(i))
     }
 }
 
