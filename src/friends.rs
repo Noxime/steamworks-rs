@@ -145,7 +145,7 @@ unsafe impl Callback for PersonaStateChange {
     const ID: i32 = CALLBACK_BASE_ID + 4;
     const SIZE: i32 = ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
         PersonaStateChange {
             steam_id: SteamId(val.m_ulSteamID),
@@ -165,7 +165,7 @@ unsafe impl Callback for GameLobbyJoinRequested {
     const ID: i32 = CALLBACK_BASE_ID + 33;
     const SIZE: i32 = ::std::mem::size_of::<sys::GameLobbyJoinRequested_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
         GameLobbyJoinRequested {
             lobby_steam_id: LobbyId(val.m_steamIDLobby.m_steamid.m_unAll64Bits),

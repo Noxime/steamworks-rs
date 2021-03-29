@@ -27,7 +27,6 @@ members = [
 steamworks-sys = {path = "./steamworks-sys", version = "0.7.0"}
 thiserror = "1.0.24"
 bitflags = "1.2.1"
-libc = "0.2.86"
 lazy_static = "1.4.0"
 serde = { version = "1.0.123", features = ["derive"], optional = true }
 

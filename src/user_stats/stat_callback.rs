@@ -25,7 +25,7 @@ unsafe impl Callback for UserStatsReceived {
     const ID: i32 = CALLBACK_BASE_ID + 1;
     const SIZE: i32 = std::mem::size_of::<sys::UserStatsReceived_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserStatsReceived_t);
         Self {
             steam_id: SteamId(val.m_steamIDUser.m_steamid.m_unAll64Bits),
@@ -61,7 +61,7 @@ unsafe impl Callback for UserStatsStored {
     const ID: i32 = CALLBACK_BASE_ID + 2;
     const SIZE: i32 = std::mem::size_of::<sys::UserStatsStored_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserStatsStored_t);
         Self {
             game_id: GameId(val.m_nGameID),
@@ -100,7 +100,7 @@ unsafe impl Callback for UserAchievementStored {
     const ID: i32 = CALLBACK_BASE_ID + 3;
     const SIZE: i32 = std::mem::size_of::<sys::UserAchievementStored_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserAchievementStored_t);
         let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
         Self {

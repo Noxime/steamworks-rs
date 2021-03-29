@@ -156,7 +156,7 @@ unsafe impl Callback for AuthSessionTicketResponse {
     const ID: i32 = 163;
     const SIZE: i32 = ::std::mem::size_of::<sys::GetAuthSessionTicketResponse_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
             ticket: AuthTicket(val.m_hAuthTicket),
@@ -187,7 +187,7 @@ unsafe impl Callback for ValidateAuthTicketResponse {
     const ID: i32 = 143;
     const SIZE: i32 = ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32;
 
-    unsafe fn from_raw(raw: *mut libc::c_void) -> Self {
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
         ValidateAuthTicketResponse {
             steam_id: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
