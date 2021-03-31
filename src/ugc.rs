@@ -9,6 +9,8 @@ use std::mem;
 use std::path::Path;
 use std::os::raw::c_char;
 
+pub use sys::kNumUGCResultsPerPage as kNumUGCResultsPerPage;
+
 pub struct UGC<Manager> {
     pub(crate) ugc: *mut sys::ISteamUGC,
     pub(crate) inner: Arc<Inner<Manager>>,
