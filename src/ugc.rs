@@ -1191,6 +1191,26 @@ impl<'a> QueryResults<'a> {
         (0..self.returned_results())
             .map(move |i| self.get(i))
     }
+
+    /// Returns the given index's children as a list of PublishedFileId.
+    ///
+    /// You must call `include_children(true)` before fetching the query for this to work.
+    ///
+    /// Returns None if the index was out of bounds.
+    pub fn get_children(&self, index: u32) -> Option<Vec<PublishedFileId>> {
+        let num_children = self.get(index)?.num_children;
+        let mut children: Vec<sys::PublishedFileId_t> = vec![0; num_children as usize];
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCChildren(self.ugc, self.handle, index, children.as_mut_ptr(), num_children)
+        };
+
+        if ok {
+            Some(children.into_iter().map(Into::into).collect())
+        } else {
+            None
+        }
+    }
 }
 
 /// Query result
