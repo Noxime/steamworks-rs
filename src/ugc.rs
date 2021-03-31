@@ -107,6 +107,29 @@ impl Into<sys::EWorkshopFileType> for FileType {
         }
     }
 }
+impl From<sys::EWorkshopFileType> for FileType {
+    fn from(file_type: sys::EWorkshopFileType) -> FileType {
+        match file_type {
+            sys::EWorkshopFileType::k_EWorkshopFileTypeCommunity => FileType::Community,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeMicrotransaction => FileType::Microtransaction,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeCollection => FileType::Collection,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeArt => FileType::Art,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeVideo => FileType::Video,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeScreenshot => FileType::Screenshot,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeGame => FileType::Game,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeSoftware => FileType::Software,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeConcept => FileType::Concept,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeWebGuide => FileType::WebGuide,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeIntegratedGuide => FileType::IntegratedGuide,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeMerch => FileType::Merch,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeControllerBinding => FileType::ControllerBinding,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeSteamworksAccessInvite => FileType::SteamworksAccessInvite,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeSteamVideo => FileType::SteamVideo,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeGameManagedItem => FileType::GameManagedItem,
+            _ => unreachable!()
+        }
+    }
+}
 
 /// AppID filter for queries.
 /// The "consumer" app is the app that the content is for.
@@ -1177,6 +1200,7 @@ impl<'a> QueryResults<'a> {
                 num_children: raw_details.m_unNumChildren,
                 tags,
                 tags_truncated: raw_details.m_bTagsTruncated,
+                file_type: raw_details.m_eFileType.into()
             })
         }
     }
@@ -1205,6 +1229,7 @@ pub struct QueryResult {
     pub accepted_for_use: bool,
     pub tags: Vec<String>,
     pub tags_truncated: bool,
+    pub file_type: FileType,
 
     pub url: String,
     pub num_upvotes: u32,
