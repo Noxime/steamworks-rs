@@ -25,6 +25,11 @@ const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PublishedFileId(pub u64);
+impl From<u64> for PublishedFileId {
+    fn from(id: u64) -> Self {
+        PublishedFileId(id)
+    }
+}
 
 /// Workshop item types to search for
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
