@@ -41,6 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .header(sdk_loc.join("public/steam/steam_api_flat.h").to_string_lossy())
         .header(sdk_loc.join("public/steam/steam_gameserver.h").to_string_lossy())
         .clang_arg("-xc++")
+        .clang_arg("-std=c++11")
         .clang_arg(format!("-I{}", sdk_loc.join("public").display()))
         .rustfmt_bindings(true)
         .default_enum_style(bindgen::EnumVariation::Rust {
