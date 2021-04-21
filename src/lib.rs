@@ -119,7 +119,8 @@ impl Client<ClientManager> {
     ///
     ///   If the game isn't being run through steam this can be provided by
     ///   placing a `steam_appid.txt` with the ID inside in the current
-    ///   working directory
+    ///   working directory. Alternatively, you can use `Client::init_app(<app_id>)`
+    ///   to force a specific app ID.
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
@@ -146,6 +147,25 @@ impl Client<ClientManager> {
                 _not_sync: PhantomData,
             }))
         }
+    }
+
+    /// Attempts to initialize the steamworks api **for a specified app ID**
+    /// and returns a client to access the rest of the api.
+    ///
+    /// This should only ever have one instance per a program.
+    ///
+    /// # Errors
+    ///
+    /// This can fail if:
+    /// * The steam client isn't running
+    /// * The game isn't running on the same user/level as the steam client
+    /// * The user doesn't own a license for the game.
+    /// * The app ID isn't completely set up.
+    pub fn init_app<ID: Into<AppId>>(app_id: ID) -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+        let app_id = app_id.into().0.to_string();
+        std::env::set_var("SteamAppId", &app_id);
+        std::env::set_var("SteamGameId", app_id);
+        Client::init()
     }
 }
 impl <M> SingleClient<M> where M: Manager {
