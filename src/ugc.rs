@@ -299,21 +299,23 @@ bitflags! {
 pub struct DownloadItemResult {
     pub app_id: AppId,
     pub published_file_id: PublishedFileId,
+    pub error: Option<SteamError>,
 }
 
-unsafe impl Callback for Result<DownloadItemResult, SteamError> {
+unsafe impl Callback for DownloadItemResult {
     const ID: i32 = CALLBACK_BASE_ID + 6;
     const SIZE: i32 = ::std::mem::size_of::<sys::DownloadItemResult_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::DownloadItemResult_t);
-        if val.m_eResult == sys::EResult::k_EResultOK {
-            Ok(DownloadItemResult {
-                app_id: AppId(val.m_unAppID),
-                published_file_id: PublishedFileId(val.m_nPublishedFileId),
-            })
-        } else {
-            Err(val.m_eResult.into())
+        DownloadItemResult {
+            app_id: AppId(val.m_unAppID),
+            published_file_id: PublishedFileId(val.m_nPublishedFileId),
+
+            error: match val.m_eResult {
+                sys::EResult::k_EResultOK => None,
+                error => Some(error.into())
+            }
         }
     }
 }
