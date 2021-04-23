@@ -100,3 +100,24 @@ impl <Manager> Utils<Manager> {
         }
     }
 }
+
+pub(crate) struct SteamParamStringArray(Vec<*mut i8>);
+impl Drop for SteamParamStringArray {
+    fn drop(&mut self) {
+        for c_string in &self.0 {
+            unsafe { CString::from_raw(*c_string) };
+        }
+    }
+}
+impl SteamParamStringArray {
+    pub(crate) fn new<S: AsRef<str>>(vec: &[S]) -> SteamParamStringArray {
+        SteamParamStringArray(vec.into_iter().map(|s| CString::new(s.as_ref()).expect("String passed could not be converted to a c string").into_raw()).collect())
+    }
+
+    pub(crate) fn as_raw(&mut self) -> sys::SteamParamStringArray_t {
+        sys::SteamParamStringArray_t {
+            m_nNumStrings: self.0.len() as i32,
+            m_ppStrings: self.0.as_mut_ptr() as *mut *const i8
+        }
+    }
+}
