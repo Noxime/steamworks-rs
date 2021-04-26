@@ -1207,7 +1207,8 @@ impl<'a> QueryResults<'a> {
                 num_children: raw_details.m_unNumChildren,
                 tags,
                 tags_truncated: raw_details.m_bTagsTruncated,
-                file_type: raw_details.m_eFileType.into()
+                file_type: raw_details.m_eFileType.into(),
+                file_size: raw_details.m_nFileSize.max(0) as u32,
             })
         }
     }
@@ -1257,6 +1258,7 @@ pub struct QueryResult {
     pub tags: Vec<String>,
     pub tags_truncated: bool,
     pub file_type: FileType,
+    pub file_size: u32,
 
     pub url: String,
     pub num_upvotes: u32,
