@@ -4,6 +4,11 @@ use super::*;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AppId(pub u32);
+impl From<u32> for AppId {
+    fn from(id: u32) -> Self {
+        AppId(id)
+    }
+}
 
 /// Access to the steam apps interface
 pub struct Apps<Manager> {
