@@ -390,12 +390,37 @@ impl SteamId {
             AccountId(bits.m_comp.m_unAccountID())
         }
     }
+
+    /// Returns the formatted SteamID32 string for this steam id.
+    pub fn steamid32(&self) -> String {
+        let account_id = self.account_id().raw();
+        let last_bit = account_id & 1;
+        format!("STEAM_0:{}:{}", last_bit, (account_id >> 1))
+    }
 }
 
 /// A user's account id
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AccountId(pub(crate) u32);
+
+impl AccountId {
+    /// Creates an `AccountId` from a raw 32 bit value.
+    ///
+    /// May be useful for deserializing account ids from
+    /// a network or save format.
+    pub fn from_raw(id: u32) -> AccountId {
+        AccountId(id)
+    }
+
+    /// Returns the raw 32 bit value of the steam id
+    ///
+    /// May be useful for serializing steam ids over a
+    /// network or to a save format.
+    pub fn raw(&self) -> u32 {
+        self.0
+    }
+}
 
 /// A game id
 ///
@@ -471,5 +496,14 @@ mod tests {
             single.run_callbacks();
             ::std::thread::sleep(::std::time::Duration::from_millis(100));
         }
+    }
+
+    #[test]
+    fn steamid_test() {
+        let steamid = SteamId(76561198040894045);
+        assert_eq!("STEAM_0:1:40314158", steamid.steamid32());
+
+        let steamid = SteamId(76561198174976054);
+        assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
     }
 }
