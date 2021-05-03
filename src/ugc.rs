@@ -545,6 +545,26 @@ impl <Manager> UGC<Manager> {
             handle: Some(res),
         })
     }
+
+    /// **DELETES** the item from the Steam Workshop.
+    pub fn delete_item<F>(&self, published_file_id: PublishedFileId, cb: F)
+        where F: FnOnce(Result<(), SteamError>) + 'static + Send
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
+            register_call_result::<sys::DownloadItemResult_t, _, _>(
+                &self.inner, api_call, CALLBACK_REMOTE_STORAGE_BASE_ID + 17,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultNone && v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+            });
+        }
+    }
 }
 
 /// A handle to update a published item
@@ -590,6 +610,14 @@ impl <Manager> UpdateHandle<Manager> {
             let path = path.canonicalize().unwrap();
             let content_path = CString::new(&*path.to_string_lossy()).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemContent(self.ugc, self.handle, content_path.as_ptr()));
+        }
+        self
+    }
+
+    pub fn tags<S: AsRef<str>>(self, tags: Vec<S>) -> Self {
+        unsafe {
+            let mut tags = SteamParamStringArray::new(&tags);
+            assert!(sys::SteamAPI_ISteamUGC_SetItemTags(self.ugc, self.handle, &tags.as_raw()));
         }
         self
     }
@@ -777,6 +805,15 @@ impl <Manager> UserListQuery<Manager> {
         self
     }
 
+    /// Include key value tags in results
+    pub fn include_key_value_tags(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
     /// Runs the query
     pub fn fetch<F>(mut self, cb: F)
         where F: for<'a> FnOnce(Result<QueryResults<'a>,SteamError>) + 'static + Send
@@ -923,6 +960,15 @@ impl <Manager> ItemListDetailsQuery<Manager> {
     pub fn include_additional_previews(self, include: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include key value tags in results
+    pub fn include_key_value_tags(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
@@ -1236,6 +1282,57 @@ impl<'a> QueryResults<'a> {
 
         if ok {
             Some(children.into_iter().map(Into::into).collect())
+        } else {
+            None
+        }
+    }
+
+    /// Returns the number of key value tags associated with the item at the specified index.
+    pub fn key_value_tags(&self, index: u32) -> u32 {
+        unsafe { sys::SteamAPI_ISteamUGC_GetQueryUGCNumKeyValueTags(self.ugc, self.handle, index) }
+    }
+
+    /// Gets the key value pair of a specified key value tag associated with the item at the specified index.
+    pub fn get_key_value_tag(&self, index: u32, kv_tag_index: u32) -> Option<(String, String)> {
+        let mut key = [0 as c_char; 256];
+        let mut value = [0 as c_char; 256];
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCKeyValueTag(self.ugc, self.handle, index, kv_tag_index, key.as_mut_ptr(), 256, value.as_mut_ptr(), 256)
+        };
+
+        if ok {
+            Some(unsafe {(
+                CStr::from_ptr(key.as_ptr() as *const _)
+                    .to_string_lossy()
+                    .into_owned(),
+                
+                CStr::from_ptr(value.as_ptr() as *const _)
+                    .to_string_lossy()
+                    .into_owned()
+            )})
+        } else {
+            None
+        }
+    }
+
+    /// Gets the developer-set metadata associated with the item at the specified index.
+    ///
+    /// This is returned as a vector of raw bytes.
+    pub fn get_metadata(&self, index: u32) -> Option<Vec<u8>> {
+        let mut metadata = [0 as c_char; sys::k_cchDeveloperMetadataMax as usize];
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCMetadata(self.ugc, self.handle, index, metadata.as_mut_ptr(), sys::k_cchDeveloperMetadataMax)
+        };
+
+        if ok {
+            let metadata = unsafe { CStr::from_ptr(metadata.as_ptr() as *const _).to_bytes() };
+            if metadata.is_empty() {
+                None
+            } else {
+                Some(metadata.to_vec())
+            }
         } else {
             None
         }
