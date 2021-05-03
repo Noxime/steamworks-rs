@@ -374,7 +374,7 @@ impl SteamId {
     /// Returns the formatted SteamID32 string for this steam id.
     pub fn steamid32(&self) -> String {
         let account_id = self.account_id().raw();
-        let last_bit: u8 = if account_id % 2 == 0 { 0 } else { 1 };
+        let last_bit = account_id & 1;
         format!("STEAM_0:{}:{}", last_bit, (account_id >> 1))
     }
 }
