@@ -22,4 +22,4 @@ docs-only = []
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.57.0"
+bindgen = "0.58.0"
