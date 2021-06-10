@@ -34,7 +34,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         panic!("Unsupported OS");
     };
-    println!("cargo:rustc-link-search={}", link_path.display());
+
+    if triple.contains("windows") {
+        let dll_file = format!("{}.dll", lib);
+        let lib_file = format!("{}.lib", lib);
+        fs::copy(link_path.join(&dll_file), out_path.join(dll_file))?;
+        fs::copy(link_path.join(&lib_file), out_path.join(lib_file))?;
+    } else if triple.contains("darwin") {
+        fs::copy(link_path.join("libsteam_api.dylib"), out_path.join("libsteam_api.dylib"))?;
+    } else if triple.contains("linux") {
+        fs::copy(link_path.join("libsteam_api.so"), out_path.join("libsteam_api.so"))?;
+    }
+
+    println!("cargo:rustc-link-search={}", out_path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
     let bindings = bindgen::Builder::default()
@@ -59,15 +71,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         )
         .expect("Couldn't write bindings!");
-
-    if triple.contains("windows") {
-        let file_name = format!("{}.dll", lib);
-        fs::copy(link_path.join(&file_name), out_path.join(file_name))?;
-    } else if triple.contains("darwin") {
-        fs::copy(link_path.join("libsteam_api.dylib"), out_path.join("libsteam_api.dylib"))?;
-    } else if triple.contains("linux") {
-        fs::copy(link_path.join("libsteam_api.so"), out_path.join("libsteam_api.so"))?;
-    }
 
     Ok(())
 }
