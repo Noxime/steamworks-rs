@@ -23,6 +23,10 @@ mod matchmaking;
 pub use crate::matchmaking::*;
 mod networking;
 pub use crate::networking::*;
+mod networking_messages;
+pub use crate::networking_messages::*;
+mod networking_types;
+pub use crate::networking_types::*;
 mod user;
 pub use crate::user::*;
 mod user_stats;
@@ -330,6 +334,17 @@ impl <Manager> Client<Manager> {
             UGC {
                 ugc,
                 inner: self.inner.clone(),
+            }
+        }
+    }
+
+    pub fn networking_messages(&self) -> NetworkingMessages<Manager> {
+        unsafe {
+            let net = sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002();
+            debug_assert!(!net.is_null());
+            NetworkingMessages {
+                net,
+                _inner: self.inner.clone(),
             }
         }
     }
