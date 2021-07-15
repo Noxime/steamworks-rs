@@ -35,6 +35,10 @@ mod remote_storage;
 pub use crate::remote_storage::*;
 mod ugc;
 pub use crate::ugc::*;
+mod networking_sockets;
+pub use crate::networking_sockets::*;
+mod networking_utils;
+pub use crate::networking_utils::*;
 
 use core::ffi::c_void;
 use std::sync::{Arc, Mutex};
@@ -344,6 +348,28 @@ impl <Manager> Client<Manager> {
             debug_assert!(!net.is_null());
             NetworkingMessages {
                 net,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
+    pub fn networking_sockets(&self) -> NetworkingSockets<Manager> {
+        unsafe {
+            let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v009();
+            debug_assert!(!sockets.is_null());
+            NetworkingSockets {
+                sockets,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
+    pub fn game_server_networking_sockets(&self) -> NetworkingSockets<Manager> {
+        unsafe {
+            let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v009();
+            debug_assert!(!sockets.is_null());
+            NetworkingSockets {
+                sockets,
                 _inner: self.inner.clone(),
             }
         }
