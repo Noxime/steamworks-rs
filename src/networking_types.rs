@@ -1,14 +1,28 @@
-use crate::SteamId;
+use crate::{Callback, SteamId};
 use std::borrow::Cow;
-use std::ffi::CString;
+use std::ffi::{c_void, CString};
 use std::mem::MaybeUninit;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct OutMessageNumber(pub(crate) i64);
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct InMessageNumber(pub(crate) i64);
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct NetConnection(pub(crate) u32);
 
 impl NetConnection {
-    pub fn from_raw(raw: u32) -> Self {
-        Self(raw)
+    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
+        let handle = Self(raw);
+        if handle.is_invalid() {
+            Err(InvalidHandle)
+        } else {
+            Ok(handle)
+        }
     }
 
     pub fn raw(&self) -> u32 {
@@ -20,11 +34,23 @@ impl NetConnection {
     }
 }
 
+impl From<NetConnection> for sys::HSteamNetConnection {
+    fn from(connection: NetConnection) -> Self {
+        connection.0 as sys::HSteamNetConnection
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct ListenSocket(pub(crate) u32);
 
 impl ListenSocket {
-    pub fn from_raw(raw: u32) -> Self {
-        Self(raw)
+    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
+        let handle = Self(raw);
+        if handle.is_invalid() {
+            Err(InvalidHandle)
+        } else {
+            Ok(handle)
+        }
     }
 
     pub fn raw(&self) -> u32 {
@@ -36,11 +62,23 @@ impl ListenSocket {
     }
 }
 
+impl From<ListenSocket> for sys::HSteamListenSocket {
+    fn from(socket: ListenSocket) -> Self {
+        socket.0 as sys::HSteamListenSocket
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct NetPollGroup(pub(crate) u32);
 
 impl NetPollGroup {
-    pub fn from_raw(raw: u32) -> Self {
-        Self(raw)
+    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
+        let handle = Self(raw);
+        if handle.is_invalid() {
+            Err(InvalidHandle)
+        } else {
+            Ok(handle)
+        }
     }
 
     pub fn raw(&self) -> u32 {
@@ -51,6 +89,16 @@ impl NetPollGroup {
         self.0 == sys::k_HSteamNetPollGroup_Invalid
     }
 }
+
+impl From<NetPollGroup> for sys::HSteamNetPollGroup {
+    fn from(conn: NetPollGroup) -> Self {
+        conn.0 as sys::HSteamNetPollGroup
+    }
+}
+
+#[derive(Debug, Error)]
+#[error("operation was unsuccessful an invalid handle was returned")]
+pub struct InvalidHandle;
 
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -77,9 +125,9 @@ pub enum NetworkingConfigDataType {
     Callback,
 }
 
-impl Into<sys::ESteamNetworkingConfigDataType> for NetworkingConfigDataType {
-    fn into(self) -> sys::ESteamNetworkingConfigDataType {
-        match self {
+impl From<NetworkingConfigDataType> for sys::ESteamNetworkingConfigDataType {
+    fn from(ty: NetworkingConfigDataType) -> sys::ESteamNetworkingConfigDataType {
+        match ty {
             NetworkingConfigDataType::Int32 => {
                 sys::ESteamNetworkingConfigDataType::k_ESteamNetworkingConfig_Int32
             }
@@ -528,9 +576,9 @@ impl NetworkingConfigValue {
     }
 }
 
-impl Into<sys::ESteamNetworkingConfigValue> for NetworkingConfigValue {
-    fn into(self) -> steamworks_sys::ESteamNetworkingConfigValue {
-        match self {
+impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
+    fn from(value: NetworkingConfigValue) -> steamworks_sys::ESteamNetworkingConfigValue {
+        match value {
             NetworkingConfigValue::FakePacketLossSend => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_FakePacketLoss_Send,
             NetworkingConfigValue::FakePacketLossRecv => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_FakePacketLoss_Recv,
             NetworkingConfigValue::FakePacketLagSend => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_FakePacketLag_Send,
@@ -579,6 +627,425 @@ impl Into<sys::ESteamNetworkingConfigValue> for NetworkingConfigValue {
             NetworkingConfigValue::LogLevelP2PRendezvous => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_LogLevel_P2PRendezvous,
             NetworkingConfigValue::LogLevelSDRRelayPings => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_LogLevel_SDRRelayPings,
         }
+    }
+}
+
+/// High level connection status
+pub enum NetworkingConnectionState {
+    /// Dummy value used to indicate an error condition in the API.
+    /// Specified connection doesn't exist or has already been closed.
+    None,
+    /// We are trying to establish whether peers can talk to each other,
+    /// whether they WANT to talk to each other, perform basic auth,
+    /// and exchange crypt keys.
+    ///
+    /// - For connections on the "client" side (initiated locally):
+    ///   We're in the process of trying to establish a connection.
+    ///   Depending on the connection type, we might not know who they are.
+    ///   Note that it is not possible to tell if we are waiting on the
+    ///   network to complete handshake packets, or for the application layer
+    ///   to accept the connection.
+    ///
+    /// - For connections on the "server" side (accepted through listen socket):
+    ///   We have completed some basic handshake and the client has presented
+    ///   some proof of identity.  The connection is ready to be accepted
+    ///   using AcceptConnection().
+    ///
+    /// In either case, any unreliable packets sent now are almost certain
+    /// to be dropped.  Attempts to receive packets are guaranteed to fail.
+    /// You may send messages if the send mode allows for them to be queued.
+    /// but if you close the connection before the connection is actually
+    /// established, any queued messages will be discarded immediately.
+    /// (We will not attempt to flush the queue and confirm delivery to the
+    /// remote host, which ordinarily happens when a connection is closed.)
+    Connecting,
+    /// Some connection types use a back channel or trusted 3rd party
+    /// for earliest communication.  If the server accepts the connection,
+    /// then these connections switch into the rendezvous state.  During this
+    /// state, we still have not yet established an end-to-end route (through
+    /// the relay network), and so if you send any messages unreliable, they
+    /// are going to be discarded.
+    FindingRoute,
+    /// We've received communications from our peer (and we know
+    /// who they are) and are all good.  If you close the connection now,
+    /// we will make our best effort to flush out any reliable sent data that
+    /// has not been acknowledged by the peer.  (But note that this happens
+    /// from within the application process, so unlike a TCP connection, you are
+    /// not totally handing it off to the operating system to deal with it.)
+    Connected,
+    /// Connection has been closed by our peer, but not closed locally.
+    /// The connection still exists from an API perspective.  You must close the
+    /// handle to free up resources.  If there are any messages in the inbound queue,
+    /// you may retrieve them.  Otherwise, nothing may be done with the connection
+    /// except to close it.
+    ///
+    /// This stats is similar to CLOSE_WAIT in the TCP state machine.
+    ClosedByPeer,
+    /// A disruption in the connection has been detected locally.  (E.g. timeout,
+    /// local internet connection disrupted, etc.)
+    ///
+    /// The connection still exists from an API perspective.  You must close the
+    /// handle to free up resources.
+    ///
+    /// Attempts to send further messages will fail.  Any remaining received messages
+    /// in the queue are available.
+    ProblemDetectedLocally,
+}
+
+impl From<NetworkingConnectionState> for sys::ESteamNetworkingConnectionState {
+    fn from(state: NetworkingConnectionState) -> Self {
+        match state {
+            NetworkingConnectionState::None => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None,
+            NetworkingConnectionState::Connecting => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting,
+            NetworkingConnectionState::FindingRoute => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute,
+            NetworkingConnectionState::Connected => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected,
+            NetworkingConnectionState::ClosedByPeer => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer,
+            NetworkingConnectionState::ProblemDetectedLocally => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally,
+        }
+    }
+}
+
+impl From<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState {
+    fn from(state: sys::ESteamNetworkingConnectionState) -> Self {
+        match state {
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None => NetworkingConnectionState::None,
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting => NetworkingConnectionState::Connecting,
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute => NetworkingConnectionState::FindingRoute,
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected => NetworkingConnectionState::Connected,
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer => NetworkingConnectionState::ClosedByPeer,
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally => NetworkingConnectionState::ProblemDetectedLocally,
+            _ => panic!("invalid state")
+        }
+    }
+}
+
+/// Enumerate various causes of connection termination.  These are designed to work similar
+/// to HTTP error codes: the numeric range gives you a rough classification as to the source
+/// of the problem.
+pub enum NetConnectionEnd {
+    //
+    // Application codes.  These are the values you will pass to
+    // ISteamNetworkingSockets::CloseConnection.  You can use these codes if
+    // you want to plumb through application-specific reason codes.  If you don't
+    // need this facility, feel free to always pass
+    // k_ESteamNetConnectionEnd_App_Generic.
+    //
+    // The distinction between "normal" and "exceptional" termination is
+    // one you may use if you find useful, but it's not necessary for you
+    // to do so.  The only place where we distinguish between normal and
+    // exceptional is in connection analytics.  If a significant
+    // proportion of connections terminates in an exceptional manner,
+    // this can trigger an alert.
+    //
+
+    // 1xxx: Application ended the connection in a "usual" manner.
+    //       E.g.: user intentionally disconnected from the server,
+    //             gameplay ended normally, etc
+    AppGeneric,
+
+    // 2xxx: Application ended the connection in some sort of exceptional
+    //       or unusual manner that might indicate a bug or configuration
+    //       issue.
+    //
+    AppException,
+
+    //
+    // System codes.  These will be returned by the system when
+    // the connection state is k_ESteamNetworkingConnectionState_ClosedByPeer
+    // or k_ESteamNetworkingConnectionState_ProblemDetectedLocally.  It is
+    // illegal to pass a code in this range to ISteamNetworkingSockets::CloseConnection
+    //
+
+    // You cannot do what you want to do because you're running in offline mode.
+    LocalOfflineMode,
+
+    // We're having trouble contacting many (perhaps all) relays.
+    // Since it's unlikely that they all went offline at once, the best
+    // explanation is that we have a problem on our end.  Note that we don't
+    // bother distinguishing between "many" and "all", because in practice,
+    // it takes time to detect a connection problem, and by the time
+    // the connection has timed out, we might not have been able to
+    // actively probe all of the relay clusters, even if we were able to
+    // contact them at one time.  So this code just means that:
+    //
+    // * We don't have any recent successful communication with any relay.
+    // * We have evidence of recent failures to communicate with multiple relays.
+    LocalManyRelayConnectivity,
+
+    // A hosted server is having trouble talking to the relay
+    // that the client was using, so the problem is most likely
+    // on our end
+    LocalHostedServerPrimaryRelay,
+
+    // We're not able to get the SDR network config.  This is
+    // *almost* always a local issue, since the network config
+    // comes from the CDN, which is pretty darn reliable.
+    LocalNetworkConfig,
+
+    // Steam rejected our request because we don't have rights
+    // to do this.
+    LocalRights,
+
+    // ICE P2P rendezvous failed because we were not able to
+    // determine our "public" address (e.g. reflexive address via STUN)
+    //
+    // If relay fallback is available (it always is on Steam), then
+    // this is only used internally and will not be returned as a high
+    // level failure.
+    LocalP2PICENoPublicAddresses,
+
+    // 4xxx: Connection failed or ended, and it appears that the
+    //       cause does NOT have to do with the local host or their
+    //       connection to the Internet.  It could be caused by the
+    //       remote host, or it could be somewhere in between.
+
+    // The connection was lost, and as far as we can tell our connection
+    // to relevant services (relays) has not been disrupted.  This doesn't
+    // mean that the problem is "their fault", it just means that it doesn't
+    // appear that we are having network issues on our end.
+    RemoteTimeout,
+
+    // Something was invalid with the cert or crypt handshake
+    // info you gave me, I don't understand or like your key types,
+    // etc.
+    RemoteBadEncrypt,
+
+    // You presented me with a cert that was I was able to parse
+    // and *technically* we could use encrypted communication.
+    // But there was a problem that prevents me from checking your identity
+    // or ensuring that somebody int he middle can't observe our communication.
+    // E.g.: - the CA key was missing (and I don't accept unsigned certs)
+    // - The CA key isn't one that I trust,
+    // - The cert doesn't was appropriately restricted by app, user, time, data center, etc.
+    // - The cert wasn't issued to you.
+    // - etc
+    RemoteBadCert,
+
+    // We couldn't rendezvous with the remote host because
+    // they aren't logged into Steam
+    RemoteNotLoggedIn,
+
+    // We couldn't rendezvous with the remote host because
+    // they aren't running the right application.
+    RemoteNotRunningApp,
+
+    // Something wrong with the protocol version you are using.
+    // (Probably the code you are running is too old.)
+    RemoteBadProtocolVersion,
+
+    // NAT punch failed failed because we never received any public
+    // addresses from the remote host.  (But we did receive some
+    // signals form them.)
+    //
+    // If relay fallback is available (it always is on Steam), then
+    // this is only used internally and will not be returned as a high
+    // level failure.
+    RemoteP2PICENoPublicAddresses,
+
+    // A failure that isn't necessarily the result of a software bug,
+    // but that should happen rarely enough that it isn't worth specifically
+    // writing UI or making a localized message for.
+    // The debug string should contain further details.
+    MiscGeneric,
+
+    // Generic failure that is most likely a software bug.
+    MiscInternalError,
+
+    // The connection to the remote host timed out, but we
+    // don't know if the problem is on our end, in the middle,
+    // or on their end.
+    MiscTimeout,
+
+    // We're having trouble talking to the relevant relay.
+    // We don't have enough information to say whether the
+    // problem is on our end or not.
+    MiscRelayConnectivity,
+
+    // There's some trouble talking to Steam.
+    MiscSteamConnectivity,
+
+    // A server in a dedicated hosting situation has no relay sessions
+    // active with which to talk back to a client.  (It's the client's
+    // job to open and maintain those sessions.)
+    MiscNoRelaySessionsToClient,
+
+    // While trying to initiate a connection, we never received
+    // *any* communication from the peer.
+    //k_ESteamNetConnectionEnd_Misc_ServerNeverReplied = 5007,
+
+    // P2P rendezvous failed in a way that we don't have more specific
+    // information
+    MiscP2PRendezvous,
+
+    // NAT punch failed, probably due to NAT/firewall configuration.
+    //
+    // If relay fallback is available (it always is on Steam), then
+    // this is only used internally and will not be returned as a high
+    // level failure.
+    MiscP2PNATFirewall,
+
+    // Our peer replied that it has no record of the connection.
+    // This should not happen ordinarily, but can happen in a few
+    // exception cases:
+    //
+    // - This is an old connection, and the peer has already cleaned
+    //   up and forgotten about it.  (Perhaps it timed out and they
+    //   closed it and were not able to communicate this to us.)
+    // - A bug or internal protocol error has caused us to try to
+    //   talk to the peer about the connection before we received
+    //   confirmation that the peer has accepted the connection.
+    // - The peer thinks that we have closed the connection for some
+    //   reason (perhaps a bug), and believes that is it is
+    //   acknowledging our closure.
+    MiscPeerSentNoConnection,
+}
+
+impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
+    fn from(end: NetConnectionEnd) -> Self {
+        match end {
+            NetConnectionEnd::AppGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic,
+            NetConnectionEnd::AppException => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
+            NetConnectionEnd::LocalOfflineMode => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode,
+            NetConnectionEnd::LocalManyRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity,
+            NetConnectionEnd::LocalHostedServerPrimaryRelay => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay,
+            NetConnectionEnd::LocalNetworkConfig => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig,
+            NetConnectionEnd::LocalRights => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights,
+            NetConnectionEnd::LocalP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses,
+            NetConnectionEnd::RemoteTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout,
+            NetConnectionEnd::RemoteBadEncrypt => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt,
+            NetConnectionEnd::RemoteBadCert => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert,
+            NetConnectionEnd::RemoteNotLoggedIn => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn,
+            NetConnectionEnd::RemoteNotRunningApp => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp,
+            NetConnectionEnd::RemoteBadProtocolVersion => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion,
+            NetConnectionEnd::RemoteP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses,
+            NetConnectionEnd::MiscGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic,
+            NetConnectionEnd::MiscInternalError => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError,
+            NetConnectionEnd::MiscTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout,
+            NetConnectionEnd::MiscRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity,
+            NetConnectionEnd::MiscSteamConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity,
+            NetConnectionEnd::MiscNoRelaySessionsToClient => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient,
+            NetConnectionEnd::MiscP2PRendezvous => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous,
+            NetConnectionEnd::MiscP2PNATFirewall => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall,
+            NetConnectionEnd::MiscPeerSentNoConnection => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection,
+        }
+    }
+}
+
+impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
+    fn from(end: steamworks_sys::ESteamNetConnectionEnd) -> Self {
+        match end {
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic => NetConnectionEnd::AppGeneric,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic => NetConnectionEnd::AppException,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode => NetConnectionEnd::LocalOfflineMode,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity => { NetConnectionEnd::LocalManyRelayConnectivity }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay => { NetConnectionEnd::LocalHostedServerPrimaryRelay }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig => { NetConnectionEnd::LocalNetworkConfig }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights => NetConnectionEnd::LocalRights,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::LocalP2PICENoPublicAddresses }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout => NetConnectionEnd::RemoteTimeout,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt => NetConnectionEnd::RemoteBadEncrypt,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert => NetConnectionEnd::RemoteBadCert,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn => NetConnectionEnd::RemoteNotLoggedIn,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp => { NetConnectionEnd::RemoteNotRunningApp }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion => { NetConnectionEnd::RemoteBadProtocolVersion }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::RemoteP2PICENoPublicAddresses }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic => NetConnectionEnd::MiscGeneric,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError => NetConnectionEnd::MiscInternalError,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout => NetConnectionEnd::MiscTimeout,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity => { NetConnectionEnd::MiscRelayConnectivity }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity => { NetConnectionEnd::MiscSteamConnectivity }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient => { NetConnectionEnd::MiscNoRelaySessionsToClient }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous => { NetConnectionEnd::MiscP2PRendezvous }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall => { NetConnectionEnd::MiscP2PNATFirewall }
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection => { NetConnectionEnd::MiscPeerSentNoConnection }
+            _ => panic!("invalid connection end"),
+        }
+    }
+}
+
+pub struct NetConnectionInfo {
+    inner: sys::SteamNetConnectionInfo_t,
+}
+
+impl NetConnectionInfo {
+    pub fn identity_remote(&self) -> NetworkingIdentity {
+        NetworkingIdentity::from(&self.inner.m_identityRemote)
+    }
+
+    pub fn user_data(&self) -> i64 {
+        self.inner.m_nUserData
+    }
+
+    pub fn listen_socket(&self) -> Option<ListenSocket> {
+        ListenSocket::from_raw(self.inner.m_hListenSocket).ok()
+    }
+
+    pub fn state(&self) -> NetworkingConnectionState {
+        self.inner.m_eState.into()
+    }
+
+    pub fn end_reason(&self) -> Option<NetConnectionEnd> {
+        if self.inner.m_eEndReason
+            == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Invalid as _
+        {
+            None
+        } else {
+            Some(self.inner.m_eEndReason.into())
+        }
+    }
+}
+
+impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
+    fn from(info: steamworks_sys::SteamNetConnectionInfo_t) -> Self {
+        Self { inner: info }
+    }
+}
+
+/// This callback is posted whenever a connection is created, destroyed, or changes state.
+/// The m_info field will contain a complete description of the connection at the time the
+/// change occurred and the callback was posted.  In particular, m_eState will have the
+/// new connection state.
+///
+/// You will usually need to listen for this callback to know when:
+/// - A new connection arrives on a listen socket.
+///   m_info.m_hListenSocket will be set, m_eOldState = k_ESteamNetworkingConnectionState_None,
+///   and m_info.m_eState = k_ESteamNetworkingConnectionState_Connecting.
+///   See ISteamNetworkigSockets::AcceptConnection.
+/// - A connection you initiated has been accepted by the remote host.
+///   m_eOldState = k_ESteamNetworkingConnectionState_Connecting, and
+///   m_info.m_eState = k_ESteamNetworkingConnectionState_Connected.
+///   Some connections might transition to k_ESteamNetworkingConnectionState_FindingRoute first.
+/// - A connection has been actively rejected or closed by the remote host.
+///   m_eOldState = k_ESteamNetworkingConnectionState_Connecting or k_ESteamNetworkingConnectionState_Connected,
+///   and m_info.m_eState = k_ESteamNetworkingConnectionState_ClosedByPeer.  m_info.m_eEndReason
+///   and m_info.m_szEndDebug will have for more details.
+///   NOTE: upon receiving this callback, you must still destroy the connection using
+///   ISteamNetworkingSockets::CloseConnection to free up local resources.  (The details
+///   passed to the function are not used in this case, since the connection is already closed.)
+/// - A problem was detected with the connection, and it has been closed by the local host.
+///   The most common failure is timeout, but other configuration or authentication failures
+///   can cause this.  m_eOldState = k_ESteamNetworkingConnectionState_Connecting or
+///   k_ESteamNetworkingConnectionState_Connected, and m_info.m_eState = k_ESteamNetworkingConnectionState_ProblemDetectedLocally.
+///   m_info.m_eEndReason and m_info.m_szEndDebug will have for more details.
+///   NOTE: upon receiving this callback, you must still destroy the connection using
+///   ISteamNetworkingSockets::CloseConnection to free up local resources.  (The details
+///   passed to the function are not used in this case, since the connection is already closed.)
+///
+/// Remember that callbacks are posted to a queue, and networking connections can
+/// change at any time.  It is possible that the connection has already changed
+/// state by the time you process this callback.
+///
+/// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
+pub struct NetConnectionStatusChanged {}
+
+unsafe impl Callback for NetConnectionStatusChanged {
+    const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
+    const SIZE: i32 = std::mem::size_of::<sys::SteamNetConnectionStatusChangedCallback_t>() as _;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);
+
+        NetConnectionStatusChanged {}
     }
 }
 
@@ -653,9 +1120,9 @@ impl NetworkingConfigEntry {
     }
 }
 
-impl Into<sys::SteamNetworkingConfigValue_t> for NetworkingConfigEntry {
-    fn into(self) -> steamworks_sys::SteamNetworkingConfigValue_t {
-        self.inner
+impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
+    fn from(entry: NetworkingConfigEntry) -> sys::SteamNetworkingConfigValue_t {
+        entry.inner
     }
 }
 
@@ -678,16 +1145,87 @@ impl NetworkingIdentity<'_> {
         }
     }
 
+    pub fn new_steam_id(id: SteamId) -> Self {
+        let mut identity = Self::new();
+        identity.set_steam_id(id);
+        identity
+    }
+
+    pub fn new_ip(addr: SocketAddr) -> Self {
+        let mut identity = Self::new();
+        identity.set_ip_addr(addr);
+        identity
+    }
+
     pub fn steam_id(&self) -> Option<SteamId> {
         unsafe {
-            let id = sys::SteamAPI_SteamNetworkingIdentity_GetSteamID64(self.inner.as_ref()
-                as *const _
-                as *mut _);
+            let id = sys::SteamAPI_SteamNetworkingIdentity_GetSteamID64(self.as_ptr() as *mut _);
             if id == 0 {
                 None
             } else {
                 Some(SteamId(id))
             }
+        }
+    }
+
+    pub fn is_invalid(&self) -> bool {
+        unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsInvalid(self.as_ptr() as *mut _) }
+    }
+
+    pub fn set_steam_id(&mut self, id: SteamId) {
+        unsafe { sys::SteamAPI_SteamNetworkingIdentity_SetSteamID64(self.as_mut_ptr(), id.0) }
+    }
+
+    pub fn set_ip_addr(&mut self, addr: SocketAddr) {
+        let addr = SteamIpAddr::from(addr);
+        unsafe {
+            sys::SteamAPI_SteamNetworkingIdentity_SetIPAddr(self.as_mut_ptr(), addr.as_ptr());
+        }
+    }
+
+    pub(crate) fn ip_addr(&self) -> Option<SteamIpAddr> {
+        unsafe {
+            let ip = sys::SteamAPI_SteamNetworkingIdentity_GetIPAddr(self.as_ptr() as *mut _);
+            if ip.is_null() {
+                None
+            } else {
+                Some(SteamIpAddr {
+                    // I'm fairly sure this clone could be avoided
+                    inner: (*ip).clone(),
+                })
+            }
+        }
+    }
+
+    pub fn set_local_host(&mut self) {
+        unsafe { sys::SteamAPI_SteamNetworkingIdentity_SetLocalHost(self.as_mut_ptr()) }
+    }
+
+    pub fn is_local_host(&mut self) -> bool {
+        unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsLocalHost(self.as_mut_ptr()) }
+    }
+
+    fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
+        self.inner.as_ref()
+    }
+
+    fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
+        self.as_ptr() as *mut _
+    }
+}
+
+impl From<sys::SteamNetworkingIdentity> for NetworkingIdentity<'_> {
+    fn from(id: steamworks_sys::SteamNetworkingIdentity) -> Self {
+        NetworkingIdentity {
+            inner: Cow::Owned(id),
+        }
+    }
+}
+
+impl<'a> From<&'a sys::SteamNetworkingIdentity> for NetworkingIdentity<'a> {
+    fn from(id: &steamworks_sys::SteamNetworkingIdentity) -> Self {
+        NetworkingIdentity {
+            inner: Cow::Borrowed(id),
         }
     }
 }

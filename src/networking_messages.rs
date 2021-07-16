@@ -45,6 +45,6 @@ impl<Manager> NetworkingMessages<Manager> {
             return Ok(());
         }
 
-        return Err(result.into());
+        Err(result.into())
     }
 }
