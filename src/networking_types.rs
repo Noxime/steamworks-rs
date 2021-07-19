@@ -1,8 +1,10 @@
 use crate::{Callback, SteamId};
 use std::borrow::Cow;
+use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
+use std::fmt::{Debug, Display, Formatter};
 use std::mem::MaybeUninit;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -631,6 +633,7 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
 }
 
 /// High level connection status
+#[derive(Debug, Eq, PartialEq)]
 pub enum NetworkingConnectionState {
     /// Dummy value used to indicate an error condition in the API.
     /// Specified connection doesn't exist or has already been closed.
@@ -931,6 +934,39 @@ impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
     }
 }
 
+impl TryFrom<i32> for NetConnectionEnd {
+    type Error = InvalidEnumValue;
+    fn try_from(end: i32) -> Result<Self, Self::Error> {
+        match end {
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32 => Ok(NetConnectionEnd::AppGeneric),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32 => Ok(NetConnectionEnd::AppException),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => Ok(NetConnectionEnd::LocalOfflineMode),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => Ok(NetConnectionEnd::LocalManyRelayConnectivity),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => Ok(NetConnectionEnd::LocalHostedServerPrimaryRelay),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig as i32 => Ok(NetConnectionEnd::LocalNetworkConfig),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights as i32 => Ok(NetConnectionEnd::LocalRights),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::LocalP2PICENoPublicAddresses),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout as i32 => Ok(NetConnectionEnd::RemoteTimeout),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => Ok(NetConnectionEnd::RemoteBadEncrypt),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert as i32 => Ok(NetConnectionEnd::RemoteBadCert),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn as i32 => Ok(NetConnectionEnd::RemoteNotLoggedIn),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp as i32 => Ok(NetConnectionEnd::RemoteNotRunningApp),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => Ok(NetConnectionEnd::RemoteBadProtocolVersion),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::RemoteP2PICENoPublicAddresses),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic as i32 => Ok(NetConnectionEnd::MiscGeneric),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError as i32 => Ok(NetConnectionEnd::MiscInternalError),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout as i32 => Ok(NetConnectionEnd::MiscTimeout),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity as i32 => Ok(NetConnectionEnd::MiscRelayConnectivity),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => Ok(NetConnectionEnd::MiscSteamConnectivity),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => Ok(NetConnectionEnd::MiscNoRelaySessionsToClient),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => Ok(NetConnectionEnd::MiscP2PRendezvous),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => Ok(NetConnectionEnd::MiscP2PNATFirewall),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => Ok(NetConnectionEnd::MiscPeerSentNoConnection),
+            _ => panic!("invalid connection end"),
+        }
+    }
+}
+
 impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
     fn from(end: steamworks_sys::ESteamNetConnectionEnd) -> Self {
         match end {
@@ -963,6 +999,10 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
     }
 }
 
+#[derive(Debug, Error)]
+#[error("integer value could not be converted to enum")]
+pub struct InvalidEnumValue;
+
 pub struct NetConnectionInfo {
     inner: sys::SteamNetConnectionInfo_t,
 }
@@ -990,7 +1030,12 @@ impl NetConnectionInfo {
         {
             None
         } else {
-            Some(self.inner.m_eEndReason.into())
+            Some(
+                self.inner
+                    .m_eEndReason
+                    .try_into()
+                    .expect("Unknown end reason could not be converted"),
+            )
         }
     }
 }
@@ -999,6 +1044,11 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     fn from(info: steamworks_sys::SteamNetConnectionInfo_t) -> Self {
         Self { inner: info }
     }
+}
+
+/// A helper trait to simplify adding callbacks to `NetworkConfigEntry`
+trait NetworkingCallback {
+    fn config_value(&self) -> NetworkingConfigValue;
 }
 
 /// This callback is posted whenever a connection is created, destroyed, or changes state.
@@ -1036,7 +1086,11 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 /// state by the time you process this callback.
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
-pub struct NetConnectionStatusChanged {}
+pub struct NetConnectionStatusChanged {
+    pub connection: NetConnection,
+    pub connection_info: NetConnectionInfo,
+    pub old_state: NetworkingConnectionState,
+}
 
 unsafe impl Callback for NetConnectionStatusChanged {
     const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
@@ -1045,7 +1099,17 @@ unsafe impl Callback for NetConnectionStatusChanged {
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);
 
-        NetConnectionStatusChanged {}
+        NetConnectionStatusChanged {
+            connection: NetConnection(val.m_hConn),
+            connection_info: val.m_info.into(),
+            old_state: val.m_eOldState.into(),
+        }
+    }
+}
+
+impl NetworkingCallback for NetConnectionStatusChanged {
+    fn config_value(&self) -> NetworkingConfigValue {
+        NetworkingConfigValue::CallbackConnectionStatusChanged
     }
 }
 
@@ -1118,6 +1182,23 @@ impl NetworkingConfigEntry {
             }
         }
     }
+
+    // TODO: Find a way to use per-socket callbacks
+    // pub fn new_callback<C: Callback + NetworkingCallback>(callback: C) -> Self {
+    //     let value_type = callback.config_value();
+    //     let mut config = MaybeUninit::uninit();
+    //     unsafe {
+    //         let c_str = CString::new(value).expect("Rust string could not be converted");
+    //         sys::SteamAPI_SteamNetworkingConfigValue_t_SetPtr(
+    //             config.as_mut_ptr(),
+    //             value_type.into(),
+    //
+    //         );
+    //         NetworkingConfigEntry {
+    //             inner: config.assume_init(),
+    //         }
+    //     }
+    // }
 }
 
 impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
@@ -1133,6 +1214,9 @@ pub struct NetworkingIdentity<'a> {
     // Maybe a second type could be used for matching to avoid get_ip, get_steam_id, etc.
     inner: Cow<'a, sys::SteamNetworkingIdentity>,
 }
+
+// const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
+//     sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
 
 impl NetworkingIdentity<'_> {
     pub fn new() -> Self {
@@ -1168,6 +1252,10 @@ impl NetworkingIdentity<'_> {
         }
     }
 
+    pub fn is_valid(&self) -> bool {
+        !self.is_invalid()
+    }
+
     pub fn is_invalid(&self) -> bool {
         unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsInvalid(self.as_ptr() as *mut _) }
     }
@@ -1183,16 +1271,14 @@ impl NetworkingIdentity<'_> {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn ip_addr(&self) -> Option<SteamIpAddr> {
         unsafe {
             let ip = sys::SteamAPI_SteamNetworkingIdentity_GetIPAddr(self.as_ptr() as *mut _);
             if ip.is_null() {
                 None
             } else {
-                Some(SteamIpAddr {
-                    // I'm fairly sure this clone could be avoided
-                    inner: (*ip).clone(),
-                })
+                Some(SteamIpAddr { inner: (*ip) })
             }
         }
     }
@@ -1205,12 +1291,60 @@ impl NetworkingIdentity<'_> {
         unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsLocalHost(self.as_mut_ptr()) }
     }
 
-    fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
+    pub fn debug_string(&self) -> String {
+        // For some reason I can't get the original function to work,
+        // so I decided to recreate the original from https://github.com/ValveSoftware/GameNetworkingSockets/blob/529901e7c1caf50928ac8814cad205d192bbf27d/src/steamnetworkingsockets/steamnetworkingsockets_shared.cpp
+
+        // let mut buffer = vec![0i8; NETWORK_IDENTITY_STRING_BUFFER_SIZE];
+        // let string = unsafe {
+        //     sys::SteamAPI_SteamNetworkingIdentity_ToString(
+        //         self.as_ptr() as *mut sys::SteamNetworkingIdentity,
+        //         buffer.as_mut_ptr(),
+        //         NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
+        //     );
+        //     CString::from_raw(buffer.as_mut_ptr())
+        // };
+        // string.into_string().unwrap()
+
+        unsafe {
+            match self.inner.m_eType {
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_Invalid => {
+                    "invalid".to_string()
+                }
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_SteamID => {
+                    let id = self.inner.__bindgen_anon_1.m_steamID64;
+                    format!("steamid:{}", id)
+                }
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_IPAddress => {
+                    let ip = SteamIpAddr::from(self.inner.__bindgen_anon_1.m_ip);
+                    format!("ip:{}", ip)
+                }
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericString => {
+                    unimplemented!()
+                }
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericBytes => {
+                    unimplemented!()
+                }
+                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_UnknownType => {
+                    unimplemented!()
+                }
+                ty => format!("bad_type:{}", ty as u32),
+            }
+        }
+    }
+
+    pub(crate) fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
         self.inner.as_ref()
     }
 
-    fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
+    pub(crate) fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
         self.as_ptr() as *mut _
+    }
+}
+
+impl Debug for NetworkingIdentity<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.debug_string())
     }
 }
 
@@ -1223,7 +1357,7 @@ impl From<sys::SteamNetworkingIdentity> for NetworkingIdentity<'_> {
 }
 
 impl<'a> From<&'a sys::SteamNetworkingIdentity> for NetworkingIdentity<'a> {
-    fn from(id: &steamworks_sys::SteamNetworkingIdentity) -> Self {
+    fn from(id: &'a steamworks_sys::SteamNetworkingIdentity) -> Self {
         NetworkingIdentity {
             inner: Cow::Borrowed(id),
         }
@@ -1237,11 +1371,26 @@ impl Default for NetworkingIdentity<'_> {
 }
 
 pub struct NetworkingMessage {
-    inner: *mut sys::SteamNetworkingMessage_t,
+    pub(crate) inner: *mut sys::SteamNetworkingMessage_t,
+    is_rust_buffer: bool,
 }
 
 impl NetworkingMessage {
-    pub fn sender_id(&self) -> NetworkingIdentity {
+    /// For messages received on connections: what connection did this come from?
+    /// For outgoing messages: what connection to send it to?
+    /// Not used when using the ISteamNetworkingMessages interface
+    pub fn connection(&self) -> NetConnection {
+        unsafe { NetConnection((*self.inner).m_conn) }
+    }
+
+    pub fn set_connection(&self, connection: NetConnection) {
+        unsafe { (*self.inner).m_conn = connection.0 }
+    }
+
+    /// For inbound messages: Who sent this to us?
+    /// For outbound messages on connections: not used.
+    /// For outbound messages on the ad-hoc ISteamNetworkingMessages interface: who should we send this to?
+    pub fn identity_peer(&self) -> NetworkingIdentity {
         unsafe {
             let ident = &mut (*self.inner).m_identityPeer;
             NetworkingIdentity {
@@ -1250,9 +1399,95 @@ impl NetworkingMessage {
         }
     }
 
+    pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
+        unsafe { (*self.inner).m_identityPeer = identity.inner.into_owned() }
+    }
+
+    /// For messages received on connections, this is the user data
+    /// associated with the connection.
+    ///
+    /// This is *usually* the same as calling GetConnection() and then
+    /// fetching the user data associated with that connection, but for
+    /// the following subtle differences:
+    ///
+    /// - This user data will match the connection's user data at the time
+    ///   is captured at the time the message is returned by the API.
+    ///   If you subsequently change the userdata on the connection,
+    ///   this won't be updated.
+    /// - This is an inline call, so it's *much* faster.
+    /// - You might have closed the connection, so fetching the user data
+    ///   would not be possible.
+    ///
+    /// Not used when sending messages,
+    pub fn connection_user_data(&self) -> i64 {
+        unsafe { (*self.inner).m_nUserData }
+    }
+
+    /// Message number assigned by the sender.
+    /// This is not used for outbound messages
+    pub fn message_number(&self) -> i64 {
+        unsafe { (*self.inner).m_nMessageNumber }
+    }
+
+    /// Message payload
     pub fn data(&self) -> &[u8] {
         unsafe {
             std::slice::from_raw_parts((*self.inner).m_pData as _, (*self.inner).m_cbSize as usize)
+        }
+    }
+
+    pub fn copy_data_into_buffer(&mut self, data: &[u8]) -> Result<(), MessageError> {
+        unsafe {
+            if (*self.inner).m_pData.is_null() {
+                return Err(MessageError::NullBuffer);
+            }
+
+            if ((*self.inner).m_cbSize as usize) < data.len() {
+                return Err(MessageError::BufferTooSmall);
+            }
+
+            ((*self.inner).m_pData as *mut u8).copy_from(data.as_ptr(), data.len());
+        }
+
+        Ok(())
+    }
+
+    /// Set a new buffer for the message.
+    ///
+    /// Returns `Err(MessageError::BufferAlreadySet)` if the current buffer is not NULL.
+    pub fn set_data(&mut self, data: Vec<u8>) -> Result<(), MessageError> {
+        unsafe {
+            if !(*self.inner).m_pData.is_null() {
+                return Err(MessageError::BufferAlreadySet);
+            }
+
+            let mut data = data.into_boxed_slice();
+            (*self.inner).m_pData = data.as_mut_ptr() as *mut c_void;
+            (*self.inner).m_cbSize = data.len() as _;
+            (*self.inner).m_pfnFreeData = Some(free_rust_message_buffer);
+            std::mem::forget(data);
+        }
+
+        self.is_rust_buffer = true;
+
+        Ok(())
+    }
+}
+
+extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage_t) {
+    unsafe {
+        let buffer =
+            std::slice::from_raw_parts_mut((*message).m_pData, (*message).m_cbSize as usize);
+        // Create the box again and drop it immediately
+        Box::from_raw(buffer.as_mut_ptr());
+    };
+}
+
+impl From<*mut sys::SteamNetworkingMessage_t> for NetworkingMessage {
+    fn from(inner: *mut steamworks_sys::SteamNetworkingMessage_t) -> Self {
+        Self {
+            inner,
+            is_rust_buffer: false,
         }
     }
 }
@@ -1263,6 +1498,16 @@ impl Drop for NetworkingMessage {
 
         unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.inner) }
     }
+}
+
+#[derive(Debug, Error)]
+pub enum MessageError {
+    #[error("failed to write data to message, the buffer is not set")]
+    NullBuffer,
+    #[error("copied data is too large for the current buffer")]
+    BufferTooSmall,
+    #[error("cannot set a new buffer, the message already has a valid buffer")]
+    BufferAlreadySet,
 }
 
 pub(crate) struct SteamIpAddr {
@@ -1327,6 +1572,10 @@ impl SteamIpAddr {
         }
     }
 
+    pub fn is_ipv4(&self) -> bool {
+        unsafe { sys::SteamAPI_SteamNetworkingIPAddr_IsIPv4(self.as_ptr() as *mut _) }
+    }
+
     pub fn as_ptr(&self) -> *const sys::SteamNetworkingIPAddr {
         &self.inner
     }
@@ -1335,22 +1584,58 @@ impl SteamIpAddr {
         &mut self.inner
     }
 
-    // TODO: Fix this function, for some reason it causes a segfault. Maybe there's something wrong with my setup?
-    // pub fn to_string(&self) -> String {
-    //     let mut buffer = vec![0; sys::SteamNetworkingIPAddr_k_cchMaxString as usize];
-    //     let c_str;
-    //     unsafe {
-    //         sys::SteamAPI_SteamNetworkingIPAddr_ToString(
-    //             &self.inner as *const _ as *mut _,
-    //             buffer.as_mut_ptr(),
-    //             buffer.len() as _,
-    //             false,
-    //         );
-    //         c_str = CStr::from_ptr(buffer.as_ptr());
-    //     }
-    //     let str_slice = c_str.to_str().unwrap();
-    //     str_slice.to_owned()
-    // }
+    pub fn to_string(&self, with_port: bool) -> String {
+        // Similar as with NetworkIdentity, I wasn't able to get the C function to work,
+        // so I'm recreating it from https://github.com/ValveSoftware/GameNetworkingSockets/blob/529901e7c1caf50928ac8814cad205d192bbf27d/src/steamnetworkingsockets/steamnetworkingsockets_shared.cpp
+        // let mut buffer = vec![0; sys::SteamNetworkingIPAddr_k_cchMaxString as usize];
+        // let c_str;
+        // unsafe {
+        //     sys::SteamAPI_SteamNetworkingIPAddr_ToString(
+        //         &self.inner as *const _ as *mut _,
+        //         buffer.as_mut_ptr(),
+        //         buffer.len() as _,
+        //         false,
+        //     );
+        //     c_str = CStr::from_ptr(buffer.as_ptr());
+        // }
+        // let str_slice = c_str.to_str().unwrap();
+        // str_slice.to_owned()
+
+        unsafe {
+            if self.is_ipv4() {
+                let ip4 = self.inner.__bindgen_anon_1.m_ipv4.m_ip;
+                if with_port {
+                    // This variable is necessary, format will create a unaligned reference to m_port, which can cause undefined bahavior
+                    let port = self.inner.m_port;
+                    format!("{}.{}.{}.{}:{}", ip4[0], ip4[1], ip4[2], ip4[3], port)
+                } else {
+                    format!("{}.{}.{}.{}", ip4[0], ip4[1], ip4[2], ip4[3])
+                }
+            } else {
+                // I'm just assuming that steam and rust have the same representation of ip6
+                let ip6 = Ipv6Addr::from(self.inner.__bindgen_anon_1.m_ipv6);
+                if with_port {
+                    // Same as with ipv4, don't remove this temp variable
+                    let port = self.inner.m_port;
+                    format!("[{}]:{}", ip6, port)
+                } else {
+                    format!("{}", ip6)
+                }
+            }
+        }
+    }
+}
+
+impl Debug for SteamIpAddr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.to_string(true))
+    }
+}
+
+impl Display for SteamIpAddr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.to_string(true))
+    }
 }
 
 impl Default for SteamIpAddr {
@@ -1395,6 +1680,11 @@ impl From<SocketAddrV6> for SteamIpAddr {
         steam_ip
     }
 }
+impl From<sys::SteamNetworkingIPAddr> for SteamIpAddr {
+    fn from(inner: sys::SteamNetworkingIPAddr) -> Self {
+        Self { inner }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -1403,8 +1693,8 @@ mod tests {
 
     #[test]
     fn test_new_ip() {
-        let _ip = SteamIpAddr::new();
-        // assert_eq!(&ip.to_string(), "[::]:0");
+        let ip = SteamIpAddr::new();
+        assert_eq!(&ip.to_string(true), "[::]:0");
     }
 
     #[test]
@@ -1413,6 +1703,19 @@ mod tests {
         let addr = Ipv4Addr::new(192, 168, 0, 123);
         ip.set_ipv4(SocketAddrV4::new(addr, 5555));
         assert_eq!(Some(addr), ip.get_ipv4());
-        // assert_eq!(&ip.to_string(), "192.168.0.123:5555");
+        assert_eq!(&ip.to_string(true), "192.168.0.123:5555");
+    }
+
+    #[test]
+    fn test_network_identity_steam_id() {
+        let id = NetworkingIdentity::new_steam_id(SteamId(123456));
+        assert_eq!("steamid:123456", &id.debug_string())
+    }
+
+    #[test]
+    fn test_network_identity_ip() {
+        let id =
+            NetworkingIdentity::new_ip(SocketAddr::new(Ipv4Addr::new(192, 168, 0, 5).into(), 1234));
+        assert_eq!("ip:192.168.0.5:1234", &id.debug_string())
     }
 }

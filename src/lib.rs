@@ -364,6 +364,17 @@ impl <Manager> Client<Manager> {
         }
     }
 
+    pub fn networking_utils(&self) -> NetworkingUtils<Manager> {
+        unsafe {
+            let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v003();
+            debug_assert!(!utils.is_null());
+            NetworkingUtils {
+                utils,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
     pub fn game_server_networking_sockets(&self) -> NetworkingSockets<Manager> {
         unsafe {
             let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v009();

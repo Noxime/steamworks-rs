@@ -8,6 +8,9 @@ pub struct NetworkingSockets<Manager> {
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
+unsafe impl<T> Send for NetworkingSockets<T> {}
+unsafe impl<T> Sync for NetworkingSockets<T> {}
+
 impl<Manager> NetworkingSockets<Manager> {
     /// Creates a "server" socket that listens for clients to connect to by calling ConnectByIPAddress, over ordinary UDP (IPv4 or IPv6)
     ///
@@ -481,6 +484,26 @@ impl<Manager> NetworkingSockets<Manager> {
             Err(InvalidHandle)
         }
     }
+
+    pub fn receive_messaged_on_poll_group(
+        &self,
+        poll_group: &NetPollGroup,
+        batch_size: usize,
+    ) -> Vec<NetworkingMessage> {
+        // TODO: make a version that doesn't allocate. Is that even possible while still returning `NetworkMessage` instead of the C type?
+        let mut buffer = Vec::with_capacity(batch_size);
+        unsafe {
+            let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
+                self.sockets,
+                poll_group.0,
+                buffer.as_mut_ptr(),
+                batch_size as _,
+            );
+            buffer.set_len(message_count as usize);
+
+            buffer.into_iter().map(|x| x.into()).collect()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -500,20 +523,71 @@ mod tests {
     }
 
     #[test]
-    fn test_connect_to_self() {
-        let (client, _single) = Client::init().unwrap();
-        let sockets = client.networking_sockets();
-        let socket = sockets
+    fn test_socket_connection() {
+        let (client, single) = Client::init().unwrap();
+        let sockets = Arc::new(Mutex::new(client.networking_sockets()));
+
+        let poll_group = sockets.lock().unwrap().create_poll_group();
+
+        let callback_sockets = sockets.clone();
+        let _connection_changed = client.register_callback(move |p: NetConnectionStatusChanged| {
+            if let NetworkingConnectionState::Connecting = p.connection_info.state() {
+                println!(
+                    "New connection to {:?}",
+                    p.connection_info.identity_remote()
+                );
+                if p.connection_info.identity_remote().is_valid() {
+                    let sockets = callback_sockets.lock().unwrap();
+
+                    sockets.accept_connection(&p.connection).unwrap();
+                    sockets
+                        .set_connection_poll_group(&p.connection, &poll_group)
+                        .unwrap();
+                    println!(
+                        "Accepting connection to {:?}",
+                        p.connection_info.identity_remote()
+                    );
+                } else {
+                    println!(
+                        "Invalid connection, probably the event for creating the listening socket"
+                    )
+                }
+            } else {
+                println!("Callback: {:?}", p.connection_info.state())
+            }
+        });
+
+        println!("Create listening socket");
+        let _socket = sockets
+            .lock()
+            .unwrap()
             .create_listen_socket_ip(
                 SocketAddr::new(Ipv4Addr::new(0, 0, 0, 0).into(), 12345),
                 vec![],
             )
             .expect("Listen socket creation failed");
+
+        println!("Create client connection");
         let connection = sockets
+            .lock()
+            .unwrap()
             .connect_by_ip_address(
                 SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1).into(), 12345),
                 vec![],
             )
             .expect("Starting connection failed");
+
+        println!("Run callbacks");
+        for _ in 0..10 {
+            single.run_callbacks();
+            ::std::thread::sleep(::std::time::Duration::from_millis(100));
+        }
+
+        // Send from the client to the server
+        sockets
+            .lock()
+            .unwrap()
+            .send_message_to_connection(&connection, &[1, 2, 3, 4], SendFlags::RELIABLE_NO_NAGLE)
+            .unwrap();
     }
 }
