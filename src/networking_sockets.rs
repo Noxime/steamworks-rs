@@ -1,4 +1,5 @@
 use super::*;
+use std::convert::TryInto;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -388,7 +389,7 @@ impl<Manager> NetworkingSockets<Manager> {
         connection: &NetConnection,
         data: &[u8],
         send_flags: SendFlags,
-    ) -> SResult<OutMessageNumber> {
+    ) -> SResult<MessageNumber> {
         unsafe {
             let mut out_message_number = 0i64;
             let result = sys::SteamAPI_ISteamNetworkingSockets_SendMessageToConnection(
@@ -400,10 +401,152 @@ impl<Manager> NetworkingSockets<Manager> {
                 &mut out_message_number,
             );
             match result {
-                sys::EResult::k_EResultOK => Ok(OutMessageNumber(out_message_number)),
+                sys::EResult::k_EResultOK => Ok(MessageNumber(out_message_number)),
                 error => Err(error.into()),
             }
         }
+    }
+
+    /// Send one or more messages without copying the message payload.
+    /// This is the most efficient way to send messages. To use this
+    /// function, you must first allocate a message object using
+    /// ISteamNetworkingUtils::AllocateMessage.  (Do not declare one
+    /// on the stack or allocate your own.)
+    ///
+    /// You should fill in the message payload.  You can either let
+    /// it allocate the buffer for you and then fill in the payload,
+    /// or if you already have a buffer allocated, you can just point
+    /// m_pData at your buffer and set the callback to the appropriate function
+    /// to free it.  Note that if you use your own buffer, it MUST remain valid
+    /// until the callback is executed.  And also note that your callback can be
+    /// invoked at ant time from any thread (perhaps even before SendMessages
+    /// returns!), so it MUST be fast and threadsafe.
+    ///
+    /// You MUST also fill in:
+    /// - m_conn - the handle of the connection to send the message to
+    /// - m_nFlags - bitmask of k_nSteamNetworkingSend_xxx flags.
+    ///
+    /// All other fields are currently reserved and should not be modified.
+    ///
+    /// The library will take ownership of the message structures.  They may
+    /// be modified or become invalid at any time, so you must not read them
+    /// after passing them to this function.
+    ///
+    /// Returns the message number or Steam error for each sent message.
+    pub fn send_messages(
+        &self,
+        messages: impl IntoIterator<Item = NetworkingMessage>,
+    ) -> Vec<SResult<MessageNumber>> {
+        let messages: Vec<_> = messages.into_iter().map(|x| x.inner).collect();
+        let mut results = Vec::with_capacity(messages.len());
+        unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
+                self.sockets,
+                messages.len() as _,
+                messages.as_ptr(),
+                results.as_mut_ptr(),
+            );
+            // Error codes are returned as negative numbers, while positive numbers are message numbers
+            results
+                .into_iter()
+                .map(|x| {
+                    if x >= 0 {
+                        Ok(MessageNumber(x))
+                    } else {
+                        Err((-x).try_into().expect("invalid error code"))
+                    }
+                })
+                .collect()
+        }
+    }
+
+    /// Flush any messages waiting on the Nagle timer and send them
+    /// at the next transmission opportunity (often that means right now).
+    ///
+    /// If Nagle is enabled (it's on by default) then when calling
+    /// SendMessageToConnection the message will be buffered, up to the Nagle time
+    /// before being sent, to merge small messages into the same packet.
+    /// (See k_ESteamNetworkingConfig_NagleTime)
+    ///
+    /// Returns:
+    /// k_EResultInvalidParam: invalid connection handle
+    /// k_EResultInvalidState: connection is in an invalid state
+    /// k_EResultNoConnection: connection has ended
+    /// k_EResultIgnored: We weren't (yet) connected, so this operation has no effect.
+    pub fn flush_messages_on_connection(&self, connection: NetConnection) -> SResult<()> {
+        unsafe {
+            let result = sys::SteamAPI_ISteamNetworkingSockets_FlushMessagesOnConnection(
+                self.sockets,
+                connection.0,
+            );
+            if let sys::EResult::k_EResultOK = result {
+                Ok(())
+            } else {
+                Err(result.into())
+            }
+        }
+    }
+
+    /// Fetch the next available message(s) from the connection, if any.
+    /// Returns the number of messages returned into your array, up to nMaxMessages.
+    /// If the connection handle is invalid, -1 is returned.
+    ///
+    /// The order of the messages returned in the array is relevant.
+    /// Reliable messages will be received in the order they were sent (and with the
+    /// same sizes --- see SendMessageToConnection for on this subtle difference from a stream socket).
+    ///
+    /// Unreliable messages may be dropped, or delivered out of order with respect to
+    /// each other or with respect to reliable messages.  The same unreliable message
+    /// may be received multiple times.
+    ///
+    /// If any messages are returned, you MUST call SteamNetworkingMessage_t::Release() on each
+    /// of them free up resources after you are done.  It is safe to keep the object alive for
+    /// a little while (put it into some queue, etc), and you may call Release() from any thread.
+    pub fn receive_messages_on_connection(
+        &self,
+        connection: NetConnection,
+        batch_size: usize,
+    ) -> Vec<NetworkingMessage> {
+        // TODO: Optionally make it possible to reuse the same buffer to avoid allocation
+        let mut buffer = Vec::with_capacity(batch_size);
+        unsafe {
+            let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
+                self.sockets,
+                connection.0,
+                buffer.as_mut_ptr(),
+                batch_size as _,
+            );
+            buffer.set_len(message_count as usize);
+
+            buffer.into_iter().map(|x| x.into()).collect()
+        }
+    }
+
+    /// Indicate our desire to be ready participate in authenticated communications.
+    /// If we are currently not ready, then steps will be taken to obtain the necessary
+    /// certificates.   (This includes a certificate for us, as well as any CA certificates
+    /// needed to authenticate peers.)
+    ///
+    /// You can call this at program init time if you know that you are going to
+    /// be making authenticated connections, so that we will be ready immediately when
+    /// those connections are attempted.  (Note that essentially all connections require
+    /// authentication, with the exception of ordinary UDP connections with authentication
+    /// disabled using k_ESteamNetworkingConfig_IP_AllowWithoutAuth.)  If you don't call
+    /// this function, we will wait until a feature is utilized that that necessitates
+    /// these resources.
+    ///
+    /// You can also call this function to force a retry, if failure has occurred.
+    /// Once we make an attempt and fail, we will not automatically retry.
+    /// In this respect, the behavior of the system after trying and failing is the same
+    /// as before the first attempt: attempting authenticated communication or calling
+    /// this function will call the system to attempt to acquire the necessary resources.
+    ///
+    /// You can use GetAuthenticationStatus or listen for SteamNetAuthenticationStatus_t
+    /// to monitor the status.
+    ///
+    /// Returns the current value that would be returned from GetAuthenticationStatus.
+    pub fn init_authentication(&self) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+        unsafe { sys::SteamAPI_ISteamNetworkingSockets_InitAuthentication(self.sockets).try_into() }
     }
 
     /// Create a new poll group.
@@ -490,7 +633,7 @@ impl<Manager> NetworkingSockets<Manager> {
         poll_group: &NetPollGroup,
         batch_size: usize,
     ) -> Vec<NetworkingMessage> {
-        // TODO: make a version that doesn't allocate. Is that even possible while still returning `NetworkMessage` instead of the C type?
+        // TODO: Optionally make it possible to reuse the same buffer to avoid allocation
         let mut buffer = Vec::with_capacity(batch_size);
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
@@ -529,6 +672,7 @@ mod tests {
 
         let poll_group = sockets.lock().unwrap().create_poll_group();
 
+        // Create a callback that accepts the new connection and sends a message back immediately
         let callback_sockets = sockets.clone();
         let _connection_changed = client.register_callback(move |p: NetConnectionStatusChanged| {
             if let NetworkingConnectionState::Connecting = p.connection_info.state() {
@@ -546,6 +690,13 @@ mod tests {
                     println!(
                         "Accepting connection to {:?}",
                         p.connection_info.identity_remote()
+                    );
+
+                    // Send message back
+                    sockets.send_message_to_connection(
+                        &p.connection,
+                        &[0, 0, 1, 2],
+                        SendFlags::RELIABLE_NO_NAGLE,
                     );
                 } else {
                     println!(
@@ -589,5 +740,20 @@ mod tests {
             .unwrap()
             .send_message_to_connection(&connection, &[1, 2, 3, 4], SendFlags::RELIABLE_NO_NAGLE)
             .unwrap();
+
+        ::std::thread::sleep(::std::time::Duration::from_millis(100));
+
+        // Receive message on the server
+        let messages = sockets
+            .lock()
+            .unwrap()
+            .receive_messaged_on_poll_group(&poll_group, 1);
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data(), &[1, 2, 3, 4]);
+
+        // Receive message on the client (the one we sent in the callback)
+        let messages = sockets.lock().unwrap().receive_messages_on_connection(connection, 1);
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data(), &[0, 0, 1, 2]);
     }
 }

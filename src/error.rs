@@ -2,6 +2,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::sys;
+use std::convert::TryFrom;
 
 /// Covers errors that can be returned by the steamworks API
 ///
@@ -499,3 +500,126 @@ impl From<sys::EResult> for SteamError {
         }
     }
 }
+
+impl TryFrom<i64> for SteamError {
+    type Error = InvalidErrorCode;
+
+    fn try_from(r: i64) -> Result<Self, Self::Error> {
+        let error = match r {
+            x if x == sys::EResult::k_EResultFail as i64 => SteamError::Generic,
+            x if x == sys::EResult::k_EResultNoConnection as i64 => SteamError::NoConnection,
+            x if x == sys::EResult::k_EResultInvalidPassword as i64 => SteamError::InvalidPassword,
+            x if x == sys::EResult::k_EResultLoggedInElsewhere as i64 => SteamError::LoggedInElsewhere,
+            x if x == sys::EResult::k_EResultInvalidProtocolVer as i64 => SteamError::InvalidProtocolVersion,
+            x if x == sys::EResult::k_EResultInvalidParam as i64 => SteamError::InvalidParameter,
+            x if x == sys::EResult::k_EResultFileNotFound as i64 => SteamError::FileNotFound,
+            x if x == sys::EResult::k_EResultBusy as i64 => SteamError::Busy,
+            x if x == sys::EResult::k_EResultInvalidState as i64 => SteamError::InvalidState,
+            x if x == sys::EResult::k_EResultInvalidName as i64 => SteamError::InvalidName,
+            x if x == sys::EResult::k_EResultInvalidEmail as i64 => SteamError::InvalidEmail,
+            x if x == sys::EResult::k_EResultDuplicateName as i64 => SteamError::DuplicateName,
+            x if x == sys::EResult::k_EResultAccessDenied as i64 => SteamError::AccessDenied,
+            x if x == sys::EResult::k_EResultTimeout as i64 => SteamError::Timeout,
+            x if x == sys::EResult::k_EResultBanned as i64 => SteamError::Banned,
+            x if x == sys::EResult::k_EResultAccountNotFound as i64 => SteamError::AccountNotFound,
+            x if x == sys::EResult::k_EResultInvalidSteamID as i64 => SteamError::InvalidSteamID,
+            x if x == sys::EResult::k_EResultServiceUnavailable as i64 => SteamError::ServiceUnavailable,
+            x if x == sys::EResult::k_EResultNotLoggedOn as i64 => SteamError::NotLoggedOn,
+            x if x == sys::EResult::k_EResultPending as i64 => SteamError::Pending,
+            x if x == sys::EResult::k_EResultEncryptionFailure as i64 => SteamError::EncryptionFailure,
+            x if x == sys::EResult::k_EResultInsufficientPrivilege as i64 => SteamError::InsufficientPrivilege,
+            x if x == sys::EResult::k_EResultLimitExceeded as i64 => SteamError::LimitExceeded,
+            x if x == sys::EResult::k_EResultRevoked as i64 => SteamError::Revoked,
+            x if x == sys::EResult::k_EResultExpired as i64 => SteamError::Expired,
+            x if x == sys::EResult::k_EResultAlreadyRedeemed as i64 => SteamError::AlreadyRedeemed,
+            x if x == sys::EResult::k_EResultDuplicateRequest as i64 => SteamError::DuplicateRequest,
+            x if x == sys::EResult::k_EResultAlreadyOwned as i64 => SteamError::AlreadyOwned,
+            x if x == sys::EResult::k_EResultIPNotFound as i64 => SteamError::IPNotFound,
+            x if x == sys::EResult::k_EResultPersistFailed as i64 => SteamError::PersistFailed,
+            x if x == sys::EResult::k_EResultLockingFailed as i64 => SteamError::LockingFailed,
+            x if x == sys::EResult::k_EResultLogonSessionReplaced as i64 => SteamError::LogonSessionReplaced,
+            x if x == sys::EResult::k_EResultConnectFailed as i64 => SteamError::ConnectFailed,
+            x if x == sys::EResult::k_EResultHandshakeFailed as i64 => SteamError::HandshakeFailed,
+            x if x == sys::EResult::k_EResultIOFailure as i64 => SteamError::IOFailure,
+            x if x == sys::EResult::k_EResultRemoteDisconnect as i64 => SteamError::RemoteDisconnect,
+            x if x == sys::EResult::k_EResultShoppingCartNotFound as i64 => SteamError::ShoppingCartNotFound,
+            x if x == sys::EResult::k_EResultBlocked as i64 => SteamError::Blocked,
+            x if x == sys::EResult::k_EResultIgnored as i64 => SteamError::Ignored,
+            x if x == sys::EResult::k_EResultNoMatch as i64 => SteamError::NoMatch,
+            x if x == sys::EResult::k_EResultAccountDisabled as i64 => SteamError::AccountDisabled,
+            x if x == sys::EResult::k_EResultServiceReadOnly as i64 => SteamError::ServiceReadOnly,
+            x if x == sys::EResult::k_EResultAccountNotFeatured as i64 => SteamError::AccountNotFeatured,
+            x if x == sys::EResult::k_EResultAdministratorOK as i64 => SteamError::AdministratorOK,
+            x if x == sys::EResult::k_EResultContentVersion as i64 => SteamError::ContentVersion,
+            x if x == sys::EResult::k_EResultTryAnotherCM as i64 => SteamError::TryAnotherCM,
+            x if x == sys::EResult::k_EResultPasswordRequiredToKickSession as i64 => SteamError::PasswordRequiredToKickSession,
+            x if x == sys::EResult::k_EResultAlreadyLoggedInElsewhere as i64 => SteamError::AlreadyLoggedInElsewhere,
+            x if x == sys::EResult::k_EResultSuspended as i64 => SteamError::Suspended,
+            x if x == sys::EResult::k_EResultCancelled as i64 => SteamError::Cancelled,
+            x if x == sys::EResult::k_EResultDataCorruption as i64 => SteamError::DataCorruption,
+            x if x == sys::EResult::k_EResultDiskFull as i64 => SteamError::DiskFull,
+            x if x == sys::EResult::k_EResultRemoteCallFailed as i64 => SteamError::RemoteCallFailed,
+            x if x == sys::EResult::k_EResultPasswordUnset as i64 => SteamError::PasswordUnset,
+            x if x == sys::EResult::k_EResultExternalAccountUnlinked as i64 => SteamError::ExternalAccountUnlinked,
+            x if x == sys::EResult::k_EResultPSNTicketInvalid as i64 => SteamError::PSNTicketInvalid,
+            x if x == sys::EResult::k_EResultExternalAccountAlreadyLinked as i64 => SteamError::ExternalAccountAlreadyLinked,
+            x if x == sys::EResult::k_EResultRemoteFileConflict as i64 => SteamError::RemoteFileConflict,
+            x if x == sys::EResult::k_EResultIllegalPassword as i64 => SteamError::IllegalPassword,
+            x if x == sys::EResult::k_EResultSameAsPreviousValue as i64 => SteamError::SameAsPreviousValue,
+            x if x == sys::EResult::k_EResultAccountLogonDenied as i64 => SteamError::AccountLogonDenied,
+            x if x == sys::EResult::k_EResultCannotUseOldPassword as i64 => SteamError::CannotUseOldPassword,
+            x if x == sys::EResult::k_EResultInvalidLoginAuthCode as i64 => SteamError::InvalidLoginAuthCode,
+            x if x == sys::EResult::k_EResultAccountLogonDeniedNoMail as i64 => SteamError::AccountLogonDeniedNoMail,
+            x if x == sys::EResult::k_EResultHardwareNotCapableOfIPT as i64 => SteamError::HardwareNotCapableOfIPT,
+            x if x == sys::EResult::k_EResultIPTInitError as i64 => SteamError::IPTInitError,
+            x if x == sys::EResult::k_EResultParentalControlRestricted as i64 => SteamError::ParentalControlRestricted,
+            x if x == sys::EResult::k_EResultFacebookQueryError as i64 => SteamError::FacebookQueryError,
+            x if x == sys::EResult::k_EResultExpiredLoginAuthCode as i64 => SteamError::ExpiredLoginAuthCode,
+            x if x == sys::EResult::k_EResultIPLoginRestrictionFailed as i64 => SteamError::IPLoginRestrictionFailed,
+            x if x == sys::EResult::k_EResultAccountLockedDown as i64 => SteamError::AccountLockedDown,
+            x if x == sys::EResult::k_EResultAccountLogonDeniedVerifiedEmailRequired as i64 => SteamError::AccountLogonDeniedVerifiedEmailRequired,
+            x if x == sys::EResult::k_EResultNoMatchingURL as i64 => SteamError::NoMatchingURL,
+            x if x == sys::EResult::k_EResultBadResponse as i64 => SteamError::BadResponse,
+            x if x == sys::EResult::k_EResultRequirePasswordReEntry as i64 => SteamError::RequirePasswordReEntry,
+            x if x == sys::EResult::k_EResultValueOutOfRange as i64 => SteamError::ValueOutOfRange,
+            x if x == sys::EResult::k_EResultUnexpectedError as i64 => SteamError::UnexpectedError,
+            x if x == sys::EResult::k_EResultDisabled as i64 => SteamError::Disabled,
+            x if x == sys::EResult::k_EResultInvalidCEGSubmission as i64 => SteamError::InvalidCEGSubmission,
+            x if x == sys::EResult::k_EResultRestrictedDevice as i64 => SteamError::RestrictedDevice,
+            x if x == sys::EResult::k_EResultRegionLocked as i64 => SteamError::RegionLocked,
+            x if x == sys::EResult::k_EResultRateLimitExceeded as i64 => SteamError::RateLimitExceeded,
+            x if x == sys::EResult::k_EResultAccountLoginDeniedNeedTwoFactor as i64 => SteamError::AccountLoginDeniedNeedTwoFactor,
+            x if x == sys::EResult::k_EResultItemDeleted as i64 => SteamError::ItemDeleted,
+            x if x == sys::EResult::k_EResultAccountLoginDeniedThrottle as i64 => SteamError::AccountLoginDeniedThrottle,
+            x if x == sys::EResult::k_EResultTwoFactorCodeMismatch as i64 => SteamError::TwoFactorCodeMismatch,
+            x if x == sys::EResult::k_EResultTwoFactorActivationCodeMismatch as i64 => SteamError::TwoFactorActivationCodeMismatch,
+            x if x == sys::EResult::k_EResultAccountAssociatedToMultiplePartners as i64 => SteamError::AccountAssociatedToMultiplePartners,
+            x if x == sys::EResult::k_EResultNotModified as i64 => SteamError::NotModified,
+            x if x == sys::EResult::k_EResultNoMobileDevice as i64 => SteamError::NoMobileDevice,
+            x if x == sys::EResult::k_EResultTimeNotSynced as i64 => SteamError::TimeNotSynced,
+            x if x == sys::EResult::k_EResultSmsCodeFailed as i64 => SteamError::SmsCodeFailed,
+            x if x == sys::EResult::k_EResultAccountLimitExceeded as i64 => SteamError::AccountLimitExceeded,
+            x if x == sys::EResult::k_EResultAccountActivityLimitExceeded as i64 => SteamError::AccountActivityLimitExceeded,
+            x if x == sys::EResult::k_EResultPhoneActivityLimitExceeded as i64 => SteamError::PhoneActivityLimitExceeded,
+            x if x == sys::EResult::k_EResultRefundToWallet as i64 => SteamError::RefundToWallet,
+            x if x == sys::EResult::k_EResultEmailSendFailure as i64 => SteamError::EmailSendFailure,
+            x if x == sys::EResult::k_EResultNotSettled as i64 => SteamError::NotSettled,
+            x if x == sys::EResult::k_EResultNeedCaptcha as i64 => SteamError::NeedCaptcha,
+            x if x == sys::EResult::k_EResultGSLTDenied as i64 => SteamError::GSLTDenied,
+            x if x == sys::EResult::k_EResultGSOwnerDenied as i64 => SteamError::GSOwnerDenied,
+            x if x == sys::EResult::k_EResultInvalidItemType as i64 => SteamError::InvalidItemType,
+            x if x == sys::EResult::k_EResultIPBanned as i64 => SteamError::IPBanned,
+            x if x == sys::EResult::k_EResultGSLTExpired as i64 => SteamError::GSLTExpired,
+            x if x == sys::EResult::k_EResultInsufficientFunds as i64 => SteamError::InsufficientFunds,
+            x if x == sys::EResult::k_EResultTooManyPending as i64 => SteamError::TooManyPending,
+            x if x == sys::EResult::k_EResultNoSiteLicensesFound as i64 => SteamError::NoSiteLicensesFound,
+            x if x == sys::EResult::k_EResultWGNetworkSendExceeded as i64 => SteamError::WGNetworkSendExceeded,
+            _ => return Err(InvalidErrorCode)
+        };
+        Ok(error)
+    }
+}
+
+#[derive(Debug, Error)]
+#[error("error code could not be converted to rust enum")]
+pub struct InvalidErrorCode;

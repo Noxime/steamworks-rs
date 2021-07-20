@@ -8,13 +8,9 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct OutMessageNumber(pub(crate) i64);
+pub struct MessageNumber(pub(crate) i64);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct InMessageNumber(pub(crate) i64);
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct NetConnection(pub(crate) u32);
 
 impl NetConnection {
@@ -42,7 +38,7 @@ impl From<NetConnection> for sys::HSteamNetConnection {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ListenSocket(pub(crate) u32);
 
 impl ListenSocket {
@@ -70,7 +66,7 @@ impl From<ListenSocket> for sys::HSteamListenSocket {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct NetPollGroup(pub(crate) u32);
 
 impl NetPollGroup {
@@ -999,6 +995,67 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
     }
 }
 
+/// Describe the status of a particular network resource
+pub enum NetworkingAvailability {
+    /// We don't know because we haven't ever checked/tried
+    NeverTried,
+    /// We're waiting on a dependent resource to be acquired.  (E.g. we cannot obtain a cert until we are logged into Steam.  We cannot measure latency to relays until we have the network config.)
+    Waiting,
+    /// We're actively trying now, but are not yet successful.
+    Attempting,
+    /// Resource is online/available
+    Current,
+}
+
+/// Describe a error of a particular network resource
+/// In general, we will not automatically retry unless you take some action that
+/// depends on of requests this resource, such as querying the status, attempting
+/// to initiate a connection, receive a connection, etc.  If you do not take any
+pub enum NetworkingAvailabilityError {
+    /// A dependent resource is missing, so this service is unavailable.  (E.g. we cannot talk to routers because Internet is down or we don't have the network config.)
+    CannotTry,
+    /// We have tried for enough time that we would expect to have been successful by now.  We have never been successful
+    Failed,
+    /// We tried and were successful at one time, but now it looks like we have a problem
+    Previously,
+    /// We previously failed and are currently retrying
+    Retrying,
+}
+
+impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
+    type Error = NetworkingAvailabilityError;
+
+    fn try_from(value: sys::ESteamNetworkingAvailability) -> Result<Self, Self::Error> {
+        match value {
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry => {
+                Err(NetworkingAvailabilityError::CannotTry)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Failed => {
+                Err(NetworkingAvailabilityError::Failed)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Previously => {
+                Err(NetworkingAvailabilityError::Previously)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Retrying => {
+                Err(NetworkingAvailabilityError::Retrying)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_NeverTried => {
+                Ok(NetworkingAvailability::NeverTried)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Waiting => {
+                Ok(NetworkingAvailability::Waiting)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Attempting => {
+                Ok(NetworkingAvailability::Attempting)
+            }
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Current => {
+                Ok(NetworkingAvailability::Current)
+            }
+            _ => panic!("invalid networking availability"),
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 #[error("integer value could not be converted to enum")]
 pub struct InvalidEnumValue;
@@ -1372,7 +1429,7 @@ impl Default for NetworkingIdentity<'_> {
 
 pub struct NetworkingMessage {
     pub(crate) inner: *mut sys::SteamNetworkingMessage_t,
-    is_rust_buffer: bool,
+    pub(crate) is_rust_buffer: bool,
 }
 
 impl NetworkingMessage {
@@ -1420,13 +1477,40 @@ impl NetworkingMessage {
     ///
     /// Not used when sending messages,
     pub fn connection_user_data(&self) -> i64 {
-        unsafe { (*self.inner).m_nUserData }
+        unsafe { (*self.inner).m_nConnUserData }
     }
 
     /// Message number assigned by the sender.
     /// This is not used for outbound messages
-    pub fn message_number(&self) -> i64 {
-        unsafe { (*self.inner).m_nMessageNumber }
+    pub fn message_number(&self) -> MessageNumber {
+        unsafe { MessageNumber((*self.inner).m_nMessageNumber) }
+    }
+
+    /// Bitmask of k_nSteamNetworkingSend_xxx flags.
+    /// For received messages, only the k_nSteamNetworkingSend_Reliable bit is valid.
+    /// For outbound messages, all bits are relevant
+    pub fn send_flags(&self) -> SendFlags {
+        unsafe {
+            SendFlags::from_bits((*self.inner).m_nFlags)
+                .expect("send flags could not be converted to rust representation")
+        }
+    }
+
+    pub fn set_send_flags(&mut self, send_flags: SendFlags) {
+        unsafe { (*self.inner).m_nFlags = send_flags.bits() }
+    }
+
+    /// Bitmask of k_nSteamNetworkingSend_xxx flags.
+    /// For received messages, only the k_nSteamNetworkingSend_Reliable bit is valid.
+    /// For outbound messages, all bits are relevant
+    pub fn channel(&self) -> i32 {
+        unsafe { (*self.inner).m_nChannel }
+    }
+
+    pub fn set_channel(&mut self, channel: i32) {
+        unsafe {
+            (*self.inner).m_nChannel = channel;
+        }
     }
 
     /// Message payload
@@ -1472,10 +1556,31 @@ impl NetworkingMessage {
 
         Ok(())
     }
+
+    /// Arbitrary user data that you can use when sending messages using
+    /// ISteamNetworkingUtils::AllocateMessage and ISteamNetworkingSockets::SendMessage.
+    /// (The callback you set in m_pfnFreeData might use this field.)
+    ///
+    /// Not used for received messages.
+    pub fn user_data(&self) -> i64 {
+        unsafe { (*self.inner).m_nUserData }
+    }
+
+    /// Arbitrary user data that you can use when sending messages using
+    /// ISteamNetworkingUtils::AllocateMessage and ISteamNetworkingSockets::SendMessage.
+    /// (The callback you set in m_pfnFreeData might use this field.)
+    ///
+    /// Not used for received messages.
+    pub fn set_user_data(&self, user_data: i64) {
+        unsafe {
+            (*self.inner).m_nUserData = user_data;
+        }
+    }
 }
 
 extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage_t) {
     unsafe {
+        // println!("reclaiming memory");
         let buffer =
             std::slice::from_raw_parts_mut((*message).m_pData, (*message).m_cbSize as usize);
         // Create the box again and drop it immediately
@@ -1689,6 +1794,7 @@ impl From<sys::SteamNetworkingIPAddr> for SteamIpAddr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Client;
     use std::net::Ipv4Addr;
 
     #[test]
@@ -1717,5 +1823,25 @@ mod tests {
         let id =
             NetworkingIdentity::new_ip(SocketAddr::new(Ipv4Addr::new(192, 168, 0, 5).into(), 1234));
         assert_eq!("ip:192.168.0.5:1234", &id.debug_string())
+    }
+
+    #[test]
+    fn test_allocate_and_free_message() {
+        let (client, _single) = Client::init().unwrap();
+        let utils = client.networking_utils();
+
+        // With C buffer
+        {
+            let _message = utils.allocate_message(200);
+            // Drop it immediately
+        }
+
+        // With rust buffer
+        {
+            let mut message = utils.allocate_message(0);
+            message.set_data(vec![1, 2, 3, 4, 5]);
+
+            // Drop it immediately
+        }
     }
 }
