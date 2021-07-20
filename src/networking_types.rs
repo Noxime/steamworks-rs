@@ -1429,7 +1429,6 @@ impl Default for NetworkingIdentity<'_> {
 
 pub struct NetworkingMessage {
     pub(crate) inner: *mut sys::SteamNetworkingMessage_t,
-    pub(crate) is_rust_buffer: bool,
 }
 
 impl NetworkingMessage {
@@ -1552,8 +1551,6 @@ impl NetworkingMessage {
             std::mem::forget(data);
         }
 
-        self.is_rust_buffer = true;
-
         Ok(())
     }
 
@@ -1590,10 +1587,7 @@ extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage
 
 impl From<*mut sys::SteamNetworkingMessage_t> for NetworkingMessage {
     fn from(inner: *mut steamworks_sys::SteamNetworkingMessage_t) -> Self {
-        Self {
-            inner,
-            is_rust_buffer: false,
-        }
+        Self { inner }
     }
 }
 
@@ -1839,7 +1833,7 @@ mod tests {
         // With rust buffer
         {
             let mut message = utils.allocate_message(0);
-            message.set_data(vec![1, 2, 3, 4, 5]);
+            message.set_data(vec![1, 2, 3, 4, 5]).unwrap();
 
             // Drop it immediately
         }

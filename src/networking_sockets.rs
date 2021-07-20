@@ -545,7 +545,9 @@ impl<Manager> NetworkingSockets<Manager> {
     /// to monitor the status.
     ///
     /// Returns the current value that would be returned from GetAuthenticationStatus.
-    pub fn init_authentication(&self) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+    pub fn init_authentication(
+        &self,
+    ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
         unsafe { sys::SteamAPI_ISteamNetworkingSockets_InitAuthentication(self.sockets).try_into() }
     }
 
@@ -693,11 +695,13 @@ mod tests {
                     );
 
                     // Send message back
-                    sockets.send_message_to_connection(
-                        &p.connection,
-                        &[0, 0, 1, 2],
-                        SendFlags::RELIABLE_NO_NAGLE,
-                    );
+                    sockets
+                        .send_message_to_connection(
+                            &p.connection,
+                            &[0, 0, 1, 2],
+                            SendFlags::RELIABLE_NO_NAGLE,
+                        )
+                        .unwrap();
                 } else {
                     println!(
                         "Invalid connection, probably the event for creating the listening socket"
@@ -752,7 +756,10 @@ mod tests {
         assert_eq!(messages[0].data(), &[1, 2, 3, 4]);
 
         // Receive message on the client (the one we sent in the callback)
-        let messages = sockets.lock().unwrap().receive_messages_on_connection(connection, 1);
+        let messages = sockets
+            .lock()
+            .unwrap()
+            .receive_messages_on_connection(connection, 1);
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[0, 0, 1, 2]);
     }

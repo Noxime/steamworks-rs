@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::{Inner, NetworkingMessage};
+use std::sync::Arc;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils<Manager> {
@@ -27,14 +27,11 @@ impl<Manager> NetworkingUtils<Manager> {
     /// set each of these.
     pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage {
         unsafe {
-            let inner = sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
-            NetworkingMessage {
-                inner,
-                is_rust_buffer: false
-            }
+            let inner =
+                sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
+            NetworkingMessage { inner }
         }
     }
-
 
     /// If you know that you are going to be using the relay network (for example,
     /// because you anticipate making P2P connections), call this to initialize the
@@ -61,6 +58,4 @@ impl<Manager> NetworkingUtils<Manager> {
             sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils);
         }
     }
-
-
 }
