@@ -670,9 +670,9 @@ mod tests {
     #[test]
     fn test_socket_connection() {
         let (client, single) = Client::init().unwrap();
-        let sockets = Arc::new(Mutex::new(client.networking_sockets()));
+        let sockets = Arc::new(client.networking_sockets());
 
-        let poll_group = sockets.lock().unwrap().create_poll_group();
+        let poll_group = sockets.create_poll_group();
 
         // Create a callback that accepts the new connection and sends a message back immediately
         let callback_sockets = sockets.clone();
@@ -683,7 +683,7 @@ mod tests {
                     p.connection_info.identity_remote()
                 );
                 if p.connection_info.identity_remote().is_valid() {
-                    let sockets = callback_sockets.lock().unwrap();
+                    let sockets = &callback_sockets;
 
                     sockets.accept_connection(&p.connection).unwrap();
                     sockets
@@ -714,8 +714,6 @@ mod tests {
 
         println!("Create listening socket");
         let _socket = sockets
-            .lock()
-            .unwrap()
             .create_listen_socket_ip(
                 SocketAddr::new(Ipv4Addr::new(0, 0, 0, 0).into(), 12345),
                 vec![],
@@ -724,8 +722,6 @@ mod tests {
 
         println!("Create client connection");
         let connection = sockets
-            .lock()
-            .unwrap()
             .connect_by_ip_address(
                 SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1).into(), 12345),
                 vec![],
@@ -740,26 +736,18 @@ mod tests {
 
         // Send from the client to the server
         sockets
-            .lock()
-            .unwrap()
             .send_message_to_connection(&connection, &[1, 2, 3, 4], SendFlags::RELIABLE_NO_NAGLE)
             .unwrap();
 
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
 
         // Receive message on the server
-        let messages = sockets
-            .lock()
-            .unwrap()
-            .receive_messaged_on_poll_group(&poll_group, 1);
+        let messages = sockets.receive_messaged_on_poll_group(&poll_group, 1);
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[1, 2, 3, 4]);
 
         // Receive message on the client (the one we sent in the callback)
-        let messages = sockets
-            .lock()
-            .unwrap()
-            .receive_messages_on_connection(connection, 1);
+        let messages = sockets.receive_messages_on_connection(connection, 1);
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[0, 0, 1, 2]);
     }
