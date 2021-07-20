@@ -200,7 +200,9 @@ impl <M> SingleClient<M> where M: Manager {
                         apicall_result.as_mut_ptr() as *mut _, apicall.m_cubParam as _,
                         apicall.m_iCallback, &mut failed
                     ) {
-                        if let Some(cb) = callbacks.call_results.remove(&apicall.m_hAsyncCall) {
+                        // The &{val} pattern here is to avoid taking a reference to a packed field
+                        // Since the value here is Copy, we can just copy it and borrow the copy
+                        if let Some(cb) = callbacks.call_results.remove(&{apicall.m_hAsyncCall}) {
                             cb(apicall_result.as_mut_ptr() as *mut _, failed);
                         }
                     }
