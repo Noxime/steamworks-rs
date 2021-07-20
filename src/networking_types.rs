@@ -1,5 +1,4 @@
 use crate::{Callback, SteamId};
-use std::borrow::Cow;
 use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Display, Formatter};
@@ -1066,7 +1065,7 @@ pub struct NetConnectionInfo {
 
 impl NetConnectionInfo {
     pub fn identity_remote(&self) -> NetworkingIdentity {
-        NetworkingIdentity::from(&self.inner.m_identityRemote)
+        NetworkingIdentity::from(self.inner.m_identityRemote)
     }
 
     pub fn user_data(&self) -> i64 {
@@ -1265,23 +1264,23 @@ impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
 }
 
 /// A safe wrapper for SteamNetworkingIdentity
-pub struct NetworkingIdentity<'a> {
+pub struct NetworkingIdentity {
     // Using a enum for NetworkingIdentity with variants for each identity type would be more idiomatic to use,
     // but would require converting between the internal and the rust representation whenever the API is used.
     // Maybe a second type could be used for matching to avoid get_ip, get_steam_id, etc.
-    inner: Cow<'a, sys::SteamNetworkingIdentity>,
+    inner: sys::SteamNetworkingIdentity,
 }
 
 // const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
 //     sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
 
-impl NetworkingIdentity<'_> {
+impl NetworkingIdentity {
     pub fn new() -> Self {
         unsafe {
             let mut id = MaybeUninit::<sys::SteamNetworkingIdentity>::uninit();
             sys::SteamAPI_SteamNetworkingIdentity_Clear(id.as_mut_ptr());
             Self {
-                inner: Cow::Owned(id.assume_init()),
+                inner: id.assume_init(),
             }
         }
     }
@@ -1391,37 +1390,27 @@ impl NetworkingIdentity<'_> {
     }
 
     pub(crate) fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
-        self.inner.as_ref()
+        &self.inner
     }
 
     pub(crate) fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
-        self.as_ptr() as *mut _
+        &mut self.inner
     }
 }
 
-impl Debug for NetworkingIdentity<'_> {
+impl Debug for NetworkingIdentity {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.debug_string())
     }
 }
 
-impl From<sys::SteamNetworkingIdentity> for NetworkingIdentity<'_> {
+impl From<sys::SteamNetworkingIdentity> for NetworkingIdentity {
     fn from(id: steamworks_sys::SteamNetworkingIdentity) -> Self {
-        NetworkingIdentity {
-            inner: Cow::Owned(id),
-        }
+        NetworkingIdentity { inner: id }
     }
 }
 
-impl<'a> From<&'a sys::SteamNetworkingIdentity> for NetworkingIdentity<'a> {
-    fn from(id: &'a steamworks_sys::SteamNetworkingIdentity) -> Self {
-        NetworkingIdentity {
-            inner: Cow::Borrowed(id),
-        }
-    }
-}
-
-impl Default for NetworkingIdentity<'_> {
+impl Default for NetworkingIdentity {
     fn default() -> Self {
         Self::new()
     }
@@ -1450,13 +1439,13 @@ impl NetworkingMessage {
         unsafe {
             let ident = &mut (*self.inner).m_identityPeer;
             NetworkingIdentity {
-                inner: Cow::Borrowed(ident),
+                inner: *ident,
             }
         }
     }
 
     pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
-        unsafe { (*self.inner).m_identityPeer = identity.inner.into_owned() }
+        unsafe { (*self.inner).m_identityPeer = identity.inner }
     }
 
     /// For messages received on connections, this is the user data
