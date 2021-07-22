@@ -113,7 +113,7 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingConfigDataType {
     Int32,
     Int64,
@@ -144,6 +144,7 @@ impl From<NetworkingConfigDataType> for sys::ESteamNetworkingConfigDataType {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingConfigValue {
     /// [global float, 0--100] Randomly discard N pct of packets instead of sending/recv
     /// This is a global option only, since it is applied at a low level
@@ -628,7 +629,7 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
 }
 
 /// High level connection status
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingConnectionState {
     /// Dummy value used to indicate an error condition in the API.
     /// Specified connection doesn't exist or has already been closed.
@@ -720,6 +721,7 @@ impl From<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState {
 /// Enumerate various causes of connection termination.  These are designed to work similar
 /// to HTTP error codes: the numeric range gives you a rough classification as to the source
 /// of the problem.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetConnectionEnd {
     //
     // Application codes.  These are the values you will pass to
@@ -1001,6 +1003,7 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
 }
 
 /// Describe the status of a particular network resource
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingAvailability {
     /// We don't know because we haven't ever checked/tried
     NeverTried,
@@ -1016,14 +1019,19 @@ pub enum NetworkingAvailability {
 /// In general, we will not automatically retry unless you take some action that
 /// depends on of requests this resource, such as querying the status, attempting
 /// to initiate a connection, receive a connection, etc.  If you do not take any
+#[derive(Debug, Error)]
 pub enum NetworkingAvailabilityError {
     /// A dependent resource is missing, so this service is unavailable.  (E.g. we cannot talk to routers because Internet is down or we don't have the network config.)
+    #[error("A dependent resource is missing, so this service is unavailable.")]
     CannotTry,
     /// We have tried for enough time that we would expect to have been successful by now.  We have never been successful
+    #[error("We have tried for enough time that we would expect to have been successful by now.  We have never been successful")]
     Failed,
     /// We tried and were successful at one time, but now it looks like we have a problem
+    #[error("We tried and were successful at one time, but now it looks like we have a problem")]
     Previously,
     /// We previously failed and are currently retrying
+    #[error("We previously failed and are currently retrying")]
     Retrying,
 }
 
@@ -1065,6 +1073,7 @@ impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
 #[error("integer value could not be converted to enum")]
 pub struct InvalidEnumValue;
 
+#[derive(Clone)]
 pub struct NetConnectionInfo {
     inner: sys::SteamNetConnectionInfo_t,
 }
@@ -1148,6 +1157,7 @@ trait NetworkingCallback {
 /// state by the time you process this callback.
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
+#[derive(Clone)]
 pub struct NetConnectionStatusChanged {
     pub connection: NetConnection,
     pub connection_info: NetConnectionInfo,
@@ -1175,6 +1185,7 @@ impl NetworkingCallback for NetConnectionStatusChanged {
     }
 }
 
+#[derive(Clone)]
 pub struct NetworkingConfigEntry {
     inner: sys::SteamNetworkingConfigValue_t,
 }
@@ -1270,6 +1281,7 @@ impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
 }
 
 /// A safe wrapper for SteamNetworkingIdentity
+#[derive(Clone)]
 pub struct NetworkingIdentity {
     // Using a enum for NetworkingIdentity with variants for each identity type would be more idiomatic to use,
     // but would require converting between the internal and the rust representation whenever the API is used.
@@ -1604,6 +1616,7 @@ pub enum MessageError {
     BufferAlreadySet,
 }
 
+#[derive(Copy, Clone)]
 pub(crate) struct SteamIpAddr {
     inner: sys::SteamNetworkingIPAddr,
 }
