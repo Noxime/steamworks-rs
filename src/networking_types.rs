@@ -929,6 +929,12 @@ impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
     }
 }
 
+impl From<NetConnectionEnd> for i32 {
+    fn from(end: NetConnectionEnd) -> Self {
+        sys::ESteamNetConnectionEnd::from(end) as i32
+    }
+}
+
 impl TryFrom<i32> for NetConnectionEnd {
     type Error = InvalidEnumValue;
     fn try_from(end: i32) -> Result<Self, Self::Error> {

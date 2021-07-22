@@ -227,7 +227,7 @@ impl<Manager> NetworkingSockets<Manager> {
     pub fn close_connection(
         &self,
         connection: NetConnection,
-        reason: i32,
+        reason: NetConnectionEnd,
         debug_string: Option<&str>,
         enable_linger: bool,
     ) -> bool {
@@ -240,7 +240,7 @@ impl<Manager> NetworkingSockets<Manager> {
             sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
                 self.sockets,
                 connection.into(),
-                reason,
+                reason.into(),
                 debug_string_ptr,
                 enable_linger,
             )
