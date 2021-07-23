@@ -29,7 +29,7 @@ impl <Manager> Drop for CallbackHandle<Manager> {
     }
 }
 
-pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, mut f: F, _game_server: bool) -> CallbackHandle<Manager>
+pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, mut f: F) -> CallbackHandle<Manager>
     where C: Callback,
           F: FnMut(C) + Send + 'static
 {

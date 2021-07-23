@@ -4,7 +4,7 @@ use std::sync::Arc;
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils<Manager> {
     pub(crate) utils: *mut sys::ISteamNetworkingUtils,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner<Manager>>,
 }
 
 unsafe impl<T> Send for NetworkingUtils<T> {}
@@ -25,11 +25,14 @@ impl<Manager> NetworkingUtils<Manager> {
     /// If cbAllocateBuffer=0, then no buffer is allocated.  m_pData will be NULL,
     /// m_cbSize will be zero, and m_pfnFreeData will be NULL.  You will need to
     /// set each of these.
-    pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage {
+    pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage<Manager> {
         unsafe {
-            let inner =
+            let message =
                 sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
-            NetworkingMessage { inner }
+            NetworkingMessage {
+                message,
+                _inner: self.inner.clone(),
+            }
         }
     }
 

@@ -1,101 +1,15 @@
-use crate::{Callback, SteamId};
+use crate::NetConnectionError::UnhandledType;
+use crate::{Callback, Inner, InnerSocket, NetConnection, SResult, SteamId};
 use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Display, Formatter};
 use std::mem::MaybeUninit;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
+use std::sync::Arc;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MessageNumber(pub(crate) i64);
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct NetConnection(pub(crate) u32);
-
-impl NetConnection {
-    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
-        let handle = Self(raw);
-        if handle.is_invalid() {
-            Err(InvalidHandle)
-        } else {
-            Ok(handle)
-        }
-    }
-
-    pub fn raw(&self) -> u32 {
-        self.0
-    }
-
-    pub fn is_invalid(&self) -> bool {
-        self.0 == sys::k_HSteamNetConnection_Invalid
-    }
-}
-
-impl From<NetConnection> for sys::HSteamNetConnection {
-    fn from(connection: NetConnection) -> Self {
-        connection.0 as sys::HSteamNetConnection
-    }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct ListenSocket(pub(crate) u32);
-
-impl ListenSocket {
-    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
-        let handle = Self(raw);
-        if handle.is_invalid() {
-            Err(InvalidHandle)
-        } else {
-            Ok(handle)
-        }
-    }
-
-    pub fn raw(&self) -> u32 {
-        self.0
-    }
-
-    pub fn is_invalid(&self) -> bool {
-        self.0 == sys::k_HSteamListenSocket_Invalid
-    }
-}
-
-impl From<ListenSocket> for sys::HSteamListenSocket {
-    fn from(socket: ListenSocket) -> Self {
-        socket.0 as sys::HSteamListenSocket
-    }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct NetPollGroup(pub(crate) u32);
-
-impl NetPollGroup {
-    pub fn from_raw(raw: u32) -> Result<Self, InvalidHandle> {
-        let handle = Self(raw);
-        if handle.is_invalid() {
-            Err(InvalidHandle)
-        } else {
-            Ok(handle)
-        }
-    }
-
-    pub fn raw(&self) -> u32 {
-        self.0
-    }
-
-    pub fn is_invalid(&self) -> bool {
-        self.0 == sys::k_HSteamNetPollGroup_Invalid
-    }
-}
-
-impl From<NetPollGroup> for sys::HSteamNetPollGroup {
-    fn from(conn: NetPollGroup) -> Self {
-        conn.0 as sys::HSteamNetPollGroup
-    }
-}
-
-#[derive(Debug, Error)]
-#[error("operation was unsuccessful an invalid handle was returned")]
-pub struct InvalidHandle;
 
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -631,9 +545,6 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
 /// High level connection status
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingConnectionState {
-    /// Dummy value used to indicate an error condition in the API.
-    /// Specified connection doesn't exist or has already been closed.
-    None,
     /// We are trying to establish whether peers can talk to each other,
     /// whether they WANT to talk to each other, perform basic auth,
     /// and exchange crypt keys.
@@ -694,7 +605,6 @@ pub enum NetworkingConnectionState {
 impl From<NetworkingConnectionState> for sys::ESteamNetworkingConnectionState {
     fn from(state: NetworkingConnectionState) -> Self {
         match state {
-            NetworkingConnectionState::None => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None,
             NetworkingConnectionState::Connecting => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting,
             NetworkingConnectionState::FindingRoute => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute,
             NetworkingConnectionState::Connected => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected,
@@ -704,19 +614,24 @@ impl From<NetworkingConnectionState> for sys::ESteamNetworkingConnectionState {
     }
 }
 
-impl From<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState {
-    fn from(state: sys::ESteamNetworkingConnectionState) -> Self {
+impl TryFrom<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState {
+    type Error = InvalidConnectionState;
+
+    fn try_from(state: sys::ESteamNetworkingConnectionState) -> Result<Self, Self::Error> {
         match state {
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None => NetworkingConnectionState::None,
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting => NetworkingConnectionState::Connecting,
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute => NetworkingConnectionState::FindingRoute,
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected => NetworkingConnectionState::Connected,
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer => NetworkingConnectionState::ClosedByPeer,
-            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally => NetworkingConnectionState::ProblemDetectedLocally,
-            _ => panic!("invalid state")
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting => Ok(NetworkingConnectionState::Connecting),
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute => Ok(NetworkingConnectionState::FindingRoute),
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected => Ok(NetworkingConnectionState::Connected),
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ClosedByPeer => Ok(NetworkingConnectionState::ClosedByPeer),
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_ProblemDetectedLocally => Ok(NetworkingConnectionState::ProblemDetectedLocally),
+            _ => Err(InvalidConnectionState)
         }
     }
 }
+
+#[derive(Debug, Error)]
+#[error("Invalid state")]
+pub struct InvalidConnectionState;
 
 /// Enumerate various causes of connection termination.  These are designed to work similar
 /// to HTTP error codes: the numeric range gives you a rough classification as to the source
@@ -1073,11 +988,13 @@ impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
 #[error("integer value could not be converted to enum")]
 pub struct InvalidEnumValue;
 
+/// Internal struct to handle network callbacks
 #[derive(Clone)]
-pub struct NetConnectionInfo {
+struct NetConnectionInfo {
     inner: sys::SteamNetConnectionInfo_t,
 }
 
+#[allow(dead_code)]
 impl NetConnectionInfo {
     pub fn identity_remote(&self) -> NetworkingIdentity {
         NetworkingIdentity::from(self.inner.m_identityRemote)
@@ -1087,12 +1004,17 @@ impl NetConnectionInfo {
         self.inner.m_nUserData
     }
 
-    pub fn listen_socket(&self) -> Option<ListenSocket> {
-        ListenSocket::from_raw(self.inner.m_hListenSocket).ok()
+    pub fn listen_socket(&self) -> Option<sys::HSteamNetConnection> {
+        let handle = self.inner.m_hListenSocket;
+        if handle == sys::k_HSteamListenSocket_Invalid {
+            None
+        } else {
+            Some(handle)
+        }
     }
 
-    pub fn state(&self) -> NetworkingConnectionState {
-        self.inner.m_eState.into()
+    pub fn state(&self) -> Result<NetworkingConnectionState, InvalidConnectionState> {
+        self.inner.m_eState.try_into()
     }
 
     pub fn end_reason(&self) -> Option<NetConnectionEnd> {
@@ -1117,11 +1039,10 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     }
 }
 
-/// A helper trait to simplify adding callbacks to `NetworkConfigEntry`
-trait NetworkingCallback {
-    fn config_value(&self) -> NetworkingConfigValue;
-}
-
+/// This in an internal callback that will be used by Steam Networking Sockets directly.
+/// It should not be created manually.
+///
+///
 /// This callback is posted whenever a connection is created, destroyed, or changes state.
 /// The m_info field will contain a complete description of the connection at the time the
 /// change occurred and the callback was posted.  In particular, m_eState will have the
@@ -1158,8 +1079,8 @@ trait NetworkingCallback {
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
 #[derive(Clone)]
-pub struct NetConnectionStatusChanged {
-    pub connection: NetConnection,
+pub(crate) struct NetConnectionStatusChanged {
+    pub connection: sys::HSteamNetConnection,
     pub connection_info: NetConnectionInfo,
     pub old_state: NetworkingConnectionState,
 }
@@ -1172,17 +1093,139 @@ unsafe impl Callback for NetConnectionStatusChanged {
         let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);
 
         NetConnectionStatusChanged {
-            connection: NetConnection(val.m_hConn),
+            connection: val.m_hConn,
             connection_info: val.m_info.into(),
-            old_state: val.m_eOldState.into(),
+            old_state: val.m_eOldState.try_into().unwrap(),
         }
     }
 }
 
-impl NetworkingCallback for NetConnectionStatusChanged {
-    fn config_value(&self) -> NetworkingConfigValue {
-        NetworkingConfigValue::CallbackConnectionStatusChanged
+impl NetConnectionStatusChanged {
+    pub(crate) fn into_listen_socket_event<Manager>(
+        self,
+        socket: Arc<InnerSocket<Manager>>,
+    ) -> Result<ListenSocketEvent<Manager>, NetConnectionError> {
+        match self.connection_info.state() {
+            Ok(NetworkingConnectionState::Connecting) => {
+                Ok(ListenSocketEvent::Connecting(ConnectionRequest {
+                    remote: self.connection_info.identity_remote(),
+                    user_data: self.connection_info.user_data(),
+                    connection: NetConnection::new(
+                        self.connection,
+                        socket.sockets,
+                        socket.inner.clone(),
+                        socket,
+                    ),
+                }))
+            }
+            Ok(NetworkingConnectionState::FindingRoute) => {
+                Err(UnhandledType(NetworkingConnectionState::FindingRoute))
+            }
+            Ok(NetworkingConnectionState::Connected) => {
+                Ok(ListenSocketEvent::Connected(ConnectedEvent {
+                    remote: self.connection_info.identity_remote(),
+                    user_data: self.connection_info.user_data(),
+                    connection: NetConnection::new(
+                        self.connection,
+                        socket.sockets,
+                        socket.inner.clone(),
+                        socket.clone(),
+                    ),
+                }))
+            }
+            Ok(NetworkingConnectionState::ClosedByPeer)
+            | Ok(NetworkingConnectionState::ProblemDetectedLocally) => {
+                Ok(ListenSocketEvent::Disconnected(DisconnectedEvent {
+                    remote: self.connection_info.identity_remote(),
+                    user_data: self.connection_info.user_data(),
+                    end_reason: self
+                        .connection_info
+                        .end_reason()
+                        .expect("disconnect event received, but no valid end reason was given"),
+                }))
+            }
+            Err(err) => Err(NetConnectionError::UnknownType(err)),
+        }
     }
+}
+
+pub enum ListenSocketEvent<Manager> {
+    Connecting(ConnectionRequest<Manager>),
+    Connected(ConnectedEvent<Manager>),
+    Disconnected(DisconnectedEvent),
+}
+
+pub struct ConnectionRequest<Manager> {
+    remote: NetworkingIdentity,
+    user_data: i64,
+    connection: NetConnection<Manager>,
+}
+
+impl<Manager> ConnectionRequest<Manager> {
+    pub fn remote(&self) -> NetworkingIdentity {
+        self.remote.clone()
+    }
+
+    pub fn user_data(&self) -> i64 {
+        self.user_data
+    }
+
+    pub fn accept(self) -> SResult<()> {
+        self.connection.accept_connection()
+    }
+
+    pub fn reject(self, end_reason: NetConnectionEnd, debug_string: Option<&str>) -> bool {
+        self.connection
+            .close_connection(end_reason, debug_string, false)
+    }
+}
+
+pub struct ConnectedEvent<Manager> {
+    remote: NetworkingIdentity,
+    user_data: i64,
+    connection: NetConnection<Manager>,
+}
+
+impl<Manager> ConnectedEvent<Manager> {
+    pub fn remote(&self) -> NetworkingIdentity {
+        self.remote.clone()
+    }
+    pub fn user_data(&self) -> i64 {
+        self.user_data
+    }
+    pub fn connection(&self) -> &NetConnection<Manager> {
+        &self.connection
+    }
+
+    pub fn take_connection(self) -> NetConnection<Manager> {
+        self.connection
+    }
+}
+
+pub struct DisconnectedEvent {
+    remote: NetworkingIdentity,
+    user_data: i64,
+    end_reason: NetConnectionEnd,
+}
+
+impl DisconnectedEvent {
+    pub fn remote(&self) -> NetworkingIdentity {
+        self.remote.clone()
+    }
+    pub fn user_data(&self) -> i64 {
+        self.user_data
+    }
+    pub fn end_reason(&self) -> NetConnectionEnd {
+        self.end_reason
+    }
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum NetConnectionError {
+    #[error("internal event type has no corresponding external event")]
+    UnhandledType(NetworkingConnectionState),
+    #[error("invalid event type")]
+    UnknownType(InvalidConnectionState),
 }
 
 #[derive(Clone)]
@@ -1434,20 +1477,32 @@ impl Default for NetworkingIdentity {
     }
 }
 
-pub struct NetworkingMessage {
-    pub(crate) inner: *mut sys::SteamNetworkingMessage_t,
+pub struct NetworkingMessage<Manager> {
+    pub(crate) message: *mut sys::SteamNetworkingMessage_t,
+
+    // Not sure if this is necessary here, we may not need a Manager to use free on messages
+    pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
-impl NetworkingMessage {
+impl<Manager> NetworkingMessage<Manager> {
     /// For messages received on connections: what connection did this come from?
     /// For outgoing messages: what connection to send it to?
     /// Not used when using the ISteamNetworkingMessages interface
-    pub fn connection(&self) -> NetConnection {
-        unsafe { NetConnection((*self.inner).m_conn) }
+    pub(crate) fn connection(&self) -> Option<sys::HSteamNetConnection> {
+        let handle = unsafe { (*self.message).m_conn };
+        if handle == sys::k_HSteamNetConnection_Invalid {
+            None
+        } else {
+            Some(handle)
+        }
     }
 
-    pub fn set_connection(&self, connection: NetConnection) {
-        unsafe { (*self.inner).m_conn = connection.0 }
+    /// Set the target connection for the connection.
+    /// Make sure you don't close or drop the `NetConnection` before sending your message.
+    ///
+    /// Use this with `ListenSocket::send_messages` for efficient sending.
+    pub fn set_connection(&mut self, connection: sys::HSteamNetConnection) {
+        unsafe { (*self.message).m_conn = connection }
     }
 
     /// For inbound messages: Who sent this to us?
@@ -1455,15 +1510,13 @@ impl NetworkingMessage {
     /// For outbound messages on the ad-hoc ISteamNetworkingMessages interface: who should we send this to?
     pub fn identity_peer(&self) -> NetworkingIdentity {
         unsafe {
-            let ident = &mut (*self.inner).m_identityPeer;
-            NetworkingIdentity {
-                inner: *ident,
-            }
+            let ident = &mut (*self.message).m_identityPeer;
+            NetworkingIdentity { inner: *ident }
         }
     }
 
     pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
-        unsafe { (*self.inner).m_identityPeer = identity.inner }
+        unsafe { (*self.message).m_identityPeer = identity.inner }
     }
 
     /// For messages received on connections, this is the user data
@@ -1483,13 +1536,13 @@ impl NetworkingMessage {
     ///
     /// Not used when sending messages,
     pub fn connection_user_data(&self) -> i64 {
-        unsafe { (*self.inner).m_nConnUserData }
+        unsafe { (*self.message).m_nConnUserData }
     }
 
     /// Message number assigned by the sender.
     /// This is not used for outbound messages
     pub fn message_number(&self) -> MessageNumber {
-        unsafe { MessageNumber((*self.inner).m_nMessageNumber) }
+        unsafe { MessageNumber((*self.message).m_nMessageNumber) }
     }
 
     /// Bitmask of k_nSteamNetworkingSend_xxx flags.
@@ -1497,46 +1550,49 @@ impl NetworkingMessage {
     /// For outbound messages, all bits are relevant
     pub fn send_flags(&self) -> SendFlags {
         unsafe {
-            SendFlags::from_bits((*self.inner).m_nFlags)
+            SendFlags::from_bits((*self.message).m_nFlags)
                 .expect("send flags could not be converted to rust representation")
         }
     }
 
     pub fn set_send_flags(&mut self, send_flags: SendFlags) {
-        unsafe { (*self.inner).m_nFlags = send_flags.bits() }
+        unsafe { (*self.message).m_nFlags = send_flags.bits() }
     }
 
     /// Bitmask of k_nSteamNetworkingSend_xxx flags.
     /// For received messages, only the k_nSteamNetworkingSend_Reliable bit is valid.
     /// For outbound messages, all bits are relevant
     pub fn channel(&self) -> i32 {
-        unsafe { (*self.inner).m_nChannel }
+        unsafe { (*self.message).m_nChannel }
     }
 
     pub fn set_channel(&mut self, channel: i32) {
         unsafe {
-            (*self.inner).m_nChannel = channel;
+            (*self.message).m_nChannel = channel;
         }
     }
 
     /// Message payload
     pub fn data(&self) -> &[u8] {
         unsafe {
-            std::slice::from_raw_parts((*self.inner).m_pData as _, (*self.inner).m_cbSize as usize)
+            std::slice::from_raw_parts(
+                (*self.message).m_pData as _,
+                (*self.message).m_cbSize as usize,
+            )
         }
     }
 
     pub fn copy_data_into_buffer(&mut self, data: &[u8]) -> Result<(), MessageError> {
         unsafe {
-            if (*self.inner).m_pData.is_null() {
+            if (*self.message).m_pData.is_null() {
                 return Err(MessageError::NullBuffer);
             }
 
-            if ((*self.inner).m_cbSize as usize) < data.len() {
+            if ((*self.message).m_cbSize as usize) < data.len() {
                 return Err(MessageError::BufferTooSmall);
             }
 
-            ((*self.inner).m_pData as *mut u8).copy_from(data.as_ptr(), data.len());
+            ((*self.message).m_pData as *mut u8).copy_from(data.as_ptr(), data.len());
         }
 
         Ok(())
@@ -1547,14 +1603,14 @@ impl NetworkingMessage {
     /// Returns `Err(MessageError::BufferAlreadySet)` if the current buffer is not NULL.
     pub fn set_data(&mut self, data: Vec<u8>) -> Result<(), MessageError> {
         unsafe {
-            if !(*self.inner).m_pData.is_null() {
+            if !(*self.message).m_pData.is_null() {
                 return Err(MessageError::BufferAlreadySet);
             }
 
             let mut data = data.into_boxed_slice();
-            (*self.inner).m_pData = data.as_mut_ptr() as *mut c_void;
-            (*self.inner).m_cbSize = data.len() as _;
-            (*self.inner).m_pfnFreeData = Some(free_rust_message_buffer);
+            (*self.message).m_pData = data.as_mut_ptr() as *mut c_void;
+            (*self.message).m_cbSize = data.len() as _;
+            (*self.message).m_pfnFreeData = Some(free_rust_message_buffer);
             std::mem::forget(data);
         }
 
@@ -1567,7 +1623,7 @@ impl NetworkingMessage {
     ///
     /// Not used for received messages.
     pub fn user_data(&self) -> i64 {
-        unsafe { (*self.inner).m_nUserData }
+        unsafe { (*self.message).m_nUserData }
     }
 
     /// Arbitrary user data that you can use when sending messages using
@@ -1575,9 +1631,9 @@ impl NetworkingMessage {
     /// (The callback you set in m_pfnFreeData might use this field.)
     ///
     /// Not used for received messages.
-    pub fn set_user_data(&self, user_data: i64) {
+    pub fn set_user_data(&mut self, user_data: i64) {
         unsafe {
-            (*self.inner).m_nUserData = user_data;
+            (*self.message).m_nUserData = user_data;
         }
     }
 }
@@ -1592,17 +1648,11 @@ extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage
     };
 }
 
-impl From<*mut sys::SteamNetworkingMessage_t> for NetworkingMessage {
-    fn from(inner: *mut steamworks_sys::SteamNetworkingMessage_t) -> Self {
-        Self { inner }
-    }
-}
-
-impl Drop for NetworkingMessage {
+impl<Manager> Drop for NetworkingMessage<Manager> {
     fn drop(&mut self) {
-        debug_assert!(!self.inner.is_null());
+        debug_assert!(!self.message.is_null());
 
-        unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.inner) }
+        unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.message) }
     }
 }
 
