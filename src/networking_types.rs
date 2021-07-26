@@ -545,6 +545,9 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
 /// High level connection status
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetworkingConnectionState {
+    /// Dummy value used to indicate an error condition in the API.
+    /// Specified connection doesn't exist or has already been closed.
+    None,
     /// We are trying to establish whether peers can talk to each other,
     /// whether they WANT to talk to each other, perform basic auth,
     /// and exchange crypt keys.
@@ -605,6 +608,7 @@ pub enum NetworkingConnectionState {
 impl From<NetworkingConnectionState> for sys::ESteamNetworkingConnectionState {
     fn from(state: NetworkingConnectionState) -> Self {
         match state {
+            NetworkingConnectionState::None => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None,
             NetworkingConnectionState::Connecting => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting,
             NetworkingConnectionState::FindingRoute => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute,
             NetworkingConnectionState::Connected => sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected,
@@ -619,6 +623,7 @@ impl TryFrom<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState
 
     fn try_from(state: sys::ESteamNetworkingConnectionState) -> Result<Self, Self::Error> {
         match state {
+            sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_None => Ok(NetworkingConnectionState::None),
             sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connecting => Ok(NetworkingConnectionState::Connecting),
             sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_FindingRoute => Ok(NetworkingConnectionState::FindingRoute),
             sys::ESteamNetworkingConnectionState::k_ESteamNetworkingConnectionState_Connected => Ok(NetworkingConnectionState::Connected),
@@ -990,7 +995,7 @@ pub struct InvalidEnumValue;
 
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
-struct NetConnectionInfo {
+pub(crate) struct NetConnectionInfo {
     inner: sys::SteamNetConnectionInfo_t,
 }
 
@@ -1030,6 +1035,18 @@ impl NetConnectionInfo {
                     .expect("Unknown end reason could not be converted"),
             )
         }
+    }
+}
+
+impl Debug for NetConnectionInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NetConnectionInfo")
+            .field("identity_remote", &self.identity_remote())
+            .field("user_data", &self.user_data())
+            .field("listen_socket", &self.listen_socket())
+            .field("state", &self.state())
+            .field("end_reason", &self.end_reason())
+            .finish()
     }
 }
 
@@ -1078,11 +1095,11 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 /// state by the time you process this callback.
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct NetConnectionStatusChanged {
-    pub connection: sys::HSteamNetConnection,
-    pub connection_info: NetConnectionInfo,
-    pub old_state: NetworkingConnectionState,
+    pub(crate) connection: sys::HSteamNetConnection,
+    pub(crate) connection_info: NetConnectionInfo,
+    pub(crate) old_state: NetworkingConnectionState,
 }
 
 unsafe impl Callback for NetConnectionStatusChanged {
@@ -1101,14 +1118,21 @@ unsafe impl Callback for NetConnectionStatusChanged {
 }
 
 impl NetConnectionStatusChanged {
-    pub(crate) fn into_listen_socket_event<Manager>(
+    pub(crate) fn into_listen_socket_event<Manager: 'static>(
         self,
         socket: Arc<InnerSocket<Manager>>,
     ) -> Result<ListenSocketEvent<Manager>, NetConnectionError> {
         match self.connection_info.state() {
+            Ok(NetworkingConnectionState::None) => {
+                Err(UnhandledType(NetworkingConnectionState::None))
+            }
             Ok(NetworkingConnectionState::Connecting) => {
+                let remote = self.connection_info.identity_remote();
+                if remote.is_invalid() {
+                    return Err(NetConnectionError::InvalidRemote);
+                }
                 Ok(ListenSocketEvent::Connecting(ConnectionRequest {
-                    remote: self.connection_info.identity_remote(),
+                    remote,
                     user_data: self.connection_info.user_data(),
                     connection: NetConnection::new(
                         self.connection,
@@ -1122,8 +1146,12 @@ impl NetConnectionStatusChanged {
                 Err(UnhandledType(NetworkingConnectionState::FindingRoute))
             }
             Ok(NetworkingConnectionState::Connected) => {
+                let remote = self.connection_info.identity_remote();
+                if remote.is_invalid() {
+                    return Err(NetConnectionError::InvalidRemote);
+                }
                 Ok(ListenSocketEvent::Connected(ConnectedEvent {
-                    remote: self.connection_info.identity_remote(),
+                    remote,
                     user_data: self.connection_info.user_data(),
                     connection: NetConnection::new(
                         self.connection,
@@ -1135,8 +1163,12 @@ impl NetConnectionStatusChanged {
             }
             Ok(NetworkingConnectionState::ClosedByPeer)
             | Ok(NetworkingConnectionState::ProblemDetectedLocally) => {
+                let remote = self.connection_info.identity_remote();
+                if remote.is_invalid() {
+                    return Err(NetConnectionError::InvalidRemote);
+                }
                 Ok(ListenSocketEvent::Disconnected(DisconnectedEvent {
-                    remote: self.connection_info.identity_remote(),
+                    remote,
                     user_data: self.connection_info.user_data(),
                     end_reason: self
                         .connection_info
@@ -1161,7 +1193,7 @@ pub struct ConnectionRequest<Manager> {
     connection: NetConnection<Manager>,
 }
 
-impl<Manager> ConnectionRequest<Manager> {
+impl<Manager: 'static> ConnectionRequest<Manager> {
     pub fn remote(&self) -> NetworkingIdentity {
         self.remote.clone()
     }
@@ -1226,6 +1258,8 @@ pub(crate) enum NetConnectionError {
     UnhandledType(NetworkingConnectionState),
     #[error("invalid event type")]
     UnknownType(InvalidConnectionState),
+    #[error("invalid remote")]
+    InvalidRemote,
 }
 
 #[derive(Clone)]
@@ -1488,6 +1522,7 @@ impl<Manager> NetworkingMessage<Manager> {
     /// For messages received on connections: what connection did this come from?
     /// For outgoing messages: what connection to send it to?
     /// Not used when using the ISteamNetworkingMessages interface
+    #[allow(dead_code)]
     pub(crate) fn connection(&self) -> Option<sys::HSteamNetConnection> {
         let handle = unsafe { (*self.message).m_conn };
         if handle == sys::k_HSteamNetConnection_Invalid {
@@ -1650,9 +1685,9 @@ extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage
 
 impl<Manager> Drop for NetworkingMessage<Manager> {
     fn drop(&mut self) {
-        debug_assert!(!self.message.is_null());
-
-        unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.message) }
+        if !self.message.is_null() {
+            unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.message) }
+        }
     }
 }
 

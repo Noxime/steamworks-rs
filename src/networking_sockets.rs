@@ -1,9 +1,10 @@
-use super::*;
 use std::convert::TryInto;
 use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
-use sys::ISteamNetworkingSockets;
+
+use super::*;
+use crate::networking_sockets_callback;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingSockets<Manager> {
@@ -14,7 +15,7 @@ pub struct NetworkingSockets<Manager> {
 unsafe impl<T> Send for NetworkingSockets<T> {}
 unsafe impl<T> Sync for NetworkingSockets<T> {}
 
-impl<Manager> NetworkingSockets<Manager> {
+impl<Manager: 'static> NetworkingSockets<Manager> {
     /// Creates a "server" socket that listens for clients to connect to by calling ConnectByIPAddress, over ordinary UDP (IPv4 or IPv6)
     ///
     /// You must select a specific local port to listen on and set it as the port field of the local address.
@@ -90,7 +91,6 @@ impl<Manager> NetworkingSockets<Manager> {
         if handle == sys::k_HSteamNetConnection_Invalid {
             Err(InvalidHandle)
         } else {
-            let callback_handle = get_or_create_connection_callback(self.inner.clone());
             Ok(NetConnection::new_independent(
                 handle,
                 self.sockets,
@@ -264,26 +264,28 @@ impl<Manager> NetworkingSockets<Manager> {
 /// appear as unresponsive to the client.
 ///
 /// If a Listen Socket goes out of scope while there are still connections, but new requests will be rejected immediately.
+///
+/// Listen Socket Events will only be available if steam callback are regularly called.
 pub struct ListenSocket<Manager> {
     inner: Arc<InnerSocket<Manager>>,
-    callback_handle: Arc<CallbackHandle<Manager>>,
+    _callback_handle: Arc<CallbackHandle<Manager>>,
     receiver: Receiver<ListenSocketEvent<Manager>>,
 }
 
 unsafe impl<Manager: Send + Sync> Send for ListenSocket<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for ListenSocket<Manager> {}
 
-impl<Manager> ListenSocket<Manager> {
-    pub fn new(
+impl<Manager: 'static> ListenSocket<Manager> {
+    pub(crate) fn new(
         handle: sys::HSteamListenSocket,
         sockets: *mut sys::ISteamNetworkingSockets,
         inner: Arc<Inner<Manager>>,
     ) -> Self {
         let (sender, receiver) = std::sync::mpsc::channel();
-        let inner_socket = Arc::new( InnerSocket {
+        let inner_socket = Arc::new(InnerSocket {
             sockets,
             handle,
-            inner,
+            inner: inner.clone(),
         });
         inner
             .networking_sockets_data
@@ -291,12 +293,36 @@ impl<Manager> ListenSocket<Manager> {
             .unwrap()
             .sockets
             .insert(handle, (Arc::downgrade(&inner_socket), sender));
-        let callback_handle = get_or_create_connection_callback(inner.clone());
+        let callback_handle =
+            networking_sockets_callback::get_or_create_connection_callback(inner.clone(), sockets);
         ListenSocket {
             inner: inner_socket,
-            callback_handle,
+            _callback_handle: callback_handle,
             receiver,
         }
+    }
+
+    /// Tries to receive a pending event. This will never block.
+    ///
+    /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
+    pub fn try_receive_event(&self) -> Option<ListenSocketEvent<Manager>> {
+        self.receiver.try_recv().ok()
+    }
+
+    /// Receive the next event. This will block until the next event is received.
+    ///
+    /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
+    pub fn receive_event(&self) -> ListenSocketEvent<Manager> {
+        self.receiver
+            .recv()
+            .expect("all senders were closed, even though the listen socket is still in use")
+    }
+
+    /// Returns an iterator for ListenSocketEvents that will block until the next event is received
+    ///
+    /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
+    pub fn events<'a>(&'a self) -> impl Iterator<Item = ListenSocketEvent<Manager>> + 'a {
+        self.receiver.iter()
     }
 
     /// Send one or more messages without copying the message payload.
@@ -368,28 +394,34 @@ impl<Manager> Drop for InnerSocket<Manager> {
             sys::SteamAPI_ISteamNetworkingSockets_CloseListenSocket(self.sockets, self.handle)
         };
 
-        self.inner
+        if let None = self
+            .inner
             .networking_sockets_data
             .lock()
             .unwrap()
             .sockets
             .remove(&self.handle)
-            .expect("internal socket was removed before being dropped");
+        {
+            eprintln!("error while dropping InnerSocket: socket was already removed")
+        }
     }
 }
 
 pub struct NetConnection<Manager> {
-    pub(crate) handle: sys::HSteamNetConnection,
+    handle: sys::HSteamNetConnection,
     sockets: *mut sys::ISteamNetworkingSockets,
     inner: Arc<Inner<Manager>>,
     socket: Option<Arc<InnerSocket<Manager>>>,
-    callback_handle: Option<Arc<CallbackHandle<Manager>>>,
+    _callback_handle: Option<Arc<CallbackHandle<Manager>>>,
+    _event_receiver: Option<Receiver<()>>,
+
+    is_handled: bool,
 }
 
 unsafe impl<Manager: Send + Sync> Send for NetConnection<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for NetConnection<Manager> {}
 
-impl<Manager> NetConnection<Manager> {
+impl<Manager: 'static> NetConnection<Manager> {
     pub(crate) fn new(
         handle: sys::HSteamNetConnection,
         sockets: *mut sys::ISteamNetworkingSockets,
@@ -401,7 +433,9 @@ impl<Manager> NetConnection<Manager> {
             sockets,
             inner,
             socket: Some(socket),
-            callback_handle: None,
+            _callback_handle: None,
+            _event_receiver: None,
+            is_handled: false,
         }
     }
 
@@ -417,13 +451,34 @@ impl<Manager> NetConnection<Manager> {
             .unwrap()
             .independent_connections
             .insert(handle, sender);
-        let callback = get_or_create_connection_callback(inner.clone());
+        let callback =
+            networking_sockets_callback::get_or_create_connection_callback(inner.clone(), sockets);
         NetConnection {
             handle,
             sockets,
             inner,
             socket: None,
-            callback_handle: Some(callback),
+            _callback_handle: Some(callback),
+            _event_receiver: Some(receiver),
+            is_handled: false,
+        }
+    }
+
+    /// Create a NetConnection without a callback for internal use (e.g. instantly rejecting connection requests to dropped sockets)
+    /// Don't use this for exposed connections, it is not set up correctly.
+    pub(crate) fn new_internal(
+        handle: sys::HSteamNetConnection,
+        sockets: *mut sys::ISteamNetworkingSockets,
+        inner: Arc<Inner<Manager>>,
+    ) -> Self {
+        NetConnection {
+            handle,
+            sockets,
+            inner,
+            socket: None,
+            _callback_handle: None,
+            _event_receiver: None,
+            is_handled: false,
         }
     }
 
@@ -447,6 +502,7 @@ impl<Manager> NetConnection<Manager> {
     }
 
     /// Accept an incoming connection that has been received on a listen socket.
+    /// This is internally used in `ConnectionRequest` and should not be called on regular connections.
     ///
     /// When a connection attempt is received (perhaps after a few basic handshake
     /// packets have been exchanged to prevent trivial spoofing), a connection interface
@@ -485,7 +541,8 @@ impl<Manager> NetConnection<Manager> {
     /// socket, consider setting the options on the listen socket, since such options are
     /// inherited automatically.  If you really do need to set options that are connection
     /// specific, it is safe to set them on the connection before accepting the connection.
-    pub fn accept_connection(&self) -> SResult<()> {
+    pub(crate) fn accept_connection(mut self) -> SResult<()> {
+        self.handle_connection();
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_AcceptConnection(self.sockets, self.handle)
         };
@@ -517,7 +574,7 @@ impl<Manager> NetConnection<Manager> {
     /// connection interface, the reason code, debug string, and linger flag are
     /// ignored.
     pub fn close_connection(
-        self,
+        mut self,
         reason: NetConnectionEnd,
         debug_string: Option<&str>,
         enable_linger: bool,
@@ -527,7 +584,8 @@ impl<Manager> NetConnection<Manager> {
             None => std::ptr::null(),
             Some(s) => s.as_ptr(),
         };
-         unsafe {
+        self.handle_connection();
+        unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
                 self.sockets,
                 self.handle,
@@ -737,107 +795,36 @@ impl<Manager> NetConnection<Manager> {
             Err(InvalidHandle)
         }
     }
+
+    /// Set the connection state to be handled externally. The struct will no longer close the connection on drop.
+    pub(crate) fn handle_connection(&mut self) {
+        self.is_handled = true
+    }
 }
 
 impl<Manager> Drop for NetConnection<Manager> {
     fn drop(&mut self) {
-        let debug_string = CString::new("Handle was dropped").unwrap();
-        let _was_successful = unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
-                self.sockets,
-                self.handle,
-                NetConnectionEnd::AppGeneric.into(),
-                debug_string.as_ptr(),
-                false,
-            )
-        };
+        if !self.is_handled {
+            let debug_string = CString::new("Handle was dropped").unwrap();
+            let _was_successful = unsafe {
+                sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
+                    self.sockets,
+                    self.handle,
+                    NetConnectionEnd::AppGeneric.into(),
+                    debug_string.as_ptr(),
+                    false,
+                )
+            };
 
-        if self.socket.is_none() {
-            self.inner
-                .networking_sockets_data
-                .lock()
-                .unwrap()
-                .independent_connections
-                .remove(&self.handle)
-                .expect("internal connection was removed before being dropped");
-        }
-    }
-}
-/// All independent connections (to a remote host) and listening sockets share the same Callback for
-/// `NetConnectionStatusChangedCallback`. This function either returns the existing handle, or creates a new
-/// handler.
-fn get_or_create_connection_callback<Manager>(
-    inner: Arc<Inner<Manager>>,
-    sockets: *mut ISteamNetworkingSockets
-) -> Arc<CallbackHandle<Manager>> {
-    if let Some(callback) = inner
-        .networking_sockets_data
-        .lock()
-        .unwrap()
-        .connection_callback
-        .upgrade()
-    {
-        callback
-    } else {
-        let callback = unsafe {
-            register_callback(&inner, |event: NetConnectionStatusChanged| {
-                // Using sockets here is safe, because the callback will be removed when all sockets and connections are
-                // closed, so sockets is always valid while the socket exists.
-                networking_connections_callback(inner, event, sockets)
-            })
-        };
-
-        let callback = Arc::new(callback);
-        inner
-            .networking_sockets_data
-            .lock()
-            .unwrap()
-            .connection_callback = Arc::downgrade(&callback);
-        callback
-    }
-}
-
-fn networking_connections_callback<Manager>(
-    inner: Arc<Inner<Manager>>,
-    event: NetConnectionStatusChanged,
-    sockets: *mut ISteamNetworkingSockets,
-) {
-    let socket_handle;
-    let sender = {
-        let data = inner.networking_sockets_data.lock().unwrap();
-        if let Some(socket) = event.connection_info.listen_socket() {
-            socket_handle = Some(socket);
-            data.sockets
-                .get(&socket)
-                .expect("received connection callback for unregistered socket")
-        } else {
-            socket_handle = None;
-            data.independent_connections
-                .get(&event.connection)
-                .expect("received connection callback for unregistered connection")
-        }
-    };
-    let connection = event.connection;
-    let state = event.connection_info.state();
-    let event = event.into_net_connection_event();
-    if let Err(_err) = sender.send(event) {
-        // If the main socket was dropped, but the inner socket still exists, reject all new connections,
-        // as there's no way to accept them.
-        if let (Some(_handle), Ok(NetworkingConnectionState::Connecting)) = (socket_handle, state) {
-            // Always use the ::new() functions to create new connections, this isn't a valid connection.
-            // But in this case it's enough to close the connection.
-            NetConnection {
-                handle: connection,
-                sockets,
-                inner: inner.clone(),
-                socket: None,
-                callback_handle: None,
+            if self.socket.is_none() {
+                self.inner
+                    .networking_sockets_data
+                    .lock()
+                    .unwrap()
+                    .independent_connections
+                    .remove(&self.handle)
+                    .expect("internal connection was removed before being dropped");
             }
-            .close_connection(
-                NetConnectionEnd::AppGeneric,
-                Some("no new connections will be accepted"),
-                false,
-            );
         }
     }
 }
@@ -887,8 +874,9 @@ pub struct InvalidHandle;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::net::Ipv4Addr;
+
+    use super::*;
 
     #[test]
     fn test_create_listen_socket_ip() {
@@ -903,86 +891,76 @@ mod tests {
 
     #[test]
     fn test_socket_connection() {
-        // let (client, single) = Client::init().unwrap();
-        // let sockets = Arc::new(client.networking_sockets());
-        //
-        // let poll_group = sockets.create_poll_group();
-        //
-        // // Create a callback that accepts the new connection and sends a message back immediately
-        // let callback_sockets = sockets.clone();
-        // let _connection_changed = client.register_callback(move |p: NetConnectionStatusChanged| {
-        //     if let NetworkingConnectionState::Connecting = p.connection_info.state() {
-        //         println!(
-        //             "New connection to {:?}",
-        //             p.connection_info.identity_remote()
-        //         );
-        //         if p.connection_info.identity_remote().is_valid() {
-        //             let sockets = &callback_sockets;
-        //
-        //             sockets.accept_connection(&p.connection).unwrap();
-        //             sockets
-        //                 .set_connection_poll_group(&p.connection, &poll_group)
-        //                 .unwrap();
-        //             println!(
-        //                 "Accepting connection to {:?}",
-        //                 p.connection_info.identity_remote()
-        //             );
-        //
-        //             // Send message back
-        //             sockets
-        //                 .send_message_to_connection(
-        //                     &p.connection,
-        //                     &[0, 0, 1, 2],
-        //                     SendFlags::RELIABLE_NO_NAGLE,
-        //                 )
-        //                 .unwrap();
-        //         } else {
-        //             println!(
-        //                 "Invalid connection, probably the event for creating the listening socket"
-        //             )
-        //         }
-        //     } else {
-        //         println!("Callback: {:?}", p.connection_info.state())
-        //     }
-        // });
-        //
-        // println!("Create listening socket");
-        // let _socket = sockets
-        //     .create_listen_socket_ip(
-        //         SocketAddr::new(Ipv4Addr::new(0, 0, 0, 0).into(), 12345),
-        //         vec![],
-        //     )
-        //     .expect("Listen socket creation failed");
-        //
-        // println!("Create client connection");
-        // let connection = sockets
-        //     .connect_by_ip_address(
-        //         SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1).into(), 12345),
-        //         vec![],
-        //     )
-        //     .expect("Starting connection failed");
-        //
-        // println!("Run callbacks");
-        // for _ in 0..10 {
-        //     single.run_callbacks();
-        //     ::std::thread::sleep(::std::time::Duration::from_millis(100));
-        // }
-        //
-        // // Send from the client to the server
-        // sockets
-        //     .send_message_to_connection(&connection, &[1, 2, 3, 4], SendFlags::RELIABLE_NO_NAGLE)
-        //     .unwrap();
-        //
-        // ::std::thread::sleep(::std::time::Duration::from_millis(100));
-        //
-        // // Receive message on the server
-        // let messages = sockets.receive_messaged_on_poll_group(&poll_group, 1);
-        // assert_eq!(messages.len(), 1);
-        // assert_eq!(messages[0].data(), &[1, 2, 3, 4]);
-        //
-        // // Receive message on the client (the one we sent in the callback)
-        // let messages = sockets.receive_messages_on_connection(connection, 1);
-        // assert_eq!(messages.len(), 1);
-        // assert_eq!(messages[0].data(), &[0, 0, 1, 2]);
+        let (client, single) = Client::init().unwrap();
+        let sockets = client.networking_sockets();
+
+        sockets.init_authentication().unwrap();
+
+        let debug_config = vec![NetworkingConfigEntry::new_int32(
+            NetworkingConfigValue::IPAllowWithoutAuth,
+            1,
+        )];
+
+        println!("Create ListenSocket");
+        let bound_ip = SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1).into(), 12345);
+        let socket = sockets
+            .create_listen_socket_ip(bound_ip, debug_config.clone())
+            .unwrap();
+
+        println!("Create connection");
+        let to_server = sockets
+            .connect_by_ip_address(bound_ip, debug_config)
+            .unwrap();
+
+        println!("Run callbacks");
+        for _ in 0..5 {
+            single.run_callbacks();
+            std::thread::sleep(::std::time::Duration::from_millis(50));
+        }
+
+        let event = socket.try_receive_event().unwrap();
+        match event {
+            ListenSocketEvent::Connecting(request) => {
+                println!("Accept connection");
+                request.accept().unwrap();
+            }
+            _ => panic!("unexpected event"),
+        }
+
+        println!("Run callbacks");
+        for _ in 0..5 {
+            single.run_callbacks();
+            std::thread::sleep(::std::time::Duration::from_millis(50));
+        }
+
+        let event = socket.try_receive_event().unwrap();
+        let to_client = match event {
+            ListenSocketEvent::Connected(connected) => connected.take_connection(),
+            _ => panic!("unexpected event"),
+        };
+
+        println!("Send message to server");
+        to_server
+            .send_message(&[1, 1, 2, 5], SendFlags::RELIABLE)
+            .unwrap();
+
+        std::thread::sleep(::std::time::Duration::from_millis(100));
+
+        println!("Receive message");
+        let messages = to_client.receive_messages(10);
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data(), &[1, 1, 2, 5]);
+
+        println!("Send message to client");
+        to_client
+            .send_message(&[3, 3, 3, 1], SendFlags::RELIABLE)
+            .unwrap();
+
+        std::thread::sleep(::std::time::Duration::from_millis(100));
+
+        println!("Receive message");
+        let messages = to_server.receive_messages(10);
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data(), &[3, 3, 3, 1]);
     }
 }

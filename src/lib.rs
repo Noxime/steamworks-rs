@@ -38,6 +38,8 @@ pub use crate::ugc::*;
 mod networking_sockets;
 pub use crate::networking_sockets::*;
 mod networking_utils;
+mod networking_sockets_callback;
+
 pub use crate::networking_utils::*;
 
 use core::ffi::c_void;
@@ -96,7 +98,7 @@ struct Callbacks {
 struct NetworkingSocketsData<Manager> {
     sockets: HashMap<sys::HSteamListenSocket, (Weak<InnerSocket<Manager>>, Sender<ListenSocketEvent<Manager>>)>,
     /// Connections to a remote listening port
-    independent_connections: HashMap<sys::HSteamNetConnection, Sender<ListenSocketEvent<Manager>>>,
+    independent_connections: HashMap<sys::HSteamNetConnection, Sender<()>>,
     connection_callback: Weak<CallbackHandle<Manager>>,
 }
 
