@@ -541,7 +541,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// socket, consider setting the options on the listen socket, since such options are
     /// inherited automatically.  If you really do need to set options that are connection
     /// specific, it is safe to set them on the connection before accepting the connection.
-    pub(crate) fn accept_connection(mut self) -> SResult<()> {
+    pub(crate) fn accept(mut self) -> SResult<()> {
         self.handle_connection();
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_AcceptConnection(self.sockets, self.handle)
@@ -573,7 +573,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// If the connection has already ended and you are just freeing up the
     /// connection interface, the reason code, debug string, and linger flag are
     /// ignored.
-    pub fn close_connection(
+    pub fn close(
         mut self,
         reason: NetConnectionEnd,
         debug_string: Option<&str>,

@@ -1203,12 +1203,12 @@ impl<Manager: 'static> ConnectionRequest<Manager> {
     }
 
     pub fn accept(self) -> SResult<()> {
-        self.connection.accept_connection()
+        self.connection.accept()
     }
 
     pub fn reject(self, end_reason: NetConnectionEnd, debug_string: Option<&str>) -> bool {
         self.connection
-            .close_connection(end_reason, debug_string, false)
+            .close(end_reason, debug_string, false)
     }
 }
 

@@ -79,7 +79,7 @@ impl<Manager: 'static> ConnectionCallbackHandler<Manager> {
 
     fn reject_connection(&self, connection_handle: sys::HSteamNetConnection) {
         NetConnection::new_internal(connection_handle, self.sockets, self.inner.clone())
-            .close_connection(
+            .close(
                 NetConnectionEnd::AppGeneric,
                 Some("no new connections will be accepted"),
                 false,
