@@ -781,7 +781,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     ///
     /// Returns false if the connection handle is invalid, or if the poll group handle
     /// is invalid (and not k_HSteamNetPollGroup_Invalid).
-    pub fn set_poll_group(&self, poll_group: &NetPollGroup<Manager>) -> Result<(), InvalidHandle> {
+    pub fn set_poll_group(&self, poll_group: &NetPollGroup<Manager>) {
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionPollGroup(
                 self.sockets,
@@ -789,11 +789,7 @@ impl<Manager: 'static> NetConnection<Manager> {
                 poll_group.handle,
             )
         };
-        if was_successful {
-            Ok(())
-        } else {
-            Err(InvalidHandle)
-        }
+        debug_assert!(was_successful);
     }
 
     /// Set the connection state to be handled externally. The struct will no longer close the connection on drop.
