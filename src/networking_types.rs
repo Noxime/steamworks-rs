@@ -1,5 +1,8 @@
-use crate::NetConnectionError::UnhandledType;
-use crate::{Callback, Inner, InnerSocket, NetConnection, SResult, SteamId};
+//! Types that are used by both [`networking_sockets`](../networking_sockets) and [`networking_messages`](../networking_messages).
+
+use crate::networking_sockets::{InnerSocket, NetConnection};
+use crate::networking_types::NetConnectionError::UnhandledType;
+use crate::{Callback, Inner, SResult, SteamId};
 use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Display, Formatter};
@@ -995,14 +998,23 @@ pub struct InvalidEnumValue;
 
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
-pub(crate) struct NetConnectionInfo {
+pub struct NetConnectionInfo {
     inner: sys::SteamNetConnectionInfo_t,
 }
 
 #[allow(dead_code)]
 impl NetConnectionInfo {
-    pub fn identity_remote(&self) -> NetworkingIdentity {
-        NetworkingIdentity::from(self.inner.m_identityRemote)
+    /// Return the network identity of the remote peer.
+    ///
+    /// Depending on the connection type and phase of the connection, it may be unknown, in which case `None` is returned.
+    /// If `Some` is returned, the return value is a valid `NetworkingIdentity`.
+    pub fn identity_remote(&self) -> Option<NetworkingIdentity> {
+        let identity = NetworkingIdentity::from(self.inner.m_identityRemote);
+        if identity.is_valid() {
+            Some(identity)
+        } else {
+            None
+        }
     }
 
     pub fn user_data(&self) -> i64 {
@@ -1127,54 +1139,54 @@ impl NetConnectionStatusChanged {
                 Err(UnhandledType(NetworkingConnectionState::None))
             }
             Ok(NetworkingConnectionState::Connecting) => {
-                let remote = self.connection_info.identity_remote();
-                if remote.is_invalid() {
+                if let Some(remote) = self.connection_info.identity_remote() {
+                    Ok(ListenSocketEvent::Connecting(ConnectionRequest {
+                        remote,
+                        user_data: self.connection_info.user_data(),
+                        connection: NetConnection::new(
+                            self.connection,
+                            socket.sockets,
+                            socket.inner.clone(),
+                            socket,
+                        ),
+                    }))
+                } else {
                     return Err(NetConnectionError::InvalidRemote);
                 }
-                Ok(ListenSocketEvent::Connecting(ConnectionRequest {
-                    remote,
-                    user_data: self.connection_info.user_data(),
-                    connection: NetConnection::new(
-                        self.connection,
-                        socket.sockets,
-                        socket.inner.clone(),
-                        socket,
-                    ),
-                }))
             }
             Ok(NetworkingConnectionState::FindingRoute) => {
                 Err(UnhandledType(NetworkingConnectionState::FindingRoute))
             }
             Ok(NetworkingConnectionState::Connected) => {
-                let remote = self.connection_info.identity_remote();
-                if remote.is_invalid() {
+                if let Some(remote) = self.connection_info.identity_remote() {
+                    Ok(ListenSocketEvent::Connected(ConnectedEvent {
+                        remote,
+                        user_data: self.connection_info.user_data(),
+                        connection: NetConnection::new(
+                            self.connection,
+                            socket.sockets,
+                            socket.inner.clone(),
+                            socket.clone(),
+                        ),
+                    }))
+                } else {
                     return Err(NetConnectionError::InvalidRemote);
                 }
-                Ok(ListenSocketEvent::Connected(ConnectedEvent {
-                    remote,
-                    user_data: self.connection_info.user_data(),
-                    connection: NetConnection::new(
-                        self.connection,
-                        socket.sockets,
-                        socket.inner.clone(),
-                        socket.clone(),
-                    ),
-                }))
             }
             Ok(NetworkingConnectionState::ClosedByPeer)
             | Ok(NetworkingConnectionState::ProblemDetectedLocally) => {
-                let remote = self.connection_info.identity_remote();
-                if remote.is_invalid() {
+                if let Some(remote) = self.connection_info.identity_remote() {
+                    Ok(ListenSocketEvent::Disconnected(DisconnectedEvent {
+                        remote,
+                        user_data: self.connection_info.user_data(),
+                        end_reason: self
+                            .connection_info
+                            .end_reason()
+                            .expect("disconnect event received, but no valid end reason was given"),
+                    }))
+                } else {
                     return Err(NetConnectionError::InvalidRemote);
                 }
-                Ok(ListenSocketEvent::Disconnected(DisconnectedEvent {
-                    remote,
-                    user_data: self.connection_info.user_data(),
-                    end_reason: self
-                        .connection_info
-                        .end_reason()
-                        .expect("disconnect event received, but no valid end reason was given"),
-                }))
             }
             Err(err) => Err(NetConnectionError::UnknownType(err)),
         }
@@ -1207,8 +1219,7 @@ impl<Manager: 'static> ConnectionRequest<Manager> {
     }
 
     pub fn reject(self, end_reason: NetConnectionEnd, debug_string: Option<&str>) -> bool {
-        self.connection
-            .close(end_reason, debug_string, false)
+        self.connection.close(end_reason, debug_string, false)
     }
 }
 

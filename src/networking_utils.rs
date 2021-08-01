@@ -1,5 +1,6 @@
-use crate::{Inner, NetworkingMessage};
+use crate::{Inner, };
 use std::sync::Arc;
+use crate::networking_types::NetworkingMessage;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils<Manager> {

@@ -1,10 +1,15 @@
+use crate::networking_sockets_callback;
+use crate::networking_types::{
+    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetworkingAvailability,
+    NetworkingAvailabilityError, NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage,
+    SendFlags, SteamIpAddr,
+};
+use crate::{CallbackHandle, Inner, SResult};
 use std::convert::TryInto;
+use std::ffi::CString;
 use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
-
-use super::*;
-use crate::networking_sockets_callback;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingSockets<Manager> {
@@ -872,7 +877,12 @@ pub struct InvalidHandle;
 mod tests {
     use std::net::Ipv4Addr;
 
+    use crate::Client;
+
     use super::*;
+    use crate::networking_types::{
+        ListenSocketEvent, NetworkingConfigEntry, NetworkingConfigValue, SendFlags,
+    };
 
     #[test]
     fn test_create_listen_socket_ip() {

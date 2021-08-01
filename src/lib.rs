@@ -6,52 +6,47 @@ extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
 
-mod error;
-pub use crate::error::*;
-
-mod callback;
-pub use crate::callback::*;
-mod server;
-pub use crate::server::*;
-mod utils;
-pub use crate::utils::*;
-mod app;
-pub use crate::app::*;
-mod friends;
-pub use crate::friends::*;
-mod matchmaking;
-pub use crate::matchmaking::*;
-mod networking;
-pub use crate::networking::*;
-mod networking_messages;
-pub use crate::networking_messages::*;
-mod networking_types;
-pub use crate::networking_types::*;
-mod user;
-pub use crate::user::*;
-mod user_stats;
-pub use crate::user_stats::*;
-mod remote_storage;
-pub use crate::remote_storage::*;
-mod ugc;
-pub use crate::ugc::*;
-mod networking_sockets;
-pub use crate::networking_sockets::*;
-mod networking_utils;
-mod networking_sockets_callback;
-
-pub use crate::networking_utils::*;
-
 use core::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Formatter};
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex, Weak};
+use std::sync::mpsc::Sender;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::sync::mpsc::Sender;
+
+pub use crate::app::*;
+pub use crate::callback::*;
+pub use crate::error::*;
+pub use crate::friends::*;
+pub use crate::matchmaking::*;
+pub use crate::networking::*;
+pub use crate::remote_storage::*;
+pub use crate::server::*;
+pub use crate::ugc::*;
+pub use crate::user::*;
+pub use crate::user_stats::*;
+pub use crate::utils::*;
+
+mod error;
+mod callback;
+mod server;
+mod utils;
+mod app;
+mod friends;
+mod matchmaking;
+mod networking;
+mod user;
+mod user_stats;
+mod remote_storage;
+mod ugc;
+pub mod networking_messages;
+pub mod networking_types;
+pub mod networking_sockets;
+pub mod networking_utils;
+mod networking_sockets_callback;
 
 pub type SResult<T> = Result<T, SteamError>;
 
@@ -96,7 +91,8 @@ struct Callbacks {
 }
 
 struct NetworkingSocketsData<Manager> {
-    sockets: HashMap<sys::HSteamListenSocket, (Weak<InnerSocket<Manager>>, Sender<ListenSocketEvent<Manager>>)>,
+    sockets: HashMap<sys::HSteamListenSocket,
+        (Weak<networking_sockets::InnerSocket<Manager>>, Sender<networking_types::ListenSocketEvent<Manager>>)>,
     /// Connections to a remote listening port
     independent_connections: HashMap<sys::HSteamNetConnection, Sender<()>>,
     connection_callback: Weak<CallbackHandle<Manager>>,
@@ -370,45 +366,34 @@ impl<Manager> Client<Manager> {
         }
     }
 
-    pub fn networking_messages(&self) -> NetworkingMessages<Manager> {
+    pub fn networking_messages(&self) -> networking_messages::NetworkingMessages<Manager> {
         unsafe {
             let net = sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002();
             debug_assert!(!net.is_null());
-            NetworkingMessages {
+            networking_messages::NetworkingMessages {
                 net,
-                _inner: self.inner.clone(),
+                inner: self.inner.clone(),
             }
         }
     }
 
-    pub fn networking_sockets(&self) -> NetworkingSockets<Manager> {
+    pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets<Manager> {
         unsafe {
             let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v009();
             debug_assert!(!sockets.is_null());
-            NetworkingSockets {
+            networking_sockets::NetworkingSockets {
                 sockets,
                 inner: self.inner.clone(),
             }
         }
     }
 
-    pub fn networking_utils(&self) -> NetworkingUtils<Manager> {
+    pub fn networking_utils(&self) -> networking_utils::NetworkingUtils<Manager> {
         unsafe {
             let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v003();
             debug_assert!(!utils.is_null());
-            NetworkingUtils {
+            networking_utils::NetworkingUtils {
                 utils,
-                inner: self.inner.clone(),
-            }
-        }
-    }
-
-    pub fn game_server_networking_sockets(&self) -> NetworkingSockets<Manager> {
-        unsafe {
-            let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v009();
-            debug_assert!(!sockets.is_null());
-            NetworkingSockets {
-                sockets,
                 inner: self.inner.clone(),
             }
         }
@@ -535,8 +520,9 @@ impl GameId {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serial_test_derive::serial;
+
+    use super::*;
 
     #[test]
     #[serial]
