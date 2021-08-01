@@ -181,7 +181,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     /// ```
     pub fn session_request_callback(
         &self,
-        mut callback: impl FnMut(SessionRequest<Manager>) + Send + Sync + 'static,
+        mut callback: impl FnMut(SessionRequest<Manager>) + Send + 'static,
     ) {
         let builder = SessionRequestBuilder {
             message: self.net,
@@ -205,7 +205,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     /// Calling this function more than once will replace the previous callback.
     pub fn session_failed_callback(
         &self,
-        mut callback: impl FnMut(NetConnectionInfo) + Send + Sync + 'static,
+        mut callback: impl FnMut(NetConnectionInfo) + Send + 'static,
     ) {
         unsafe {
             register_callback(
