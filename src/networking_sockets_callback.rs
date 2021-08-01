@@ -1,10 +1,10 @@
-use crate::{
-    register_callback, CallbackHandle, Inner,
-};
-use std::sync::Arc;
-use steamworks_sys::ISteamNetworkingSockets;
 use crate::networking_sockets::NetConnection;
-use crate::networking_types::{NetConnectionStatusChanged, NetConnectionEnd, NetworkingConnectionState};
+use crate::networking_types::{
+    NetConnectionEnd, NetConnectionStatusChanged, NetworkingConnectionState,
+};
+use crate::{register_callback, CallbackHandle, Inner};
+use std::sync::{Arc, Weak};
+use steamworks_sys::ISteamNetworkingSockets;
 
 /// All independent connections (to a remote host) and listening sockets share the same Callback for
 /// `NetConnectionStatusChangedCallback`. This function either returns the existing handle, or creates a new
@@ -18,7 +18,7 @@ pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
         callback
     } else {
         let handler = ConnectionCallbackHandler {
-            inner: inner.clone(),
+            inner: Arc::downgrade(&inner),
             sockets,
         };
         let callback = unsafe {
@@ -34,12 +34,11 @@ pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
 }
 
 pub(crate) struct ConnectionCallbackHandler<Manager> {
-    inner: Arc<Inner<Manager>>,
+    inner: Weak<Inner<Manager>>,
     sockets: *mut ISteamNetworkingSockets,
 }
 
 unsafe impl<Manager> Send for ConnectionCallbackHandler<Manager> {}
-
 unsafe impl<Manager> Sync for ConnectionCallbackHandler<Manager> {}
 
 impl<Manager: 'static> ConnectionCallbackHandler<Manager> {
@@ -56,35 +55,38 @@ impl<Manager: 'static> ConnectionCallbackHandler<Manager> {
         socket_handle: sys::HSteamListenSocket,
         event: NetConnectionStatusChanged,
     ) {
-        let data = self.inner.networking_sockets_data.lock().unwrap();
-        if let Some((socket, sender)) = data
-            .sockets
-            .get(&socket_handle)
-            .and_then(|(socket, sender)| socket.upgrade().map(|socket| (socket, sender)))
-        {
-            let connection_handle = event.connection;
-            let state = event.connection_info.state().expect("invalid state");
-            if let Ok(event) = event.into_listen_socket_event(socket) {
-                if let Err(_err) = sender.send(event) {
-                    // If the main socket was dropped, but the inner socket still exists, reject all new connections,
-                    // as there's no way to accept them.
-                    if let NetworkingConnectionState::Connecting = state {
-                        self.reject_connection(connection_handle);
+        if let Some(inner) = self.inner.upgrade() {
+            let data = inner.networking_sockets_data.lock().unwrap();
+            if let Some((socket, sender)) = data
+                .sockets
+                .get(&socket_handle)
+                .and_then(|(socket, sender)| socket.upgrade().map(|socket| (socket, sender)))
+            {
+                let connection_handle = event.connection;
+                let state = event.connection_info.state().expect("invalid state");
+                if let Ok(event) = event.into_listen_socket_event(socket) {
+                    if let Err(_err) = sender.send(event) {
+                        // If the main socket was dropped, but the inner socket still exists, reject all new connections,
+                        // as there's no way to accept them.
+                        if let NetworkingConnectionState::Connecting = state {
+                            self.reject_connection(connection_handle);
+                        }
                     }
+                } else {
+                    // Ignore events that couldn't be converted
                 }
-            } else {
-                // Ignore events that couldn't be converted
             }
         }
     }
 
     fn reject_connection(&self, connection_handle: sys::HSteamNetConnection) {
-        NetConnection::new_internal(connection_handle, self.sockets, self.inner.clone())
-            .close(
+        if let Some(inner) = self.inner.upgrade() {
+            NetConnection::new_internal(connection_handle, self.sockets, inner.clone()).close(
                 NetConnectionEnd::AppGeneric,
                 Some("no new connections will be accepted"),
                 false,
             );
+        }
     }
 
     fn independent_connection_callback(&self, _event: NetConnectionStatusChanged) {
