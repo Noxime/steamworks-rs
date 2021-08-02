@@ -1,7 +1,4 @@
-use crate::networking_types::{
-    NetworkingAvailabilityResult,
-    NetworkingMessage,
-};
+use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
 use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CString};
@@ -85,16 +82,16 @@ impl<Manager> NetworkingUtils<Manager> {
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
         unsafe {
             let mut status = sys::SteamRelayNetworkStatus_t {
-                m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_eAvail:
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
                 m_bPingMeasurementInProgress: 0,
-                m_eAvailNetworkConfig: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
-                m_eAvailAnyRelay: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
-                m_debugMsg: [0; 256]
+                m_eAvailNetworkConfig:
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_eAvailAnyRelay:
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_debugMsg: [0; 256],
             };
-            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
-                self.utils,
-                &mut status
-            );
+            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, &mut status);
             status.into()
         }
     }
@@ -206,16 +203,31 @@ mod tests {
 
         let utils = client.networking_utils();
         let status = utils.detailed_relay_network_status();
-        println!("status: {:?}", status.availability);
+        println!(
+            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            status.availability(),
+            status.network_config(),
+            status.any_relay()
+        );
 
         utils.init_relay_network_access();
 
         let status = utils.detailed_relay_network_status();
-        println!("status: {:?}", status.availability);
+        println!(
+            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            status.availability(),
+            status.network_config(),
+            status.any_relay()
+        );
 
-        std::thread::sleep(Duration::from_millis(1000));
+        std::thread::sleep(Duration::from_millis(500));
 
         let status = utils.detailed_relay_network_status();
-        println!("status: {:?}", status.availability);
+        println!(
+            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            status.availability(),
+            status.network_config(),
+            status.any_relay()
+        );
     }
 }
