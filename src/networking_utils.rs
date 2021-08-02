@@ -84,12 +84,18 @@ impl<Manager> NetworkingUtils<Manager> {
     /// Fetch current detailed status of the relay network.
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
         unsafe {
-            let mut status = std::mem::MaybeUninit::uninit();
+            let mut status = sys::SteamRelayNetworkStatus_t {
+                m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_bPingMeasurementInProgress: 0,
+                m_eAvailNetworkConfig: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_eAvailAnyRelay: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                m_debugMsg: [0; 256]
+            };
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
                 self.utils,
-                status.as_mut_ptr(),
+                &mut status
             );
-            status.assume_init().into()
+            status.into()
         }
     }
 
@@ -185,5 +191,31 @@ unsafe impl Callback for RelayNetworkStatusCallback {
         Self {
             status: status.into(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Client;
+    use std::time::Duration;
+
+    #[test]
+    fn test_get_networking_status() {
+        let (client, single) = Client::init().unwrap();
+        std::thread::spawn(move || single.run_callbacks());
+
+        let utils = client.networking_utils();
+        let status = utils.detailed_relay_network_status();
+        println!("status: {:?}", status.availability);
+
+        utils.init_relay_network_access();
+
+        let status = utils.detailed_relay_network_status();
+        println!("status: {:?}", status.availability);
+
+        std::thread::sleep(Duration::from_millis(1000));
+
+        let status = utils.detailed_relay_network_status();
+        println!("status: {:?}", status.availability);
     }
 }

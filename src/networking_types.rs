@@ -946,6 +946,9 @@ pub enum NetworkingAvailability {
 /// to initiate a connection, receive a connection, etc.  If you do not take any
 #[derive(Debug, Error, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum NetworkingAvailabilityError {
+    /// Internal dummy/sentinal. The network resource is probably not initialized yet
+    #[error("unknown")]
+    Unknown,
     /// A dependent resource is missing, so this service is unavailable.  (E.g. we cannot talk to routers because Internet is down or we don't have the network config.)
     #[error("A dependent resource is missing, so this service is unavailable.")]
     CannotTry,
@@ -965,6 +968,9 @@ impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
 
     fn try_from(value: sys::ESteamNetworkingAvailability) -> Result<Self, Self::Error> {
         match value {
+            sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown => {
+                Err(NetworkingAvailabilityError::Unknown)
+            }
             sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry => {
                 Err(NetworkingAvailabilityError::CannotTry)
             }
@@ -989,7 +995,7 @@ impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
             sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Current => {
                 Ok(NetworkingAvailability::Current)
             }
-            _ => panic!("invalid networking availability"),
+            _ => panic!("invalid networking availability {:?}", value),
         }
     }
 }
