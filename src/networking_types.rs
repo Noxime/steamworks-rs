@@ -925,8 +925,10 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
     }
 }
 
+pub type NetworkingAvailabilityResult = Result<NetworkingAvailability, NetworkingAvailabilityError>;
+
 /// Describe the status of a particular network resource
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum NetworkingAvailability {
     /// We don't know because we haven't ever checked/tried
     NeverTried,
@@ -942,7 +944,7 @@ pub enum NetworkingAvailability {
 /// In general, we will not automatically retry unless you take some action that
 /// depends on of requests this resource, such as querying the status, attempting
 /// to initiate a connection, receive a connection, etc.  If you do not take any
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum NetworkingAvailabilityError {
     /// A dependent resource is missing, so this service is unavailable.  (E.g. we cannot talk to routers because Internet is down or we don't have the network config.)
     #[error("A dependent resource is missing, so this service is unavailable.")]
