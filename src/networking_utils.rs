@@ -1,5 +1,8 @@
-use crate::networking_types::{NetworkingAvailability, NetworkingAvailabilityError, NetworkingMessage, NetworkingAvailabilityResult};
-use crate::{Callback, Inner, register_callback};
+use crate::networking_types::{
+    NetworkingAvailabilityResult,
+    NetworkingMessage,
+};
+use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CString};
 use std::sync::Arc;
@@ -70,7 +73,11 @@ impl<Manager> NetworkingUtils<Manager> {
     /// If you want more detailed information use [`detailed_relay_network_status`] instead.
     pub fn relay_network_status(&self) -> NetworkingAvailabilityResult {
         unsafe {
-            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, std::ptr::null_mut()).try_into()
+            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
+                self.utils,
+                std::ptr::null_mut(),
+            )
+            .try_into()
         }
     }
 
@@ -78,7 +85,10 @@ impl<Manager> NetworkingUtils<Manager> {
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
         unsafe {
             let mut status = std::mem::MaybeUninit::uninit();
-            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, status.as_mut_ptr());
+            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
+                self.utils,
+                status.as_mut_ptr(),
+            );
             status.assume_init().into()
         }
     }
@@ -86,9 +96,12 @@ impl<Manager> NetworkingUtils<Manager> {
     /// Register the callback for relay network status updates.
     ///
     /// Calling this more than once replaces the previous callback.
-    pub fn relay_network_status_callback(&self, mut callback: impl FnMut(RelayNetworkStatus)) {
+    pub fn relay_network_status_callback(
+        &self,
+        mut callback: impl FnMut(RelayNetworkStatus) + Send + 'static,
+    ) {
         unsafe {
-            register_callback(&self.inner, |status: RelayNetworkStatusCallback| {
+            register_callback(&self.inner, move |status: RelayNetworkStatusCallback| {
                 callback(status.status);
             });
         }
@@ -96,12 +109,50 @@ impl<Manager> NetworkingUtils<Manager> {
 }
 
 pub struct RelayNetworkStatus {
-    availability: Result<NetworkingAvailability, NetworkingAvailabilityError>,
+    availability: NetworkingAvailabilityResult,
     is_ping_measurement_in_progress: bool,
-    network_config: Result<NetworkingAvailability, NetworkingAvailabilityError>,
-    any_relay: Result<NetworkingAvailability, NetworkingAvailabilityError>,
+    network_config: NetworkingAvailabilityResult,
+    any_relay: NetworkingAvailabilityResult,
 
     debugging_message: String,
+}
+
+impl RelayNetworkStatus {
+    /// Summary status.  When this is "current", initialization has
+    /// completed.  Anything else means you are not ready yet, or
+    /// there is a significant problem.
+    pub fn availability(&self) -> NetworkingAvailabilityResult {
+        self.availability.clone()
+    }
+
+    /// True if latency measurement is in progress (or pending, awaiting a prerequisite).
+    pub fn is_ping_measurement_in_progress(&self) -> bool {
+        self.is_ping_measurement_in_progress
+    }
+
+    /// Status obtaining the network config.  This is a prerequisite
+    /// for relay network access.
+    ///
+    /// Failure to obtain the network config almost always indicates
+    /// a problem with the local internet connection.
+    pub fn network_config(&self) -> NetworkingAvailabilityResult {
+        self.network_config.clone()
+    }
+
+    /// Current ability to communicate with ANY relay.  Note that
+    /// the complete failure to communicate with any relays almost
+    /// always indicates a problem with the local Internet connection.
+    /// (However, just because you can reach a single relay doesn't
+    /// mean that the local connection is in perfect health.)
+    pub fn any_relay(&self) -> NetworkingAvailabilityResult {
+        self.any_relay.clone()
+    }
+
+    /// Non-localized English language status.  For diagnostic/debugging
+    /// purposes only.
+    pub fn debugging_message(&self) -> &str {
+        &self.debugging_message
+    }
 }
 
 impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
