@@ -5,6 +5,8 @@ use crate::networking_types::{
     SendFlags, SteamIpAddr,
 };
 use crate::{CallbackHandle, Inner, SResult};
+#[cfg(test)]
+use serial_test_derive::serial;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::net::SocketAddr;
@@ -885,6 +887,7 @@ mod tests {
     };
 
     #[test]
+    #[serial]
     fn test_create_listen_socket_ip() {
         let (client, _single) = Client::init().unwrap();
         let sockets = client.networking_sockets();
@@ -896,6 +899,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_socket_connection() {
         let (client, single) = Client::init().unwrap();
         let sockets = client.networking_sockets();

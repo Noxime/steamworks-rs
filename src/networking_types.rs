@@ -6,7 +6,6 @@ use crate::{Callback, Inner, SResult, SteamId};
 use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Display, Formatter};
-use std::mem::MaybeUninit;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::sync::Arc;
 
@@ -1287,87 +1286,70 @@ pub struct NetworkingConfigEntry {
 }
 
 impl NetworkingConfigEntry {
+    fn new_uninitialized_config_value() -> sys::SteamNetworkingConfigValue_t {
+        sys::SteamNetworkingConfigValue_t {
+            m_eValue: sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_Invalid,
+            m_eDataType: sys::ESteamNetworkingConfigDataType::k_ESteamNetworkingConfig_Int32,
+            m_val: sys::SteamNetworkingConfigValue_t__bindgen_ty_1 { m_int32: 0 },
+        }
+    }
+
     pub fn new_int32(value_type: NetworkingConfigValue, value: i32) -> Self {
         debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Int32);
 
-        let mut config = MaybeUninit::uninit();
+        let mut config = Self::new_uninitialized_config_value();
         unsafe {
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetInt32(
-                config.as_mut_ptr(),
+                &mut config,
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry {
-                inner: config.assume_init(),
-            }
+            NetworkingConfigEntry { inner: config }
         }
     }
 
     pub fn new_int64(value_type: NetworkingConfigValue, value: i64) -> Self {
         debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Int64);
 
-        let mut config = MaybeUninit::uninit();
+        let mut config = Self::new_uninitialized_config_value();
         unsafe {
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetInt64(
-                config.as_mut_ptr(),
+                &mut config,
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry {
-                inner: config.assume_init(),
-            }
+            NetworkingConfigEntry { inner: config }
         }
     }
 
     pub fn new_float(value_type: NetworkingConfigValue, value: f32) -> Self {
         debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Int64);
 
-        let mut config = MaybeUninit::uninit();
+        let mut config = Self::new_uninitialized_config_value();
         unsafe {
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetFloat(
-                config.as_mut_ptr(),
+                &mut config,
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry {
-                inner: config.assume_init(),
-            }
+            NetworkingConfigEntry { inner: config }
         }
     }
 
     pub fn new_string(value_type: NetworkingConfigValue, value: &str) -> Self {
         debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::String);
 
-        let mut config = MaybeUninit::uninit();
+        let mut config = Self::new_uninitialized_config_value();
         unsafe {
             let c_str = CString::new(value).expect("Rust string could not be converted");
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetString(
-                config.as_mut_ptr(),
+                &mut config,
                 value_type.into(),
                 c_str.as_ptr(),
             );
-            NetworkingConfigEntry {
-                inner: config.assume_init(),
-            }
+            NetworkingConfigEntry { inner: config }
         }
     }
-
-    // TODO: Find a way to use per-socket callbacks
-    // pub fn new_callback<C: Callback + NetworkingCallback>(callback: C) -> Self {
-    //     let value_type = callback.config_value();
-    //     let mut config = MaybeUninit::uninit();
-    //     unsafe {
-    //         let c_str = CString::new(value).expect("Rust string could not be converted");
-    //         sys::SteamAPI_SteamNetworkingConfigValue_t_SetPtr(
-    //             config.as_mut_ptr(),
-    //             value_type.into(),
-    //
-    //         );
-    //         NetworkingConfigEntry {
-    //             inner: config.assume_init(),
-    //         }
-    //     }
-    // }
 }
 
 impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
@@ -1391,10 +1373,14 @@ pub struct NetworkingIdentity {
 impl NetworkingIdentity {
     pub fn new() -> Self {
         unsafe {
-            let mut id = MaybeUninit::<sys::SteamNetworkingIdentity>::uninit();
-            sys::SteamAPI_SteamNetworkingIdentity_Clear(id.as_mut_ptr());
+            let mut id = sys::SteamNetworkingIdentity {
+                m_eType: sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_Invalid,
+                m_cbSize: 0,
+                __bindgen_anon_1: sys::SteamNetworkingIdentity__bindgen_ty_2 { m_steamID64: 0 },
+            };
+            sys::SteamAPI_SteamNetworkingIdentity_Clear(&mut id);
             Self {
-                inner: id.assume_init(),
+                inner: id
             }
         }
     }
@@ -1729,10 +1715,20 @@ pub(crate) struct SteamIpAddr {
 impl SteamIpAddr {
     pub fn new() -> Self {
         unsafe {
-            let mut ip = MaybeUninit::<sys::SteamNetworkingIPAddr>::uninit();
-            sys::SteamAPI_SteamNetworkingIPAddr_Clear(ip.as_mut_ptr());
+            let mut ip = sys::SteamNetworkingIPAddr {
+                __bindgen_anon_1: sys::SteamNetworkingIPAddr__bindgen_ty_2 {
+                    m_ipv4: sys::SteamNetworkingIPAddr_IPv4MappedAddress {
+                        m_8zeros: 0,
+                        m_0000: 0,
+                        m_ffff: 0,
+                        m_ip: [0; 4],
+                    },
+                },
+                m_port: 0,
+            };
+            sys::SteamAPI_SteamNetworkingIPAddr_Clear(&mut ip);
             Self {
-                inner: ip.assume_init(),
+                inner: ip
             }
         }
     }

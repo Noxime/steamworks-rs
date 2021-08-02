@@ -83,12 +83,12 @@ impl<Manager> NetworkingUtils<Manager> {
         unsafe {
             let mut status = sys::SteamRelayNetworkStatus_t {
                 m_eAvail:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
                 m_bPingMeasurementInProgress: 0,
                 m_eAvailNetworkConfig:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
                 m_eAvailAnyRelay:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_CannotTry,
+                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
                 m_debugMsg: [0; 256],
             };
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, &mut status);
