@@ -1,7 +1,7 @@
 use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
 use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
-use std::ffi::{c_void, CString};
+use std::ffi::{c_void, CStr};
 use std::sync::Arc;
 
 /// Access to the steam networking sockets interface
@@ -159,16 +159,17 @@ impl RelayNetworkStatus {
 }
 
 impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
-    fn from(mut status: steamworks_sys::SteamRelayNetworkStatus_t) -> Self {
+    fn from(status: steamworks_sys::SteamRelayNetworkStatus_t) -> Self {
         unsafe {
             Self {
                 availability: status.m_eAvail.try_into(),
                 is_ping_measurement_in_progress: status.m_bPingMeasurementInProgress != 0,
                 network_config: status.m_eAvailNetworkConfig.try_into(),
                 any_relay: status.m_eAvailAnyRelay.try_into(),
-                debugging_message: CString::from_raw(status.m_debugMsg.as_mut_ptr())
-                    .into_string()
-                    .expect("invalid debug string"),
+                debugging_message: CStr::from_ptr(status.m_debugMsg.as_ptr())
+                    .to_str()
+                    .expect("invalid debug string")
+                    .to_owned(),
             }
         }
     }
@@ -204,30 +205,33 @@ mod tests {
         let utils = client.networking_utils();
         let status = utils.detailed_relay_network_status();
         println!(
-            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            "status: {:?}, network_config: {:?}, any_relay: {:?}, message: {}",
             status.availability(),
             status.network_config(),
-            status.any_relay()
+            status.any_relay(),
+            status.debugging_message()
         );
 
         utils.init_relay_network_access();
 
         let status = utils.detailed_relay_network_status();
         println!(
-            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            "status: {:?}, network_config: {:?}, any_relay: {:?}, message: {}",
             status.availability(),
             status.network_config(),
-            status.any_relay()
+            status.any_relay(),
+            status.debugging_message()
         );
 
         std::thread::sleep(Duration::from_millis(500));
 
         let status = utils.detailed_relay_network_status();
         println!(
-            "status: {:?}, network_config: {:?}, any_relay: {:?}",
+            "status: {:?}, network_config: {:?}, any_relay: {:?}, message: {}",
             status.availability(),
             status.network_config(),
-            status.any_relay()
+            status.any_relay(),
+            status.debugging_message()
         );
     }
 }
