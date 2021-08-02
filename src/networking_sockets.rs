@@ -362,8 +362,8 @@ impl<Manager: 'static> ListenSocket<Manager> {
         &self,
         messages: impl IntoIterator<Item = NetworkingMessage<Manager>>,
     ) -> Vec<SResult<MessageNumber>> {
-        let messages: Vec<_> = messages.into_iter().map(|x| x.message).collect();
-        let mut results = Vec::with_capacity(messages.len());
+        let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
+        let mut results = vec![0;messages.len()];
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
                 self.inner.sockets,
@@ -415,7 +415,7 @@ impl<Manager> Drop for InnerSocket<Manager> {
 }
 
 pub struct NetConnection<Manager> {
-    handle: sys::HSteamNetConnection,
+    pub(crate) handle: sys::HSteamNetConnection,
     sockets: *mut sys::ISteamNetworkingSockets,
     inner: Arc<Inner<Manager>>,
     socket: Option<Arc<InnerSocket<Manager>>>,
@@ -899,7 +899,6 @@ mod tests {
     }
 
     #[test]
-    #[serial]
     fn test_socket_connection() {
         let (client, single) = Client::init().unwrap();
         let sockets = client.networking_sockets();
@@ -951,7 +950,7 @@ mod tests {
 
         println!("Send message to server");
         to_server
-            .send_message(&[1, 1, 2, 5], SendFlags::RELIABLE)
+            .send_message(&[1, 1, 2, 5], SendFlags::RELIABLE_NO_NAGLE)
             .unwrap();
 
         std::thread::sleep(::std::time::Duration::from_millis(100));
@@ -963,7 +962,7 @@ mod tests {
 
         println!("Send message to client");
         to_client
-            .send_message(&[3, 3, 3, 1], SendFlags::RELIABLE)
+            .send_message(&[3, 3, 3, 1], SendFlags::RELIABLE_NO_NAGLE)
             .unwrap();
 
         std::thread::sleep(::std::time::Duration::from_millis(100));
@@ -972,5 +971,20 @@ mod tests {
         let messages = to_server.receive_messages(10);
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[3, 3, 3, 1]);
+
+        println!("Send message to client with send_messages");
+        let utils = client.networking_utils();
+        let mut message = utils.allocate_message(0);
+        message.set_connection(&to_client);
+        message.set_send_flags(SendFlags::RELIABLE_NO_NAGLE);
+        message.set_data(vec![1, 2, 34, 5]).unwrap();
+        socket.send_messages(vec![message]);
+
+        std::thread::sleep(::std::time::Duration::from_millis(1000));
+
+        println!("Receive message");
+        let messages = to_server.receive_messages(10);
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data(), &[1, 2, 34, 5]);
     }
 }

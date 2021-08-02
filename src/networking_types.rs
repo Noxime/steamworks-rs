@@ -7,6 +7,7 @@ use std::convert::{TryFrom, TryInto};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
+use std::panic::catch_unwind;
 use std::sync::Arc;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -1379,9 +1380,7 @@ impl NetworkingIdentity {
                 __bindgen_anon_1: sys::SteamNetworkingIdentity__bindgen_ty_2 { m_steamID64: 0 },
             };
             sys::SteamAPI_SteamNetworkingIdentity_Clear(&mut id);
-            Self {
-                inner: id
-            }
+            Self { inner: id }
         }
     }
 
@@ -1541,8 +1540,8 @@ impl<Manager> NetworkingMessage<Manager> {
     /// Make sure you don't close or drop the `NetConnection` before sending your message.
     ///
     /// Use this with `ListenSocket::send_messages` for efficient sending.
-    pub fn set_connection(&mut self, connection: sys::HSteamNetConnection) {
-        unsafe { (*self.message).m_conn = connection }
+    pub fn set_connection(&mut self, connection: &NetConnection<Manager>) {
+        unsafe { (*self.message).m_conn = connection.handle }
     }
 
     /// For inbound messages: Who sent this to us?
@@ -1555,6 +1554,7 @@ impl<Manager> NetworkingMessage<Manager> {
         }
     }
 
+    /// The identity of the sender or, the receiver when used with the [`NetworkingMessages`] interface.
     pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
         unsafe { (*self.message).m_identityPeer = identity.inner }
     }
@@ -1676,16 +1676,25 @@ impl<Manager> NetworkingMessage<Manager> {
             (*self.message).m_nUserData = user_data;
         }
     }
+
+    /// Return the message pointer and prevent rust from releasing it
+    pub(crate) fn take_message(mut self) -> *mut sys::SteamNetworkingMessage_t {
+        let message = self.message;
+        self.message = std::ptr::null_mut();
+        message
+    }
 }
 
 extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage_t) {
-    unsafe {
-        // println!("reclaiming memory");
+    // Panic in code called by C is undefined behaviour
+    if let Err(e) = catch_unwind(|| unsafe {
         let buffer =
             std::slice::from_raw_parts_mut((*message).m_pData, (*message).m_cbSize as usize);
         // Create the box again and drop it immediately
         Box::from_raw(buffer.as_mut_ptr());
-    };
+    }) {
+        eprintln!("{:?}", e);
+    }
 }
 
 impl<Manager> Drop for NetworkingMessage<Manager> {
@@ -1727,9 +1736,7 @@ impl SteamIpAddr {
                 m_port: 0,
             };
             sys::SteamAPI_SteamNetworkingIPAddr_Clear(&mut ip);
-            Self {
-                inner: ip
-            }
+            Self { inner: ip }
         }
     }
 
