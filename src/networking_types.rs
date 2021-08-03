@@ -1509,6 +1509,12 @@ impl From<sys::SteamNetworkingIdentity> for NetworkingIdentity {
     }
 }
 
+impl From<SteamId> for NetworkingIdentity {
+    fn from(id: SteamId) -> Self {
+        Self::new_steam_id(id)
+    }
+}
+
 impl Default for NetworkingIdentity {
     fn default() -> Self {
         Self::new()
