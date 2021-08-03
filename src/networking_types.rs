@@ -1442,8 +1442,8 @@ impl NetworkingIdentity {
         unsafe { sys::SteamAPI_SteamNetworkingIdentity_SetLocalHost(self.as_mut_ptr()) }
     }
 
-    pub fn is_local_host(&mut self) -> bool {
-        unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsLocalHost(self.as_mut_ptr()) }
+    pub fn is_local_host(&self) -> bool {
+        unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsLocalHost(self.as_ptr() as *mut _) }
     }
 
     pub fn debug_string(&self) -> String {
