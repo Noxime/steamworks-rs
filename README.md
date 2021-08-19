@@ -19,6 +19,7 @@ Ensure that your computer has all the needed [requirements](https://rust-lang.gi
 Download and install the [steamworks sdk](https://partner.steamgames.com/doc/sdk) and set the environment variable `STEAM_SDK_LOCATION` to point to it. This is currently built against steamworks v151.
 
 ## Example
+You can find more examples in [examples](examples).
 ```rust
 use steamworks::AppId;
 use steamworks::Client;
