@@ -20,7 +20,8 @@ docs-only = ["steamworks-sys/docs-only"]
 
 [workspace]
 members = [
-    "./steamworks-sys"
+    "./steamworks-sys",
+    "examples/chat-example"
 ]
 
 [dependencies]
