@@ -222,6 +222,76 @@ impl<Manager> Matchmaking<Manager> {
     }
 }
 
+/// Flags describing how a users lobby state has changed. This is provided from `LobbyChatUpdate`.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum ChatMemberStateChange {
+    /// This user has joined or is joining the lobby.
+    Entered,
+
+    /// This user has left or is leaving the lobby.
+    Left,
+
+    /// User disconnected without leaving the lobby first.
+    Disconnected,
+
+    /// The user has been kicked.
+    Kicked,
+
+    /// The user has been kicked and banned.
+    Banned,
+}
+
+/// A lobby chat room state has changed, this is usually sent when a user has joined or left the lobby.
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyChatUpdate {
+    /// The Steam ID of the lobby.
+    pub lobby: LobbyId,
+    /// The user who's status in the lobby just changed - can be recipient.
+    pub user_changed: SteamId,
+    /// Chat member who made the change. This can be different from `user_changed` if kicking, muting, etc. For example, if one user kicks another from the lobby, this will be set to the id of the user who initiated the kick.
+    pub making_change: SteamId,
+
+    /// "ChatMemberStateChange" values.
+    pub member_state_change: ChatMemberStateChange,
+}
+
+unsafe impl Callback for LobbyChatUpdate {
+    const ID: i32 = 506;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatUpdate_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
+
+        LobbyChatUpdate {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            user_changed: SteamId(val.m_ulSteamIDUserChanged),
+            making_change: SteamId(val.m_ulSteamIDUserChanged),
+            member_state_change: match val.m_rgfChatMemberStateChange {
+                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32 => {
+                    ChatMemberStateChange::Entered
+                }
+                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32 => {
+                    ChatMemberStateChange::Left
+                }
+                x if x
+                    == sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32 =>
+                {
+                    ChatMemberStateChange::Disconnected
+                }
+                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32 => {
+                    ChatMemberStateChange::Kicked
+                }
+                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32 => {
+                    ChatMemberStateChange::Banned
+                }
+                _ => unreachable!(),
+            },
+        }
+    }
+}
+
 #[test]
 #[serial]
 fn test_lobby() {
