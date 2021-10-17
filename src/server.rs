@@ -75,6 +75,7 @@ impl Server {
             ) {
                 return Err(SteamError::InitFailed);
             }
+            sys::SteamAPI_ManualDispatch_Init();
             let server_raw = sys::SteamAPI_SteamGameServer_v013();
             let server = Arc::new(Inner {
                 _manager: ServerManager { _priv: () },
