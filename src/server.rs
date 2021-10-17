@@ -264,6 +264,18 @@ impl Server {
         }
     }
 
+    /// Returns an accessor to the steam UGC interface (steam workshop)
+    pub fn ugc(&self) -> UGC<ServerManager> {
+        unsafe {
+            let ugc = sys::SteamAPI_SteamGameServerUGC_v015();
+            debug_assert!(!ugc.is_null());
+            UGC {
+                ugc,
+                inner: self.inner.clone(),
+            }
+        }
+    }
+
     /* TODO: Buggy currently?
     /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps<ServerManager> {
