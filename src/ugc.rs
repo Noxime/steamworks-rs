@@ -574,6 +574,8 @@ impl UGC<ServerManager> {
     /// 
     /// You should pass in the Workshop depot, you can find this on SteamDB. It's usually just the app ID.
     /// 
+    /// The folder is a path to the directory where you wish for this game server to store UGC content.
+    /// 
     /// `true` upon success; otherwise, `false` if the calling user is not a game server or if the workshop is currently updating its content.
     pub fn init_for_game_server(&self, workshop_depot: DepotId_t, folder: &str) -> bool {
         unsafe {
