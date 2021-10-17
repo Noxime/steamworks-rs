@@ -1,4 +1,6 @@
 
+use sys::DepotId_t;
+
 use super::*;
 
 use std::error;
@@ -563,6 +565,20 @@ impl <Manager> UGC<Manager> {
                         Ok(())
                     })
             });
+        }
+    }
+}
+
+impl UGC<ServerManager> {
+    /// Initialize this UGC interface for a Steam game server.
+    /// 
+    /// You should pass in the Workshop depot, you can find this on SteamDB. It's usually just the app ID.
+    /// 
+    /// `true` upon success; otherwise, `false` if the calling user is not a game server or if the workshop is currently updating its content.
+    pub fn init_for_game_server(&self, workshop_depot: DepotId_t, folder: &str) -> bool {
+        unsafe {
+            let folder = CString::new(folder).unwrap();
+            sys::SteamAPI_ISteamUGC_BInitWorkshopForGameServer(self.ugc, workshop_depot, folder.as_ptr())
         }
     }
 }
