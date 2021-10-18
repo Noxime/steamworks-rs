@@ -1,10 +1,14 @@
-extern crate steamworks_sys as sys;
 #[macro_use]
 extern crate thiserror;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
+
+#[cfg(feature = "raw-bindings")]
+pub use steamworks_sys as sys;
+#[cfg(not(feature = "raw-bindings"))]
+use steamworks_sys as sys;
 
 mod error;
 pub use crate::error::*;
