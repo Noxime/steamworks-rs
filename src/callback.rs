@@ -23,13 +23,19 @@ unsafe impl <Manager> Send for CallbackHandle<Manager> {}
 impl <Manager> Drop for CallbackHandle<Manager> {
     fn drop(&mut self) {
         if let Some(inner) = self.inner.upgrade() {
-            let mut cb = inner.callbacks.lock().unwrap();
-            cb.callbacks.remove(&self.id);
+            match inner.callbacks.lock() {
+                Ok(mut cb) => {
+                    cb.callbacks.remove(&self.id);
+                }
+                Err(err) => {
+                    eprintln!("error while dropping callback: {:?}", err);
+                }
+            }
         }
     }
 }
 
-pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, mut f: F, _game_server: bool) -> CallbackHandle<Manager>
+pub(crate) unsafe fn register_callback<C, F, Manager>(inner: &Arc<Inner<Manager>>, mut f: F) -> CallbackHandle<Manager>
     where C: Callback,
           F: FnMut(C) + Send + 'static
 {
