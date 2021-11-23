@@ -148,6 +148,44 @@ impl <Manager> UserStats<Manager> {
         }
     }
 
+    /// Returns the display type of a leaderboard handle. Returns `None` if the leaderboard handle is invalid.
+    pub fn get_leaderboard_display_type(&self, leaderboard: &Leaderboard) -> Option<LeaderboardDisplayType> {
+        unsafe {
+            match sys::SteamAPI_ISteamUserStats_GetLeaderboardDisplayType(self.user_stats, leaderboard.0) {
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric => Some(LeaderboardDisplayType::Numeric),
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds => Some(LeaderboardDisplayType::TimeSeconds),
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds => Some(LeaderboardDisplayType::TimeMilliSeconds),
+                _ => None
+            }
+        }
+    }
+
+    /// Returns the sort method of a leaderboard handle. Returns `None` if the leaderboard handle is invalid.
+    pub fn get_leaderboard_sort_method(&self, leaderboard: &Leaderboard) -> Option<LeaderboardSortMethod> {
+        unsafe {
+            match sys::SteamAPI_ISteamUserStats_GetLeaderboardSortMethod(self.user_stats, leaderboard.0) {
+                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending => Some(LeaderboardSortMethod::Ascending),
+                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending => Some(LeaderboardSortMethod::Descending),
+                _ => None
+            }
+        }
+    }
+
+    /// Returns the name of a leaderboard handle. Returns an empty string if the leaderboard handle is invalid.
+    pub fn get_leaderboard_name(&self, leaderboard: &Leaderboard) -> String {
+        unsafe {
+            let name = CStr::from_ptr(sys::SteamAPI_ISteamUserStats_GetLeaderboardName(self.user_stats, leaderboard.0));
+            name.to_string_lossy().into()
+        }
+    }
+
+    /// Returns the total number of entries in a leaderboard. Returns 0 if the leaderboard handle is invalid.
+    pub fn get_leaderboard_entry_count(&self, leaderboard: &Leaderboard) -> i32 {
+        unsafe {
+            sys::SteamAPI_ISteamUserStats_GetLeaderboardEntryCount(self.user_stats, leaderboard.0)
+        }
+    }
+
     /// Triggers a [`UserStatsReceived`](./struct.UserStatsReceived.html) callback.
     pub fn request_current_stats(&self) {
         unsafe { sys::SteamAPI_ISteamUserStats_RequestCurrentStats(self.user_stats); }
@@ -259,6 +297,16 @@ pub enum LeaderboardDisplayType {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Leaderboard(u64);
+
+impl Leaderboard {
+    /// Returns the raw 64 bit value of the leaderboard id
+    ///
+    /// Useful for serializing leaderboard ids over a
+    /// network or to a save format.
+    pub fn raw(&self) -> u64 {
+        self.0
+    }
+}
 
 #[test]
 #[serial]
