@@ -4,6 +4,8 @@ use std::convert::TryInto;
 use std::ffi::{c_void, CStr};
 use std::sync::Arc;
 
+use steamworks_sys as sys;
+
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils<Manager> {
     pub(crate) utils: *mut sys::ISteamNetworkingUtils,

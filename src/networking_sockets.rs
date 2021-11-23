@@ -13,6 +13,8 @@ use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 
+use steamworks_sys as sys;
+
 /// Access to the steam networking sockets interface
 pub struct NetworkingSockets<Manager> {
     pub(crate) sockets: *mut sys::ISteamNetworkingSockets,

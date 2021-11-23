@@ -9,6 +9,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
 use std::sync::Arc;
+use steamworks_sys as sys;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

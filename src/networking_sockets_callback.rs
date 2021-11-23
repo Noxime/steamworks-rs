@@ -4,7 +4,8 @@ use crate::networking_types::{
 };
 use crate::{register_callback, CallbackHandle, Inner};
 use std::sync::{Arc, Weak};
-use steamworks_sys::ISteamNetworkingSockets;
+use steamworks_sys as sys;
+use sys::ISteamNetworkingSockets;
 
 /// All independent connections (to a remote host) and listening sockets share the same Callback for
 /// `NetConnectionStatusChangedCallback`. This function either returns the existing handle, or creates a new
