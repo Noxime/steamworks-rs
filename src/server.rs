@@ -83,6 +83,11 @@ impl Server {
                     callbacks: HashMap::new(),
                     call_results: HashMap::new(),
                 }),
+                networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                    sockets: Default::default(),
+                    independent_connections: Default::default(),
+                    connection_callback: Default::default()
+                })
             });
             Ok((Server {
                 inner: server.clone(),
@@ -104,7 +109,7 @@ impl Server {
               F: FnMut(C) + 'static + Send
     {
         unsafe {
-            register_callback(&self.inner, f, true)
+            register_callback(&self.inner, f)
         }
     }
 

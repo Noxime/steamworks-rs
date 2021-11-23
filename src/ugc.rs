@@ -1380,7 +1380,7 @@ pub struct QueryResult {
     pub url: String,
     pub num_upvotes: u32,
     pub num_downvotes: u32,
-    /// The bayesian average for up votes / total votes, between [0,1].
+    /// The bayesian average for up votes / total votes, between \[0,1\].
     pub score: f32,
     pub num_children: u32,
 

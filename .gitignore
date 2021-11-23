@@ -5,3 +5,5 @@ Cargo.lock
 .vscode/
 
 *.iml
+/steam_api64.dll
+/steam_api64.lib
