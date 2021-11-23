@@ -166,6 +166,39 @@ impl <Manager> UserStats<Manager> {
         if success { Ok(()) } else { Err(()) }
     }
 
+
+    /// Sets / updates the value of a given stat for the current user
+    /// 
+    /// This call only changes the value in-memory and is very cheap. To commit the stats you
+    /// must call [`store_stats()`](#method.store_stats)
+    /// 
+    /// The specified stat must exist and match the type set on the Steamworks App Admin website.
+    /// 
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    pub fn set_stat_i32(&self, name: &str, stat: i32) -> Result<(), ()> {
+        let name = CString::new(name).unwrap();
+
+        let success = unsafe { sys::SteamAPI_ISteamUserStats_SetStatInt32(self.user_stats, name.as_ptr() as *const _, stat) };
+        if success { Ok(()) } else { Err(()) }
+    }
+
+    /// Sets / updates the value of a given stat for the current user
+    /// 
+    /// This call only changes the value in-memory and is very cheap. To commit the stats you
+    /// must call [`store_stats()`](#method.store_stats)
+    /// 
+    /// The specified stat must exist and match the type set on the Steamworks App Admin website.
+    /// 
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    pub fn set_stat_f32(&self, name: &str, stat: f32) -> Result<(), ()> {
+        let name = CString::new(name).unwrap();
+
+        let success = unsafe { sys::SteamAPI_ISteamUserStats_SetStatFloat(self.user_stats, name.as_ptr() as *const _, stat) };
+        if success { Ok(()) } else { Err(()) }
+    }
+
     /// Access achievement API for a given achievement 'API Name'.
     ///
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
