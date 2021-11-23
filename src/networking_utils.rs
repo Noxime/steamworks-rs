@@ -69,7 +69,7 @@ impl<Manager> NetworkingUtils<Manager> {
 
     /// Fetch current status of the relay network.
     ///
-    /// If you want more detailed information use [`detailed_relay_network_status`] instead.
+    /// If you want more detailed information use [`detailed_relay_network_status`](#method.detailed_relay_network_status) instead.
     pub fn relay_network_status(&self) -> NetworkingAvailabilityResult {
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(

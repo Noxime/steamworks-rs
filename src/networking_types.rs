@@ -1561,7 +1561,7 @@ impl<Manager> NetworkingMessage<Manager> {
         }
     }
 
-    /// The identity of the sender or, the receiver when used with the [`NetworkingMessages`] interface.
+    /// The identity of the sender or, the receiver when used with the NetworkingMessages interface.
     pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
         unsafe { (*self.message).m_identityPeer = identity.inner }
     }
