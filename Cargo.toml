@@ -1,10 +1,10 @@
 [package]
 name = "steamworks"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Thinkofname"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
-repository = "https://github.com/Thinkofname/steamworks-rs"
+repository = "https://github.com/Noxime/steamworks-rs"
 documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
@@ -26,7 +26,7 @@ members = [
 ]
 
 [dependencies]
-steamworks-sys = {path = "./steamworks-sys", version = "0.7.0"}
+steamworks-sys = {path = "./steamworks-sys", version = "0.8.0"}
 thiserror = "1.0.24"
 bitflags = "1.2.1"
 lazy_static = "1.4.0"
