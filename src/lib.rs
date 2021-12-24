@@ -346,7 +346,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam remote storage interface
     pub fn remote_storage(&self) -> RemoteStorage<Manager> {
         unsafe {
-            let rs = sys::SteamAPI_SteamRemoteStorage_v014();
+            let rs = sys::SteamAPI_SteamRemoteStorage_v016();
             debug_assert!(!rs.is_null());
             let util = sys::SteamAPI_SteamUtils_v010();
             debug_assert!(!util.is_null());
@@ -361,7 +361,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC<Manager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v015();
+            let ugc = sys::SteamAPI_SteamUGC_v016();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
@@ -383,7 +383,7 @@ impl<Manager> Client<Manager> {
 
     pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets<Manager> {
         unsafe {
-            let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v009();
+            let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012();
             debug_assert!(!sockets.is_null());
             networking_sockets::NetworkingSockets {
                 sockets,
@@ -394,7 +394,7 @@ impl<Manager> Client<Manager> {
 
     pub fn networking_utils(&self) -> networking_utils::NetworkingUtils<Manager> {
         unsafe {
-            let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v003();
+            let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004();
             debug_assert!(!utils.is_null());
             networking_utils::NetworkingUtils {
                 utils,

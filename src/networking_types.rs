@@ -515,7 +515,7 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
             NetworkingConfigValue::MTUPacketSize => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_MTU_PacketSize,
             NetworkingConfigValue::MTUDataSize => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_MTU_DataSize,
             NetworkingConfigValue::Unencrypted => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_Unencrypted,
-            NetworkingConfigValue::EnumerateDevVars => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_EnumerateDevVars,
+            NetworkingConfigValue::EnumerateDevVars => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_DELETED_EnumerateDevVars,
             NetworkingConfigValue::SymmetricConnect => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SymmetricConnect,
             NetworkingConfigValue::LocalVirtualPort => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_LocalVirtualPort,
             NetworkingConfigValue::CallbackConnectionStatusChanged => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged,
@@ -745,14 +745,6 @@ pub enum NetConnectionEnd {
     // - etc
     RemoteBadCert,
 
-    // We couldn't rendezvous with the remote host because
-    // they aren't logged into Steam
-    RemoteNotLoggedIn,
-
-    // We couldn't rendezvous with the remote host because
-    // they aren't running the right application.
-    RemoteNotRunningApp,
-
     // Something wrong with the protocol version you are using.
     // (Probably the code you are running is too old.)
     RemoteBadProtocolVersion,
@@ -779,11 +771,6 @@ pub enum NetConnectionEnd {
     // don't know if the problem is on our end, in the middle,
     // or on their end.
     MiscTimeout,
-
-    // We're having trouble talking to the relevant relay.
-    // We don't have enough information to say whether the
-    // problem is on our end or not.
-    MiscRelayConnectivity,
 
     // There's some trouble talking to Steam.
     MiscSteamConnectivity,
@@ -838,14 +825,11 @@ impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
             NetConnectionEnd::RemoteTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout,
             NetConnectionEnd::RemoteBadEncrypt => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt,
             NetConnectionEnd::RemoteBadCert => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert,
-            NetConnectionEnd::RemoteNotLoggedIn => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn,
-            NetConnectionEnd::RemoteNotRunningApp => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp,
             NetConnectionEnd::RemoteBadProtocolVersion => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion,
             NetConnectionEnd::RemoteP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses,
             NetConnectionEnd::MiscGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic,
             NetConnectionEnd::MiscInternalError => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError,
             NetConnectionEnd::MiscTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout,
-            NetConnectionEnd::MiscRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity,
             NetConnectionEnd::MiscSteamConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity,
             NetConnectionEnd::MiscNoRelaySessionsToClient => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient,
             NetConnectionEnd::MiscP2PRendezvous => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous,
@@ -876,14 +860,11 @@ impl TryFrom<i32> for NetConnectionEnd {
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout as i32 => Ok(NetConnectionEnd::RemoteTimeout),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => Ok(NetConnectionEnd::RemoteBadEncrypt),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert as i32 => Ok(NetConnectionEnd::RemoteBadCert),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn as i32 => Ok(NetConnectionEnd::RemoteNotLoggedIn),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp as i32 => Ok(NetConnectionEnd::RemoteNotRunningApp),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => Ok(NetConnectionEnd::RemoteBadProtocolVersion),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::RemoteP2PICENoPublicAddresses),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic as i32 => Ok(NetConnectionEnd::MiscGeneric),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError as i32 => Ok(NetConnectionEnd::MiscInternalError),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout as i32 => Ok(NetConnectionEnd::MiscTimeout),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity as i32 => Ok(NetConnectionEnd::MiscRelayConnectivity),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => Ok(NetConnectionEnd::MiscSteamConnectivity),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => Ok(NetConnectionEnd::MiscNoRelaySessionsToClient),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => Ok(NetConnectionEnd::MiscP2PRendezvous),
@@ -908,14 +889,11 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout => NetConnectionEnd::RemoteTimeout,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt => NetConnectionEnd::RemoteBadEncrypt,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert => NetConnectionEnd::RemoteBadCert,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotLoggedIn => NetConnectionEnd::RemoteNotLoggedIn,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_NotRunningApp => { NetConnectionEnd::RemoteNotRunningApp }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion => { NetConnectionEnd::RemoteBadProtocolVersion }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::RemoteP2PICENoPublicAddresses }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic => NetConnectionEnd::MiscGeneric,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError => NetConnectionEnd::MiscInternalError,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout => NetConnectionEnd::MiscTimeout,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_RelayConnectivity => { NetConnectionEnd::MiscRelayConnectivity }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity => { NetConnectionEnd::MiscSteamConnectivity }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient => { NetConnectionEnd::MiscNoRelaySessionsToClient }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous => { NetConnectionEnd::MiscP2PRendezvous }

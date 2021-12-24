@@ -76,7 +76,7 @@ impl Server {
                 return Err(SteamError::InitFailed);
             }
             sys::SteamAPI_ManualDispatch_Init();
-            let server_raw = sys::SteamAPI_SteamGameServer_v013();
+            let server_raw = sys::SteamAPI_SteamGameServer_v014();
             let server = Arc::new(Inner {
                 _manager: ServerManager { _priv: () },
                 callbacks: Mutex::new(Callbacks {
@@ -231,7 +231,7 @@ impl Server {
     /// the steam matchmaking/server browser interfaces.
     pub fn enable_heartbeats(&self, active: bool) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_EnableHeartbeats(self.server, active);
+            sys::SteamAPI_ISteamGameServer_SetAdvertiseServerActive(self.server, active);
         }
     }
 
@@ -275,7 +275,7 @@ impl Server {
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamGameServerUGC_v015();
+            let ugc = sys::SteamAPI_SteamGameServerUGC_v016();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
