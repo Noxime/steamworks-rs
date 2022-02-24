@@ -204,6 +204,20 @@ impl <Manager> UserStats<Manager> {
         if success { Ok(()) } else { Err(()) }
     }
 
+    /// Gets the value of a given stat for the current user
+    /// 
+    /// The specified stat must exist and match the type set on the Steamworks App Admin website.
+    /// 
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    pub fn get_stat_i32(&self, name: &str) -> Result<i32, ()> {
+        let name = CString::new(name).unwrap();
+
+        let mut value: i32 = 0;
+        let success = unsafe { sys::SteamAPI_ISteamUserStats_GetStatInt32(self.user_stats, name.as_ptr() as *const _, &mut value) };
+        if success { Ok(value) } else { Err(()) }
+    }
+
 
     /// Sets / updates the value of a given stat for the current user
     /// 
@@ -219,6 +233,20 @@ impl <Manager> UserStats<Manager> {
 
         let success = unsafe { sys::SteamAPI_ISteamUserStats_SetStatInt32(self.user_stats, name.as_ptr() as *const _, stat) };
         if success { Ok(()) } else { Err(()) }
+    }
+
+    /// Gets the value of a given stat for the current user
+    /// 
+    /// The specified stat must exist and match the type set on the Steamworks App Admin website.
+    /// 
+    /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
+    /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
+    pub fn get_stat_f32(&self, name: &str) -> Result<f32, ()> {
+        let name = CString::new(name).unwrap();
+
+        let mut value: f32 = 0.0;
+        let success = unsafe { sys::SteamAPI_ISteamUserStats_GetStatFloat(self.user_stats, name.as_ptr() as *const _, &mut value) };
+        if success { Ok(value) } else { Err(()) }
     }
 
     /// Sets / updates the value of a given stat for the current user
