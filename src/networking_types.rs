@@ -11,7 +11,7 @@ use std::panic::catch_unwind;
 use std::sync::Arc;
 use steamworks_sys as sys;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MessageNumber(pub(crate) i64);
 
