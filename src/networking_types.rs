@@ -13,7 +13,13 @@ use steamworks_sys as sys;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct MessageNumber(pub(crate) i64);
+pub struct MessageNumber(pub(crate) u64);
+
+impl From<MessageNumber> for u64 {
+    fn from(number: MessageNumber) -> Self {
+        number.0
+    }
+}
 
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -1589,7 +1595,7 @@ impl<Manager> NetworkingMessage<Manager> {
     /// Message number assigned by the sender.
     /// This is not used for outbound messages
     pub fn message_number(&self) -> MessageNumber {
-        unsafe { MessageNumber((*self.message).m_nMessageNumber) }
+        unsafe { MessageNumber((*self.message).m_nMessageNumber as u64) }
     }
 
     /// Bitmask of k_nSteamNetworkingSend_xxx flags.
