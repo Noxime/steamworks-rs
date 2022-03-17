@@ -1,4 +1,6 @@
 //! Types that are used by both [`networking_sockets`](../networking_sockets) and [`networking_messages`](../networking_messages).
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
