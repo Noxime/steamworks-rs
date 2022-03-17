@@ -58,6 +58,15 @@ impl <Manager> Utils<Manager> {
         }
     }
 
+    /// Returns the country code of the current user based on their IP
+    pub fn ip_country(&self) -> String {
+        unsafe {
+            let ipcountry = sys::SteamAPI_ISteamUtils_GetIPCountry(self.utils);
+            let ipcountry = CStr::from_ptr(ipcountry);
+            ipcountry.to_string_lossy().into_owned()
+        }
+    }
+
     /// Returns the language the steam client is currently
     /// running in.
     ///
