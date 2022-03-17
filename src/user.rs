@@ -16,6 +16,13 @@ impl <Manager> User<Manager> {
         }
     }
 
+    /// Returns the level of the current user
+    pub fn level(&self) -> u32 {
+        unsafe {
+            sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32
+        }
+    }
+
     /// Retrieve an authentication session ticket that can be sent
     /// to an entity that wishes to verify you.
     ///
