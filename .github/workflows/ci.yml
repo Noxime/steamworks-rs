@@ -20,7 +20,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
           profile: minimal
-          components: rustfmt, clippy
+          components: clippy
           override: true
 
       - name: Install alsa and udev
@@ -35,12 +35,6 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: actions-rs/cargo@v1
-        if: runner.os == 'linux'
-        with:
-          command: fmt
-          args: --all -- --check
 
       - uses: actions-rs/clippy-check@v1
         if: runner.os == 'linux'
