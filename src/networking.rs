@@ -31,7 +31,7 @@ pub enum SendType {
     ReliableWithBuffering,
 }
 
-impl <Manager> Networking<Manager> {
+impl<Manager> Networking<Manager> {
     /// Accepts incoming packets from the given user
     ///
     /// Should only be called in response to a `P2PSessionRequest`.
@@ -58,7 +58,14 @@ impl <Manager> Networking<Manager> {
                 SendType::Reliable => sys::EP2PSend::k_EP2PSendReliable,
                 SendType::ReliableWithBuffering => sys::EP2PSend::k_EP2PSendReliableWithBuffering,
             };
-            sys::SteamAPI_ISteamNetworking_SendP2PPacket(self.net, remote.0, data.as_ptr() as *const _, data.len() as u32, send_type, 0)
+            sys::SteamAPI_ISteamNetworking_SendP2PPacket(
+                self.net,
+                remote.0,
+                data.as_ptr() as *const _,
+                data.len() as u32,
+                send_type,
+                0,
+            )
         }
     }
 
@@ -85,7 +92,14 @@ impl <Manager> Networking<Manager> {
         unsafe {
             let mut size = 0;
             let mut remote = 0;
-            if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(self.net, buf.as_mut_ptr() as *mut _, buf.len() as _, &mut size, &mut remote as *mut _ as *mut _, 0) {
+            if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(
+                self.net,
+                buf.as_mut_ptr() as *mut _,
+                buf.len() as _,
+                &mut size,
+                &mut remote as *mut _ as *mut _,
+                0,
+            ) {
                 Some((SteamId(remote), size as usize))
             } else {
                 None

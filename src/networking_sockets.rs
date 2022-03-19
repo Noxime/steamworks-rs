@@ -365,7 +365,7 @@ impl<Manager: 'static> ListenSocket<Manager> {
         messages: impl IntoIterator<Item = NetworkingMessage<Manager>>,
     ) -> Vec<SResult<MessageNumber>> {
         let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
-        let mut results = vec![0;messages.len()];
+        let mut results = vec![0; messages.len()];
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
                 self.inner.sockets,

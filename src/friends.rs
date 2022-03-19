@@ -52,8 +52,7 @@ pub struct Friends<Manager> {
     pub(crate) inner: Arc<Inner<Manager>>,
 }
 
-impl <Manager> Friends<Manager> {
-
+impl<Manager> Friends<Manager> {
     /// Returns the (display) name of the current user
     pub fn name(&self) -> String {
         unsafe {
@@ -70,8 +69,12 @@ impl <Manager> Friends<Manager> {
                 return Vec::new();
             }
             let mut friends = Vec::with_capacity(count as usize);
-            for idx in 0 .. count {
-                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendByIndex(self.friends, idx, flags.bits() as _));
+            for idx in 0..count {
+                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendByIndex(
+                    self.friends,
+                    idx,
+                    flags.bits() as _,
+                ));
                 friends.push(Friend {
                     id: friend,
                     friends: self.friends,
@@ -104,7 +107,7 @@ impl <Manager> Friends<Manager> {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(
                 self.friends,
                 url.as_ptr() as *const _,
-                sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default
+                sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default,
             );
         }
     }
@@ -115,7 +118,7 @@ impl <Manager> Friends<Manager> {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(self.friends, lobby.0);
         }
     }
-    
+
     /// Set rich presence for the user. Unsets the rich presence if `value` is None or empty.
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
     pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
@@ -196,13 +199,13 @@ pub struct Friend<Manager> {
     _inner: Arc<Inner<Manager>>,
 }
 
-impl <Manager> Debug for Friend<Manager> {
+impl<Manager> Debug for Friend<Manager> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Friend({:?})", self.id)
     }
 }
 
-impl <Manager> Friend<Manager> {
+impl<Manager> Friend<Manager> {
     pub fn id(&self) -> SteamId {
         self.id
     }
@@ -311,7 +314,8 @@ impl <Manager> Friend<Manager> {
             assert_eq!(width, 184);
             assert_eq!(height, 184);
             let mut dest = vec![0; 184 * 184 * 4];
-            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4) {
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4)
+            {
                 return None;
             }
             Some(dest)
