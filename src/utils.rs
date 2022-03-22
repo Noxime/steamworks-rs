@@ -1,8 +1,7 @@
-
 use super::*;
 
-use std::os::raw::c_char;
 use std::ffi::CStr;
+use std::os::raw::c_char;
 use std::panic;
 use std::process::abort;
 use std::sync::RwLock;
@@ -30,14 +29,14 @@ unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
     let lock = WARNING_CALLBACK.read().expect("warning func lock poisoned");
     let cb = match lock.as_ref() {
         Some(cb) => cb,
-        None => { return; }
+        None => {
+            return;
+        }
     };
 
     let s = CStr::from_ptr(msg);
 
-    let res = panic::catch_unwind(panic::AssertUnwindSafe(||
-        cb(level, s)
-    ));
+    let res = panic::catch_unwind(panic::AssertUnwindSafe(|| cb(level, s)));
     if let Err(err) = res {
         if let Some(err) = err.downcast_ref::<&str>() {
             println!("Steam warning callback panicked: {}", err);
@@ -50,12 +49,10 @@ unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
     }
 }
 
-impl <Manager> Utils<Manager> {
+impl<Manager> Utils<Manager> {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
-        unsafe {
-            AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils))
-        }
+        unsafe { AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils)) }
     }
 
     /// Returns the country code of the current user based on their IP
@@ -86,8 +83,12 @@ impl <Manager> Utils<Manager> {
             let position = match position {
                 NotificationPosition::TopLeft => sys::ENotificationPosition::k_EPositionTopLeft,
                 NotificationPosition::TopRight => sys::ENotificationPosition::k_EPositionTopRight,
-                NotificationPosition::BottomLeft => sys::ENotificationPosition::k_EPositionBottomLeft,
-                NotificationPosition::BottomRight => sys::ENotificationPosition::k_EPositionBottomRight,
+                NotificationPosition::BottomLeft => {
+                    sys::ENotificationPosition::k_EPositionBottomLeft
+                }
+                NotificationPosition::BottomRight => {
+                    sys::ENotificationPosition::k_EPositionBottomRight
+                }
             };
             sys::SteamAPI_ISteamUtils_SetOverlayNotificationPosition(self.utils, position);
         }
@@ -100,9 +101,12 @@ impl <Manager> Utils<Manager> {
     ///
     /// See [Steamwork's debugging page](https://partner.steamgames.com/doc/sdk/api/debugging) for more info.
     pub fn set_warning_callback<F>(&self, cb: F)
-        where F: Fn(i32, &CStr) + Send + Sync + 'static
+    where
+        F: Fn(i32, &CStr) + Send + Sync + 'static,
     {
-        let mut lock = WARNING_CALLBACK.write().expect("warning func lock poisoned");
+        let mut lock = WARNING_CALLBACK
+            .write()
+            .expect("warning func lock poisoned");
         *lock = Some(Box::new(cb));
         unsafe {
             sys::SteamAPI_ISteamUtils_SetWarningMessageHook(self.utils, Some(c_warning_callback));
@@ -120,13 +124,21 @@ impl Drop for SteamParamStringArray {
 }
 impl SteamParamStringArray {
     pub(crate) fn new<S: AsRef<str>>(vec: &[S]) -> SteamParamStringArray {
-        SteamParamStringArray(vec.into_iter().map(|s| CString::new(s.as_ref()).expect("String passed could not be converted to a c string").into_raw()).collect())
+        SteamParamStringArray(
+            vec.into_iter()
+                .map(|s| {
+                    CString::new(s.as_ref())
+                        .expect("String passed could not be converted to a c string")
+                        .into_raw()
+                })
+                .collect(),
+        )
     }
 
     pub(crate) fn as_raw(&mut self) -> sys::SteamParamStringArray_t {
         sys::SteamParamStringArray_t {
             m_nNumStrings: self.0.len() as i32,
-            m_ppStrings: self.0.as_mut_ptr() as *mut *const i8
+            m_ppStrings: self.0.as_mut_ptr() as *mut *const i8,
         }
     }
 }

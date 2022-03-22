@@ -1,7 +1,7 @@
 use super::*;
-use std::net::Ipv4Addr;
 #[cfg(test)]
 use serial_test_derive::serial;
+use std::net::Ipv4Addr;
 
 /// The main entry point into the steam client for servers.
 ///
@@ -55,9 +55,12 @@ impl Server {
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
     pub fn init(
-        ip: Ipv4Addr, steam_port: u16,
-        game_port: u16, query_port: u16,
-        server_mode: ServerMode, version: &str,
+        ip: Ipv4Addr,
+        steam_port: u16,
+        game_port: u16,
+        query_port: u16,
+        server_mode: ServerMode,
+        version: &str,
     ) -> SResult<(Server, SingleClient<ServerManager>)> {
         unsafe {
             let version = CString::new(version).unwrap();
@@ -65,11 +68,15 @@ impl Server {
             let server_mode = match server_mode {
                 ServerMode::NoAuthentication => sys::EServerMode::eServerModeNoAuthentication,
                 ServerMode::Authentication => sys::EServerMode::eServerModeAuthentication,
-                ServerMode::AuthenticationAndSecure => sys::EServerMode::eServerModeAuthenticationAndSecure,
+                ServerMode::AuthenticationAndSecure => {
+                    sys::EServerMode::eServerModeAuthenticationAndSecure
+                }
             };
             if !sys::SteamInternal_GameServer_Init(
-                raw_ip, steam_port,
-                game_port, query_port,
+                raw_ip,
+                steam_port,
+                game_port,
+                query_port,
                 server_mode,
                 version.as_ptr(),
             ) {
@@ -86,16 +93,19 @@ impl Server {
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
                     independent_connections: Default::default(),
-                    connection_callback: Default::default()
-                })
+                    connection_callback: Default::default(),
+                }),
             });
-            Ok((Server {
-                inner: server.clone(),
-                server: server_raw,
-            }, SingleClient {
-                inner: server,
-                _not_sync: PhantomData,
-            }))
+            Ok((
+                Server {
+                    inner: server.clone(),
+                    server: server_raw,
+                },
+                SingleClient {
+                    inner: server,
+                    _not_sync: PhantomData,
+                },
+            ))
         }
     }
 
@@ -105,19 +115,16 @@ impl Server {
     /// The callback will be run on the thread that `run_callbacks`
     /// is called when the event arrives.
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<ServerManager>
-        where C: Callback,
-              F: FnMut(C) + 'static + Send
+    where
+        C: Callback,
+        F: FnMut(C) + 'static + Send,
     {
-        unsafe {
-            register_callback(&self.inner, f)
-        }
+        unsafe { register_callback(&self.inner, f) }
     }
 
     /// Returns the steam id of the current server
     pub fn steam_id(&self) -> SteamId {
-        unsafe {
-            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server))
-        }
+        unsafe { SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server)) }
     }
 
     /// Retrieve an authentication session ticket that can be sent
@@ -135,7 +142,12 @@ impl Server {
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
-            let auth_ticket = sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(self.server, ticket.as_mut_ptr() as *mut _, 1024, &mut ticket_len);
+            let auth_ticket = sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(
+                self.server,
+                ticket.as_mut_ptr() as *mut _,
+                1024,
+                &mut ticket_len,
+            );
             ticket.truncate(ticket_len as usize);
             (AuthTicket(auth_ticket), ticket)
         }
@@ -160,20 +172,35 @@ impl Server {
     ///
     /// When the multiplayer session terminates you must call
     /// `end_authentication_session`
-    pub fn begin_authentication_session(&self, user: SteamId, ticket: &[u8]) -> Result<(), AuthSessionError> {
+    pub fn begin_authentication_session(
+        &self,
+        user: SteamId,
+        ticket: &[u8],
+    ) -> Result<(), AuthSessionError> {
         unsafe {
             let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
                 self.server,
-                ticket.as_ptr() as *const _, ticket.len() as _,
-                user.0
+                ticket.as_ptr() as *const _,
+                ticket.len() as _,
+                user.0,
             );
             Err(match res {
                 sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
+                    AuthSessionError::InvalidTicket
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
+                    AuthSessionError::DuplicateRequest
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
+                    AuthSessionError::InvalidVersion
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
+                    AuthSessionError::GameMismatch
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
+                    AuthSessionError::ExpiredTicket
+                }
                 _ => unreachable!(),
             })
         }
@@ -260,7 +287,6 @@ impl Server {
         }
     }
 
-
     /// Sets the maximum number of players allowed on the server at once.
     ///
     /// This value may be changed at any time.
@@ -271,7 +297,7 @@ impl Server {
     }
 
     /// Returns an accessor to the steam UGC interface (steam workshop)
-    /// 
+    ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
         unsafe {
@@ -304,9 +330,13 @@ impl Server {
 fn test() {
     let (server, single) = Server::init(
         [127, 0, 0, 1].into(),
-        23333, 23334, 23335,
-        ServerMode::Authentication, "0.0.1"
-    ).unwrap();
+        23333,
+        23334,
+        23335,
+        ServerMode::Authentication,
+        "0.0.1",
+    )
+    .unwrap();
 
     println!("{:?}", server.steam_id());
 
@@ -317,7 +347,8 @@ fn test() {
 
     println!("{:?}", server.steam_id());
 
-    let _cb = server.register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
+    let _cb = server
+        .register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
     let _cb = server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = server.steam_id();
@@ -325,7 +356,7 @@ fn test() {
 
     println!("{:?}", server.begin_authentication_session(id, &ticket));
 
-    for _ in 0 .. 20 {
+    for _ in 0..20 {
         single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
@@ -334,14 +365,13 @@ fn test() {
 
     server.cancel_authentication_ticket(auth);
 
-    for _ in 0 .. 20 {
+    for _ in 0..20 {
         single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
     server.end_authentication_session(id);
 }
-
 
 /// Manages keeping the steam api active for servers
 pub struct ServerManager {

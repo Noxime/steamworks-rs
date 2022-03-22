@@ -15,8 +15,8 @@ use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Formatter};
 use std::marker::PhantomData;
-use std::sync::{Arc, Mutex, Weak};
 use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex, Weak};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -34,23 +34,23 @@ pub use crate::user::*;
 pub use crate::user_stats::*;
 pub use crate::utils::*;
 
-mod error;
-mod callback;
-mod server;
-mod utils;
 mod app;
+mod callback;
+mod error;
 mod friends;
 mod matchmaking;
 mod networking;
+pub mod networking_messages;
+pub mod networking_sockets;
+mod networking_sockets_callback;
+pub mod networking_types;
+pub mod networking_utils;
+mod remote_storage;
+mod server;
+mod ugc;
 mod user;
 mod user_stats;
-mod remote_storage;
-mod ugc;
-pub mod networking_messages;
-pub mod networking_types;
-pub mod networking_sockets;
-pub mod networking_utils;
-mod networking_sockets_callback;
+mod utils;
 
 pub type SResult<T> = Result<T, SteamError>;
 
@@ -95,8 +95,13 @@ struct Callbacks {
 }
 
 struct NetworkingSocketsData<Manager> {
-    sockets: HashMap<sys::HSteamListenSocket,
-        (Weak<networking_sockets::InnerSocket<Manager>>, Sender<networking_types::ListenSocketEvent<Manager>>)>,
+    sockets: HashMap<
+        sys::HSteamListenSocket,
+        (
+            Weak<networking_sockets::InnerSocket<Manager>>,
+            Sender<networking_types::ListenSocketEvent<Manager>>,
+        ),
+    >,
     /// Connections to a remote listening port
     independent_connections: HashMap<sys::HSteamNetConnection, Sender<()>>,
     connection_callback: Weak<CallbackHandle<Manager>>,

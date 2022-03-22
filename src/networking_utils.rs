@@ -84,8 +84,7 @@ impl<Manager> NetworkingUtils<Manager> {
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
         unsafe {
             let mut status = sys::SteamRelayNetworkStatus_t {
-                m_eAvail:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+                m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
                 m_bPingMeasurementInProgress: 0,
                 m_eAvailNetworkConfig:
                     sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,

@@ -38,7 +38,11 @@ impl<M> AchievementHelper<'_, M> {
                 self.name.as_ptr() as *const _,
                 &mut achieved as *mut _,
             );
-            if success { Ok(achieved) } else { Err(()) }
+            if success {
+                Ok(achieved)
+            } else {
+                Err(())
+            }
         }
     }
 
@@ -57,7 +61,11 @@ impl<M> AchievementHelper<'_, M> {
                 self.name.as_ptr() as *const _,
             )
         };
-        if success { Ok(()) } else { Err(()) }
+        if success {
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     /// Resets the unlock status of an achievement.
@@ -75,6 +83,10 @@ impl<M> AchievementHelper<'_, M> {
                 self.name.as_ptr() as *const _,
             )
         };
-        if success { Ok(()) } else { Err(()) }
+        if success {
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 }

@@ -8,19 +8,15 @@ pub struct User<Manager> {
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
-impl <Manager> User<Manager> {
+impl<Manager> User<Manager> {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
-        unsafe {
-            SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user))
-        }
+        unsafe { SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user)) }
     }
 
     /// Returns the level of the current user
     pub fn level(&self) -> u32 {
-        unsafe {
-            sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32
-        }
+        unsafe { sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32 }
     }
 
     /// Retrieve an authentication session ticket that can be sent
@@ -38,7 +34,12 @@ impl <Manager> User<Manager> {
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(self.user, ticket.as_mut_ptr() as *mut _, 1024, &mut ticket_len);
+            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
+                self.user,
+                ticket.as_mut_ptr() as *mut _,
+                1024,
+                &mut ticket_len,
+            );
             ticket.truncate(ticket_len as usize);
             (AuthTicket(auth_ticket), ticket)
         }
@@ -63,20 +64,35 @@ impl <Manager> User<Manager> {
     ///
     /// When the multiplayer session terminates you must call
     /// `end_authentication_session`
-    pub fn begin_authentication_session(&self, user: SteamId, ticket: &[u8]) -> Result<(), AuthSessionError> {
+    pub fn begin_authentication_session(
+        &self,
+        user: SteamId,
+        ticket: &[u8],
+    ) -> Result<(), AuthSessionError> {
         unsafe {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
-                ticket.as_ptr() as *const _, ticket.len() as _,
-                user.0
+                ticket.as_ptr() as *const _,
+                ticket.len() as _,
+                user.0,
             );
             Err(match res {
                 sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => AuthSessionError::InvalidTicket,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => AuthSessionError::DuplicateRequest,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => AuthSessionError::InvalidVersion,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => AuthSessionError::GameMismatch,
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => AuthSessionError::ExpiredTicket,
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
+                    AuthSessionError::InvalidTicket
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
+                    AuthSessionError::DuplicateRequest
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
+                    AuthSessionError::InvalidVersion
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
+                    AuthSessionError::GameMismatch
+                }
+                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
+                    AuthSessionError::ExpiredTicket
+                }
                 _ => unreachable!(),
             })
         }
@@ -120,7 +136,8 @@ fn test() {
     let (client, single) = Client::init().unwrap();
     let user = client.user();
 
-    let _cb = client.register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
+    let _cb = client
+        .register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
     let _cb = client.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
 
     let id = user.steam_id();
@@ -128,7 +145,7 @@ fn test() {
 
     println!("{:?}", user.begin_authentication_session(id, &ticket));
 
-    for _ in 0 .. 20 {
+    for _ in 0..20 {
         single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
@@ -137,7 +154,7 @@ fn test() {
 
     user.cancel_authentication_ticket(auth);
 
-    for _ in 0 .. 20 {
+    for _ in 0..20 {
         single.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
@@ -167,11 +184,11 @@ unsafe impl Callback for AuthSessionTicketResponse {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
         AuthSessionTicketResponse {
             ticket: AuthTicket(val.m_hAuthTicket),
-            result: if val.m_eResult == sys::EResult::k_EResultOK  {
+            result: if val.m_eResult == sys::EResult::k_EResultOK {
                 Ok(())
             } else {
                 Err(val.m_eResult.into())
-            }
+            },
         }
     }
 }
@@ -189,7 +206,6 @@ pub struct ValidateAuthTicketResponse {
     pub owner_steam_id: SteamId,
 }
 
-
 unsafe impl Callback for ValidateAuthTicketResponse {
     const ID: i32 = 143;
     const SIZE: i32 = ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32;
@@ -201,17 +217,35 @@ unsafe impl Callback for ValidateAuthTicketResponse {
             owner_steam_id: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
             response: match val.m_eAuthSessionResponse {
                 sys::EAuthSessionResponse::k_EAuthSessionResponseOK => Ok(()),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => Err(AuthSessionValidateError::UserNotConnectedToSteam),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => Err(AuthSessionValidateError::NoLicenseOrExpired),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => Err(AuthSessionValidateError::VACBanned),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => Err(AuthSessionValidateError::LoggedInElseWhere),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => Err(AuthSessionValidateError::VACCheckTimedOut),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => Err(AuthSessionValidateError::AuthTicketCancelled),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => Err(AuthSessionValidateError::AuthTicketInvalid),
-                sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => Err(AuthSessionValidateError::PublisherIssuedBan),
+                sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => {
+                    Err(AuthSessionValidateError::UserNotConnectedToSteam)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => {
+                    Err(AuthSessionValidateError::NoLicenseOrExpired)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => {
+                    Err(AuthSessionValidateError::VACBanned)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => {
+                    Err(AuthSessionValidateError::LoggedInElseWhere)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => {
+                    Err(AuthSessionValidateError::VACCheckTimedOut)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => {
+                    Err(AuthSessionValidateError::AuthTicketCancelled)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => {
+                    Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => {
+                    Err(AuthSessionValidateError::AuthTicketInvalid)
+                }
+                sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => {
+                    Err(AuthSessionValidateError::PublisherIssuedBan)
+                }
                 _ => unreachable!(),
-            }
+            },
         }
     }
 }
@@ -235,7 +269,7 @@ unsafe impl Callback for SteamServersConnected {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamServersDisconnected {
     /// The reason we were disconnected from the Steam servers
-    pub reason: SteamError
+    pub reason: SteamError,
 }
 
 unsafe impl Callback for SteamServersDisconnected {
@@ -245,7 +279,7 @@ unsafe impl Callback for SteamServersDisconnected {
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamServersDisconnected_t);
         SteamServersDisconnected {
-            reason: val.m_eResult.into()
+            reason: val.m_eResult.into(),
         }
     }
 }
@@ -268,7 +302,7 @@ unsafe impl Callback for SteamServerConnectFailure {
         let val = &mut *(raw as *mut sys::SteamServerConnectFailure_t);
         SteamServerConnectFailure {
             reason: val.m_eResult.into(),
-            still_retrying: val.m_bStillRetrying
+            still_retrying: val.m_bStillRetrying,
         }
     }
 }
