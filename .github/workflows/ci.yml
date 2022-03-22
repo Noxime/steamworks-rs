@@ -36,12 +36,6 @@ jobs:
             target
           key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: actions-rs/clippy-check@v1
-        if: runner.os == 'linux'
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
-
       - uses: actions-rs/cargo@v1
         with:
           command: test
