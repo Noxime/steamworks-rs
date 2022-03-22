@@ -15,9 +15,9 @@ features = [ "docs-only" ]
 
 [features]
 default = []
-rebuild-bindings = []
+rebuild-bindings = ["bindgen"]
 
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.59"
+bindgen = { version = "0.59", optional = true }

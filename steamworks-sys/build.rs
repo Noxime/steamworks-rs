@@ -1,16 +1,12 @@
+#[cfg(feature = "rebuild-bindings")]
 extern crate bindgen;
 
-#[cfg(not(feature = "rebuild-bindings"))]
-fn main() {}
-
-#[cfg(feature = "rebuild-bindingd")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::env;
     use std::fs::{self};
     use std::path::{Path, PathBuf};
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let binding_path = Path::new("src/bindings.rs").to_owned();
     let sdk_loc = env::var("STEAM_SDK_LOCATION").expect("STEAM_SDK_LOCATION must be set");
     let sdk_loc = Path::new(&sdk_loc);
     println!("cargo:rerun-if-env-changed=STEAM_SDK_LOCATION");
@@ -55,30 +51,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rustc-link-search={}", out_path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
-    let bindings = bindgen::Builder::default()
-        .header(
-            sdk_loc
-                .join("public/steam/steam_api_flat.h")
-                .to_string_lossy(),
-        )
-        .header(
-            sdk_loc
-                .join("public/steam/steam_gameserver.h")
-                .to_string_lossy(),
-        )
-        .clang_arg("-xc++")
-        .clang_arg("-std=c++11")
-        .clang_arg(format!("-I{}", sdk_loc.join("public").display()))
-        .rustfmt_bindings(true)
-        .default_enum_style(bindgen::EnumVariation::Rust {
-            non_exhaustive: true,
-        })
-        .generate()
-        .expect("Unable to generate bindings");
+    #[cfg(feature = "rebuild-bindingd")]
+    {
+        let binding_path = Path::new("src/bindings.rs").to_owned();
+        let bindings = bindgen::Builder::default()
+            .header(
+                sdk_loc
+                    .join("public/steam/steam_api_flat.h")
+                    .to_string_lossy(),
+            )
+            .header(
+                sdk_loc
+                    .join("public/steam/steam_gameserver.h")
+                    .to_string_lossy(),
+            )
+            .clang_arg("-xc++")
+            .clang_arg("-std=c++11")
+            .clang_arg(format!("-I{}", sdk_loc.join("public").display()))
+            .rustfmt_bindings(true)
+            .default_enum_style(bindgen::EnumVariation::Rust {
+                non_exhaustive: true,
+            })
+            .generate()
+            .expect("Unable to generate bindings");
 
-    bindings
-        .write_to_file(binding_path)
-        .expect("Couldn't write bindings!");
+        bindings
+            .write_to_file(binding_path)
+            .expect("Couldn't write bindings!");
+    }
 
     Ok(())
 }
