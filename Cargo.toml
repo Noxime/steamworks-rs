@@ -10,9 +10,6 @@ keywords = ["steam", "gamedev"]
 categories = ["games"]
 edition = "2018"
 
-[package.metadata.docs.rs]
-features = [ "docs-only" ]
-
 [features]
 default = []
 raw-bindings = []

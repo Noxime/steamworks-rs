@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rustc-link-search={}", out_path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
-    #[cfg(feature = "rebuild-bindingd")]
+    #[cfg(feature = "rebuild-bindings")]
     {
         let binding_path = Path::new("src/bindings.rs").to_owned();
         let bindings = bindgen::Builder::default()
