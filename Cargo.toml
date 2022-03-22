@@ -16,8 +16,6 @@ features = [ "docs-only" ]
 [features]
 default = []
 raw-bindings = []
-# Skip looking for the steamworks sdk for docs builds
-docs-only = ["steamworks-sys/docs-only"]
 
 [workspace]
 members = [

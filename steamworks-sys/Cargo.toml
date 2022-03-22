@@ -15,9 +15,7 @@ features = [ "docs-only" ]
 
 [features]
 default = []
-# Skip looking for the steamworks sdk for docs builds
-docs-only = []
-
+rebuild-bindings = []
 
 [dependencies]
 
