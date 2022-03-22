@@ -14,10 +14,6 @@ Add the following to your `Cargo.toml`:
 steamworks = "0.7.0"
 ```
 
-Ensure that your computer has all the needed [requirements](https://rust-lang.github.io/rust-bindgen/requirements.html) to use [bindgen](https://github.com/rust-lang/rust-bindgen).
-
-Download and install the [steamworks sdk](https://partner.steamgames.com/doc/sdk) and set the environment variable `STEAM_SDK_LOCATION` to point to it. This is currently built against steamworks v151.
-
 ## Example
 You can find more examples in [examples](examples).
 ```rust
