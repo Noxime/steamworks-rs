@@ -5,5 +5,5 @@ Cargo.lock
 .vscode/
 
 *.iml
-lib/steam
-!lib/steam/redistributable_bin
+steamworks-sys/lib/steam/*
+!steamworks-sys/lib/steam/redistributable_bin/
