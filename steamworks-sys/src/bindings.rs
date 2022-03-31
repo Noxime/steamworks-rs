@@ -90,7 +90,6 @@ pub const _HAS_EXCEPTIONS: u32 = 1;
 pub const NULL: u32 = 0;
 pub const _HAS_CXX17: u32 = 0;
 pub const _HAS_CXX20: u32 = 0;
-pub const _HAS_CXX23: u32 = 0;
 pub const _HAS_NODISCARD: u32 = 1;
 pub const _ARGMAX: u32 = 100;
 pub const _CRT_INT_MAX: u32 = 2147483647;

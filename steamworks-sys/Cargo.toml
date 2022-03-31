@@ -9,17 +9,11 @@ repository = "https://github.com/Noxime/steamworks-rs"
 documentation = "https://docs.rs/steamworks-sys"
 edition = "2018"
 
-[package.metadata.docs.rs]
-features = [ "docs-only" ]
-
-
 [features]
 default = []
-# Skip looking for the steamworks sdk for docs builds
-docs-only = []
-
+rebuild-bindings = ["bindgen"]
 
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.59"
+bindgen = { version = "0.59", optional = true }

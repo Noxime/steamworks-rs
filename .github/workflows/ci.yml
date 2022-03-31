@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        toolchain: [stable]
+        toolchain: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -41,3 +41,10 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-C debuginfo=0"
