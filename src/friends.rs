@@ -100,6 +100,16 @@ impl<Manager> Friends<Manager> {
         }
     }
 
+    pub fn activate_game_overlay(&self, dialog: &str) {
+        let dialog = CString::new(dialog).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlay(
+                self.friends,
+                dialog.as_ptr() as *const _,
+            );
+        }
+    }
+
     // I don't know why this is part of friends either
     pub fn activate_game_overlay_to_web_page(&self, url: &str) {
         unsafe {
