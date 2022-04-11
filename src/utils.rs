@@ -79,9 +79,7 @@ impl<Manager> Utils<Manager> {
     /// Returns the current real time on the Steam servers
     /// in Unix epoch format (seconds since 1970/1/1 UTC).
     pub fn get_server_real_time(&self) -> u32 {
-        unsafe {
-            sys::SteamAPI_ISteamUtils_GetServerRealTime(self.utils)
-        }
+        unsafe { sys::SteamAPI_ISteamUtils_GetServerRealTime(self.utils) }
     }
 
     /// Sets the position on the screen where popups from the steam overlay
