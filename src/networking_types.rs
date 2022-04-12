@@ -1100,6 +1100,9 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 pub(crate) struct NetConnectionStatusChanged {
     pub(crate) connection: sys::HSteamNetConnection,
     pub(crate) connection_info: NetConnectionInfo,
+
+    // Debug is intentionally ignored during dead-code analysis
+    #[allow(dead_code)]
     pub(crate) old_state: NetworkingConnectionState,
 }
 
