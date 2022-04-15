@@ -11,7 +11,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-steamworks = "0.7.0"
+steamworks = "0.9.0"
 ```
 
 ## Example
