@@ -1,6 +1,6 @@
 [package]
 name = "steamworks"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Thinkofname"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
@@ -8,7 +8,7 @@ repository = "https://github.com/Noxime/steamworks-rs"
 documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
-edition = "2018"
+edition = "2021"
 
 [features]
 default = []
@@ -28,5 +28,5 @@ lazy_static = "1.4.0"
 serde = { version = "1.0.123", features = ["derive"], optional = true }
 
 [dev-dependencies]
-serial_test = "0.5.1"
-serial_test_derive = "0.5.1"
+serial_test = "0.6"
+serial_test_derive = "0.6"
