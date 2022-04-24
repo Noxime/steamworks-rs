@@ -25,6 +25,7 @@ pub use crate::app::*;
 pub use crate::callback::*;
 pub use crate::error::*;
 pub use crate::friends::*;
+pub use crate::input::*;
 pub use crate::matchmaking::*;
 pub use crate::networking::*;
 pub use crate::remote_storage::*;
@@ -38,6 +39,7 @@ mod app;
 mod callback;
 mod error;
 mod friends;
+mod input;
 mod matchmaking;
 mod networking;
 pub mod networking_messages;
@@ -320,6 +322,18 @@ impl<Manager> Client<Manager> {
             Friends {
                 friends: friends,
                 inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam input interface
+    pub fn input(&self) -> Input<Manager> {
+        unsafe {
+            let input = sys::SteamAPI_SteamInput_v006();
+            debug_assert!(!input.is_null());
+            Input {
+                input,
+                _inner: self.inner.clone(),
             }
         }
     }
