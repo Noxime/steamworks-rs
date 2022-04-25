@@ -26,7 +26,7 @@ impl<Manager> Input<Manager> {
     }
 
     /// Returns a list of the currently connected controllers
-    pub fn get_connected_controllers(&self) -> Vec<sys::ControllerHandle_t> {
+    pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
         unsafe {
             let handles = [0_u64; sys::STEAM_INPUT_MAX_COUNT as usize].as_mut_ptr();
             let quantity = sys::SteamAPI_ISteamInput_GetConnectedControllers(self.input, handles);
@@ -42,6 +42,49 @@ impl<Manager> Input<Manager> {
     pub fn get_action_set_handle(&self, action_set_name: &str) -> sys::InputActionSetHandle_t {
         let name = CString::new(action_set_name).unwrap();
         unsafe { sys::SteamAPI_ISteamInput_GetActionSetHandle(self.input, name.as_ptr()) }
+    }
+
+    /// Reconfigure the controller to use the specified action set
+    /// This is cheap, and can be safely called repeatedly.
+    pub fn activate_action_set_handle(
+        &self,
+        input_handle: sys::InputHandle_t,
+        action_set_handle: sys::InputActionSetHandle_t,
+    ) {
+        unsafe {
+            sys::SteamAPI_ISteamInput_ActivateActionSet(self.input, input_handle, action_set_handle)
+        }
+    }
+
+    /// Get the handle of the specified Digital action.
+    pub fn get_digital_action_handle(&self, action_name: &str) -> sys::InputDigitalActionHandle_t {
+        let name = CString::new(action_name).unwrap();
+        unsafe { sys::SteamAPI_ISteamInput_GetDigitalActionHandle(self.input, name.as_ptr()) }
+    }
+
+    /// Get the handle of the specified Analog action.
+    pub fn get_analog_action_handle(&self, action_name: &str) -> sys::InputAnalogActionHandle_t {
+        let name = CString::new(action_name).unwrap();
+        unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionHandle(self.input, name.as_ptr()) }
+    }
+
+    pub fn is_digital_action_pressed(
+        &self,
+        input_handle: sys::InputHandle_t,
+        action_handle: sys::InputDigitalActionHandle_t,
+    ) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamInput_GetDigitalActionData(self.input, input_handle, action_handle)
+                .bState
+        }
+    }
+
+    pub fn get_analog_action_data(
+        &self,
+        input_handle: sys::InputHandle_t,
+        action_handle: sys::InputAnalogActionHandle_t,
+    ) -> sys::InputAnalogActionData_t {
+        unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionData(self.input, input_handle, action_handle) }
     }
 
     /// Shutdown must be called when ending use of this interface.
