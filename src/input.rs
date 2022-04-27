@@ -68,23 +68,26 @@ impl<Manager> Input<Manager> {
         unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionHandle(self.input, name.as_ptr()) }
     }
 
-    pub fn is_digital_action_pressed(
+    /// Returns the current state of the supplied digital game action.
+    pub fn get_digital_action_data(
         &self,
         input_handle: sys::InputHandle_t,
         action_handle: sys::InputDigitalActionHandle_t,
-    ) -> bool {
+    ) -> sys::InputDigitalActionData_t {
         unsafe {
             sys::SteamAPI_ISteamInput_GetDigitalActionData(self.input, input_handle, action_handle)
-                .bState
         }
     }
 
+    /// Returns the current state of the supplied analog game action.
     pub fn get_analog_action_data(
         &self,
         input_handle: sys::InputHandle_t,
         action_handle: sys::InputAnalogActionHandle_t,
     ) -> sys::InputAnalogActionData_t {
-        unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionData(self.input, input_handle, action_handle) }
+        unsafe {
+            sys::SteamAPI_ISteamInput_GetAnalogActionData(self.input, input_handle, action_handle)
+        }
     }
 
     /// Shutdown must be called when ending use of this interface.
