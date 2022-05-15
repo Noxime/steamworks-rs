@@ -22,6 +22,26 @@ pub enum LobbyType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum LobbyDistanceFilter {
+    Close,
+    Default,
+    Far,
+    Worldwide,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum LobbyComparison {
+    EqualOrLessThan,
+    LessThan,
+    Equal,
+    GreaterThan,
+    EqualOrGreaterThan,
+    NotEqual,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyId(pub(crate) u64);
 
 impl LobbyId {
@@ -68,6 +88,86 @@ impl<Manager> Matchmaking<Manager> {
                     })
                 },
             );
+        }
+    }
+
+    /// set lobby distance search filter
+    ///
+    pub fn add_lobby_distance_filter(&self, filter: LobbyDistanceFilter)
+    {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListDistanceFilter(
+                sys::SteamAPI_SteamMatchmaking_v009(),
+                match filter {
+                    LobbyDistanceFilter::Close => {
+                        sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterClose
+                    }
+                    LobbyDistanceFilter::Default => {
+                        sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterDefault
+                    }
+                    LobbyDistanceFilter::Far => {
+                        sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterFar
+                    }
+                    LobbyDistanceFilter::Worldwide => {
+                        sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterWorldwide
+                    }
+                },
+            )
+        }
+    }
+
+    /// add a numerical filter to a lobby list
+    ///
+    pub fn add_lobby_num_filter(&self, key: String, value: i32, comp: LobbyComparison)
+    {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
+                sys::SteamAPI_SteamMatchmaking_v009(),
+                key.as_ptr() as _,
+                value,
+                match comp {
+                    LobbyComparison::EqualOrLessThan => {
+                        sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan
+                    }
+                    LobbyComparison::LessThan => sys::ELobbyComparison::k_ELobbyComparisonLessThan,
+                    LobbyComparison::Equal => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+                    LobbyComparison::GreaterThan => {
+                        sys::ELobbyComparison::k_ELobbyComparisonGreaterThan
+                    }
+                    LobbyComparison::EqualOrGreaterThan => {
+                        sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan
+                    }
+                    LobbyComparison::NotEqual => sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
+                },
+            )
+        }
+    }
+
+    /// add a string filter to a lobby list
+    ///
+    pub fn add_lobby_string_filter(&self, key: String, value: String, comp: LobbyComparison) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
+                sys::SteamAPI_SteamMatchmaking_v009(),
+                key.as_ptr() as _,
+                value.as_ptr() as _,
+                match comp {
+                    LobbyComparison::EqualOrGreaterThan => {
+                        sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan
+                    }
+                    LobbyComparison::Equal => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+                    _ => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+                },
+            )
+        }
+    }
+
+    pub fn request_lobby_data(&self, lobby_id: LobbyId) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_RequestLobbyData(
+                sys::SteamAPI_SteamMatchmaking_v009(),
+                lobby_id.0,
+            )
         }
     }
 
