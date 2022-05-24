@@ -739,6 +739,17 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
+    pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
+                self.ugc,
+                self.handle,
+                visibility.into()
+            ));
+        }
+        self
+    }
+
     pub fn tags<S: AsRef<str>>(self, tags: Vec<S>) -> Self {
         unsafe {
             let mut tags = SteamParamStringArray::new(&tags);
