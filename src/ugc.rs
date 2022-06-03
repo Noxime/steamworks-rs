@@ -775,6 +775,42 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
+    pub fn add_key_value_tag(self, key: &str, value: &str) -> Self {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            let value = CString::new(value).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_AddItemKeyValueTag(
+                self.ugc,
+                self.handle,
+                key.as_ptr(),
+                value.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn remove_key_value_tag(self, key: &str) -> Self {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(
+                self.ugc,
+                self.handle,
+                key.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn remove_all_key_value_tags(self) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(
+                self.ugc,
+                self.handle
+            ));
+        }
+        self
+    }
+
     pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle<Manager>
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
