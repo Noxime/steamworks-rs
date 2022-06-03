@@ -739,6 +739,19 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
+    #[must_use]
+    pub fn metadata(self, metadata: &str) -> Self {
+        unsafe {
+            let metadata = CString::new(metadata).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemMetadata(
+                self.ugc,
+                self.handle,
+                metadata.as_ptr()
+            ));
+        }
+        self
+    }
+
     pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
