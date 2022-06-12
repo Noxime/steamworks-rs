@@ -739,6 +739,30 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
+    #[must_use]
+    pub fn metadata(self, metadata: &str) -> Self {
+        unsafe {
+            let metadata = CString::new(metadata).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemMetadata(
+                self.ugc,
+                self.handle,
+                metadata.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
+                self.ugc,
+                self.handle,
+                visibility.into()
+            ));
+        }
+        self
+    }
+
     pub fn tags<S: AsRef<str>>(self, tags: Vec<S>) -> Self {
         unsafe {
             let mut tags = SteamParamStringArray::new(&tags);
@@ -746,6 +770,42 @@ impl<Manager> UpdateHandle<Manager> {
                 self.ugc,
                 self.handle,
                 &tags.as_raw()
+            ));
+        }
+        self
+    }
+
+    pub fn add_key_value_tag(self, key: &str, value: &str) -> Self {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            let value = CString::new(value).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_AddItemKeyValueTag(
+                self.ugc,
+                self.handle,
+                key.as_ptr(),
+                value.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn remove_key_value_tag(self, key: &str) -> Self {
+        unsafe {
+            let key = CString::new(key).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(
+                self.ugc,
+                self.handle,
+                key.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn remove_all_key_value_tags(self) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(
+                self.ugc,
+                self.handle
             ));
         }
         self
