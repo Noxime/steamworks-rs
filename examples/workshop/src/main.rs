@@ -1,6 +1,6 @@
-use std::{sync::mpsc::TryRecvError, path::Path};
+use std::{path::Path, sync::mpsc::TryRecvError};
 
-use steamworks::{Client, UGC, ClientManager, PublishedFileId};
+use steamworks::{Client, ClientManager, PublishedFileId, UGC};
 
 fn create_item(ugc: &UGC<ClientManager>) {
     // creating a new workshop item
@@ -13,11 +13,13 @@ fn create_item(ugc: &UGC<ClientManager>) {
                 // in any case, make sure you save the published_id somewhere, like a manifest file.
                 // it is needed for all further calls
                 if needs_to_agree_to_terms {
-                    println!("You need to agree to the terms of use before you can upload any files");
+                    println!(
+                        "You need to agree to the terms of use before you can upload any files"
+                    );
                 } else {
                     println!("Published item with id {}", published_id);
                 }
-            },
+            }
             Err(e) => {
                 // an error occurred, usually because the app is not authorized to create items
                 // or the user is banned from the community
@@ -44,7 +46,8 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
     // notes:
     // - once an upload is started, it cannot be cancelled!
     // - content_path is the path to a folder which houses the content you wish to upload
-    let upload_handle = ugc.start_item_update(480, published_id)
+    let upload_handle = ugc
+        .start_item_update(480, published_id)
         .content_path("/absolute/path/to/content")
         .preview_path(Path::new("/absolute/path/to/preview.png"))
         .title("Item title")
@@ -58,14 +61,16 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
                     if needs_to_agree_to_terms {
                         // as stated in the create_item function, if the user needs to agree to the terms of use,
                         // the upload did NOT succeed, despite the result being Ok
-                        println!("You need to agree to the terms of use before you can upload any files");
+                        println!(
+                            "You need to agree to the terms of use before you can upload any files"
+                        );
                     } else {
                         // this is the definite indicator that an item was uploaded successfully
                         // the watch handle is NOT an accurate indicator whether the upload is done
                         // the progress on the other hand IS accurate and can simply be used to monitor the upload
                         println!("Uploaded item with id {}", published_id);
                     }
-                },
+                }
                 Err(e) => {
                     // the upload failed
                     // the exact reason can be found in the error type
@@ -82,7 +87,7 @@ fn delete_item(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
             Ok(()) => {
                 // item has been deleted
                 println!("Deleted item with id {}", published_id);
-            },
+            }
             Err(e) => {
                 // the item could not be deleted
                 // usually because it is not owned by the user or it doesn't exist in the first place
@@ -129,8 +134,11 @@ fn main() {
     delete_item(&ugc, PublishedFileId(413));
 
     // close the channel and wait for the callback thread to end
-    tx.send(()).expect("Failed to send message to callback thread");
-    callback_thread.join().expect("Failed to join callback thread");
+    tx.send(())
+        .expect("Failed to send message to callback thread");
+    callback_thread
+        .join()
+        .expect("Failed to join callback thread");
 
     Ok(())
 }
