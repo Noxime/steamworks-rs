@@ -80,148 +80,137 @@ where
         }
     }
 }
-pub const _VCRT_COMPILER_PREPROCESSOR: u32 = 1;
-pub const _SAL_VERSION: u32 = 20;
-pub const __SAL_H_VERSION: u32 = 180000000;
-pub const _USE_DECLSPECS_FOR_SAL: u32 = 0;
-pub const _USE_ATTRIBUTES_FOR_SAL: u32 = 0;
-pub const _CRT_PACKING: u32 = 8;
-pub const _HAS_EXCEPTIONS: u32 = 1;
-pub const NULL: u32 = 0;
-pub const _HAS_CXX17: u32 = 0;
-pub const _HAS_CXX20: u32 = 0;
-pub const _HAS_NODISCARD: u32 = 1;
-pub const _ARGMAX: u32 = 100;
-pub const _CRT_INT_MAX: u32 = 2147483647;
-pub const _CRT_FUNCTIONS_REQUIRED: u32 = 1;
-pub const _CRT_HAS_CXX17: u32 = 0;
-pub const _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE: u32 = 1;
-pub const _CRT_BUILD_DESKTOP_APP: u32 = 1;
-pub const _CRT_INTERNAL_NONSTDC_NAMES: u32 = 1;
-pub const __STDC_SECURE_LIB__: u32 = 200411;
-pub const __GOT_SECURE_LIB__: u32 = 200411;
-pub const __STDC_WANT_SECURE_LIB__: u32 = 1;
-pub const _SECURECRT_FILL_BUFFER_PATTERN: u32 = 254;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES: u32 = 1;
-pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY: u32 = 0;
-pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY: u32 = 0;
-pub const EPERM: u32 = 1;
-pub const ENOENT: u32 = 2;
-pub const ESRCH: u32 = 3;
-pub const EINTR: u32 = 4;
-pub const EIO: u32 = 5;
-pub const ENXIO: u32 = 6;
-pub const E2BIG: u32 = 7;
-pub const ENOEXEC: u32 = 8;
-pub const EBADF: u32 = 9;
-pub const ECHILD: u32 = 10;
-pub const EAGAIN: u32 = 11;
-pub const ENOMEM: u32 = 12;
-pub const EACCES: u32 = 13;
-pub const EFAULT: u32 = 14;
-pub const EBUSY: u32 = 16;
-pub const EEXIST: u32 = 17;
-pub const EXDEV: u32 = 18;
-pub const ENODEV: u32 = 19;
-pub const ENOTDIR: u32 = 20;
-pub const EISDIR: u32 = 21;
-pub const ENFILE: u32 = 23;
-pub const EMFILE: u32 = 24;
-pub const ENOTTY: u32 = 25;
-pub const EFBIG: u32 = 27;
-pub const ENOSPC: u32 = 28;
-pub const ESPIPE: u32 = 29;
-pub const EROFS: u32 = 30;
-pub const EMLINK: u32 = 31;
-pub const EPIPE: u32 = 32;
-pub const EDOM: u32 = 33;
-pub const EDEADLK: u32 = 36;
-pub const ENAMETOOLONG: u32 = 38;
-pub const ENOLCK: u32 = 39;
-pub const ENOSYS: u32 = 40;
-pub const ENOTEMPTY: u32 = 41;
-pub const EINVAL: u32 = 22;
-pub const ERANGE: u32 = 34;
-pub const EILSEQ: u32 = 42;
-pub const STRUNCATE: u32 = 80;
-pub const EDEADLOCK: u32 = 36;
-pub const EADDRINUSE: u32 = 100;
-pub const EADDRNOTAVAIL: u32 = 101;
-pub const EAFNOSUPPORT: u32 = 102;
-pub const EALREADY: u32 = 103;
-pub const EBADMSG: u32 = 104;
-pub const ECANCELED: u32 = 105;
-pub const ECONNABORTED: u32 = 106;
-pub const ECONNREFUSED: u32 = 107;
-pub const ECONNRESET: u32 = 108;
-pub const EDESTADDRREQ: u32 = 109;
-pub const EHOSTUNREACH: u32 = 110;
-pub const EIDRM: u32 = 111;
-pub const EINPROGRESS: u32 = 112;
-pub const EISCONN: u32 = 113;
-pub const ELOOP: u32 = 114;
-pub const EMSGSIZE: u32 = 115;
-pub const ENETDOWN: u32 = 116;
-pub const ENETRESET: u32 = 117;
-pub const ENETUNREACH: u32 = 118;
-pub const ENOBUFS: u32 = 119;
-pub const ENODATA: u32 = 120;
-pub const ENOLINK: u32 = 121;
-pub const ENOMSG: u32 = 122;
-pub const ENOPROTOOPT: u32 = 123;
-pub const ENOSR: u32 = 124;
-pub const ENOSTR: u32 = 125;
-pub const ENOTCONN: u32 = 126;
-pub const ENOTRECOVERABLE: u32 = 127;
-pub const ENOTSOCK: u32 = 128;
-pub const ENOTSUP: u32 = 129;
-pub const EOPNOTSUPP: u32 = 130;
-pub const EOTHER: u32 = 131;
-pub const EOVERFLOW: u32 = 132;
-pub const EOWNERDEAD: u32 = 133;
-pub const EPROTO: u32 = 134;
-pub const EPROTONOSUPPORT: u32 = 135;
-pub const EPROTOTYPE: u32 = 136;
-pub const ETIME: u32 = 137;
-pub const ETIMEDOUT: u32 = 138;
-pub const ETXTBSY: u32 = 139;
-pub const EWOULDBLOCK: u32 = 140;
-pub const _NLSCMPERROR: u32 = 2147483647;
+pub const POSIX: u32 = 1;
+pub const _STRING_H: u32 = 1;
+pub const _FEATURES_H: u32 = 1;
+pub const _ISOC95_SOURCE: u32 = 1;
+pub const _ISOC99_SOURCE: u32 = 1;
+pub const _ISOC11_SOURCE: u32 = 1;
+pub const _ISOC2X_SOURCE: u32 = 1;
+pub const _POSIX_SOURCE: u32 = 1;
+pub const _POSIX_C_SOURCE: u32 = 200809;
+pub const _XOPEN_SOURCE: u32 = 700;
+pub const _XOPEN_SOURCE_EXTENDED: u32 = 1;
+pub const _LARGEFILE64_SOURCE: u32 = 1;
+pub const _DEFAULT_SOURCE: u32 = 1;
+pub const _ATFILE_SOURCE: u32 = 1;
+pub const _DYNAMIC_STACK_SIZE_SOURCE: u32 = 1;
+pub const __GLIBC_USE_ISOC2X: u32 = 1;
+pub const __USE_ISOC11: u32 = 1;
+pub const __USE_ISOC99: u32 = 1;
+pub const __USE_ISOC95: u32 = 1;
+pub const __USE_ISOCXX11: u32 = 1;
+pub const __USE_POSIX: u32 = 1;
+pub const __USE_POSIX2: u32 = 1;
+pub const __USE_POSIX199309: u32 = 1;
+pub const __USE_POSIX199506: u32 = 1;
+pub const __USE_XOPEN2K: u32 = 1;
+pub const __USE_XOPEN2K8: u32 = 1;
+pub const __USE_XOPEN: u32 = 1;
+pub const __USE_XOPEN_EXTENDED: u32 = 1;
+pub const __USE_UNIX98: u32 = 1;
+pub const _LARGEFILE_SOURCE: u32 = 1;
+pub const __USE_XOPEN2K8XSI: u32 = 1;
+pub const __USE_XOPEN2KXSI: u32 = 1;
+pub const __USE_LARGEFILE: u32 = 1;
+pub const __USE_LARGEFILE64: u32 = 1;
+pub const __WORDSIZE: u32 = 64;
+pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
+pub const __SYSCALL_WORDSIZE: u32 = 64;
+pub const __TIMESIZE: u32 = 64;
+pub const __USE_MISC: u32 = 1;
+pub const __USE_ATFILE: u32 = 1;
+pub const __USE_DYNAMIC_STACK_SIZE: u32 = 1;
+pub const __USE_GNU: u32 = 1;
+pub const __USE_FORTIFY_LEVEL: u32 = 0;
+pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 1;
+pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
+pub const _STDC_PREDEF_H: u32 = 1;
+pub const __STDC_IEC_559__: u32 = 1;
+pub const __STDC_IEC_60559_BFP__: u32 = 201404;
+pub const __STDC_IEC_559_COMPLEX__: u32 = 1;
+pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
+pub const __STDC_ISO_10646__: u32 = 201706;
+pub const __GNU_LIBRARY__: u32 = 6;
+pub const __GLIBC__: u32 = 2;
+pub const __GLIBC_MINOR__: u32 = 35;
+pub const _SYS_CDEFS_H: u32 = 1;
+pub const __glibc_c99_flexarr_available: u32 = 1;
+pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
+pub const __HAVE_GENERIC_SELECTION: u32 = 0;
+pub const __GLIBC_USE_LIB_EXT2: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_BFP_EXT: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_BFP_EXT_C2X: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_EXT: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_FUNCS_EXT: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X: u32 = 1;
+pub const __GLIBC_USE_IEC_60559_TYPES_EXT: u32 = 1;
+pub const _BITS_TYPES_LOCALE_T_H: u32 = 1;
+pub const _BITS_TYPES___LOCALE_T_H: u32 = 1;
+pub const _STRINGS_H: u32 = 1;
 pub const STEAMCLIENT_INTERFACE_VERSION: &[u8; 15usize] = b"SteamClient020\0";
 pub const STEAMUSER_INTERFACE_VERSION: &[u8; 13usize] = b"SteamUser021\0";
 pub const STEAMFRIENDS_INTERFACE_VERSION: &[u8; 16usize] = b"SteamFriends017\0";
 pub const STEAMUTILS_INTERFACE_VERSION: &[u8; 14usize] = b"SteamUtils010\0";
-pub const _CRT_INTERNAL_STDIO_SYMBOL_PREFIX: &[u8; 1usize] = b"\0";
-pub const _CRT_INTERNAL_PRINTF_LEGACY_VSPRINTF_NULL_TERMINATION: u32 = 1;
-pub const _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR: u32 = 2;
-pub const _CRT_INTERNAL_PRINTF_LEGACY_WIDE_SPECIFIERS: u32 = 4;
-pub const _CRT_INTERNAL_PRINTF_LEGACY_MSVCRT_COMPATIBILITY: u32 = 8;
-pub const _CRT_INTERNAL_PRINTF_LEGACY_THREE_DIGIT_EXPONENTS: u32 = 16;
-pub const _CRT_INTERNAL_PRINTF_STANDARD_ROUNDING: u32 = 32;
-pub const _CRT_INTERNAL_SCANF_SECURECRT: u32 = 1;
-pub const _CRT_INTERNAL_SCANF_LEGACY_WIDE_SPECIFIERS: u32 = 2;
-pub const _CRT_INTERNAL_SCANF_LEGACY_MSVCRT_COMPATIBILITY: u32 = 4;
-pub const BUFSIZ: u32 = 512;
-pub const _NSTREAM_: u32 = 512;
-pub const _IOB_ENTRIES: u32 = 3;
-pub const EOF: i32 = -1;
+pub const _STDIO_H: u32 = 1;
+pub const __GNUC_VA_LIST: u32 = 1;
+pub const _BITS_TYPES_H: u32 = 1;
+pub const _BITS_TYPESIZES_H: u32 = 1;
+pub const __OFF_T_MATCHES_OFF64_T: u32 = 1;
+pub const __INO_T_MATCHES_INO64_T: u32 = 1;
+pub const __RLIM_T_MATCHES_RLIM64_T: u32 = 1;
+pub const __STATFS_MATCHES_STATFS64: u32 = 1;
+pub const __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64: u32 = 1;
+pub const __FD_SETSIZE: u32 = 1024;
+pub const _BITS_TIME64_H: u32 = 1;
+pub const _____fpos_t_defined: u32 = 1;
+pub const ____mbstate_t_defined: u32 = 1;
+pub const _____fpos64_t_defined: u32 = 1;
+pub const ____FILE_defined: u32 = 1;
+pub const __FILE_defined: u32 = 1;
+pub const __struct_FILE_defined: u32 = 1;
+pub const _IO_EOF_SEEN: u32 = 16;
+pub const _IO_ERR_SEEN: u32 = 32;
+pub const _IO_USER_LOCK: u32 = 32768;
+pub const __cookie_io_functions_t_defined: u32 = 1;
 pub const _IOFBF: u32 = 0;
-pub const _IOLBF: u32 = 64;
-pub const _IONBF: u32 = 4;
-pub const L_tmpnam: u32 = 260;
-pub const L_tmpnam_s: u32 = 260;
+pub const _IOLBF: u32 = 1;
+pub const _IONBF: u32 = 2;
+pub const BUFSIZ: u32 = 8192;
+pub const EOF: i32 = -1;
+pub const SEEK_SET: u32 = 0;
 pub const SEEK_CUR: u32 = 1;
 pub const SEEK_END: u32 = 2;
-pub const SEEK_SET: u32 = 0;
-pub const FILENAME_MAX: u32 = 260;
-pub const FOPEN_MAX: u32 = 20;
-pub const _SYS_OPEN: u32 = 20;
-pub const TMP_MAX: u32 = 2147483647;
-pub const TMP_MAX_S: u32 = 2147483647;
-pub const _TMP_MAX_S: u32 = 2147483647;
-pub const SYS_OPEN: u32 = 20;
+pub const SEEK_DATA: u32 = 3;
+pub const SEEK_HOLE: u32 = 4;
+pub const P_tmpdir: &[u8; 5usize] = b"/tmp\0";
+pub const _BITS_STDIO_LIM_H: u32 = 1;
+pub const L_tmpnam: u32 = 20;
+pub const TMP_MAX: u32 = 238328;
+pub const FILENAME_MAX: u32 = 4096;
+pub const L_ctermid: u32 = 9;
+pub const L_cuserid: u32 = 9;
+pub const FOPEN_MAX: u32 = 16;
+pub const _PRINTF_NAN_LEN_MAX: u32 = 4;
+pub const RENAME_NOREPLACE: u32 = 1;
+pub const RENAME_EXCHANGE: u32 = 2;
+pub const RENAME_WHITEOUT: u32 = 4;
+pub const __HAVE_FLOAT128: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT128: u32 = 0;
+pub const __HAVE_FLOAT64X: u32 = 1;
+pub const __HAVE_FLOAT64X_LONG_DOUBLE: u32 = 1;
+pub const __HAVE_FLOAT16: u32 = 0;
+pub const __HAVE_FLOAT32: u32 = 1;
+pub const __HAVE_FLOAT64: u32 = 1;
+pub const __HAVE_FLOAT32X: u32 = 1;
+pub const __HAVE_FLOAT128X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT16: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT32: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT64: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT32X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT64X: u32 = 0;
+pub const __HAVE_DISTINCT_FLOAT128X: u32 = 0;
+pub const __HAVE_FLOATN_NOT_TYPEDEF: u32 = 0;
 pub const k_nMaxLobbyKeyLength: u32 = 255;
 pub const STEAMMATCHMAKING_INTERFACE_VERSION: &[u8; 20usize] = b"SteamMatchMaking009\0";
 pub const STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION: &[u8; 27usize] =
@@ -271,10 +260,80 @@ pub const STEAMPARENTALSETTINGS_INTERFACE_VERSION: &[u8; 43usize] =
     b"STEAMPARENTALSETTINGS_INTERFACE_VERSION001\0";
 pub const STEAMREMOTEPLAY_INTERFACE_VERSION: &[u8; 37usize] =
     b"STEAMREMOTEPLAY_INTERFACE_VERSION001\0";
-pub const WCHAR_MIN: u32 = 0;
-pub const WCHAR_MAX: u32 = 65535;
+pub const _STDINT_H: u32 = 1;
+pub const _BITS_WCHAR_H: u32 = 1;
+pub const _BITS_STDINT_INTN_H: u32 = 1;
+pub const _BITS_STDINT_UINTN_H: u32 = 1;
+pub const INT8_MIN: i32 = -128;
+pub const INT16_MIN: i32 = -32768;
+pub const INT32_MIN: i32 = -2147483648;
+pub const INT8_MAX: u32 = 127;
+pub const INT16_MAX: u32 = 32767;
+pub const INT32_MAX: u32 = 2147483647;
+pub const UINT8_MAX: u32 = 255;
+pub const UINT16_MAX: u32 = 65535;
+pub const UINT32_MAX: u32 = 4294967295;
+pub const INT_LEAST8_MIN: i32 = -128;
+pub const INT_LEAST16_MIN: i32 = -32768;
+pub const INT_LEAST32_MIN: i32 = -2147483648;
+pub const INT_LEAST8_MAX: u32 = 127;
+pub const INT_LEAST16_MAX: u32 = 32767;
+pub const INT_LEAST32_MAX: u32 = 2147483647;
+pub const UINT_LEAST8_MAX: u32 = 255;
+pub const UINT_LEAST16_MAX: u32 = 65535;
+pub const UINT_LEAST32_MAX: u32 = 4294967295;
+pub const INT_FAST8_MIN: i32 = -128;
+pub const INT_FAST16_MIN: i64 = -9223372036854775808;
+pub const INT_FAST32_MIN: i64 = -9223372036854775808;
+pub const INT_FAST8_MAX: u32 = 127;
+pub const INT_FAST16_MAX: u64 = 9223372036854775807;
+pub const INT_FAST32_MAX: u64 = 9223372036854775807;
+pub const UINT_FAST8_MAX: u32 = 255;
+pub const UINT_FAST16_MAX: i32 = -1;
+pub const UINT_FAST32_MAX: i32 = -1;
+pub const INTPTR_MIN: i64 = -9223372036854775808;
+pub const INTPTR_MAX: u64 = 9223372036854775807;
+pub const UINTPTR_MAX: i32 = -1;
+pub const PTRDIFF_MIN: i64 = -9223372036854775808;
+pub const PTRDIFF_MAX: u64 = 9223372036854775807;
+pub const SIG_ATOMIC_MIN: i32 = -2147483648;
+pub const SIG_ATOMIC_MAX: u32 = 2147483647;
+pub const SIZE_MAX: i32 = -1;
 pub const WINT_MIN: u32 = 0;
-pub const WINT_MAX: u32 = 65535;
+pub const WINT_MAX: u32 = 4294967295;
+pub const INT8_WIDTH: u32 = 8;
+pub const UINT8_WIDTH: u32 = 8;
+pub const INT16_WIDTH: u32 = 16;
+pub const UINT16_WIDTH: u32 = 16;
+pub const INT32_WIDTH: u32 = 32;
+pub const UINT32_WIDTH: u32 = 32;
+pub const INT64_WIDTH: u32 = 64;
+pub const UINT64_WIDTH: u32 = 64;
+pub const INT_LEAST8_WIDTH: u32 = 8;
+pub const UINT_LEAST8_WIDTH: u32 = 8;
+pub const INT_LEAST16_WIDTH: u32 = 16;
+pub const UINT_LEAST16_WIDTH: u32 = 16;
+pub const INT_LEAST32_WIDTH: u32 = 32;
+pub const UINT_LEAST32_WIDTH: u32 = 32;
+pub const INT_LEAST64_WIDTH: u32 = 64;
+pub const UINT_LEAST64_WIDTH: u32 = 64;
+pub const INT_FAST8_WIDTH: u32 = 8;
+pub const UINT_FAST8_WIDTH: u32 = 8;
+pub const INT_FAST16_WIDTH: u32 = 64;
+pub const UINT_FAST16_WIDTH: u32 = 64;
+pub const INT_FAST32_WIDTH: u32 = 64;
+pub const UINT_FAST32_WIDTH: u32 = 64;
+pub const INT_FAST64_WIDTH: u32 = 64;
+pub const UINT_FAST64_WIDTH: u32 = 64;
+pub const INTPTR_WIDTH: u32 = 64;
+pub const UINTPTR_WIDTH: u32 = 64;
+pub const INTMAX_WIDTH: u32 = 64;
+pub const UINTMAX_WIDTH: u32 = 64;
+pub const PTRDIFF_WIDTH: u32 = 64;
+pub const SIG_ATOMIC_WIDTH: u32 = 32;
+pub const SIZE_WIDTH: u32 = 64;
+pub const WCHAR_WIDTH: u32 = 32;
+pub const WINT_WIDTH: u32 = 32;
 pub const STEAMNETWORKINGMESSAGES_INTERFACE_VERSION: &[u8; 27usize] =
     b"SteamNetworkingMessages002\0";
 pub const STEAMNETWORKINGSOCKETS_INTERFACE_VERSION: &[u8; 26usize] = b"SteamNetworkingSockets012\0";
@@ -289,8 +348,8 @@ pub type int32 = ::std::os::raw::c_int;
 pub type uint32 = ::std::os::raw::c_uint;
 pub type int64 = ::std::os::raw::c_longlong;
 pub type uint64 = ::std::os::raw::c_ulonglong;
-pub type lint64 = int64;
-pub type ulint64 = uint64;
+pub type lint64 = ::std::os::raw::c_long;
+pub type ulint64 = ::std::os::raw::c_ulong;
 pub type intp = ::std::os::raw::c_longlong;
 pub type uintp = ::std::os::raw::c_ulonglong;
 pub type AppId_t = uint32;
@@ -303,7 +362,7 @@ pub const k_uAPICallInvalid: SteamAPICall_t = 0;
 pub type AccountID_t = uint32;
 pub type PartyBeaconID_t = uint64;
 pub const k_ulPartyBeaconIdInvalid: PartyBeaconID_t = 0;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamIPType {
@@ -397,7 +456,7 @@ fn bindgen_test_layout_SteamIPAddress_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUniverse {
@@ -408,7 +467,7 @@ pub enum EUniverse {
     k_EUniverseDev = 4,
     k_EUniverseMax = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EResult {
@@ -536,7 +595,7 @@ pub enum EResult {
     k_EResultParseFailure = 122,
     k_EResultNoVerifiedPhone = 123,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EVoiceResult {
@@ -551,7 +610,7 @@ pub enum EVoiceResult {
     k_EVoiceResultReceiverOutOfDate = 8,
     k_EVoiceResultReceiverDidNotAnswer = 9,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EDenyReason {
@@ -574,7 +633,7 @@ pub enum EDenyReason {
 }
 pub type HAuthTicket = uint32;
 pub const k_HAuthTicketInvalid: HAuthTicket = 0;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EBeginAuthSessionResult {
@@ -585,7 +644,7 @@ pub enum EBeginAuthSessionResult {
     k_EBeginAuthSessionResultGameMismatch = 4,
     k_EBeginAuthSessionResultExpiredTicket = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EAuthSessionResponse {
@@ -600,7 +659,7 @@ pub enum EAuthSessionResponse {
     k_EAuthSessionResponseAuthTicketInvalid = 8,
     k_EAuthSessionResponsePublisherIssuedBan = 9,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUserHasLicenseForAppResult {
@@ -608,7 +667,7 @@ pub enum EUserHasLicenseForAppResult {
     k_EUserHasLicenseResultDoesNotHaveLicense = 1,
     k_EUserHasLicenseResultNoAuth = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EAccountType {
@@ -625,7 +684,7 @@ pub enum EAccountType {
     k_EAccountTypeAnonUser = 10,
     k_EAccountTypeMax = 11,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EChatEntryType {
@@ -642,7 +701,7 @@ pub enum EChatEntryType {
     k_EChatEntryTypeHistoricalChat = 11,
     k_EChatEntryTypeLinkBlocked = 14,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EChatRoomEnterResponse {
@@ -662,7 +721,7 @@ pub enum EChatRoomEnterResponse {
 pub const k_unSteamAccountIDMask: ::std::os::raw::c_uint = 4294967295;
 pub const k_unSteamAccountInstanceMask: ::std::os::raw::c_uint = 1048575;
 pub const k_unSteamUserDefaultInstance: ::std::os::raw::c_uint = 1;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EChatSteamIDInstanceFlags {
@@ -671,7 +730,7 @@ pub enum EChatSteamIDInstanceFlags {
     k_EChatInstanceFlagLobby = 262144,
     k_EChatInstanceFlagMMSLobby = 131072,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ENotificationPosition {
@@ -680,7 +739,7 @@ pub enum ENotificationPosition {
     k_EPositionBottomLeft = 2,
     k_EPositionBottomRight = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EBroadcastUploadResult {
@@ -709,7 +768,7 @@ pub enum EBroadcastUploadResult {
     k_EBroadcastUploadResultVideoInitFailed = 22,
     k_EBroadcastUploadResultAudioInitFailed = 23,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EMarketNotAllowedReasonFlags {
@@ -731,7 +790,7 @@ pub enum EMarketNotAllowedReasonFlags {
     k_EMarketNotAllowedReason_NoRecentPurchases = 16384,
     k_EMarketNotAllowedReason_AcceptedWalletGift = 32768,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EDurationControlProgress {
@@ -742,7 +801,7 @@ pub enum EDurationControlProgress {
     k_EDurationControl_ExitSoon_5h = 4,
     k_EDurationControl_ExitSoon_Night = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EDurationControlNotification {
@@ -755,7 +814,7 @@ pub enum EDurationControlNotification {
     k_EDurationControlNotification_ExitSoon_5h = 6,
     k_EDurationControlNotification_ExitSoon_Night = 7,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EDurationControlOnlineState {
@@ -931,19 +990,19 @@ fn bindgen_test_layout_CSteamID() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?IsValid@CSteamID@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK8CSteamID7IsValidEv"]
     pub fn CSteamID_IsValid(this: *const CSteamID) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?Render@CSteamID@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK8CSteamID6RenderEv"]
     pub fn CSteamID_Render(this: *const CSteamID) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?Render@CSteamID@@SAPEBD_K@Z"]
+    #[link_name = "\u{1}_ZN8CSteamID6RenderEy"]
     pub fn CSteamID_Render1(ulSteamID: uint64) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetFromString@CSteamID@@QEAAXPEBDW4EUniverse@@@Z"]
+    #[link_name = "\u{1}_ZN8CSteamID13SetFromStringEPKc9EUniverse"]
     pub fn CSteamID_SetFromString(
         this: *mut CSteamID,
         pchSteamID: *const ::std::os::raw::c_char,
@@ -951,7 +1010,7 @@ extern "C" {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?SetFromStringStrict@CSteamID@@QEAA_NPEBDW4EUniverse@@@Z"]
+    #[link_name = "\u{1}_ZN8CSteamID19SetFromStringStrictEPKc9EUniverse"]
     pub fn CSteamID_SetFromStringStrict(
         this: *mut CSteamID,
         pchSteamID: *const ::std::os::raw::c_char,
@@ -959,7 +1018,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetFromSteam2String@CSteamID@@QEAA_NPEBDW4EUniverse@@@Z"]
+    #[link_name = "\u{1}_ZN8CSteamID19SetFromSteam2StringEPKc9EUniverse"]
     pub fn CSteamID_SetFromSteam2String(
         this: *mut CSteamID,
         pchSteam2ID: *const ::std::os::raw::c_char,
@@ -967,11 +1026,11 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?BValidExternalSteamID@CSteamID@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK8CSteamID21BValidExternalSteamIDEv"]
     pub fn CSteamID_BValidExternalSteamID(this: *const CSteamID) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}??0CSteamID@@QEAA@PEBDW4EUniverse@@@Z"]
+    #[link_name = "\u{1}_ZN8CSteamIDC1EPKc9EUniverse"]
     pub fn CSteamID_CSteamID(
         this: *mut CSteamID,
         pchSteamID: *const ::std::os::raw::c_char,
@@ -1034,7 +1093,7 @@ impl CSteamID {
 pub struct CGameID {
     pub __bindgen_anon_1: CGameID__bindgen_ty_1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum CGameID_EGameIDType {
@@ -1173,15 +1232,15 @@ fn bindgen_test_layout_CGameID() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?Render@CGameID@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK7CGameID6RenderEv"]
     pub fn CGameID_Render(this: *const CGameID) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?Render@CGameID@@SAPEBD_K@Z"]
+    #[link_name = "\u{1}_ZN7CGameID6RenderEy"]
     pub fn CGameID_Render1(ulGameID: uint64) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}??0CGameID@@QEAA@PEBD@Z"]
+    #[link_name = "\u{1}_ZN7CGameIDC1EPKc"]
     pub fn CGameID_CGameID(this: *mut CGameID, pchGameID: *const ::std::os::raw::c_char);
 }
 impl CGameID {
@@ -1203,7 +1262,7 @@ impl CGameID {
 pub const k_cchGameExtraInfoMax: ::std::os::raw::c_int = 64;
 pub type PFNPreMinidumpCallback =
     ::std::option::Option<unsafe extern "C" fn(context: *mut ::std::os::raw::c_void)>;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EGameSearchErrorCode_t {
@@ -1217,7 +1276,7 @@ pub enum EGameSearchErrorCode_t {
     k_EGameSearchErrorCode_Failed_NotAuthorized = 8,
     k_EGameSearchErrorCode_Failed_Unknown_Error = 9,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EPlayerResult_t {
@@ -1227,7 +1286,7 @@ pub enum EPlayerResult_t {
     k_EPlayerResultIncomplete = 4,
     k_EPlayerResultCompleted = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamIPv6ConnectivityProtocol {
@@ -1235,7 +1294,7 @@ pub enum ESteamIPv6ConnectivityProtocol {
     k_ESteamIPv6ConnectivityProtocol_HTTP = 1,
     k_ESteamIPv6ConnectivityProtocol_UDP = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamIPv6ConnectivityState {
@@ -1243,7 +1302,7 @@ pub enum ESteamIPv6ConnectivityState {
     k_ESteamIPv6ConnectivityState_Good = 1,
     k_ESteamIPv6ConnectivityState_Bad = 2,
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct ValvePackingSentinel_t {
     pub m_u32: uint32,
@@ -1255,12 +1314,12 @@ pub struct ValvePackingSentinel_t {
 fn bindgen_test_layout_ValvePackingSentinel_t() {
     assert_eq!(
         ::std::mem::size_of::<ValvePackingSentinel_t>(),
-        32usize,
+        24usize,
         concat!("Size of: ", stringify!(ValvePackingSentinel_t))
     );
     assert_eq!(
         ::std::mem::align_of::<ValvePackingSentinel_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ValvePackingSentinel_t))
     );
     assert_eq!(
@@ -1275,7 +1334,7 @@ fn bindgen_test_layout_ValvePackingSentinel_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ValvePackingSentinel_t>())).m_u64 as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ValvePackingSentinel_t),
@@ -1285,7 +1344,7 @@ fn bindgen_test_layout_ValvePackingSentinel_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ValvePackingSentinel_t>())).m_u16 as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(ValvePackingSentinel_t),
@@ -1295,7 +1354,7 @@ fn bindgen_test_layout_ValvePackingSentinel_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<ValvePackingSentinel_t>())).m_d as *const _ as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(ValvePackingSentinel_t),
@@ -1331,7 +1390,7 @@ pub const CCallbackBase_k_ECallbackFlagsRegistered: CCallbackBase__bindgen_ty_1 
     CCallbackBase__bindgen_ty_1::k_ECallbackFlagsRegistered;
 pub const CCallbackBase_k_ECallbackFlagsGameServer: CCallbackBase__bindgen_ty_1 =
     CCallbackBase__bindgen_ty_1::k_ECallbackFlagsGameServer;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum CCallbackBase__bindgen_ty_1 {
@@ -1384,931 +1443,462 @@ pub struct CCallResult<T, P> {
 pub type CCallResult_func_t<P> =
     ::std::option::Option<unsafe extern "C" fn(arg1: *mut P, arg2: bool)>;
 pub type CCallback_func_t<P> = ::std::option::Option<unsafe extern "C" fn(arg1: *mut P)>;
-pub type va_list = *mut ::std::os::raw::c_char;
-extern "C" {
-    pub fn __va_start(arg1: *mut va_list, ...);
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __vcrt_va_list_is_reference {
-    pub _address: u8,
-}
-pub const __vcrt_va_list_is_reference___the_value: __vcrt_va_list_is_reference__bindgen_ty_1 =
-    __vcrt_va_list_is_reference__bindgen_ty_1::__the_value;
-#[repr(u8)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum __vcrt_va_list_is_reference__bindgen_ty_1 {
-    __the_value = 0,
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __vcrt_assert_va_start_is_not_reference {
-    pub _address: u8,
-}
-pub type size_t = ::std::os::raw::c_ulonglong;
-pub type __vcrt_bool = bool;
-extern "C" {
-    pub fn __security_init_cookie();
-}
-extern "C" {
-    pub fn __security_check_cookie(_StackCookie: usize);
-}
-extern "C" {
-    pub fn __report_gsfailure(_StackCookie: usize);
-}
-extern "C" {
-    pub static mut __security_cookie: usize;
-}
-pub type __crt_bool = bool;
-extern "C" {
-    pub fn _invalid_parameter_noinfo();
-}
-extern "C" {
-    pub fn _invalid_parameter_noinfo_noreturn();
-}
-extern "C" {
-    pub fn _invoke_watson(
-        _Expression: *const u16,
-        _FunctionName: *const u16,
-        _FileName: *const u16,
-        _LineNo: ::std::os::raw::c_uint,
-        _Reserved: usize,
-    );
-}
-pub type errno_t = ::std::os::raw::c_int;
-pub type wint_t = ::std::os::raw::c_ushort;
-pub type wctype_t = ::std::os::raw::c_ushort;
-pub type __time32_t = ::std::os::raw::c_long;
-pub type __time64_t = ::std::os::raw::c_longlong;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __crt_locale_data_public {
-    pub _locale_pctype: *const ::std::os::raw::c_ushort,
-    pub _locale_mb_cur_max: ::std::os::raw::c_int,
-    pub _locale_lc_codepage: ::std::os::raw::c_uint,
-}
-#[test]
-fn bindgen_test_layout___crt_locale_data_public() {
-    assert_eq!(
-        ::std::mem::size_of::<__crt_locale_data_public>(),
-        16usize,
-        concat!("Size of: ", stringify!(__crt_locale_data_public))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__crt_locale_data_public>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__crt_locale_data_public))
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<__crt_locale_data_public>()))._locale_pctype as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__crt_locale_data_public),
-            "::",
-            stringify!(_locale_pctype)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<__crt_locale_data_public>()))._locale_mb_cur_max as *const _
-                as usize
-        },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__crt_locale_data_public),
-            "::",
-            stringify!(_locale_mb_cur_max)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            &(*(::std::ptr::null::<__crt_locale_data_public>()))._locale_lc_codepage as *const _
-                as usize
-        },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__crt_locale_data_public),
-            "::",
-            stringify!(_locale_lc_codepage)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct __crt_locale_pointers {
-    pub locinfo: *mut __crt_locale_data,
-    pub mbcinfo: *mut __crt_multibyte_data,
-}
-#[test]
-fn bindgen_test_layout___crt_locale_pointers() {
-    assert_eq!(
-        ::std::mem::size_of::<__crt_locale_pointers>(),
-        16usize,
-        concat!("Size of: ", stringify!(__crt_locale_pointers))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__crt_locale_pointers>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__crt_locale_pointers))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<__crt_locale_pointers>())).locinfo as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__crt_locale_pointers),
-            "::",
-            stringify!(locinfo)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<__crt_locale_pointers>())).mbcinfo as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__crt_locale_pointers),
-            "::",
-            stringify!(mbcinfo)
-        )
-    );
-}
-pub type _locale_t = *mut __crt_locale_pointers;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _Mbstatet {
-    pub _Wchar: ::std::os::raw::c_ulong,
-    pub _Byte: ::std::os::raw::c_ushort,
-    pub _State: ::std::os::raw::c_ushort,
-}
-#[test]
-fn bindgen_test_layout__Mbstatet() {
-    assert_eq!(
-        ::std::mem::size_of::<_Mbstatet>(),
-        8usize,
-        concat!("Size of: ", stringify!(_Mbstatet))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_Mbstatet>(),
-        4usize,
-        concat!("Alignment of ", stringify!(_Mbstatet))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Wchar as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_Wchar)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Byte as *const _ as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_Byte)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._State as *const _ as usize },
-        6usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_State)
-        )
-    );
-}
-pub type mbstate_t = _Mbstatet;
-pub type time_t = __time64_t;
-pub type rsize_t = size_t;
-extern "C" {
-    pub fn _errno() -> *mut ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _set_errno(_Value: ::std::os::raw::c_int) -> errno_t;
-}
-extern "C" {
-    pub fn _get_errno(_Value: *mut ::std::os::raw::c_int) -> errno_t;
-}
-extern "C" {
-    pub fn __doserrno() -> *mut ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn _set_doserrno(_Value: ::std::os::raw::c_ulong) -> errno_t;
-}
-extern "C" {
-    pub fn _get_doserrno(_Value: *mut ::std::os::raw::c_ulong) -> errno_t;
-}
-extern "C" {
-    pub fn memchr(
-        _Buf: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _MaxCount: size_t,
-    ) -> *const ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn memcmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: size_t,
-    ) -> ::std::os::raw::c_int;
-}
+pub type size_t = ::std::os::raw::c_ulong;
 extern "C" {
     pub fn memcpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Size: size_t,
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: size_t,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
     pub fn memmove(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Size: size_t,
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn memccpy(
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __c: ::std::os::raw::c_int,
+        __n: size_t,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
     pub fn memset(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _Size: size_t,
+        __s: *mut ::std::os::raw::c_void,
+        __c: ::std::os::raw::c_int,
+        __n: size_t,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn strchr(
-        _Str: *const ::std::os::raw::c_char,
-        _Val: ::std::os::raw::c_int,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strrchr(
-        _Str: *const ::std::os::raw::c_char,
-        _Ch: ::std::os::raw::c_int,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strstr(
-        _Str: *const ::std::os::raw::c_char,
-        _SubStr: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn wcschr(_Str: *const u16, _Ch: u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsrchr(_Str: *const u16, _Ch: u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsstr(_Str: *const u16, _SubStr: *const u16) -> *const u16;
-}
-extern "C" {
-    pub fn _memicmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: size_t,
+    pub fn memcmp(
+        __s1: *const ::std::os::raw::c_void,
+        __s2: *const ::std::os::raw::c_void,
+        __n: size_t,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn _memicmp_l(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: size_t,
-        _Locale: _locale_t,
+    pub fn __memcmpeq(
+        __s1: *const ::std::os::raw::c_void,
+        __s2: *const ::std::os::raw::c_void,
+        __n: size_t,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn memccpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _Size: size_t,
+    pub fn memchr(
+        __s: *mut ::std::os::raw::c_void,
+        __c: ::std::os::raw::c_int,
+        __n: size_t,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn memicmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcscat_s(_Destination: *mut u16, _SizeInWords: rsize_t, _Source: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn wcscpy_s(_Destination: *mut u16, _SizeInWords: rsize_t, _Source: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn wcsncat_s(
-        _Destination: *mut u16,
-        _SizeInWords: rsize_t,
-        _Source: *const u16,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn wcsncpy_s(
-        _Destination: *mut u16,
-        _SizeInWords: rsize_t,
-        _Source: *const u16,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn wcstok_s(_String: *mut u16, _Delimiter: *const u16, _Context: *mut *mut u16)
-        -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsdup(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscat(_Destination: *mut u16, _Source: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcscpy(_Destination: *mut u16, _Source: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscspn(_String: *const u16, _Control: *const u16) -> size_t;
-}
-extern "C" {
-    pub fn wcslen(_String: *const u16) -> size_t;
-}
-extern "C" {
-    pub fn wcsnlen(_Source: *const u16, _MaxCount: size_t) -> size_t;
-}
-extern "C" {
-    pub fn wcsncat(_Destination: *mut u16, _Source: *const u16, _Count: size_t) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsncmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsncpy(_Destination: *mut u16, _Source: *const u16, _Count: size_t) -> *mut u16;
-}
-extern "C" {
-    pub fn wcspbrk(_String: *const u16, _Control: *const u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsspn(_String: *const u16, _Control: *const u16) -> size_t;
-}
-extern "C" {
-    pub fn wcstok(_String: *mut u16, _Delimiter: *const u16, _Context: *mut *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcserror(_ErrorNumber: ::std::os::raw::c_int) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcserror_s(
-        _Buffer: *mut u16,
-        _SizeInWords: size_t,
-        _ErrorNumber: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn __wcserror(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn __wcserror_s(
-        _Buffer: *mut u16,
-        _SizeInWords: size_t,
-        _ErrorMessage: *const u16,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsicmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicmp_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicmp_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnset_s(
-        _Destination: *mut u16,
-        _SizeInWords: size_t,
-        _Value: u16,
-        _MaxCount: size_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsnset(_String: *mut u16, _Value: u16, _MaxCount: size_t) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsrev(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsset_s(_Destination: *mut u16, _SizeInWords: size_t, _Value: u16) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsset(_String: *mut u16, _Value: u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcslwr_s(_String: *mut u16, _SizeInWords: size_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcslwr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcslwr_s_l(_String: *mut u16, _SizeInWords: size_t, _Locale: _locale_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcslwr_l(_String: *mut u16, _Locale: _locale_t) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsupr_s(_String: *mut u16, _Size: size_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsupr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsupr_s_l(_String: *mut u16, _Size: size_t, _Locale: _locale_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsupr_l(_String: *mut u16, _Locale: _locale_t) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsxfrm(_Destination: *mut u16, _Source: *const u16, _MaxCount: size_t) -> size_t;
-}
-extern "C" {
-    pub fn _wcsxfrm_l(
-        _Destination: *mut u16,
-        _Source: *const u16,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn wcscoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcscoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsncoll(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsncoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicoll(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsdup(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsicmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsnicmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsnset(_String: *mut u16, _Value: u16, _MaxCount: size_t) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsrev(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsset(_String: *mut u16, _Value: u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcslwr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsupr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsicoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strcpy_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strcat_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strerror_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _SizeInBytes: size_t,
-        _ErrorNumber: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strncat_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strncpy_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strtok_s(
-        _String: *mut ::std::os::raw::c_char,
-        _Delimiter: *const ::std::os::raw::c_char,
-        _Context: *mut *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _memccpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _MaxCount: size_t,
+    pub fn rawmemchr(
+        __s: *mut ::std::os::raw::c_void,
+        __c: ::std::os::raw::c_int,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn strcat(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strcmp(
-        _Str1: *const ::std::os::raw::c_char,
-        _Str2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strcmpi(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strcoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strcoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
+    pub fn memrchr(
+        __s: *mut ::std::os::raw::c_void,
+        __c: ::std::os::raw::c_int,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
     pub fn strcpy(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn strcspn(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> size_t;
+    pub fn strncpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn _strdup(_Source: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strerror(_ErrorMessage: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strerror_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _SizeInBytes: size_t,
-        _ErrorMessage: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strerror(_ErrorMessage: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _stricmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricmp_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strlen(_Str: *const ::std::os::raw::c_char) -> size_t;
-}
-extern "C" {
-    pub fn _strlwr_s(_String: *mut ::std::os::raw::c_char, _Size: size_t) -> errno_t;
-}
-extern "C" {
-    pub fn _strlwr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strlwr_s_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Size: size_t,
-        _Locale: _locale_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strlwr_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Locale: _locale_t,
+    pub fn strcat(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn strncat(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _Count: size_t,
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
     ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strcmp(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn strncmp(
-        _Str1: *const ::std::os::raw::c_char,
-        _Str2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+        __n: size_t,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn _strnicmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
+    pub fn strcoll(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicmp_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strncoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strncoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __strncnt(_String: *const ::std::os::raw::c_char, _Count: size_t) -> size_t;
-}
-extern "C" {
-    pub fn strncpy(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _Count: size_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strnlen(_String: *const ::std::os::raw::c_char, _MaxCount: size_t) -> size_t;
-}
-extern "C" {
-    pub fn _strnset_s(
-        _String: *mut ::std::os::raw::c_char,
-        _SizeInBytes: size_t,
-        _Value: ::std::os::raw::c_int,
-        _MaxCount: size_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strnset(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-        _Count: size_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strpbrk(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strrev(_Str: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strset_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _DestinationSize: size_t,
-        _Value: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strset(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strspn(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn strtok(
-        _String: *mut ::std::os::raw::c_char,
-        _Delimiter: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strupr_s(_String: *mut ::std::os::raw::c_char, _Size: size_t) -> errno_t;
-}
-extern "C" {
-    pub fn _strupr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strupr_s_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Size: size_t,
-        _Locale: _locale_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strupr_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn strxfrm(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> size_t;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __locale_struct {
+    pub __locales: [*mut __locale_data; 13usize],
+    pub __ctype_b: *const ::std::os::raw::c_ushort,
+    pub __ctype_tolower: *const ::std::os::raw::c_int,
+    pub __ctype_toupper: *const ::std::os::raw::c_int,
+    pub __names: [*const ::std::os::raw::c_char; 13usize],
+}
+#[test]
+fn bindgen_test_layout___locale_struct() {
+    assert_eq!(
+        ::std::mem::size_of::<__locale_struct>(),
+        232usize,
+        concat!("Size of: ", stringify!(__locale_struct))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__locale_struct>(),
+        8usize,
+        concat!("Alignment of ", stringify!(__locale_struct))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__locale_struct>())).__locales as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__locale_struct),
+            "::",
+            stringify!(__locales)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__locale_struct>())).__ctype_b as *const _ as usize },
+        104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__locale_struct),
+            "::",
+            stringify!(__ctype_b)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__locale_struct>())).__ctype_tolower as *const _ as usize },
+        112usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__locale_struct),
+            "::",
+            stringify!(__ctype_tolower)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__locale_struct>())).__ctype_toupper as *const _ as usize },
+        120usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__locale_struct),
+            "::",
+            stringify!(__ctype_toupper)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__locale_struct>())).__names as *const _ as usize },
+        128usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__locale_struct),
+            "::",
+            stringify!(__names)
+        )
+    );
+}
+pub type __locale_t = *mut __locale_struct;
+pub type locale_t = __locale_t;
+extern "C" {
+    pub fn strcoll_l(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+        __l: locale_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strxfrm_l(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
+        __l: locale_t,
     ) -> size_t;
 }
 extern "C" {
-    pub fn _strxfrm_l(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-        _Locale: _locale_t,
+    pub fn strdup(__s: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strndup(
+        __string: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strchr(
+        __s: *mut ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strrchr(
+        __s: *mut ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strchrnul(
+        __s: *mut ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strcspn(
+        __s: *const ::std::os::raw::c_char,
+        __reject: *const ::std::os::raw::c_char,
     ) -> size_t;
 }
 extern "C" {
-    pub fn strdup(_String: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn strspn(
+        __s: *const ::std::os::raw::c_char,
+        __accept: *const ::std::os::raw::c_char,
+    ) -> size_t;
 }
 extern "C" {
-    pub fn strcmpi(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn stricmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strlwr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strnicmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: size_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strnset(
-        _String: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-        _MaxCount: size_t,
+    pub fn strpbrk(
+        __s: *mut ::std::os::raw::c_char,
+        __accept: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn strrev(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strset(
-        _String: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
+    pub fn strstr(
+        __haystack: *mut ::std::os::raw::c_char,
+        __needle: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn strupr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn strtok(
+        __s: *mut ::std::os::raw::c_char,
+        __delim: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn __strtok_r(
+        __s: *mut ::std::os::raw::c_char,
+        __delim: *const ::std::os::raw::c_char,
+        __save_ptr: *mut *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strtok_r(
+        __s: *mut ::std::os::raw::c_char,
+        __delim: *const ::std::os::raw::c_char,
+        __save_ptr: *mut *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strcasestr(
+        __haystack: *mut ::std::os::raw::c_char,
+        __needle: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn memmem(
+        __haystack: *const ::std::os::raw::c_void,
+        __haystacklen: size_t,
+        __needle: *const ::std::os::raw::c_void,
+        __needlelen: size_t,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn __mempcpy(
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mempcpy(
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn strlen(__s: *const ::std::os::raw::c_char) -> size_t;
+}
+extern "C" {
+    pub fn strnlen(__string: *const ::std::os::raw::c_char, __maxlen: size_t) -> size_t;
+}
+extern "C" {
+    pub fn strerror(__errnum: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strerror_r(
+        __errnum: ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+        __buflen: size_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strerrordesc_np(__err: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strerrorname_np(__err: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strerror_l(
+        __errnum: ::std::os::raw::c_int,
+        __l: locale_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn bcmp(
+        __s1: *const ::std::os::raw::c_void,
+        __s2: *const ::std::os::raw::c_void,
+        __n: size_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn bcopy(
+        __src: *const ::std::os::raw::c_void,
+        __dest: *mut ::std::os::raw::c_void,
+        __n: size_t,
+    );
+}
+extern "C" {
+    pub fn bzero(__s: *mut ::std::os::raw::c_void, __n: size_t);
+}
+extern "C" {
+    pub fn index(
+        __s: *const ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn rindex(
+        __s: *const ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ffs(__i: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ffsl(__l: ::std::os::raw::c_long) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ffsll(__ll: ::std::os::raw::c_longlong) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strcasecmp(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strncasecmp(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strcasecmp_l(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+        __loc: locale_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strncasecmp_l(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+        __n: size_t,
+        __loc: locale_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn explicit_bzero(__s: *mut ::std::os::raw::c_void, __n: size_t);
+}
+extern "C" {
+    pub fn strsep(
+        __stringp: *mut *mut ::std::os::raw::c_char,
+        __delim: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strsignal(__sig: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn sigabbrev_np(__sig: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn sigdescr_np(__sig: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn __stpcpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn stpcpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn __stpncpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn stpncpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: size_t,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strverscmp(
+        __s1: *const ::std::os::raw::c_char,
+        __s2: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn strfry(__string: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn memfrob(__s: *mut ::std::os::raw::c_void, __n: size_t) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn basename(__filename: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn SteamAPI_GetHSteamPipe() -> HSteamPipe;
@@ -2360,7 +1950,7 @@ extern "C" {
     pub fn SteamAPI_UnregisterCallResult(pCallback: *mut CCallbackBase, hAPICall: SteamAPICall_t);
 }
 #[doc = " Internal structure used in manual callback dispatch"]
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct CallbackMsg_t {
     pub m_hSteamUser: HSteamUser,
@@ -2372,12 +1962,12 @@ pub struct CallbackMsg_t {
 fn bindgen_test_layout_CallbackMsg_t() {
     assert_eq!(
         ::std::mem::size_of::<CallbackMsg_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(CallbackMsg_t))
     );
     assert_eq!(
         ::std::mem::align_of::<CallbackMsg_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(CallbackMsg_t))
     );
     assert_eq!(
@@ -2432,35 +2022,35 @@ pub struct ISteamPS3OverlayRender {
     _unused: [u8; 0],
 }
 pub const k_iSteamUserCallbacks: _bindgen_ty_1 = _bindgen_ty_1::k_iSteamUserCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_1 {
     k_iSteamUserCallbacks = 100,
 }
 pub const k_iSteamGameServerCallbacks: _bindgen_ty_2 = _bindgen_ty_2::k_iSteamGameServerCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_2 {
     k_iSteamGameServerCallbacks = 200,
 }
 pub const k_iSteamFriendsCallbacks: _bindgen_ty_3 = _bindgen_ty_3::k_iSteamFriendsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_3 {
     k_iSteamFriendsCallbacks = 300,
 }
 pub const k_iSteamBillingCallbacks: _bindgen_ty_4 = _bindgen_ty_4::k_iSteamBillingCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_4 {
     k_iSteamBillingCallbacks = 400,
 }
 pub const k_iSteamMatchmakingCallbacks: _bindgen_ty_5 = _bindgen_ty_5::k_iSteamMatchmakingCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_5 {
@@ -2468,35 +2058,35 @@ pub enum _bindgen_ty_5 {
 }
 pub const k_iSteamContentServerCallbacks: _bindgen_ty_6 =
     _bindgen_ty_6::k_iSteamContentServerCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_6 {
     k_iSteamContentServerCallbacks = 600,
 }
 pub const k_iSteamUtilsCallbacks: _bindgen_ty_7 = _bindgen_ty_7::k_iSteamUtilsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_7 {
     k_iSteamUtilsCallbacks = 700,
 }
 pub const k_iSteamAppsCallbacks: _bindgen_ty_8 = _bindgen_ty_8::k_iSteamAppsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_8 {
     k_iSteamAppsCallbacks = 1000,
 }
 pub const k_iSteamUserStatsCallbacks: _bindgen_ty_9 = _bindgen_ty_9::k_iSteamUserStatsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_9 {
     k_iSteamUserStatsCallbacks = 1100,
 }
 pub const k_iSteamNetworkingCallbacks: _bindgen_ty_10 = _bindgen_ty_10::k_iSteamNetworkingCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_10 {
@@ -2504,7 +2094,7 @@ pub enum _bindgen_ty_10 {
 }
 pub const k_iSteamNetworkingSocketsCallbacks: _bindgen_ty_11 =
     _bindgen_ty_11::k_iSteamNetworkingSocketsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_11 {
@@ -2512,7 +2102,7 @@ pub enum _bindgen_ty_11 {
 }
 pub const k_iSteamNetworkingMessagesCallbacks: _bindgen_ty_12 =
     _bindgen_ty_12::k_iSteamNetworkingMessagesCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_12 {
@@ -2520,7 +2110,7 @@ pub enum _bindgen_ty_12 {
 }
 pub const k_iSteamNetworkingUtilsCallbacks: _bindgen_ty_13 =
     _bindgen_ty_13::k_iSteamNetworkingUtilsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_13 {
@@ -2528,7 +2118,7 @@ pub enum _bindgen_ty_13 {
 }
 pub const k_iSteamRemoteStorageCallbacks: _bindgen_ty_14 =
     _bindgen_ty_14::k_iSteamRemoteStorageCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_14 {
@@ -2536,7 +2126,7 @@ pub enum _bindgen_ty_14 {
 }
 pub const k_iSteamGameServerItemsCallbacks: _bindgen_ty_15 =
     _bindgen_ty_15::k_iSteamGameServerItemsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_15 {
@@ -2544,7 +2134,7 @@ pub enum _bindgen_ty_15 {
 }
 pub const k_iSteamGameCoordinatorCallbacks: _bindgen_ty_16 =
     _bindgen_ty_16::k_iSteamGameCoordinatorCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_16 {
@@ -2552,28 +2142,28 @@ pub enum _bindgen_ty_16 {
 }
 pub const k_iSteamGameServerStatsCallbacks: _bindgen_ty_17 =
     _bindgen_ty_17::k_iSteamGameServerStatsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_17 {
     k_iSteamGameServerStatsCallbacks = 1800,
 }
 pub const k_iSteam2AsyncCallbacks: _bindgen_ty_18 = _bindgen_ty_18::k_iSteam2AsyncCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_18 {
     k_iSteam2AsyncCallbacks = 1900,
 }
 pub const k_iSteamGameStatsCallbacks: _bindgen_ty_19 = _bindgen_ty_19::k_iSteamGameStatsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_19 {
     k_iSteamGameStatsCallbacks = 2000,
 }
 pub const k_iSteamHTTPCallbacks: _bindgen_ty_20 = _bindgen_ty_20::k_iSteamHTTPCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_20 {
@@ -2581,7 +2171,7 @@ pub enum _bindgen_ty_20 {
 }
 pub const k_iSteamScreenshotsCallbacks: _bindgen_ty_21 =
     _bindgen_ty_21::k_iSteamScreenshotsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_21 {
@@ -2589,21 +2179,21 @@ pub enum _bindgen_ty_21 {
 }
 pub const k_iSteamStreamLauncherCallbacks: _bindgen_ty_22 =
     _bindgen_ty_22::k_iSteamStreamLauncherCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_22 {
     k_iSteamStreamLauncherCallbacks = 2600,
 }
 pub const k_iSteamControllerCallbacks: _bindgen_ty_23 = _bindgen_ty_23::k_iSteamControllerCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_23 {
     k_iSteamControllerCallbacks = 2800,
 }
 pub const k_iSteamUGCCallbacks: _bindgen_ty_24 = _bindgen_ty_24::k_iSteamUGCCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_24 {
@@ -2611,21 +2201,21 @@ pub enum _bindgen_ty_24 {
 }
 pub const k_iSteamStreamClientCallbacks: _bindgen_ty_25 =
     _bindgen_ty_25::k_iSteamStreamClientCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_25 {
     k_iSteamStreamClientCallbacks = 3500,
 }
 pub const k_iSteamAppListCallbacks: _bindgen_ty_26 = _bindgen_ty_26::k_iSteamAppListCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_26 {
     k_iSteamAppListCallbacks = 3900,
 }
 pub const k_iSteamMusicCallbacks: _bindgen_ty_27 = _bindgen_ty_27::k_iSteamMusicCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_27 {
@@ -2633,7 +2223,7 @@ pub enum _bindgen_ty_27 {
 }
 pub const k_iSteamMusicRemoteCallbacks: _bindgen_ty_28 =
     _bindgen_ty_28::k_iSteamMusicRemoteCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_28 {
@@ -2641,7 +2231,7 @@ pub enum _bindgen_ty_28 {
 }
 pub const k_iSteamGameNotificationCallbacks: _bindgen_ty_29 =
     _bindgen_ty_29::k_iSteamGameNotificationCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_29 {
@@ -2649,21 +2239,21 @@ pub enum _bindgen_ty_29 {
 }
 pub const k_iSteamHTMLSurfaceCallbacks: _bindgen_ty_30 =
     _bindgen_ty_30::k_iSteamHTMLSurfaceCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_30 {
     k_iSteamHTMLSurfaceCallbacks = 4500,
 }
 pub const k_iSteamVideoCallbacks: _bindgen_ty_31 = _bindgen_ty_31::k_iSteamVideoCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_31 {
     k_iSteamVideoCallbacks = 4600,
 }
 pub const k_iSteamInventoryCallbacks: _bindgen_ty_32 = _bindgen_ty_32::k_iSteamInventoryCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_32 {
@@ -2671,42 +2261,42 @@ pub enum _bindgen_ty_32 {
 }
 pub const k_ISteamParentalSettingsCallbacks: _bindgen_ty_33 =
     _bindgen_ty_33::k_ISteamParentalSettingsCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_33 {
     k_ISteamParentalSettingsCallbacks = 5000,
 }
 pub const k_iSteamGameSearchCallbacks: _bindgen_ty_34 = _bindgen_ty_34::k_iSteamGameSearchCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_34 {
     k_iSteamGameSearchCallbacks = 5200,
 }
 pub const k_iSteamPartiesCallbacks: _bindgen_ty_35 = _bindgen_ty_35::k_iSteamPartiesCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_35 {
     k_iSteamPartiesCallbacks = 5300,
 }
 pub const k_iSteamSTARCallbacks: _bindgen_ty_36 = _bindgen_ty_36::k_iSteamSTARCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_36 {
     k_iSteamSTARCallbacks = 5500,
 }
 pub const k_iSteamRemotePlayCallbacks: _bindgen_ty_37 = _bindgen_ty_37::k_iSteamRemotePlayCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_37 {
     k_iSteamRemotePlayCallbacks = 5700,
 }
 pub const k_iSteamChatCallbacks: _bindgen_ty_38 = _bindgen_ty_38::k_iSteamChatCallbacks;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_38 {
@@ -3184,7 +2774,7 @@ pub struct SteamServersConnected_t {
 }
 pub const SteamServersConnected_t_k_iCallback: SteamServersConnected_t__bindgen_ty_1 =
     SteamServersConnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamServersConnected_t__bindgen_ty_1 {
@@ -3211,7 +2801,7 @@ pub struct SteamServerConnectFailure_t {
 }
 pub const SteamServerConnectFailure_t_k_iCallback: SteamServerConnectFailure_t__bindgen_ty_1 =
     SteamServerConnectFailure_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamServerConnectFailure_t__bindgen_ty_1 {
@@ -3262,7 +2852,7 @@ pub struct SteamServersDisconnected_t {
 }
 pub const SteamServersDisconnected_t_k_iCallback: SteamServersDisconnected_t__bindgen_ty_1 =
     SteamServersDisconnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamServersDisconnected_t__bindgen_ty_1 {
@@ -3304,7 +2894,7 @@ pub struct ClientGameServerDeny_t {
 }
 pub const ClientGameServerDeny_t_k_iCallback: ClientGameServerDeny_t__bindgen_ty_1 =
     ClientGameServerDeny_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ClientGameServerDeny_t__bindgen_ty_1 {
@@ -3389,13 +2979,13 @@ pub struct IPCFailure_t {
 }
 pub const IPCFailure_t_k_iCallback: IPCFailure_t__bindgen_ty_1 =
     IPCFailure_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum IPCFailure_t__bindgen_ty_1 {
     k_iCallback = 117,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum IPCFailure_t_EFailureType {
@@ -3432,7 +3022,7 @@ pub struct LicensesUpdated_t {
 }
 pub const LicensesUpdated_t_k_iCallback: LicensesUpdated_t__bindgen_ty_1 =
     LicensesUpdated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LicensesUpdated_t__bindgen_ty_1 {
@@ -3460,7 +3050,7 @@ pub struct ValidateAuthTicketResponse_t {
 }
 pub const ValidateAuthTicketResponse_t_k_iCallback: ValidateAuthTicketResponse_t__bindgen_ty_1 =
     ValidateAuthTicketResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ValidateAuthTicketResponse_t__bindgen_ty_1 {
@@ -3517,7 +3107,7 @@ fn bindgen_test_layout_ValidateAuthTicketResponse_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct MicroTxnAuthorizationResponse_t {
     pub m_unAppID: uint32,
@@ -3527,7 +3117,7 @@ pub struct MicroTxnAuthorizationResponse_t {
 pub const MicroTxnAuthorizationResponse_t_k_iCallback:
     MicroTxnAuthorizationResponse_t__bindgen_ty_1 =
     MicroTxnAuthorizationResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MicroTxnAuthorizationResponse_t__bindgen_ty_1 {
@@ -3537,12 +3127,12 @@ pub enum MicroTxnAuthorizationResponse_t__bindgen_ty_1 {
 fn bindgen_test_layout_MicroTxnAuthorizationResponse_t() {
     assert_eq!(
         ::std::mem::size_of::<MicroTxnAuthorizationResponse_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(MicroTxnAuthorizationResponse_t))
     );
     assert_eq!(
         ::std::mem::align_of::<MicroTxnAuthorizationResponse_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(MicroTxnAuthorizationResponse_t))
     );
     assert_eq!(
@@ -3563,7 +3153,7 @@ fn bindgen_test_layout_MicroTxnAuthorizationResponse_t() {
             &(*(::std::ptr::null::<MicroTxnAuthorizationResponse_t>())).m_ulOrderID as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(MicroTxnAuthorizationResponse_t),
@@ -3576,7 +3166,7 @@ fn bindgen_test_layout_MicroTxnAuthorizationResponse_t() {
             &(*(::std::ptr::null::<MicroTxnAuthorizationResponse_t>())).m_bAuthorized as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(MicroTxnAuthorizationResponse_t),
@@ -3592,7 +3182,7 @@ pub struct EncryptedAppTicketResponse_t {
 }
 pub const EncryptedAppTicketResponse_t_k_iCallback: EncryptedAppTicketResponse_t__bindgen_ty_1 =
     EncryptedAppTicketResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EncryptedAppTicketResponse_t__bindgen_ty_1 {
@@ -3631,7 +3221,7 @@ pub struct GetAuthSessionTicketResponse_t {
 }
 pub const GetAuthSessionTicketResponse_t_k_iCallback: GetAuthSessionTicketResponse_t__bindgen_ty_1 =
     GetAuthSessionTicketResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GetAuthSessionTicketResponse_t__bindgen_ty_1 {
@@ -3683,7 +3273,7 @@ pub struct GameWebCallback_t {
 }
 pub const GameWebCallback_t_k_iCallback: GameWebCallback_t__bindgen_ty_1 =
     GameWebCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameWebCallback_t__bindgen_ty_1 {
@@ -3719,7 +3309,7 @@ pub struct StoreAuthURLResponse_t {
 }
 pub const StoreAuthURLResponse_t_k_iCallback: StoreAuthURLResponse_t__bindgen_ty_1 =
     StoreAuthURLResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum StoreAuthURLResponse_t__bindgen_ty_1 {
@@ -3759,7 +3349,7 @@ pub struct MarketEligibilityResponse_t {
 }
 pub const MarketEligibilityResponse_t_k_iCallback: MarketEligibilityResponse_t__bindgen_ty_1 =
     MarketEligibilityResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MarketEligibilityResponse_t__bindgen_ty_1 {
@@ -3856,7 +3446,7 @@ pub struct DurationControl_t {
 }
 pub const DurationControl_t_k_iCallback: DurationControl_t__bindgen_ty_1 =
     DurationControl_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum DurationControl_t__bindgen_ty_1 {
@@ -3959,7 +3549,7 @@ fn bindgen_test_layout_DurationControl_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EFriendRelationship {
@@ -3978,7 +3568,7 @@ pub const k_cFriendsGroupLimit: ::std::os::raw::c_int = 100;
 pub type FriendsGroupID_t = int16;
 pub const k_FriendsGroupID_Invalid: FriendsGroupID_t = -1;
 pub const k_cEnumerateFollowersMax: ::std::os::raw::c_int = 50;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EPersonaState {
@@ -3992,7 +3582,7 @@ pub enum EPersonaState {
     k_EPersonaStateInvisible = 7,
     k_EPersonaStateMax = 8,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EFriendFlags {
@@ -4083,14 +3673,14 @@ fn bindgen_test_layout_FriendGameInfo_t() {
 }
 pub const k_cchPersonaNameMax: _bindgen_ty_39 = _bindgen_ty_39::k_cchPersonaNameMax;
 pub const k_cwchPersonaNameMax: _bindgen_ty_39 = _bindgen_ty_39::k_cwchPersonaNameMax;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_39 {
     k_cchPersonaNameMax = 128,
     k_cwchPersonaNameMax = 32,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUserRestriction {
@@ -4105,7 +3695,7 @@ pub enum EUserRestriction {
 }
 pub const k_cubChatMetadataMax: uint32 = 8192;
 pub const k_cchMaxRichPresenceKeys: _bindgen_ty_40 = _bindgen_ty_40::k_cchMaxRichPresenceKeys;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_40 {
@@ -4113,7 +3703,7 @@ pub enum _bindgen_ty_40 {
 }
 pub const k_cchMaxRichPresenceKeyLength: _bindgen_ty_41 =
     _bindgen_ty_41::k_cchMaxRichPresenceKeyLength;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_41 {
@@ -4121,13 +3711,13 @@ pub enum _bindgen_ty_41 {
 }
 pub const k_cchMaxRichPresenceValueLength: _bindgen_ty_42 =
     _bindgen_ty_42::k_cchMaxRichPresenceValueLength;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_42 {
     k_cchMaxRichPresenceValueLength = 256,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EOverlayToStoreFlag {
@@ -4135,7 +3725,7 @@ pub enum EOverlayToStoreFlag {
     k_EOverlayToStoreFlag_AddToCart = 1,
     k_EOverlayToStoreFlag_AddToCartAndShow = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EActivateGameOverlayToWebPageMode {
@@ -4162,7 +3752,7 @@ fn bindgen_test_layout_ISteamFriends() {
         concat!("Alignment of ", stringify!(ISteamFriends))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct PersonaStateChange_t {
     pub m_ulSteamID: uint64,
@@ -4170,7 +3760,7 @@ pub struct PersonaStateChange_t {
 }
 pub const PersonaStateChange_t_k_iCallback: PersonaStateChange_t__bindgen_ty_1 =
     PersonaStateChange_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum PersonaStateChange_t__bindgen_ty_1 {
@@ -4180,12 +3770,12 @@ pub enum PersonaStateChange_t__bindgen_ty_1 {
 fn bindgen_test_layout_PersonaStateChange_t() {
     assert_eq!(
         ::std::mem::size_of::<PersonaStateChange_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(PersonaStateChange_t))
     );
     assert_eq!(
         ::std::mem::align_of::<PersonaStateChange_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(PersonaStateChange_t))
     );
     assert_eq!(
@@ -4213,7 +3803,7 @@ fn bindgen_test_layout_PersonaStateChange_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EPersonaChange {
@@ -4240,7 +3830,7 @@ pub struct GameOverlayActivated_t {
 }
 pub const GameOverlayActivated_t_k_iCallback: GameOverlayActivated_t__bindgen_ty_1 =
     GameOverlayActivated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameOverlayActivated_t__bindgen_ty_1 {
@@ -4279,7 +3869,7 @@ pub struct GameServerChangeRequested_t {
 }
 pub const GameServerChangeRequested_t_k_iCallback: GameServerChangeRequested_t__bindgen_ty_1 =
     GameServerChangeRequested_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameServerChangeRequested_t__bindgen_ty_1 {
@@ -4332,7 +3922,7 @@ pub struct GameLobbyJoinRequested_t {
 }
 pub const GameLobbyJoinRequested_t_k_iCallback: GameLobbyJoinRequested_t__bindgen_ty_1 =
     GameLobbyJoinRequested_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameLobbyJoinRequested_t__bindgen_ty_1 {
@@ -4386,7 +3976,7 @@ pub struct AvatarImageLoaded_t {
 }
 pub const AvatarImageLoaded_t_k_iCallback: AvatarImageLoaded_t__bindgen_ty_1 =
     AvatarImageLoaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AvatarImageLoaded_t__bindgen_ty_1 {
@@ -4454,7 +4044,7 @@ pub struct ClanOfficerListResponse_t {
 }
 pub const ClanOfficerListResponse_t_k_iCallback: ClanOfficerListResponse_t__bindgen_ty_1 =
     ClanOfficerListResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ClanOfficerListResponse_t__bindgen_ty_1 {
@@ -4517,7 +4107,7 @@ pub struct FriendRichPresenceUpdate_t {
 }
 pub const FriendRichPresenceUpdate_t_k_iCallback: FriendRichPresenceUpdate_t__bindgen_ty_1 =
     FriendRichPresenceUpdate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FriendRichPresenceUpdate_t__bindgen_ty_1 {
@@ -4570,7 +4160,7 @@ pub struct GameRichPresenceJoinRequested_t {
 pub const GameRichPresenceJoinRequested_t_k_iCallback:
     GameRichPresenceJoinRequested_t__bindgen_ty_1 =
     GameRichPresenceJoinRequested_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameRichPresenceJoinRequested_t__bindgen_ty_1 {
@@ -4624,7 +4214,7 @@ pub struct GameConnectedClanChatMsg_t {
 }
 pub const GameConnectedClanChatMsg_t_k_iCallback: GameConnectedClanChatMsg_t__bindgen_ty_1 =
     GameConnectedClanChatMsg_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameConnectedClanChatMsg_t__bindgen_ty_1 {
@@ -4689,7 +4279,7 @@ pub struct GameConnectedChatJoin_t {
 }
 pub const GameConnectedChatJoin_t_k_iCallback: GameConnectedChatJoin_t__bindgen_ty_1 =
     GameConnectedChatJoin_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameConnectedChatJoin_t__bindgen_ty_1 {
@@ -4743,7 +4333,7 @@ pub struct GameConnectedChatLeave_t {
 }
 pub const GameConnectedChatLeave_t_k_iCallback: GameConnectedChatLeave_t__bindgen_ty_1 =
     GameConnectedChatLeave_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameConnectedChatLeave_t__bindgen_ty_1 {
@@ -4819,7 +4409,7 @@ pub struct DownloadClanActivityCountsResult_t {
 pub const DownloadClanActivityCountsResult_t_k_iCallback:
     DownloadClanActivityCountsResult_t__bindgen_ty_1 =
     DownloadClanActivityCountsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum DownloadClanActivityCountsResult_t__bindgen_ty_1 {
@@ -4863,7 +4453,7 @@ pub struct JoinClanChatRoomCompletionResult_t {
 pub const JoinClanChatRoomCompletionResult_t_k_iCallback:
     JoinClanChatRoomCompletionResult_t__bindgen_ty_1 =
     JoinClanChatRoomCompletionResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum JoinClanChatRoomCompletionResult_t__bindgen_ty_1 {
@@ -4919,7 +4509,7 @@ pub struct GameConnectedFriendChatMsg_t {
 }
 pub const GameConnectedFriendChatMsg_t_k_iCallback: GameConnectedFriendChatMsg_t__bindgen_ty_1 =
     GameConnectedFriendChatMsg_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GameConnectedFriendChatMsg_t__bindgen_ty_1 {
@@ -4973,7 +4563,7 @@ pub struct FriendsGetFollowerCount_t {
 }
 pub const FriendsGetFollowerCount_t_k_iCallback: FriendsGetFollowerCount_t__bindgen_ty_1 =
     FriendsGetFollowerCount_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FriendsGetFollowerCount_t__bindgen_ty_1 {
@@ -5037,7 +4627,7 @@ pub struct FriendsIsFollowing_t {
 }
 pub const FriendsIsFollowing_t_k_iCallback: FriendsIsFollowing_t__bindgen_ty_1 =
     FriendsIsFollowing_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FriendsIsFollowing_t__bindgen_ty_1 {
@@ -5099,7 +4689,7 @@ pub struct FriendsEnumerateFollowingList_t {
 pub const FriendsEnumerateFollowingList_t_k_iCallback:
     FriendsEnumerateFollowingList_t__bindgen_ty_1 =
     FriendsEnumerateFollowingList_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FriendsEnumerateFollowingList_t__bindgen_ty_1 {
@@ -5179,7 +4769,7 @@ pub struct SetPersonaNameResponse_t {
 }
 pub const SetPersonaNameResponse_t_k_iCallback: SetPersonaNameResponse_t__bindgen_ty_1 =
     SetPersonaNameResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SetPersonaNameResponse_t__bindgen_ty_1 {
@@ -5242,7 +4832,7 @@ pub struct UnreadChatMessagesChanged_t {
 }
 pub const UnreadChatMessagesChanged_t_k_iCallback: UnreadChatMessagesChanged_t__bindgen_ty_1 =
     UnreadChatMessagesChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UnreadChatMessagesChanged_t__bindgen_ty_1 {
@@ -5269,7 +4859,7 @@ pub struct OverlayBrowserProtocolNavigation_t {
 pub const OverlayBrowserProtocolNavigation_t_k_iCallback:
     OverlayBrowserProtocolNavigation_t__bindgen_ty_1 =
     OverlayBrowserProtocolNavigation_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum OverlayBrowserProtocolNavigation_t__bindgen_ty_1 {
@@ -5314,21 +4904,21 @@ pub enum ESteamAPICallFailure {
     k_ESteamAPICallFailureInvalidHandle = 2,
     k_ESteamAPICallFailureMismatchedCallback = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EGamepadTextInputMode {
     k_EGamepadTextInputModeNormal = 0,
     k_EGamepadTextInputModePassword = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EGamepadTextInputLineMode {
     k_EGamepadTextInputLineModeSingleLine = 0,
     k_EGamepadTextInputLineModeMultipleLines = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EFloatingGamepadTextInputMode {
@@ -5337,7 +4927,7 @@ pub enum EFloatingGamepadTextInputMode {
     k_EFloatingGamepadTextInputModeModeEmail = 2,
     k_EFloatingGamepadTextInputModeModeNumeric = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ETextFilteringContext {
@@ -5373,7 +4963,7 @@ pub struct IPCountry_t {
 }
 pub const IPCountry_t_k_iCallback: IPCountry_t__bindgen_ty_1 =
     IPCountry_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum IPCountry_t__bindgen_ty_1 {
@@ -5399,7 +4989,7 @@ pub struct LowBatteryPower_t {
 }
 pub const LowBatteryPower_t_k_iCallback: LowBatteryPower_t__bindgen_ty_1 =
     LowBatteryPower_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LowBatteryPower_t__bindgen_ty_1 {
@@ -5430,7 +5020,7 @@ fn bindgen_test_layout_LowBatteryPower_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamAPICallCompleted_t {
     pub m_hAsyncCall: SteamAPICall_t,
@@ -5439,7 +5029,7 @@ pub struct SteamAPICallCompleted_t {
 }
 pub const SteamAPICallCompleted_t_k_iCallback: SteamAPICallCompleted_t__bindgen_ty_1 =
     SteamAPICallCompleted_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamAPICallCompleted_t__bindgen_ty_1 {
@@ -5454,7 +5044,7 @@ fn bindgen_test_layout_SteamAPICallCompleted_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamAPICallCompleted_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamAPICallCompleted_t))
     );
     assert_eq!(
@@ -5501,7 +5091,7 @@ pub struct SteamShutdown_t {
 }
 pub const SteamShutdown_t_k_iCallback: SteamShutdown_t__bindgen_ty_1 =
     SteamShutdown_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamShutdown_t__bindgen_ty_1 {
@@ -5520,7 +5110,7 @@ fn bindgen_test_layout_SteamShutdown_t() {
         concat!("Alignment of ", stringify!(SteamShutdown_t))
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ECheckFileSignature {
@@ -5537,7 +5127,7 @@ pub struct CheckFileSignature_t {
 }
 pub const CheckFileSignature_t_k_iCallback: CheckFileSignature_t__bindgen_ty_1 =
     CheckFileSignature_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum CheckFileSignature_t__bindgen_ty_1 {
@@ -5577,7 +5167,7 @@ pub struct GamepadTextInputDismissed_t {
 }
 pub const GamepadTextInputDismissed_t_k_iCallback: GamepadTextInputDismissed_t__bindgen_ty_1 =
     GamepadTextInputDismissed_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GamepadTextInputDismissed_t__bindgen_ty_1 {
@@ -5629,7 +5219,7 @@ pub struct AppResumingFromSuspend_t {
 }
 pub const AppResumingFromSuspend_t_k_iCallback: AppResumingFromSuspend_t__bindgen_ty_1 =
     AppResumingFromSuspend_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AppResumingFromSuspend_t__bindgen_ty_1 {
@@ -5656,7 +5246,7 @@ pub struct FloatingGamepadTextInputDismissed_t {
 pub const FloatingGamepadTextInputDismissed_t_k_iCallback:
     FloatingGamepadTextInputDismissed_t__bindgen_ty_1 =
     FloatingGamepadTextInputDismissed_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FloatingGamepadTextInputDismissed_t__bindgen_ty_1 {
@@ -5678,691 +5268,1257 @@ fn bindgen_test_layout_FloatingGamepadTextInputDismissed_t() {
         )
     );
 }
+pub type va_list = __builtin_va_list;
+pub type __gnuc_va_list = __builtin_va_list;
+pub type __u_char = ::std::os::raw::c_uchar;
+pub type __u_short = ::std::os::raw::c_ushort;
+pub type __u_int = ::std::os::raw::c_uint;
+pub type __u_long = ::std::os::raw::c_ulong;
+pub type __int8_t = ::std::os::raw::c_schar;
+pub type __uint8_t = ::std::os::raw::c_uchar;
+pub type __int16_t = ::std::os::raw::c_short;
+pub type __uint16_t = ::std::os::raw::c_ushort;
+pub type __int32_t = ::std::os::raw::c_int;
+pub type __uint32_t = ::std::os::raw::c_uint;
+pub type __int64_t = ::std::os::raw::c_long;
+pub type __uint64_t = ::std::os::raw::c_ulong;
+pub type __int_least8_t = __int8_t;
+pub type __uint_least8_t = __uint8_t;
+pub type __int_least16_t = __int16_t;
+pub type __uint_least16_t = __uint16_t;
+pub type __int_least32_t = __int32_t;
+pub type __uint_least32_t = __uint32_t;
+pub type __int_least64_t = __int64_t;
+pub type __uint_least64_t = __uint64_t;
+pub type __quad_t = ::std::os::raw::c_long;
+pub type __u_quad_t = ::std::os::raw::c_ulong;
+pub type __intmax_t = ::std::os::raw::c_long;
+pub type __uintmax_t = ::std::os::raw::c_ulong;
+pub type __dev_t = ::std::os::raw::c_ulong;
+pub type __uid_t = ::std::os::raw::c_uint;
+pub type __gid_t = ::std::os::raw::c_uint;
+pub type __ino_t = ::std::os::raw::c_ulong;
+pub type __ino64_t = ::std::os::raw::c_ulong;
+pub type __mode_t = ::std::os::raw::c_uint;
+pub type __nlink_t = ::std::os::raw::c_ulong;
+pub type __off_t = ::std::os::raw::c_long;
+pub type __off64_t = ::std::os::raw::c_long;
+pub type __pid_t = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct _iobuf {
-    pub _Placeholder: *mut ::std::os::raw::c_void,
+pub struct __fsid_t {
+    pub __val: [::std::os::raw::c_int; 2usize],
 }
 #[test]
-fn bindgen_test_layout__iobuf() {
+fn bindgen_test_layout___fsid_t() {
     assert_eq!(
-        ::std::mem::size_of::<_iobuf>(),
+        ::std::mem::size_of::<__fsid_t>(),
         8usize,
-        concat!("Size of: ", stringify!(_iobuf))
+        concat!("Size of: ", stringify!(__fsid_t))
     );
     assert_eq!(
-        ::std::mem::align_of::<_iobuf>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_iobuf))
+        ::std::mem::align_of::<__fsid_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(__fsid_t))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_iobuf>()))._Placeholder as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<__fsid_t>())).__val as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(_iobuf),
+            stringify!(__fsid_t),
             "::",
-            stringify!(_Placeholder)
+            stringify!(__val)
         )
     );
 }
-pub type FILE = _iobuf;
-extern "C" {
-    pub fn __acrt_iob_func(_Ix: ::std::os::raw::c_uint) -> *mut FILE;
-}
-extern "C" {
-    pub fn fgetwc(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fgetwchar() -> wint_t;
-}
-extern "C" {
-    pub fn fputwc(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fputwchar(_Character: u16) -> wint_t;
-}
-extern "C" {
-    pub fn getwc(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn getwchar() -> wint_t;
-}
-extern "C" {
-    pub fn fgetws(
-        _Buffer: *mut u16,
-        _BufferCount: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> *mut u16;
-}
-extern "C" {
-    pub fn fputws(_Buffer: *const u16, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getws_s(_Buffer: *mut u16, _BufferCount: size_t) -> *mut u16;
-}
-extern "C" {
-    pub fn putwc(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn putwchar(_Character: u16) -> wint_t;
-}
-extern "C" {
-    pub fn _putws(_Buffer: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ungetwc(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _wfdopen(_FileHandle: ::std::os::raw::c_int, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfopen(_FileName: *const u16, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfopen_s(_Stream: *mut *mut FILE, _FileName: *const u16, _Mode: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn _wfreopen(_FileName: *const u16, _Mode: *const u16, _OldStream: *mut FILE) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfreopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const u16,
-        _Mode: *const u16,
-        _OldStream: *mut FILE,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wfsopen(
-        _FileName: *const u16,
-        _Mode: *const u16,
-        _ShFlag: ::std::os::raw::c_int,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wperror(_ErrorMessage: *const u16);
-}
-extern "C" {
-    pub fn _wpopen(_Command: *const u16, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wremove(_FileName: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wtempnam(_Directory: *const u16, _FilePrefix: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wtmpnam_s(_Buffer: *mut u16, _BufferCount: size_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wtmpnam(_Buffer: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _fgetwc_nolock(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fputwc_nolock(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _getwc_nolock(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _putwc_nolock(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _ungetwc_nolock(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: size_t,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: size_t,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsnwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: size_t,
-        _MaxCount: size_t,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: size_t,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *const u16,
-        _BufferCount: size_t,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-pub type fpos_t = ::std::os::raw::c_longlong;
-extern "C" {
-    pub fn _get_stream_buffer_pointers(
-        _Stream: *mut FILE,
-        _Base: *mut *mut *mut ::std::os::raw::c_char,
-        _Pointer: *mut *mut *mut ::std::os::raw::c_char,
-        _Count: *mut *mut ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn clearerr_s(_Stream: *mut FILE) -> errno_t;
-}
-extern "C" {
-    pub fn fopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn fread_s(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _BufferSize: size_t,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn freopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _OldStream: *mut FILE,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn gets_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _Size: rsize_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn tmpfile_s(_Stream: *mut *mut FILE) -> errno_t;
-}
-extern "C" {
-    pub fn tmpnam_s(_Buffer: *mut ::std::os::raw::c_char, _Size: rsize_t) -> errno_t;
-}
-extern "C" {
-    pub fn clearerr(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn fclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fcloseall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fdopen(
-        _FileHandle: ::std::os::raw::c_int,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn feof(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ferror(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fflush(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgetc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fgetchar() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgetpos(_Stream: *mut FILE, _Position: *mut fpos_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgets(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _MaxCount: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _flushall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn fputc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fputchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fputs(
-        _Buffer: *const ::std::os::raw::c_char,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fread(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn freopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _Stream: *mut FILE,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn _fsopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _ShFlag: ::std::os::raw::c_int,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn fsetpos(_Stream: *mut FILE, _Position: *const fpos_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fseek(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_long,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fseeki64(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_longlong,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ftell(_Stream: *mut FILE) -> ::std::os::raw::c_long;
-}
-extern "C" {
-    pub fn _ftelli64(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
-}
-extern "C" {
-    pub fn fwrite(
-        _Buffer: *const ::std::os::raw::c_void,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn getc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn getchar() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getmaxstdio() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn perror(_ErrorMessage: *const ::std::os::raw::c_char);
-}
-extern "C" {
-    pub fn _pclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _popen(
-        _Command: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn putc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn putchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn puts(_Buffer: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _putw(_Word: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn remove(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+pub type __clock_t = ::std::os::raw::c_long;
+pub type __rlim_t = ::std::os::raw::c_ulong;
+pub type __rlim64_t = ::std::os::raw::c_ulong;
+pub type __id_t = ::std::os::raw::c_uint;
+pub type __time_t = ::std::os::raw::c_long;
+pub type __useconds_t = ::std::os::raw::c_uint;
+pub type __suseconds_t = ::std::os::raw::c_long;
+pub type __suseconds64_t = ::std::os::raw::c_long;
+pub type __daddr_t = ::std::os::raw::c_int;
+pub type __key_t = ::std::os::raw::c_int;
+pub type __clockid_t = ::std::os::raw::c_int;
+pub type __timer_t = *mut ::std::os::raw::c_void;
+pub type __blksize_t = ::std::os::raw::c_long;
+pub type __blkcnt_t = ::std::os::raw::c_long;
+pub type __blkcnt64_t = ::std::os::raw::c_long;
+pub type __fsblkcnt_t = ::std::os::raw::c_ulong;
+pub type __fsblkcnt64_t = ::std::os::raw::c_ulong;
+pub type __fsfilcnt_t = ::std::os::raw::c_ulong;
+pub type __fsfilcnt64_t = ::std::os::raw::c_ulong;
+pub type __fsword_t = ::std::os::raw::c_long;
+pub type __ssize_t = ::std::os::raw::c_long;
+pub type __syscall_slong_t = ::std::os::raw::c_long;
+pub type __syscall_ulong_t = ::std::os::raw::c_ulong;
+pub type __loff_t = __off64_t;
+pub type __caddr_t = *mut ::std::os::raw::c_char;
+pub type __intptr_t = ::std::os::raw::c_long;
+pub type __socklen_t = ::std::os::raw::c_uint;
+pub type __sig_atomic_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct __mbstate_t {
+    pub __count: ::std::os::raw::c_int,
+    pub __value: __mbstate_t__bindgen_ty_1,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union __mbstate_t__bindgen_ty_1 {
+    pub __wch: ::std::os::raw::c_uint,
+    pub __wchb: [::std::os::raw::c_char; 4usize],
+}
+#[test]
+fn bindgen_test_layout___mbstate_t__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<__mbstate_t__bindgen_ty_1>(),
+        4usize,
+        concat!("Size of: ", stringify!(__mbstate_t__bindgen_ty_1))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__mbstate_t__bindgen_ty_1>(),
+        4usize,
+        concat!("Alignment of ", stringify!(__mbstate_t__bindgen_ty_1))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__mbstate_t__bindgen_ty_1>())).__wch as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__mbstate_t__bindgen_ty_1),
+            "::",
+            stringify!(__wch)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<__mbstate_t__bindgen_ty_1>())).__wchb as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__mbstate_t__bindgen_ty_1),
+            "::",
+            stringify!(__wchb)
+        )
+    );
+}
+#[test]
+fn bindgen_test_layout___mbstate_t() {
+    assert_eq!(
+        ::std::mem::size_of::<__mbstate_t>(),
+        8usize,
+        concat!("Size of: ", stringify!(__mbstate_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__mbstate_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(__mbstate_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__mbstate_t>())).__count as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__mbstate_t),
+            "::",
+            stringify!(__count)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__mbstate_t>())).__value as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__mbstate_t),
+            "::",
+            stringify!(__value)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct _G_fpos_t {
+    pub __pos: __off_t,
+    pub __state: __mbstate_t,
+}
+#[test]
+fn bindgen_test_layout__G_fpos_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_G_fpos_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(_G_fpos_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_G_fpos_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_G_fpos_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_G_fpos_t>())).__pos as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_G_fpos_t),
+            "::",
+            stringify!(__pos)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_G_fpos_t>())).__state as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_G_fpos_t),
+            "::",
+            stringify!(__state)
+        )
+    );
+}
+pub type __fpos_t = _G_fpos_t;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct _G_fpos64_t {
+    pub __pos: __off64_t,
+    pub __state: __mbstate_t,
+}
+#[test]
+fn bindgen_test_layout__G_fpos64_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_G_fpos64_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(_G_fpos64_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_G_fpos64_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_G_fpos64_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_G_fpos64_t>())).__pos as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_G_fpos64_t),
+            "::",
+            stringify!(__pos)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_G_fpos64_t>())).__state as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_G_fpos64_t),
+            "::",
+            stringify!(__state)
+        )
+    );
+}
+pub type __fpos64_t = _G_fpos64_t;
+pub type __FILE = _IO_FILE;
+pub type FILE = _IO_FILE;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_marker {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_codecvt {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_wide_data {
+    _unused: [u8; 0],
+}
+pub type _IO_lock_t = ::std::os::raw::c_void;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_FILE {
+    pub _flags: ::std::os::raw::c_int,
+    pub _IO_read_ptr: *mut ::std::os::raw::c_char,
+    pub _IO_read_end: *mut ::std::os::raw::c_char,
+    pub _IO_read_base: *mut ::std::os::raw::c_char,
+    pub _IO_write_base: *mut ::std::os::raw::c_char,
+    pub _IO_write_ptr: *mut ::std::os::raw::c_char,
+    pub _IO_write_end: *mut ::std::os::raw::c_char,
+    pub _IO_buf_base: *mut ::std::os::raw::c_char,
+    pub _IO_buf_end: *mut ::std::os::raw::c_char,
+    pub _IO_save_base: *mut ::std::os::raw::c_char,
+    pub _IO_backup_base: *mut ::std::os::raw::c_char,
+    pub _IO_save_end: *mut ::std::os::raw::c_char,
+    pub _markers: *mut _IO_marker,
+    pub _chain: *mut _IO_FILE,
+    pub _fileno: ::std::os::raw::c_int,
+    pub _flags2: ::std::os::raw::c_int,
+    pub _old_offset: __off_t,
+    pub _cur_column: ::std::os::raw::c_ushort,
+    pub _vtable_offset: ::std::os::raw::c_schar,
+    pub _shortbuf: [::std::os::raw::c_char; 1usize],
+    pub _lock: *mut _IO_lock_t,
+    pub _offset: __off64_t,
+    pub _codecvt: *mut _IO_codecvt,
+    pub _wide_data: *mut _IO_wide_data,
+    pub _freeres_list: *mut _IO_FILE,
+    pub _freeres_buf: *mut ::std::os::raw::c_void,
+    pub __pad5: size_t,
+    pub _mode: ::std::os::raw::c_int,
+    pub _unused2: [::std::os::raw::c_char; 20usize],
+}
+#[test]
+fn bindgen_test_layout__IO_FILE() {
+    assert_eq!(
+        ::std::mem::size_of::<_IO_FILE>(),
+        216usize,
+        concat!("Size of: ", stringify!(_IO_FILE))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_IO_FILE>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_IO_FILE))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._flags as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_flags)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_read_ptr as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_read_ptr)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_read_end as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_read_end)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_read_base as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_read_base)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_write_base as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_write_base)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_write_ptr as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_write_ptr)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_write_end as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_write_end)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_buf_base as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_buf_base)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_buf_end as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_buf_end)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_save_base as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_save_base)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_backup_base as *const _ as usize },
+        80usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_backup_base)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._IO_save_end as *const _ as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_IO_save_end)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._markers as *const _ as usize },
+        96usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_markers)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._chain as *const _ as usize },
+        104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_chain)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._fileno as *const _ as usize },
+        112usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_fileno)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._flags2 as *const _ as usize },
+        116usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_flags2)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._old_offset as *const _ as usize },
+        120usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_old_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._cur_column as *const _ as usize },
+        128usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_cur_column)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._vtable_offset as *const _ as usize },
+        130usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_vtable_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._shortbuf as *const _ as usize },
+        131usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_shortbuf)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._lock as *const _ as usize },
+        136usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_lock)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._offset as *const _ as usize },
+        144usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._codecvt as *const _ as usize },
+        152usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_codecvt)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._wide_data as *const _ as usize },
+        160usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_wide_data)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._freeres_list as *const _ as usize },
+        168usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_freeres_list)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._freeres_buf as *const _ as usize },
+        176usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_freeres_buf)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>())).__pad5 as *const _ as usize },
+        184usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(__pad5)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._mode as *const _ as usize },
+        192usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_mode)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_FILE>()))._unused2 as *const _ as usize },
+        196usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_FILE),
+            "::",
+            stringify!(_unused2)
+        )
+    );
+}
+pub type cookie_read_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __buf: *mut ::std::os::raw::c_char,
+        __nbytes: size_t,
+    ) -> __ssize_t,
+>;
+pub type cookie_write_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __buf: *const ::std::os::raw::c_char,
+        __nbytes: size_t,
+    ) -> __ssize_t,
+>;
+pub type cookie_seek_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __pos: *mut __off64_t,
+        __w: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type cookie_close_function_t = ::std::option::Option<
+    unsafe extern "C" fn(__cookie: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int,
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_cookie_io_functions_t {
+    pub read: cookie_read_function_t,
+    pub write: cookie_write_function_t,
+    pub seek: cookie_seek_function_t,
+    pub close: cookie_close_function_t,
+}
+#[test]
+fn bindgen_test_layout__IO_cookie_io_functions_t() {
+    assert_eq!(
+        ::std::mem::size_of::<_IO_cookie_io_functions_t>(),
+        32usize,
+        concat!("Size of: ", stringify!(_IO_cookie_io_functions_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_IO_cookie_io_functions_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_IO_cookie_io_functions_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_cookie_io_functions_t>())).read as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(read)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_cookie_io_functions_t>())).write as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(write)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_cookie_io_functions_t>())).seek as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(seek)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<_IO_cookie_io_functions_t>())).close as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(close)
+        )
+    );
+}
+pub type cookie_io_functions_t = _IO_cookie_io_functions_t;
+pub type off_t = __off_t;
+pub type off64_t = __off64_t;
+pub type ssize_t = __ssize_t;
+pub type fpos_t = __fpos_t;
+pub type fpos64_t = __fpos64_t;
+extern "C" {
+    pub static mut stdin: *mut FILE;
+}
+extern "C" {
+    pub static mut stdout: *mut FILE;
+}
+extern "C" {
+    pub static mut stderr: *mut FILE;
+}
+extern "C" {
+    pub fn remove(__filename: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn rename(
-        _OldFileName: *const ::std::os::raw::c_char,
-        _NewFileName: *const ::std::os::raw::c_char,
+        __old: *const ::std::os::raw::c_char,
+        __new: *const ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn _unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn rewind(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _rmtmp() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn setbuf(_Stream: *mut FILE, _Buffer: *mut ::std::os::raw::c_char);
-}
-extern "C" {
-    pub fn _setmaxstdio(_Maximum: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn setvbuf(
-        _Stream: *mut FILE,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _Mode: ::std::os::raw::c_int,
-        _Size: size_t,
+    pub fn renameat(
+        __oldfd: ::std::os::raw::c_int,
+        __old: *const ::std::os::raw::c_char,
+        __newfd: ::std::os::raw::c_int,
+        __new: *const ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn _tempnam(
-        _DirectoryName: *const ::std::os::raw::c_char,
-        _FilePrefix: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn renameat2(
+        __oldfd: ::std::os::raw::c_int,
+        __old: *const ::std::os::raw::c_char,
+        __newfd: ::std::os::raw::c_int,
+        __new: *const ::std::os::raw::c_char,
+        __flags: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn tmpfile() -> *mut FILE;
 }
 extern "C" {
-    pub fn tmpnam(_Buffer: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn tmpfile64() -> *mut FILE;
 }
 extern "C" {
-    pub fn ungetc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn tmpnam(arg1: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn _lock_file(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _unlock_file(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _fclose_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fflush_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fgetc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fputc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fread_nolock(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn _fread_nolock_s(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _BufferSize: size_t,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn _fseek_nolock(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_long,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fseeki64_nolock(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_longlong,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _ftell_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_long;
-}
-extern "C" {
-    pub fn _ftelli64_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
-}
-extern "C" {
-    pub fn _fwrite_nolock(
-        _Buffer: *const ::std::os::raw::c_void,
-        _ElementSize: size_t,
-        _ElementCount: size_t,
-        _Stream: *mut FILE,
-    ) -> size_t;
-}
-extern "C" {
-    pub fn _getc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _putc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _ungetc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __p__commode() -> *mut ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _set_printf_count_output(_Value: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _get_printf_count_output() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _Arglist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: size_t,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: size_t,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsnprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: size_t,
-        _MaxCount: size_t,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: size_t,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *const ::std::os::raw::c_char,
-        _BufferCount: size_t,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
+    pub fn tmpnam_r(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn tempnam(
-        _Directory: *const ::std::os::raw::c_char,
-        _FilePrefix: *const ::std::os::raw::c_char,
+        __dir: *const ::std::os::raw::c_char,
+        __pfx: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fflush(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fflush_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn fcloseall() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn fdopen(
-        _FileHandle: ::std::os::raw::c_int,
-        _Format: *const ::std::os::raw::c_char,
+    pub fn fopen(
+        __filename: *const ::std::os::raw::c_char,
+        __modes: *const ::std::os::raw::c_char,
     ) -> *mut FILE;
 }
 extern "C" {
-    pub fn fgetchar() -> ::std::os::raw::c_int;
+    pub fn freopen(
+        __filename: *const ::std::os::raw::c_char,
+        __modes: *const ::std::os::raw::c_char,
+        __stream: *mut FILE,
+    ) -> *mut FILE;
 }
 extern "C" {
-    pub fn fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fopen64(
+        __filename: *const ::std::os::raw::c_char,
+        __modes: *const ::std::os::raw::c_char,
+    ) -> *mut FILE;
 }
 extern "C" {
-    pub fn flushall() -> ::std::os::raw::c_int;
+    pub fn freopen64(
+        __filename: *const ::std::os::raw::c_char,
+        __modes: *const ::std::os::raw::c_char,
+        __stream: *mut FILE,
+    ) -> *mut FILE;
 }
 extern "C" {
-    pub fn fputchar(_Ch: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn fdopen(__fd: ::std::os::raw::c_int, __modes: *const ::std::os::raw::c_char)
+        -> *mut FILE;
 }
 extern "C" {
-    pub fn getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fopencookie(
+        __magic_cookie: *mut ::std::os::raw::c_void,
+        __modes: *const ::std::os::raw::c_char,
+        __io_funcs: cookie_io_functions_t,
+    ) -> *mut FILE;
 }
 extern "C" {
-    pub fn putw(_Ch: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fmemopen(
+        __s: *mut ::std::os::raw::c_void,
+        __len: size_t,
+        __modes: *const ::std::os::raw::c_char,
+    ) -> *mut FILE;
 }
 extern "C" {
-    pub fn rmtmp() -> ::std::os::raw::c_int;
+    pub fn open_memstream(
+        __bufloc: *mut *mut ::std::os::raw::c_char,
+        __sizeloc: *mut size_t,
+    ) -> *mut FILE;
+}
+extern "C" {
+    pub fn setbuf(__stream: *mut FILE, __buf: *mut ::std::os::raw::c_char);
+}
+extern "C" {
+    pub fn setvbuf(
+        __stream: *mut FILE,
+        __buf: *mut ::std::os::raw::c_char,
+        __modes: ::std::os::raw::c_int,
+        __n: size_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn setbuffer(__stream: *mut FILE, __buf: *mut ::std::os::raw::c_char, __size: size_t);
+}
+extern "C" {
+    pub fn setlinebuf(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn fprintf(
+        __stream: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn printf(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn sprintf(
+        __s: *mut ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vfprintf(
+        __s: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vprintf(
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vsprintf(
+        __s: *mut ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn snprintf(
+        __s: *mut ::std::os::raw::c_char,
+        __maxlen: size_t,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vsnprintf(
+        __s: *mut ::std::os::raw::c_char,
+        __maxlen: size_t,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vasprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __f: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn __asprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __fmt: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn asprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __fmt: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vdprintf(
+        __fd: ::std::os::raw::c_int,
+        __fmt: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn dprintf(
+        __fd: ::std::os::raw::c_int,
+        __fmt: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fscanf(
+        __stream: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn scanf(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn sscanf(
+        __s: *const ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+pub type _Float32 = f32;
+pub type _Float64 = f64;
+pub type _Float32x = f64;
+pub type _Float64x = u128;
+extern "C" {
+    #[link_name = "\u{1}__isoc99_fscanf"]
+    pub fn fscanf1(
+        __stream: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__isoc99_scanf"]
+    pub fn scanf1(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__isoc99_sscanf"]
+    pub fn sscanf1(
+        __s: *const ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vfscanf(
+        __s: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vscanf(
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vsscanf(
+        __s: *const ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__isoc99_vfscanf"]
+    pub fn vfscanf1(
+        __s: *mut FILE,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__isoc99_vscanf"]
+    pub fn vscanf1(
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__isoc99_vsscanf"]
+    pub fn vsscanf1(
+        __s: *const ::std::os::raw::c_char,
+        __format: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fgetc(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getc(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getchar() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getc_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getchar_unlocked() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fgetc_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fputc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn putc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn putchar(__c: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fputc_unlocked(__c: ::std::os::raw::c_int, __stream: *mut FILE)
+        -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn putc_unlocked(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn putchar_unlocked(__c: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getw(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn putw(__w: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fgets(
+        __s: *mut ::std::os::raw::c_char,
+        __n: ::std::os::raw::c_int,
+        __stream: *mut FILE,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn gets(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fgets_unlocked(
+        __s: *mut ::std::os::raw::c_char,
+        __n: ::std::os::raw::c_int,
+        __stream: *mut FILE,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn __getdelim(
+        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __n: *mut size_t,
+        __delimiter: ::std::os::raw::c_int,
+        __stream: *mut FILE,
+    ) -> __ssize_t;
+}
+extern "C" {
+    pub fn getdelim(
+        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __n: *mut size_t,
+        __delimiter: ::std::os::raw::c_int,
+        __stream: *mut FILE,
+    ) -> __ssize_t;
+}
+extern "C" {
+    pub fn getline(
+        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __n: *mut size_t,
+        __stream: *mut FILE,
+    ) -> __ssize_t;
+}
+extern "C" {
+    pub fn fputs(__s: *const ::std::os::raw::c_char, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn puts(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ungetc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fread(
+        __ptr: *mut ::std::os::raw::c_void,
+        __size: size_t,
+        __n: size_t,
+        __stream: *mut FILE,
+    ) -> size_t;
+}
+extern "C" {
+    pub fn fwrite(
+        __ptr: *const ::std::os::raw::c_void,
+        __size: size_t,
+        __n: size_t,
+        __s: *mut FILE,
+    ) -> size_t;
+}
+extern "C" {
+    pub fn fputs_unlocked(
+        __s: *const ::std::os::raw::c_char,
+        __stream: *mut FILE,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fread_unlocked(
+        __ptr: *mut ::std::os::raw::c_void,
+        __size: size_t,
+        __n: size_t,
+        __stream: *mut FILE,
+    ) -> size_t;
+}
+extern "C" {
+    pub fn fwrite_unlocked(
+        __ptr: *const ::std::os::raw::c_void,
+        __size: size_t,
+        __n: size_t,
+        __stream: *mut FILE,
+    ) -> size_t;
+}
+extern "C" {
+    pub fn fseek(
+        __stream: *mut FILE,
+        __off: ::std::os::raw::c_long,
+        __whence: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ftell(__stream: *mut FILE) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn rewind(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn fseeko(
+        __stream: *mut FILE,
+        __off: __off_t,
+        __whence: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ftello(__stream: *mut FILE) -> __off_t;
+}
+extern "C" {
+    pub fn fgetpos(__stream: *mut FILE, __pos: *mut fpos_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fsetpos(__stream: *mut FILE, __pos: *const fpos_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fseeko64(
+        __stream: *mut FILE,
+        __off: __off64_t,
+        __whence: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ftello64(__stream: *mut FILE) -> __off64_t;
+}
+extern "C" {
+    pub fn fgetpos64(__stream: *mut FILE, __pos: *mut fpos64_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fsetpos64(__stream: *mut FILE, __pos: *const fpos64_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clearerr(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn feof(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ferror(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clearerr_unlocked(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn feof_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ferror_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn perror(__s: *const ::std::os::raw::c_char);
+}
+extern "C" {
+    pub fn fileno(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fileno_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn popen(
+        __command: *const ::std::os::raw::c_char,
+        __modes: *const ::std::os::raw::c_char,
+    ) -> *mut FILE;
+}
+extern "C" {
+    pub fn ctermid(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn cuserid(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct obstack {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn obstack_printf(
+        __obstack: *mut obstack,
+        __format: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn obstack_vprintf(
+        __obstack: *mut obstack,
+        __format: *const ::std::os::raw::c_char,
+        __args: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn flockfile(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn ftrylockfile(__stream: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn funlockfile(__stream: *mut FILE);
+}
+extern "C" {
+    pub fn __uflow(arg1: *mut FILE) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn __overflow(arg1: *mut FILE, arg2: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 pub const k_cbMaxGameServerGameDir: ::std::os::raw::c_int = 32;
 pub const k_cbMaxGameServerMapName: ::std::os::raw::c_int = 32;
@@ -6418,7 +6574,7 @@ fn bindgen_test_layout_MatchMakingKeyValuePair_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EMatchMakingServerResponse {
@@ -6479,7 +6635,7 @@ fn bindgen_test_layout_servernetadr_t() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?Init@servernetadr_t@@QEAAXIGG@Z"]
+    #[link_name = "\u{1}_ZN14servernetadr_t4InitEjtt"]
     pub fn servernetadr_t_Init(
         this: *mut servernetadr_t,
         ip: ::std::os::raw::c_uint,
@@ -6488,37 +6644,37 @@ extern "C" {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetQueryPort@servernetadr_t@@QEBAGXZ"]
+    #[link_name = "\u{1}_ZNK14servernetadr_t12GetQueryPortEv"]
     pub fn servernetadr_t_GetQueryPort(this: *const servernetadr_t) -> uint16;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetQueryPort@servernetadr_t@@QEAAXG@Z"]
+    #[link_name = "\u{1}_ZN14servernetadr_t12SetQueryPortEt"]
     pub fn servernetadr_t_SetQueryPort(this: *mut servernetadr_t, usPort: uint16);
 }
 extern "C" {
-    #[link_name = "\u{1}?GetConnectionPort@servernetadr_t@@QEBAGXZ"]
+    #[link_name = "\u{1}_ZNK14servernetadr_t17GetConnectionPortEv"]
     pub fn servernetadr_t_GetConnectionPort(this: *const servernetadr_t) -> uint16;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetConnectionPort@servernetadr_t@@QEAAXG@Z"]
+    #[link_name = "\u{1}_ZN14servernetadr_t17SetConnectionPortEt"]
     pub fn servernetadr_t_SetConnectionPort(this: *mut servernetadr_t, usPort: uint16);
 }
 extern "C" {
-    #[link_name = "\u{1}?GetIP@servernetadr_t@@QEBAIXZ"]
+    #[link_name = "\u{1}_ZNK14servernetadr_t5GetIPEv"]
     pub fn servernetadr_t_GetIP(this: *const servernetadr_t) -> uint32;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIP@servernetadr_t@@QEAAXI@Z"]
+    #[link_name = "\u{1}_ZN14servernetadr_t5SetIPEj"]
     pub fn servernetadr_t_SetIP(this: *mut servernetadr_t, unIP: uint32);
 }
 extern "C" {
-    #[link_name = "\u{1}?GetConnectionAddressString@servernetadr_t@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK14servernetadr_t26GetConnectionAddressStringEv"]
     pub fn servernetadr_t_GetConnectionAddressString(
         this: *const servernetadr_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?GetQueryAddressString@servernetadr_t@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK14servernetadr_t21GetQueryAddressStringEv"]
     pub fn servernetadr_t_GetQueryAddressString(
         this: *const servernetadr_t,
     ) -> *const ::std::os::raw::c_char;
@@ -6811,19 +6967,19 @@ fn bindgen_test_layout_gameserveritem_t() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetName@gameserveritem_t@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK16gameserveritem_t7GetNameEv"]
     pub fn gameserveritem_t_GetName(this: *const gameserveritem_t)
         -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetName@gameserveritem_t@@QEAAXPEBD@Z"]
+    #[link_name = "\u{1}_ZN16gameserveritem_t7SetNameEPKc"]
     pub fn gameserveritem_t_SetName(
         this: *mut gameserveritem_t,
         pName: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[link_name = "\u{1}??0gameserveritem_t@@QEAA@XZ"]
+    #[link_name = "\u{1}_ZN16gameserveritem_tC1Ev"]
     pub fn gameserveritem_t_gameserveritem_t(this: *mut gameserveritem_t);
 }
 impl gameserveritem_t {
@@ -6842,7 +6998,7 @@ impl gameserveritem_t {
         __bindgen_tmp.assume_init()
     }
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELobbyType {
@@ -6863,7 +7019,7 @@ pub enum ELobbyComparison {
     k_ELobbyComparisonEqualToOrGreaterThan = 2,
     k_ELobbyComparisonNotEqual = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELobbyDistanceFilter {
@@ -7004,7 +7160,7 @@ fn bindgen_test_layout_ISteamMatchmakingServers() {
 pub const k_unFavoriteFlagNone: uint32 = 0;
 pub const k_unFavoriteFlagFavorite: uint32 = 1;
 pub const k_unFavoriteFlagHistory: uint32 = 2;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EChatMemberStateChange {
@@ -7034,7 +7190,7 @@ fn bindgen_test_layout_ISteamGameSearch() {
         concat!("Alignment of ", stringify!(ISteamGameSearch))
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamPartyBeaconLocationType {
@@ -7042,7 +7198,7 @@ pub enum ESteamPartyBeaconLocationType {
     k_ESteamPartyBeaconLocationType_ChatGroup = 1,
     k_ESteamPartyBeaconLocationType_Max = 2,
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamPartyBeaconLocation_t {
     pub m_eType: ESteamPartyBeaconLocationType,
@@ -7052,12 +7208,12 @@ pub struct SteamPartyBeaconLocation_t {
 fn bindgen_test_layout_SteamPartyBeaconLocation_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamPartyBeaconLocation_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(SteamPartyBeaconLocation_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamPartyBeaconLocation_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamPartyBeaconLocation_t))
     );
     assert_eq!(
@@ -7077,7 +7233,7 @@ fn bindgen_test_layout_SteamPartyBeaconLocation_t() {
             &(*(::std::ptr::null::<SteamPartyBeaconLocation_t>())).m_ulLocationID as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamPartyBeaconLocation_t),
@@ -7086,7 +7242,7 @@ fn bindgen_test_layout_SteamPartyBeaconLocation_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamPartyBeaconLocationData {
@@ -7112,7 +7268,7 @@ fn bindgen_test_layout_ISteamParties() {
     );
     assert_eq!(
         ::std::mem::align_of::<ISteamParties>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ISteamParties))
     );
 }
@@ -7129,7 +7285,7 @@ pub struct FavoritesListChanged_t {
 }
 pub const FavoritesListChanged_t_k_iCallback: FavoritesListChanged_t__bindgen_ty_1 =
     FavoritesListChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FavoritesListChanged_t__bindgen_ty_1 {
@@ -7224,7 +7380,7 @@ fn bindgen_test_layout_FavoritesListChanged_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyInvite_t {
     pub m_ulSteamIDUser: uint64,
@@ -7233,7 +7389,7 @@ pub struct LobbyInvite_t {
 }
 pub const LobbyInvite_t_k_iCallback: LobbyInvite_t__bindgen_ty_1 =
     LobbyInvite_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyInvite_t__bindgen_ty_1 {
@@ -7248,7 +7404,7 @@ fn bindgen_test_layout_LobbyInvite_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyInvite_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyInvite_t))
     );
     assert_eq!(
@@ -7282,7 +7438,7 @@ fn bindgen_test_layout_LobbyInvite_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyEnter_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7292,7 +7448,7 @@ pub struct LobbyEnter_t {
 }
 pub const LobbyEnter_t_k_iCallback: LobbyEnter_t__bindgen_ty_1 =
     LobbyEnter_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyEnter_t__bindgen_ty_1 {
@@ -7302,12 +7458,12 @@ pub enum LobbyEnter_t__bindgen_ty_1 {
 fn bindgen_test_layout_LobbyEnter_t() {
     assert_eq!(
         ::std::mem::size_of::<LobbyEnter_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(LobbyEnter_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyEnter_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyEnter_t))
     );
     assert_eq!(
@@ -7355,7 +7511,7 @@ fn bindgen_test_layout_LobbyEnter_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyDataUpdate_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7364,7 +7520,7 @@ pub struct LobbyDataUpdate_t {
 }
 pub const LobbyDataUpdate_t_k_iCallback: LobbyDataUpdate_t__bindgen_ty_1 =
     LobbyDataUpdate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyDataUpdate_t__bindgen_ty_1 {
@@ -7374,12 +7530,12 @@ pub enum LobbyDataUpdate_t__bindgen_ty_1 {
 fn bindgen_test_layout_LobbyDataUpdate_t() {
     assert_eq!(
         ::std::mem::size_of::<LobbyDataUpdate_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(LobbyDataUpdate_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyDataUpdate_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyDataUpdate_t))
     );
     assert_eq!(
@@ -7417,7 +7573,7 @@ fn bindgen_test_layout_LobbyDataUpdate_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyChatUpdate_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7427,7 +7583,7 @@ pub struct LobbyChatUpdate_t {
 }
 pub const LobbyChatUpdate_t_k_iCallback: LobbyChatUpdate_t__bindgen_ty_1 =
     LobbyChatUpdate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyChatUpdate_t__bindgen_ty_1 {
@@ -7437,12 +7593,12 @@ pub enum LobbyChatUpdate_t__bindgen_ty_1 {
 fn bindgen_test_layout_LobbyChatUpdate_t() {
     assert_eq!(
         ::std::mem::size_of::<LobbyChatUpdate_t>(),
-        32usize,
+        28usize,
         concat!("Size of: ", stringify!(LobbyChatUpdate_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyChatUpdate_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyChatUpdate_t))
     );
     assert_eq!(
@@ -7497,7 +7653,7 @@ fn bindgen_test_layout_LobbyChatUpdate_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyChatMsg_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7507,7 +7663,7 @@ pub struct LobbyChatMsg_t {
 }
 pub const LobbyChatMsg_t_k_iCallback: LobbyChatMsg_t__bindgen_ty_1 =
     LobbyChatMsg_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyChatMsg_t__bindgen_ty_1 {
@@ -7522,7 +7678,7 @@ fn bindgen_test_layout_LobbyChatMsg_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyChatMsg_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyChatMsg_t))
     );
     assert_eq!(
@@ -7566,7 +7722,7 @@ fn bindgen_test_layout_LobbyChatMsg_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyGameCreated_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7576,7 +7732,7 @@ pub struct LobbyGameCreated_t {
 }
 pub const LobbyGameCreated_t_k_iCallback: LobbyGameCreated_t__bindgen_ty_1 =
     LobbyGameCreated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyGameCreated_t__bindgen_ty_1 {
@@ -7591,7 +7747,7 @@ fn bindgen_test_layout_LobbyGameCreated_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyGameCreated_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyGameCreated_t))
     );
     assert_eq!(
@@ -7647,7 +7803,7 @@ pub struct LobbyMatchList_t {
 }
 pub const LobbyMatchList_t_k_iCallback: LobbyMatchList_t__bindgen_ty_1 =
     LobbyMatchList_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyMatchList_t__bindgen_ty_1 {
@@ -7678,7 +7834,7 @@ fn bindgen_test_layout_LobbyMatchList_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyKicked_t {
     pub m_ulSteamIDLobby: uint64,
@@ -7687,7 +7843,7 @@ pub struct LobbyKicked_t {
 }
 pub const LobbyKicked_t_k_iCallback: LobbyKicked_t__bindgen_ty_1 =
     LobbyKicked_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyKicked_t__bindgen_ty_1 {
@@ -7697,12 +7853,12 @@ pub enum LobbyKicked_t__bindgen_ty_1 {
 fn bindgen_test_layout_LobbyKicked_t() {
     assert_eq!(
         ::std::mem::size_of::<LobbyKicked_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(LobbyKicked_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyKicked_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyKicked_t))
     );
     assert_eq!(
@@ -7738,7 +7894,7 @@ fn bindgen_test_layout_LobbyKicked_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LobbyCreated_t {
     pub m_eResult: EResult,
@@ -7746,7 +7902,7 @@ pub struct LobbyCreated_t {
 }
 pub const LobbyCreated_t_k_iCallback: LobbyCreated_t__bindgen_ty_1 =
     LobbyCreated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LobbyCreated_t__bindgen_ty_1 {
@@ -7756,12 +7912,12 @@ pub enum LobbyCreated_t__bindgen_ty_1 {
 fn bindgen_test_layout_LobbyCreated_t() {
     assert_eq!(
         ::std::mem::size_of::<LobbyCreated_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(LobbyCreated_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LobbyCreated_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LobbyCreated_t))
     );
     assert_eq!(
@@ -7776,7 +7932,7 @@ fn bindgen_test_layout_LobbyCreated_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<LobbyCreated_t>())).m_ulSteamIDLobby as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(LobbyCreated_t),
@@ -7793,7 +7949,7 @@ pub struct PSNGameBootInviteResult_t {
 }
 pub const PSNGameBootInviteResult_t_k_iCallback: PSNGameBootInviteResult_t__bindgen_ty_1 =
     PSNGameBootInviteResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum PSNGameBootInviteResult_t__bindgen_ty_1 {
@@ -7845,7 +8001,7 @@ pub struct FavoritesListAccountsUpdated_t {
 }
 pub const FavoritesListAccountsUpdated_t_k_iCallback: FavoritesListAccountsUpdated_t__bindgen_ty_1 =
     FavoritesListAccountsUpdated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FavoritesListAccountsUpdated_t__bindgen_ty_1 {
@@ -7877,7 +8033,7 @@ fn bindgen_test_layout_FavoritesListAccountsUpdated_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct SearchForGameProgressCallback_t {
     pub m_ullSearchID: uint64,
@@ -7890,7 +8046,7 @@ pub struct SearchForGameProgressCallback_t {
 pub const SearchForGameProgressCallback_t_k_iCallback:
     SearchForGameProgressCallback_t__bindgen_ty_1 =
     SearchForGameProgressCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SearchForGameProgressCallback_t__bindgen_ty_1 {
@@ -7900,12 +8056,12 @@ pub enum SearchForGameProgressCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_SearchForGameProgressCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<SearchForGameProgressCallback_t>(),
-        40usize,
+        36usize,
         concat!("Size of: ", stringify!(SearchForGameProgressCallback_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SearchForGameProgressCallback_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SearchForGameProgressCallback_t))
     );
     assert_eq!(
@@ -7987,7 +8143,7 @@ fn bindgen_test_layout_SearchForGameProgressCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct SearchForGameResultCallback_t {
     pub m_ullSearchID: uint64,
@@ -7999,7 +8155,7 @@ pub struct SearchForGameResultCallback_t {
 }
 pub const SearchForGameResultCallback_t_k_iCallback: SearchForGameResultCallback_t__bindgen_ty_1 =
     SearchForGameResultCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SearchForGameResultCallback_t__bindgen_ty_1 {
@@ -8014,7 +8170,7 @@ fn bindgen_test_layout_SearchForGameResultCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SearchForGameResultCallback_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SearchForGameResultCallback_t))
     );
     assert_eq!(
@@ -8095,7 +8251,7 @@ fn bindgen_test_layout_SearchForGameResultCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RequestPlayersForGameProgressCallback_t {
     pub m_eResult: EResult,
@@ -8104,7 +8260,7 @@ pub struct RequestPlayersForGameProgressCallback_t {
 pub const RequestPlayersForGameProgressCallback_t_k_iCallback:
     RequestPlayersForGameProgressCallback_t__bindgen_ty_1 =
     RequestPlayersForGameProgressCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RequestPlayersForGameProgressCallback_t__bindgen_ty_1 {
@@ -8114,7 +8270,7 @@ pub enum RequestPlayersForGameProgressCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_RequestPlayersForGameProgressCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<RequestPlayersForGameProgressCallback_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RequestPlayersForGameProgressCallback_t)
@@ -8122,7 +8278,7 @@ fn bindgen_test_layout_RequestPlayersForGameProgressCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RequestPlayersForGameProgressCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RequestPlayersForGameProgressCallback_t)
@@ -8146,7 +8302,7 @@ fn bindgen_test_layout_RequestPlayersForGameProgressCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameProgressCallback_t>())).m_ullSearchID
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameProgressCallback_t),
@@ -8155,7 +8311,7 @@ fn bindgen_test_layout_RequestPlayersForGameProgressCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct RequestPlayersForGameResultCallback_t {
     pub m_eResult: EResult,
@@ -8172,13 +8328,13 @@ pub struct RequestPlayersForGameResultCallback_t {
 pub const RequestPlayersForGameResultCallback_t_k_iCallback:
     RequestPlayersForGameResultCallback_t__bindgen_ty_1 =
     RequestPlayersForGameResultCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RequestPlayersForGameResultCallback_t__bindgen_ty_1 {
     k_iCallback = 5212,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RequestPlayersForGameResultCallback_t_PlayerAcceptState_t {
@@ -8190,7 +8346,7 @@ pub enum RequestPlayersForGameResultCallback_t_PlayerAcceptState_t {
 fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<RequestPlayersForGameResultCallback_t>(),
-        64usize,
+        56usize,
         concat!(
             "Size of: ",
             stringify!(RequestPlayersForGameResultCallback_t)
@@ -8198,7 +8354,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RequestPlayersForGameResultCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RequestPlayersForGameResultCallback_t)
@@ -8222,7 +8378,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_ullSearchID
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8235,7 +8391,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_SteamIDPlayerFound
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8248,7 +8404,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_SteamIDLobby
                 as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8261,7 +8417,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_ePlayerAcceptState
                 as *const _ as usize
         },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8274,7 +8430,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_nPlayerIndex
                 as *const _ as usize
         },
-        36usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8287,7 +8443,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_nTotalPlayersFound
                 as *const _ as usize
         },
-        40usize,
+        36usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8300,7 +8456,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>()))
                 .m_nTotalPlayersAcceptedGame as *const _ as usize
         },
-        44usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8313,7 +8469,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_nSuggestedTeamIndex
                 as *const _ as usize
         },
-        48usize,
+        44usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8326,7 +8482,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameResultCallback_t>())).m_ullUniqueGameID
                 as *const _ as usize
         },
-        56usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameResultCallback_t),
@@ -8335,7 +8491,7 @@ fn bindgen_test_layout_RequestPlayersForGameResultCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RequestPlayersForGameFinalResultCallback_t {
     pub m_eResult: EResult,
@@ -8345,7 +8501,7 @@ pub struct RequestPlayersForGameFinalResultCallback_t {
 pub const RequestPlayersForGameFinalResultCallback_t_k_iCallback:
     RequestPlayersForGameFinalResultCallback_t__bindgen_ty_1 =
     RequestPlayersForGameFinalResultCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RequestPlayersForGameFinalResultCallback_t__bindgen_ty_1 {
@@ -8355,7 +8511,7 @@ pub enum RequestPlayersForGameFinalResultCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_RequestPlayersForGameFinalResultCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<RequestPlayersForGameFinalResultCallback_t>(),
-        24usize,
+        20usize,
         concat!(
             "Size of: ",
             stringify!(RequestPlayersForGameFinalResultCallback_t)
@@ -8363,7 +8519,7 @@ fn bindgen_test_layout_RequestPlayersForGameFinalResultCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RequestPlayersForGameFinalResultCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RequestPlayersForGameFinalResultCallback_t)
@@ -8387,7 +8543,7 @@ fn bindgen_test_layout_RequestPlayersForGameFinalResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameFinalResultCallback_t>())).m_ullSearchID
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameFinalResultCallback_t),
@@ -8400,7 +8556,7 @@ fn bindgen_test_layout_RequestPlayersForGameFinalResultCallback_t() {
             &(*(::std::ptr::null::<RequestPlayersForGameFinalResultCallback_t>())).m_ullUniqueGameID
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RequestPlayersForGameFinalResultCallback_t),
@@ -8409,7 +8565,7 @@ fn bindgen_test_layout_RequestPlayersForGameFinalResultCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct SubmitPlayerResultResultCallback_t {
     pub m_eResult: EResult,
@@ -8419,7 +8575,7 @@ pub struct SubmitPlayerResultResultCallback_t {
 pub const SubmitPlayerResultResultCallback_t_k_iCallback:
     SubmitPlayerResultResultCallback_t__bindgen_ty_1 =
     SubmitPlayerResultResultCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SubmitPlayerResultResultCallback_t__bindgen_ty_1 {
@@ -8429,12 +8585,12 @@ pub enum SubmitPlayerResultResultCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_SubmitPlayerResultResultCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<SubmitPlayerResultResultCallback_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(SubmitPlayerResultResultCallback_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SubmitPlayerResultResultCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SubmitPlayerResultResultCallback_t)
@@ -8458,7 +8614,7 @@ fn bindgen_test_layout_SubmitPlayerResultResultCallback_t() {
             &(*(::std::ptr::null::<SubmitPlayerResultResultCallback_t>())).ullUniqueGameID
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(SubmitPlayerResultResultCallback_t),
@@ -8471,7 +8627,7 @@ fn bindgen_test_layout_SubmitPlayerResultResultCallback_t() {
             &(*(::std::ptr::null::<SubmitPlayerResultResultCallback_t>())).steamIDPlayer as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(SubmitPlayerResultResultCallback_t),
@@ -8480,7 +8636,7 @@ fn bindgen_test_layout_SubmitPlayerResultResultCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct EndGameResultCallback_t {
     pub m_eResult: EResult,
@@ -8488,7 +8644,7 @@ pub struct EndGameResultCallback_t {
 }
 pub const EndGameResultCallback_t_k_iCallback: EndGameResultCallback_t__bindgen_ty_1 =
     EndGameResultCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EndGameResultCallback_t__bindgen_ty_1 {
@@ -8498,12 +8654,12 @@ pub enum EndGameResultCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_EndGameResultCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<EndGameResultCallback_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(EndGameResultCallback_t))
     );
     assert_eq!(
         ::std::mem::align_of::<EndGameResultCallback_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(EndGameResultCallback_t))
     );
     assert_eq!(
@@ -8522,7 +8678,7 @@ fn bindgen_test_layout_EndGameResultCallback_t() {
         unsafe {
             &(*(::std::ptr::null::<EndGameResultCallback_t>())).ullUniqueGameID as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(EndGameResultCallback_t),
@@ -8531,7 +8687,7 @@ fn bindgen_test_layout_EndGameResultCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct JoinPartyCallback_t {
     pub m_eResult: EResult,
@@ -8541,7 +8697,7 @@ pub struct JoinPartyCallback_t {
 }
 pub const JoinPartyCallback_t_k_iCallback: JoinPartyCallback_t__bindgen_ty_1 =
     JoinPartyCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum JoinPartyCallback_t__bindgen_ty_1 {
@@ -8551,12 +8707,12 @@ pub enum JoinPartyCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_JoinPartyCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<JoinPartyCallback_t>(),
-        280usize,
+        276usize,
         concat!("Size of: ", stringify!(JoinPartyCallback_t))
     );
     assert_eq!(
         ::std::mem::align_of::<JoinPartyCallback_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(JoinPartyCallback_t))
     );
     assert_eq!(
@@ -8573,7 +8729,7 @@ fn bindgen_test_layout_JoinPartyCallback_t() {
         unsafe {
             &(*(::std::ptr::null::<JoinPartyCallback_t>())).m_ulBeaconID as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(JoinPartyCallback_t),
@@ -8586,7 +8742,7 @@ fn bindgen_test_layout_JoinPartyCallback_t() {
             &(*(::std::ptr::null::<JoinPartyCallback_t>())).m_SteamIDBeaconOwner as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(JoinPartyCallback_t),
@@ -8598,7 +8754,7 @@ fn bindgen_test_layout_JoinPartyCallback_t() {
         unsafe {
             &(*(::std::ptr::null::<JoinPartyCallback_t>())).m_rgchConnectString as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(JoinPartyCallback_t),
@@ -8607,7 +8763,7 @@ fn bindgen_test_layout_JoinPartyCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct CreateBeaconCallback_t {
     pub m_eResult: EResult,
@@ -8615,7 +8771,7 @@ pub struct CreateBeaconCallback_t {
 }
 pub const CreateBeaconCallback_t_k_iCallback: CreateBeaconCallback_t__bindgen_ty_1 =
     CreateBeaconCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum CreateBeaconCallback_t__bindgen_ty_1 {
@@ -8625,12 +8781,12 @@ pub enum CreateBeaconCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_CreateBeaconCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<CreateBeaconCallback_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(CreateBeaconCallback_t))
     );
     assert_eq!(
         ::std::mem::align_of::<CreateBeaconCallback_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(CreateBeaconCallback_t))
     );
     assert_eq!(
@@ -8649,7 +8805,7 @@ fn bindgen_test_layout_CreateBeaconCallback_t() {
         unsafe {
             &(*(::std::ptr::null::<CreateBeaconCallback_t>())).m_ulBeaconID as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(CreateBeaconCallback_t),
@@ -8658,7 +8814,7 @@ fn bindgen_test_layout_CreateBeaconCallback_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct ReservationNotificationCallback_t {
     pub m_ulBeaconID: PartyBeaconID_t,
@@ -8667,7 +8823,7 @@ pub struct ReservationNotificationCallback_t {
 pub const ReservationNotificationCallback_t_k_iCallback:
     ReservationNotificationCallback_t__bindgen_ty_1 =
     ReservationNotificationCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ReservationNotificationCallback_t__bindgen_ty_1 {
@@ -8682,7 +8838,7 @@ fn bindgen_test_layout_ReservationNotificationCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<ReservationNotificationCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(ReservationNotificationCallback_t)
@@ -8722,7 +8878,7 @@ pub struct ChangeNumOpenSlotsCallback_t {
 }
 pub const ChangeNumOpenSlotsCallback_t_k_iCallback: ChangeNumOpenSlotsCallback_t__bindgen_ty_1 =
     ChangeNumOpenSlotsCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ChangeNumOpenSlotsCallback_t__bindgen_ty_1 {
@@ -8761,7 +8917,7 @@ pub struct AvailableBeaconLocationsUpdated_t {
 pub const AvailableBeaconLocationsUpdated_t_k_iCallback:
     AvailableBeaconLocationsUpdated_t__bindgen_ty_1 =
     AvailableBeaconLocationsUpdated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AvailableBeaconLocationsUpdated_t__bindgen_ty_1 {
@@ -8790,7 +8946,7 @@ pub struct ActiveBeaconsUpdated_t {
 }
 pub const ActiveBeaconsUpdated_t_k_iCallback: ActiveBeaconsUpdated_t__bindgen_ty_1 =
     ActiveBeaconsUpdated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ActiveBeaconsUpdated_t__bindgen_ty_1 {
@@ -8810,7 +8966,7 @@ fn bindgen_test_layout_ActiveBeaconsUpdated_t() {
     );
 }
 pub const k_unMaxCloudFileChunkSize: uint32 = 104857600;
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamParamStringArray_t {
     pub m_ppStrings: *mut *const ::std::os::raw::c_char,
@@ -8820,12 +8976,12 @@ pub struct SteamParamStringArray_t {
 fn bindgen_test_layout_SteamParamStringArray_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamParamStringArray_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(SteamParamStringArray_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamParamStringArray_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamParamStringArray_t))
     );
     assert_eq!(
@@ -8868,7 +9024,7 @@ pub const k_unEnumeratePublishedFilesMaxResults: uint32 = 50;
 pub const k_cchTagListMax: uint32 = 1025;
 pub const k_cchFilenameMax: uint32 = 260;
 pub const k_cchPublishedFileURLMax: uint32 = 256;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ERemoteStoragePlatform {
@@ -8880,9 +9036,9 @@ pub enum ERemoteStoragePlatform {
     k_ERemoteStoragePlatformSwitch = 16,
     k_ERemoteStoragePlatformAndroid = 32,
     k_ERemoteStoragePlatformIOS = 64,
-    k_ERemoteStoragePlatformAll = -1,
+    k_ERemoteStoragePlatformAll = 4294967295,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ERemoteStoragePublishedFileVisibility {
@@ -8895,7 +9051,7 @@ impl EWorkshopFileType {
     pub const k_EWorkshopFileTypeCommunity: EWorkshopFileType =
         EWorkshopFileType::k_EWorkshopFileTypeFirst;
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EWorkshopFileType {
@@ -8917,7 +9073,7 @@ pub enum EWorkshopFileType {
     k_EWorkshopFileTypeGameManagedItem = 15,
     k_EWorkshopFileTypeMax = 16,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EWorkshopVote {
@@ -8926,14 +9082,14 @@ pub enum EWorkshopVote {
     k_EWorkshopVoteAgainst = 2,
     k_EWorkshopVoteLater = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EWorkshopFileAction {
     k_EWorkshopFileActionPlayed = 0,
     k_EWorkshopFileActionCompleted = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EWorkshopEnumerationType {
@@ -8945,14 +9101,14 @@ pub enum EWorkshopEnumerationType {
     k_EWorkshopEnumerationTypeContentByFriends = 5,
     k_EWorkshopEnumerationTypeRecentFromFollowedUsers = 6,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EWorkshopVideoProvider {
     k_EWorkshopVideoProviderNone = 0,
     k_EWorkshopVideoProviderYoutube = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUGCReadAction {
@@ -8960,7 +9116,7 @@ pub enum EUGCReadAction {
     k_EUGCRead_ContinueReading = 1,
     k_EUGCRead_Close = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ERemoteStorageLocalFileChange {
@@ -8968,7 +9124,7 @@ pub enum ERemoteStorageLocalFileChange {
     k_ERemoteStorageLocalFileChange_FileUpdated = 1,
     k_ERemoteStorageLocalFileChange_FileDeleted = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ERemoteStorageFilePathType {
@@ -8996,7 +9152,7 @@ fn bindgen_test_layout_ISteamRemoteStorage() {
         concat!("Alignment of ", stringify!(ISteamRemoteStorage))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageFileShareResult_t {
     pub m_eResult: EResult,
@@ -9005,7 +9161,7 @@ pub struct RemoteStorageFileShareResult_t {
 }
 pub const RemoteStorageFileShareResult_t_k_iCallback: RemoteStorageFileShareResult_t__bindgen_ty_1 =
     RemoteStorageFileShareResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageFileShareResult_t__bindgen_ty_1 {
@@ -9015,12 +9171,12 @@ pub enum RemoteStorageFileShareResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageFileShareResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageFileShareResult_t>(),
-        280usize,
+        272usize,
         concat!("Size of: ", stringify!(RemoteStorageFileShareResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageFileShareResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(RemoteStorageFileShareResult_t))
     );
     assert_eq!(
@@ -9040,7 +9196,7 @@ fn bindgen_test_layout_RemoteStorageFileShareResult_t() {
         unsafe {
             &(*(::std::ptr::null::<RemoteStorageFileShareResult_t>())).m_hFile as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageFileShareResult_t),
@@ -9053,7 +9209,7 @@ fn bindgen_test_layout_RemoteStorageFileShareResult_t() {
             &(*(::std::ptr::null::<RemoteStorageFileShareResult_t>())).m_rgchFilename as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageFileShareResult_t),
@@ -9062,7 +9218,7 @@ fn bindgen_test_layout_RemoteStorageFileShareResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishFileResult_t {
     pub m_eResult: EResult,
@@ -9072,7 +9228,7 @@ pub struct RemoteStoragePublishFileResult_t {
 pub const RemoteStoragePublishFileResult_t_k_iCallback:
     RemoteStoragePublishFileResult_t__bindgen_ty_1 =
     RemoteStoragePublishFileResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishFileResult_t__bindgen_ty_1 {
@@ -9082,12 +9238,12 @@ pub enum RemoteStoragePublishFileResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishFileResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishFileResult_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(RemoteStoragePublishFileResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishFileResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishFileResult_t)
@@ -9111,7 +9267,7 @@ fn bindgen_test_layout_RemoteStoragePublishFileResult_t() {
             &(*(::std::ptr::null::<RemoteStoragePublishFileResult_t>())).m_nPublishedFileId
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStoragePublishFileResult_t),
@@ -9124,7 +9280,7 @@ fn bindgen_test_layout_RemoteStoragePublishFileResult_t() {
             &(*(::std::ptr::null::<RemoteStoragePublishFileResult_t>()))
                 .m_bUserNeedsToAcceptWorkshopLegalAgreement as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStoragePublishFileResult_t),
@@ -9133,7 +9289,7 @@ fn bindgen_test_layout_RemoteStoragePublishFileResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageDeletePublishedFileResult_t {
     pub m_eResult: EResult,
@@ -9142,7 +9298,7 @@ pub struct RemoteStorageDeletePublishedFileResult_t {
 pub const RemoteStorageDeletePublishedFileResult_t_k_iCallback:
     RemoteStorageDeletePublishedFileResult_t__bindgen_ty_1 =
     RemoteStorageDeletePublishedFileResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageDeletePublishedFileResult_t__bindgen_ty_1 {
@@ -9152,7 +9308,7 @@ pub enum RemoteStorageDeletePublishedFileResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageDeletePublishedFileResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageDeletePublishedFileResult_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageDeletePublishedFileResult_t)
@@ -9160,7 +9316,7 @@ fn bindgen_test_layout_RemoteStorageDeletePublishedFileResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageDeletePublishedFileResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageDeletePublishedFileResult_t)
@@ -9184,7 +9340,7 @@ fn bindgen_test_layout_RemoteStorageDeletePublishedFileResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDeletePublishedFileResult_t>())).m_nPublishedFileId
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDeletePublishedFileResult_t),
@@ -9193,7 +9349,7 @@ fn bindgen_test_layout_RemoteStorageDeletePublishedFileResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageEnumerateUserPublishedFilesResult_t {
     pub m_eResult: EResult,
@@ -9204,7 +9360,7 @@ pub struct RemoteStorageEnumerateUserPublishedFilesResult_t {
 pub const RemoteStorageEnumerateUserPublishedFilesResult_t_k_iCallback:
     RemoteStorageEnumerateUserPublishedFilesResult_t__bindgen_ty_1 =
     RemoteStorageEnumerateUserPublishedFilesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageEnumerateUserPublishedFilesResult_t__bindgen_ty_1 {
@@ -9214,7 +9370,7 @@ pub enum RemoteStorageEnumerateUserPublishedFilesResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageEnumerateUserPublishedFilesResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageEnumerateUserPublishedFilesResult_t>(),
-        416usize,
+        412usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageEnumerateUserPublishedFilesResult_t)
@@ -9222,7 +9378,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserPublishedFilesResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageEnumerateUserPublishedFilesResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageEnumerateUserPublishedFilesResult_t)
@@ -9272,7 +9428,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserPublishedFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateUserPublishedFilesResult_t>()))
                 .m_rgPublishedFileId as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateUserPublishedFilesResult_t),
@@ -9281,7 +9437,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserPublishedFilesResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageSubscribePublishedFileResult_t {
     pub m_eResult: EResult,
@@ -9290,7 +9446,7 @@ pub struct RemoteStorageSubscribePublishedFileResult_t {
 pub const RemoteStorageSubscribePublishedFileResult_t_k_iCallback:
     RemoteStorageSubscribePublishedFileResult_t__bindgen_ty_1 =
     RemoteStorageSubscribePublishedFileResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageSubscribePublishedFileResult_t__bindgen_ty_1 {
@@ -9300,7 +9456,7 @@ pub enum RemoteStorageSubscribePublishedFileResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageSubscribePublishedFileResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageSubscribePublishedFileResult_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageSubscribePublishedFileResult_t)
@@ -9308,7 +9464,7 @@ fn bindgen_test_layout_RemoteStorageSubscribePublishedFileResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageSubscribePublishedFileResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageSubscribePublishedFileResult_t)
@@ -9332,7 +9488,7 @@ fn bindgen_test_layout_RemoteStorageSubscribePublishedFileResult_t() {
             &(*(::std::ptr::null::<RemoteStorageSubscribePublishedFileResult_t>()))
                 .m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageSubscribePublishedFileResult_t),
@@ -9341,7 +9497,7 @@ fn bindgen_test_layout_RemoteStorageSubscribePublishedFileResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageEnumerateUserSubscribedFilesResult_t {
     pub m_eResult: EResult,
@@ -9353,7 +9509,7 @@ pub struct RemoteStorageEnumerateUserSubscribedFilesResult_t {
 pub const RemoteStorageEnumerateUserSubscribedFilesResult_t_k_iCallback:
     RemoteStorageEnumerateUserSubscribedFilesResult_t__bindgen_ty_1 =
     RemoteStorageEnumerateUserSubscribedFilesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageEnumerateUserSubscribedFilesResult_t__bindgen_ty_1 {
@@ -9363,7 +9519,7 @@ pub enum RemoteStorageEnumerateUserSubscribedFilesResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageEnumerateUserSubscribedFilesResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageEnumerateUserSubscribedFilesResult_t>(),
-        616usize,
+        612usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageEnumerateUserSubscribedFilesResult_t)
@@ -9371,7 +9527,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSubscribedFilesResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageEnumerateUserSubscribedFilesResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageEnumerateUserSubscribedFilesResult_t)
@@ -9421,7 +9577,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSubscribedFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateUserSubscribedFilesResult_t>()))
                 .m_rgPublishedFileId as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateUserSubscribedFilesResult_t),
@@ -9434,7 +9590,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSubscribedFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateUserSubscribedFilesResult_t>()))
                 .m_rgRTimeSubscribed as *const _ as usize
         },
-        416usize,
+        412usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateUserSubscribedFilesResult_t),
@@ -9443,7 +9599,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSubscribedFilesResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageUnsubscribePublishedFileResult_t {
     pub m_eResult: EResult,
@@ -9452,7 +9608,7 @@ pub struct RemoteStorageUnsubscribePublishedFileResult_t {
 pub const RemoteStorageUnsubscribePublishedFileResult_t_k_iCallback:
     RemoteStorageUnsubscribePublishedFileResult_t__bindgen_ty_1 =
     RemoteStorageUnsubscribePublishedFileResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageUnsubscribePublishedFileResult_t__bindgen_ty_1 {
@@ -9462,7 +9618,7 @@ pub enum RemoteStorageUnsubscribePublishedFileResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageUnsubscribePublishedFileResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageUnsubscribePublishedFileResult_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageUnsubscribePublishedFileResult_t)
@@ -9470,7 +9626,7 @@ fn bindgen_test_layout_RemoteStorageUnsubscribePublishedFileResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageUnsubscribePublishedFileResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageUnsubscribePublishedFileResult_t)
@@ -9494,7 +9650,7 @@ fn bindgen_test_layout_RemoteStorageUnsubscribePublishedFileResult_t() {
             &(*(::std::ptr::null::<RemoteStorageUnsubscribePublishedFileResult_t>()))
                 .m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUnsubscribePublishedFileResult_t),
@@ -9503,7 +9659,7 @@ fn bindgen_test_layout_RemoteStorageUnsubscribePublishedFileResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageUpdatePublishedFileResult_t {
     pub m_eResult: EResult,
@@ -9513,7 +9669,7 @@ pub struct RemoteStorageUpdatePublishedFileResult_t {
 pub const RemoteStorageUpdatePublishedFileResult_t_k_iCallback:
     RemoteStorageUpdatePublishedFileResult_t__bindgen_ty_1 =
     RemoteStorageUpdatePublishedFileResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageUpdatePublishedFileResult_t__bindgen_ty_1 {
@@ -9523,7 +9679,7 @@ pub enum RemoteStorageUpdatePublishedFileResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageUpdatePublishedFileResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageUpdatePublishedFileResult_t>(),
-        24usize,
+        16usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageUpdatePublishedFileResult_t)
@@ -9531,7 +9687,7 @@ fn bindgen_test_layout_RemoteStorageUpdatePublishedFileResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageUpdatePublishedFileResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageUpdatePublishedFileResult_t)
@@ -9555,7 +9711,7 @@ fn bindgen_test_layout_RemoteStorageUpdatePublishedFileResult_t() {
             &(*(::std::ptr::null::<RemoteStorageUpdatePublishedFileResult_t>())).m_nPublishedFileId
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUpdatePublishedFileResult_t),
@@ -9568,7 +9724,7 @@ fn bindgen_test_layout_RemoteStorageUpdatePublishedFileResult_t() {
             &(*(::std::ptr::null::<RemoteStorageUpdatePublishedFileResult_t>()))
                 .m_bUserNeedsToAcceptWorkshopLegalAgreement as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUpdatePublishedFileResult_t),
@@ -9577,7 +9733,7 @@ fn bindgen_test_layout_RemoteStorageUpdatePublishedFileResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageDownloadUGCResult_t {
     pub m_eResult: EResult,
@@ -9590,7 +9746,7 @@ pub struct RemoteStorageDownloadUGCResult_t {
 pub const RemoteStorageDownloadUGCResult_t_k_iCallback:
     RemoteStorageDownloadUGCResult_t__bindgen_ty_1 =
     RemoteStorageDownloadUGCResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageDownloadUGCResult_t__bindgen_ty_1 {
@@ -9600,12 +9756,12 @@ pub enum RemoteStorageDownloadUGCResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageDownloadUGCResult_t>(),
-        296usize,
+        288usize,
         concat!("Size of: ", stringify!(RemoteStorageDownloadUGCResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageDownloadUGCResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageDownloadUGCResult_t)
@@ -9629,7 +9785,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDownloadUGCResult_t>())).m_hFile as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDownloadUGCResult_t),
@@ -9642,7 +9798,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDownloadUGCResult_t>())).m_nAppID as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDownloadUGCResult_t),
@@ -9655,7 +9811,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDownloadUGCResult_t>())).m_nSizeInBytes as *const _
                 as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDownloadUGCResult_t),
@@ -9668,7 +9824,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDownloadUGCResult_t>())).m_pchFileName as *const _
                 as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDownloadUGCResult_t),
@@ -9681,7 +9837,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
             &(*(::std::ptr::null::<RemoteStorageDownloadUGCResult_t>())).m_ulSteamIDOwner
                 as *const _ as usize
         },
-        288usize,
+        280usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageDownloadUGCResult_t),
@@ -9690,7 +9846,7 @@ fn bindgen_test_layout_RemoteStorageDownloadUGCResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageGetPublishedFileDetailsResult_t {
     pub m_eResult: EResult,
@@ -9718,7 +9874,7 @@ pub struct RemoteStorageGetPublishedFileDetailsResult_t {
 pub const RemoteStorageGetPublishedFileDetailsResult_t_k_iCallback:
     RemoteStorageGetPublishedFileDetailsResult_t__bindgen_ty_1 =
     RemoteStorageGetPublishedFileDetailsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageGetPublishedFileDetailsResult_t__bindgen_ty_1 {
@@ -9728,7 +9884,7 @@ pub enum RemoteStorageGetPublishedFileDetailsResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageGetPublishedFileDetailsResult_t>(),
-        9760usize,
+        9748usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t)
@@ -9736,7 +9892,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageGetPublishedFileDetailsResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t)
@@ -9760,7 +9916,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9773,7 +9929,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_nCreatorAppID
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9786,7 +9942,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_nConsumerAppID as *const _ as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9799,7 +9955,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_rgchTitle
                 as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9812,7 +9968,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_rgchDescription as *const _ as usize
         },
-        153usize,
+        149usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9825,7 +9981,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_hFile
                 as *const _ as usize
         },
-        8160usize,
+        8152usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9838,7 +9994,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_hPreviewFile
                 as *const _ as usize
         },
-        8168usize,
+        8160usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9851,7 +10007,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_ulSteamIDOwner as *const _ as usize
         },
-        8176usize,
+        8168usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9864,7 +10020,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_rtimeCreated
                 as *const _ as usize
         },
-        8184usize,
+        8176usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9877,7 +10033,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_rtimeUpdated
                 as *const _ as usize
         },
-        8188usize,
+        8180usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9890,7 +10046,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_eVisibility
                 as *const _ as usize
         },
-        8192usize,
+        8184usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9903,7 +10059,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_bBanned
                 as *const _ as usize
         },
-        8196usize,
+        8188usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9916,7 +10072,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_rgchTags
                 as *const _ as usize
         },
-        8197usize,
+        8189usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9929,7 +10085,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_bTagsTruncated as *const _ as usize
         },
-        9222usize,
+        9214usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9942,7 +10098,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_pchFileName
                 as *const _ as usize
         },
-        9223usize,
+        9215usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9955,7 +10111,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_nFileSize
                 as *const _ as usize
         },
-        9484usize,
+        9476usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9968,7 +10124,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_nPreviewFileSize as *const _ as usize
         },
-        9488usize,
+        9480usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9981,7 +10137,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_rgchURL
                 as *const _ as usize
         },
-        9492usize,
+        9484usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -9994,7 +10150,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>())).m_eFileType
                 as *const _ as usize
         },
-        9748usize,
+        9740usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -10007,7 +10163,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedFileDetailsResult_t>()))
                 .m_bAcceptedForUse as *const _ as usize
         },
-        9752usize,
+        9744usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedFileDetailsResult_t),
@@ -10016,7 +10172,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedFileDetailsResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageEnumerateWorkshopFilesResult_t {
     pub m_eResult: EResult,
@@ -10030,7 +10186,7 @@ pub struct RemoteStorageEnumerateWorkshopFilesResult_t {
 pub const RemoteStorageEnumerateWorkshopFilesResult_t_k_iCallback:
     RemoteStorageEnumerateWorkshopFilesResult_t__bindgen_ty_1 =
     RemoteStorageEnumerateWorkshopFilesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageEnumerateWorkshopFilesResult_t__bindgen_ty_1 {
@@ -10040,7 +10196,7 @@ pub enum RemoteStorageEnumerateWorkshopFilesResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageEnumerateWorkshopFilesResult_t>(),
-        624usize,
+        620usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t)
@@ -10048,7 +10204,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageEnumerateWorkshopFilesResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t)
@@ -10098,7 +10254,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateWorkshopFilesResult_t>()))
                 .m_rgPublishedFileId as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t),
@@ -10111,7 +10267,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateWorkshopFilesResult_t>())).m_rgScore
                 as *const _ as usize
         },
-        416usize,
+        412usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t),
@@ -10124,7 +10280,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateWorkshopFilesResult_t>())).m_nAppId
                 as *const _ as usize
         },
-        616usize,
+        612usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t),
@@ -10137,7 +10293,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateWorkshopFilesResult_t>())).m_unStartIndex
                 as *const _ as usize
         },
-        620usize,
+        616usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateWorkshopFilesResult_t),
@@ -10146,7 +10302,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateWorkshopFilesResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageGetPublishedItemVoteDetailsResult_t {
     pub m_eResult: EResult,
@@ -10159,7 +10315,7 @@ pub struct RemoteStorageGetPublishedItemVoteDetailsResult_t {
 pub const RemoteStorageGetPublishedItemVoteDetailsResult_t_k_iCallback:
     RemoteStorageGetPublishedItemVoteDetailsResult_t__bindgen_ty_1 =
     RemoteStorageGetPublishedItemVoteDetailsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageGetPublishedItemVoteDetailsResult_t__bindgen_ty_1 {
@@ -10169,7 +10325,7 @@ pub enum RemoteStorageGetPublishedItemVoteDetailsResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageGetPublishedItemVoteDetailsResult_t>(),
-        32usize,
+        28usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t)
@@ -10177,7 +10333,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageGetPublishedItemVoteDetailsResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t)
@@ -10201,7 +10357,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedItemVoteDetailsResult_t>()))
                 .m_unPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t),
@@ -10214,7 +10370,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedItemVoteDetailsResult_t>())).m_nVotesFor
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t),
@@ -10227,7 +10383,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedItemVoteDetailsResult_t>()))
                 .m_nVotesAgainst as *const _ as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t),
@@ -10240,7 +10396,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedItemVoteDetailsResult_t>())).m_nReports
                 as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t),
@@ -10253,7 +10409,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
             &(*(::std::ptr::null::<RemoteStorageGetPublishedItemVoteDetailsResult_t>())).m_fScore
                 as *const _ as usize
         },
-        28usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageGetPublishedItemVoteDetailsResult_t),
@@ -10262,7 +10418,7 @@ fn bindgen_test_layout_RemoteStorageGetPublishedItemVoteDetailsResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishedFileSubscribed_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -10271,7 +10427,7 @@ pub struct RemoteStoragePublishedFileSubscribed_t {
 pub const RemoteStoragePublishedFileSubscribed_t_k_iCallback:
     RemoteStoragePublishedFileSubscribed_t__bindgen_ty_1 =
     RemoteStoragePublishedFileSubscribed_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishedFileSubscribed_t__bindgen_ty_1 {
@@ -10281,7 +10437,7 @@ pub enum RemoteStoragePublishedFileSubscribed_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishedFileSubscribed_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishedFileSubscribed_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStoragePublishedFileSubscribed_t)
@@ -10289,7 +10445,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileSubscribed_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishedFileSubscribed_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishedFileSubscribed_t)
@@ -10322,7 +10478,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileSubscribed_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishedFileUnsubscribed_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -10331,7 +10487,7 @@ pub struct RemoteStoragePublishedFileUnsubscribed_t {
 pub const RemoteStoragePublishedFileUnsubscribed_t_k_iCallback:
     RemoteStoragePublishedFileUnsubscribed_t__bindgen_ty_1 =
     RemoteStoragePublishedFileUnsubscribed_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishedFileUnsubscribed_t__bindgen_ty_1 {
@@ -10341,7 +10497,7 @@ pub enum RemoteStoragePublishedFileUnsubscribed_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishedFileUnsubscribed_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishedFileUnsubscribed_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStoragePublishedFileUnsubscribed_t)
@@ -10349,7 +10505,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileUnsubscribed_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishedFileUnsubscribed_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishedFileUnsubscribed_t)
@@ -10382,7 +10538,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileUnsubscribed_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishedFileDeleted_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -10391,7 +10547,7 @@ pub struct RemoteStoragePublishedFileDeleted_t {
 pub const RemoteStoragePublishedFileDeleted_t_k_iCallback:
     RemoteStoragePublishedFileDeleted_t__bindgen_ty_1 =
     RemoteStoragePublishedFileDeleted_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishedFileDeleted_t__bindgen_ty_1 {
@@ -10401,12 +10557,12 @@ pub enum RemoteStoragePublishedFileDeleted_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishedFileDeleted_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishedFileDeleted_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(RemoteStoragePublishedFileDeleted_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishedFileDeleted_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishedFileDeleted_t)
@@ -10439,7 +10595,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileDeleted_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageUpdateUserPublishedItemVoteResult_t {
     pub m_eResult: EResult,
@@ -10448,7 +10604,7 @@ pub struct RemoteStorageUpdateUserPublishedItemVoteResult_t {
 pub const RemoteStorageUpdateUserPublishedItemVoteResult_t_k_iCallback:
     RemoteStorageUpdateUserPublishedItemVoteResult_t__bindgen_ty_1 =
     RemoteStorageUpdateUserPublishedItemVoteResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageUpdateUserPublishedItemVoteResult_t__bindgen_ty_1 {
@@ -10458,7 +10614,7 @@ pub enum RemoteStorageUpdateUserPublishedItemVoteResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageUpdateUserPublishedItemVoteResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageUpdateUserPublishedItemVoteResult_t>(),
-        16usize,
+        12usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageUpdateUserPublishedItemVoteResult_t)
@@ -10466,7 +10622,7 @@ fn bindgen_test_layout_RemoteStorageUpdateUserPublishedItemVoteResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageUpdateUserPublishedItemVoteResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageUpdateUserPublishedItemVoteResult_t)
@@ -10490,7 +10646,7 @@ fn bindgen_test_layout_RemoteStorageUpdateUserPublishedItemVoteResult_t() {
             &(*(::std::ptr::null::<RemoteStorageUpdateUserPublishedItemVoteResult_t>()))
                 .m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUpdateUserPublishedItemVoteResult_t),
@@ -10499,7 +10655,7 @@ fn bindgen_test_layout_RemoteStorageUpdateUserPublishedItemVoteResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageUserVoteDetails_t {
     pub m_eResult: EResult,
@@ -10508,7 +10664,7 @@ pub struct RemoteStorageUserVoteDetails_t {
 }
 pub const RemoteStorageUserVoteDetails_t_k_iCallback: RemoteStorageUserVoteDetails_t__bindgen_ty_1 =
     RemoteStorageUserVoteDetails_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageUserVoteDetails_t__bindgen_ty_1 {
@@ -10518,12 +10674,12 @@ pub enum RemoteStorageUserVoteDetails_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageUserVoteDetails_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageUserVoteDetails_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(RemoteStorageUserVoteDetails_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageUserVoteDetails_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(RemoteStorageUserVoteDetails_t))
     );
     assert_eq!(
@@ -10544,7 +10700,7 @@ fn bindgen_test_layout_RemoteStorageUserVoteDetails_t() {
             &(*(::std::ptr::null::<RemoteStorageUserVoteDetails_t>())).m_nPublishedFileId
                 as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUserVoteDetails_t),
@@ -10556,7 +10712,7 @@ fn bindgen_test_layout_RemoteStorageUserVoteDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<RemoteStorageUserVoteDetails_t>())).m_eVote as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageUserVoteDetails_t),
@@ -10565,7 +10721,7 @@ fn bindgen_test_layout_RemoteStorageUserVoteDetails_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageEnumerateUserSharedWorkshopFilesResult_t {
     pub m_eResult: EResult,
@@ -10576,7 +10732,7 @@ pub struct RemoteStorageEnumerateUserSharedWorkshopFilesResult_t {
 pub const RemoteStorageEnumerateUserSharedWorkshopFilesResult_t_k_iCallback:
     RemoteStorageEnumerateUserSharedWorkshopFilesResult_t__bindgen_ty_1 =
     RemoteStorageEnumerateUserSharedWorkshopFilesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageEnumerateUserSharedWorkshopFilesResult_t__bindgen_ty_1 {
@@ -10586,7 +10742,7 @@ pub enum RemoteStorageEnumerateUserSharedWorkshopFilesResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageEnumerateUserSharedWorkshopFilesResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t>(),
-        416usize,
+        412usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageEnumerateUserSharedWorkshopFilesResult_t)
@@ -10594,7 +10750,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSharedWorkshopFilesResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageEnumerateUserSharedWorkshopFilesResult_t)
@@ -10644,7 +10800,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSharedWorkshopFilesResult_t() {
             &(*(::std::ptr::null::<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t>()))
                 .m_rgPublishedFileId as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageEnumerateUserSharedWorkshopFilesResult_t),
@@ -10653,7 +10809,7 @@ fn bindgen_test_layout_RemoteStorageEnumerateUserSharedWorkshopFilesResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageSetUserPublishedFileActionResult_t {
     pub m_eResult: EResult,
@@ -10663,7 +10819,7 @@ pub struct RemoteStorageSetUserPublishedFileActionResult_t {
 pub const RemoteStorageSetUserPublishedFileActionResult_t_k_iCallback:
     RemoteStorageSetUserPublishedFileActionResult_t__bindgen_ty_1 =
     RemoteStorageSetUserPublishedFileActionResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageSetUserPublishedFileActionResult_t__bindgen_ty_1 {
@@ -10673,7 +10829,7 @@ pub enum RemoteStorageSetUserPublishedFileActionResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageSetUserPublishedFileActionResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageSetUserPublishedFileActionResult_t>(),
-        24usize,
+        16usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageSetUserPublishedFileActionResult_t)
@@ -10681,7 +10837,7 @@ fn bindgen_test_layout_RemoteStorageSetUserPublishedFileActionResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageSetUserPublishedFileActionResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageSetUserPublishedFileActionResult_t)
@@ -10705,7 +10861,7 @@ fn bindgen_test_layout_RemoteStorageSetUserPublishedFileActionResult_t() {
             &(*(::std::ptr::null::<RemoteStorageSetUserPublishedFileActionResult_t>()))
                 .m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageSetUserPublishedFileActionResult_t),
@@ -10718,7 +10874,7 @@ fn bindgen_test_layout_RemoteStorageSetUserPublishedFileActionResult_t() {
             &(*(::std::ptr::null::<RemoteStorageSetUserPublishedFileActionResult_t>())).m_eAction
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStorageSetUserPublishedFileActionResult_t),
@@ -10727,7 +10883,7 @@ fn bindgen_test_layout_RemoteStorageSetUserPublishedFileActionResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageEnumeratePublishedFilesByUserActionResult_t {
     pub m_eResult: EResult,
@@ -10740,7 +10896,7 @@ pub struct RemoteStorageEnumeratePublishedFilesByUserActionResult_t {
 pub const RemoteStorageEnumeratePublishedFilesByUserActionResult_t_k_iCallback:
     RemoteStorageEnumeratePublishedFilesByUserActionResult_t__bindgen_ty_1 =
     RemoteStorageEnumeratePublishedFilesByUserActionResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageEnumeratePublishedFilesByUserActionResult_t__bindgen_ty_1 {
@@ -10758,7 +10914,7 @@ fn bindgen_test_layout_RemoteStorageEnumeratePublishedFilesByUserActionResult_t(
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageEnumeratePublishedFilesByUserActionResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageEnumeratePublishedFilesByUserActionResult_t)
@@ -10843,7 +10999,7 @@ fn bindgen_test_layout_RemoteStorageEnumeratePublishedFilesByUserActionResult_t(
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishFileProgress_t {
     pub m_dPercentFile: f64,
@@ -10852,7 +11008,7 @@ pub struct RemoteStoragePublishFileProgress_t {
 pub const RemoteStoragePublishFileProgress_t_k_iCallback:
     RemoteStoragePublishFileProgress_t__bindgen_ty_1 =
     RemoteStoragePublishFileProgress_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishFileProgress_t__bindgen_ty_1 {
@@ -10862,12 +11018,12 @@ pub enum RemoteStoragePublishFileProgress_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishFileProgress_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishFileProgress_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(RemoteStoragePublishFileProgress_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishFileProgress_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishFileProgress_t)
@@ -10900,7 +11056,7 @@ fn bindgen_test_layout_RemoteStoragePublishFileProgress_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStoragePublishedFileUpdated_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -10910,7 +11066,7 @@ pub struct RemoteStoragePublishedFileUpdated_t {
 pub const RemoteStoragePublishedFileUpdated_t_k_iCallback:
     RemoteStoragePublishedFileUpdated_t__bindgen_ty_1 =
     RemoteStoragePublishedFileUpdated_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStoragePublishedFileUpdated_t__bindgen_ty_1 {
@@ -10920,12 +11076,12 @@ pub enum RemoteStoragePublishedFileUpdated_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStoragePublishedFileUpdated_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStoragePublishedFileUpdated_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(RemoteStoragePublishedFileUpdated_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStoragePublishedFileUpdated_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStoragePublishedFileUpdated_t)
@@ -10962,7 +11118,7 @@ fn bindgen_test_layout_RemoteStoragePublishedFileUpdated_t() {
             &(*(::std::ptr::null::<RemoteStoragePublishedFileUpdated_t>())).m_ulUnused as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoteStoragePublishedFileUpdated_t),
@@ -10979,7 +11135,7 @@ pub struct RemoteStorageFileWriteAsyncComplete_t {
 pub const RemoteStorageFileWriteAsyncComplete_t_k_iCallback:
     RemoteStorageFileWriteAsyncComplete_t__bindgen_ty_1 =
     RemoteStorageFileWriteAsyncComplete_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageFileWriteAsyncComplete_t__bindgen_ty_1 {
@@ -11017,7 +11173,7 @@ fn bindgen_test_layout_RemoteStorageFileWriteAsyncComplete_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoteStorageFileReadAsyncComplete_t {
     pub m_hFileReadAsync: SteamAPICall_t,
@@ -11028,7 +11184,7 @@ pub struct RemoteStorageFileReadAsyncComplete_t {
 pub const RemoteStorageFileReadAsyncComplete_t_k_iCallback:
     RemoteStorageFileReadAsyncComplete_t__bindgen_ty_1 =
     RemoteStorageFileReadAsyncComplete_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageFileReadAsyncComplete_t__bindgen_ty_1 {
@@ -11038,7 +11194,7 @@ pub enum RemoteStorageFileReadAsyncComplete_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoteStorageFileReadAsyncComplete_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoteStorageFileReadAsyncComplete_t>(),
-        24usize,
+        20usize,
         concat!(
             "Size of: ",
             stringify!(RemoteStorageFileReadAsyncComplete_t)
@@ -11046,7 +11202,7 @@ fn bindgen_test_layout_RemoteStorageFileReadAsyncComplete_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<RemoteStorageFileReadAsyncComplete_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(RemoteStorageFileReadAsyncComplete_t)
@@ -11112,7 +11268,7 @@ pub struct RemoteStorageLocalFileChange_t {
 }
 pub const RemoteStorageLocalFileChange_t_k_iCallback: RemoteStorageLocalFileChange_t__bindgen_ty_1 =
     RemoteStorageLocalFileChange_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoteStorageLocalFileChange_t__bindgen_ty_1 {
@@ -11132,21 +11288,21 @@ fn bindgen_test_layout_RemoteStorageLocalFileChange_t() {
     );
 }
 pub const k_cchStatNameMax: _bindgen_ty_43 = _bindgen_ty_43::k_cchStatNameMax;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_43 {
     k_cchStatNameMax = 128,
 }
 pub const k_cchLeaderboardNameMax: _bindgen_ty_44 = _bindgen_ty_44::k_cchLeaderboardNameMax;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_44 {
     k_cchLeaderboardNameMax = 128,
 }
 pub const k_cLeaderboardDetailsMax: _bindgen_ty_45 = _bindgen_ty_45::k_cLeaderboardDetailsMax;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_45 {
@@ -11154,7 +11310,7 @@ pub enum _bindgen_ty_45 {
 }
 pub type SteamLeaderboard_t = uint64;
 pub type SteamLeaderboardEntries_t = uint64;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELeaderboardDataRequest {
@@ -11163,7 +11319,7 @@ pub enum ELeaderboardDataRequest {
     k_ELeaderboardDataRequestFriends = 2,
     k_ELeaderboardDataRequestUsers = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELeaderboardSortMethod {
@@ -11171,7 +11327,7 @@ pub enum ELeaderboardSortMethod {
     k_ELeaderboardSortMethodAscending = 1,
     k_ELeaderboardSortMethodDescending = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELeaderboardDisplayType {
@@ -11180,7 +11336,7 @@ pub enum ELeaderboardDisplayType {
     k_ELeaderboardDisplayTypeTimeSeconds = 2,
     k_ELeaderboardDisplayTypeTimeMilliSeconds = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ELeaderboardUploadScoreMethod {
@@ -11188,7 +11344,7 @@ pub enum ELeaderboardUploadScoreMethod {
     k_ELeaderboardUploadScoreMethodKeepBest = 1,
     k_ELeaderboardUploadScoreMethodForceUpdate = 2,
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct LeaderboardEntry_t {
     pub m_steamIDUser: CSteamID,
@@ -11201,12 +11357,12 @@ pub struct LeaderboardEntry_t {
 fn bindgen_test_layout_LeaderboardEntry_t() {
     assert_eq!(
         ::std::mem::size_of::<LeaderboardEntry_t>(),
-        32usize,
+        28usize,
         concat!("Size of: ", stringify!(LeaderboardEntry_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LeaderboardEntry_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LeaderboardEntry_t))
     );
     assert_eq!(
@@ -11255,7 +11411,7 @@ fn bindgen_test_layout_LeaderboardEntry_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<LeaderboardEntry_t>())).m_hUGC as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardEntry_t),
@@ -11284,7 +11440,7 @@ fn bindgen_test_layout_ISteamUserStats() {
         concat!("Alignment of ", stringify!(ISteamUserStats))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct UserStatsReceived_t {
     pub m_nGameID: uint64,
@@ -11293,7 +11449,7 @@ pub struct UserStatsReceived_t {
 }
 pub const UserStatsReceived_t_k_iCallback: UserStatsReceived_t__bindgen_ty_1 =
     UserStatsReceived_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserStatsReceived_t__bindgen_ty_1 {
@@ -11303,12 +11459,12 @@ pub enum UserStatsReceived_t__bindgen_ty_1 {
 fn bindgen_test_layout_UserStatsReceived_t() {
     assert_eq!(
         ::std::mem::size_of::<UserStatsReceived_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(UserStatsReceived_t))
     );
     assert_eq!(
         ::std::mem::align_of::<UserStatsReceived_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(UserStatsReceived_t))
     );
     assert_eq!(
@@ -11344,7 +11500,7 @@ fn bindgen_test_layout_UserStatsReceived_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct UserStatsStored_t {
     pub m_nGameID: uint64,
@@ -11352,7 +11508,7 @@ pub struct UserStatsStored_t {
 }
 pub const UserStatsStored_t_k_iCallback: UserStatsStored_t__bindgen_ty_1 =
     UserStatsStored_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserStatsStored_t__bindgen_ty_1 {
@@ -11362,12 +11518,12 @@ pub enum UserStatsStored_t__bindgen_ty_1 {
 fn bindgen_test_layout_UserStatsStored_t() {
     assert_eq!(
         ::std::mem::size_of::<UserStatsStored_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(UserStatsStored_t))
     );
     assert_eq!(
         ::std::mem::align_of::<UserStatsStored_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(UserStatsStored_t))
     );
     assert_eq!(
@@ -11391,7 +11547,7 @@ fn bindgen_test_layout_UserStatsStored_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct UserAchievementStored_t {
     pub m_nGameID: uint64,
@@ -11402,7 +11558,7 @@ pub struct UserAchievementStored_t {
 }
 pub const UserAchievementStored_t_k_iCallback: UserAchievementStored_t__bindgen_ty_1 =
     UserAchievementStored_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserAchievementStored_t__bindgen_ty_1 {
@@ -11412,12 +11568,12 @@ pub enum UserAchievementStored_t__bindgen_ty_1 {
 fn bindgen_test_layout_UserAchievementStored_t() {
     assert_eq!(
         ::std::mem::size_of::<UserAchievementStored_t>(),
-        152usize,
+        148usize,
         concat!("Size of: ", stringify!(UserAchievementStored_t))
     );
     assert_eq!(
         ::std::mem::align_of::<UserAchievementStored_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(UserAchievementStored_t))
     );
     assert_eq!(
@@ -11483,7 +11639,7 @@ fn bindgen_test_layout_UserAchievementStored_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LeaderboardFindResult_t {
     pub m_hSteamLeaderboard: SteamLeaderboard_t,
@@ -11491,7 +11647,7 @@ pub struct LeaderboardFindResult_t {
 }
 pub const LeaderboardFindResult_t_k_iCallback: LeaderboardFindResult_t__bindgen_ty_1 =
     LeaderboardFindResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LeaderboardFindResult_t__bindgen_ty_1 {
@@ -11501,12 +11657,12 @@ pub enum LeaderboardFindResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_LeaderboardFindResult_t() {
     assert_eq!(
         ::std::mem::size_of::<LeaderboardFindResult_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(LeaderboardFindResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LeaderboardFindResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LeaderboardFindResult_t))
     );
     assert_eq!(
@@ -11536,7 +11692,7 @@ fn bindgen_test_layout_LeaderboardFindResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LeaderboardScoresDownloaded_t {
     pub m_hSteamLeaderboard: SteamLeaderboard_t,
@@ -11545,7 +11701,7 @@ pub struct LeaderboardScoresDownloaded_t {
 }
 pub const LeaderboardScoresDownloaded_t_k_iCallback: LeaderboardScoresDownloaded_t__bindgen_ty_1 =
     LeaderboardScoresDownloaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LeaderboardScoresDownloaded_t__bindgen_ty_1 {
@@ -11555,12 +11711,12 @@ pub enum LeaderboardScoresDownloaded_t__bindgen_ty_1 {
 fn bindgen_test_layout_LeaderboardScoresDownloaded_t() {
     assert_eq!(
         ::std::mem::size_of::<LeaderboardScoresDownloaded_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(LeaderboardScoresDownloaded_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LeaderboardScoresDownloaded_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LeaderboardScoresDownloaded_t))
     );
     assert_eq!(
@@ -11603,7 +11759,7 @@ fn bindgen_test_layout_LeaderboardScoresDownloaded_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LeaderboardScoreUploaded_t {
     pub m_bSuccess: uint8,
@@ -11615,7 +11771,7 @@ pub struct LeaderboardScoreUploaded_t {
 }
 pub const LeaderboardScoreUploaded_t_k_iCallback: LeaderboardScoreUploaded_t__bindgen_ty_1 =
     LeaderboardScoreUploaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LeaderboardScoreUploaded_t__bindgen_ty_1 {
@@ -11625,12 +11781,12 @@ pub enum LeaderboardScoreUploaded_t__bindgen_ty_1 {
 fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
     assert_eq!(
         ::std::mem::size_of::<LeaderboardScoreUploaded_t>(),
-        32usize,
+        28usize,
         concat!("Size of: ", stringify!(LeaderboardScoreUploaded_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LeaderboardScoreUploaded_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LeaderboardScoreUploaded_t))
     );
     assert_eq!(
@@ -11650,7 +11806,7 @@ fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
             &(*(::std::ptr::null::<LeaderboardScoreUploaded_t>())).m_hSteamLeaderboard as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardScoreUploaded_t),
@@ -11662,7 +11818,7 @@ fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
         unsafe {
             &(*(::std::ptr::null::<LeaderboardScoreUploaded_t>())).m_nScore as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardScoreUploaded_t),
@@ -11675,7 +11831,7 @@ fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
             &(*(::std::ptr::null::<LeaderboardScoreUploaded_t>())).m_bScoreChanged as *const _
                 as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardScoreUploaded_t),
@@ -11688,7 +11844,7 @@ fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
             &(*(::std::ptr::null::<LeaderboardScoreUploaded_t>())).m_nGlobalRankNew as *const _
                 as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardScoreUploaded_t),
@@ -11701,7 +11857,7 @@ fn bindgen_test_layout_LeaderboardScoreUploaded_t() {
             &(*(::std::ptr::null::<LeaderboardScoreUploaded_t>())).m_nGlobalRankPrevious as *const _
                 as usize
         },
-        28usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardScoreUploaded_t),
@@ -11718,7 +11874,7 @@ pub struct NumberOfCurrentPlayers_t {
 }
 pub const NumberOfCurrentPlayers_t_k_iCallback: NumberOfCurrentPlayers_t__bindgen_ty_1 =
     NumberOfCurrentPlayers_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum NumberOfCurrentPlayers_t__bindgen_ty_1 {
@@ -11768,7 +11924,7 @@ pub struct UserStatsUnloaded_t {
 }
 pub const UserStatsUnloaded_t_k_iCallback: UserStatsUnloaded_t__bindgen_ty_1 =
     UserStatsUnloaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserStatsUnloaded_t__bindgen_ty_1 {
@@ -11809,7 +11965,7 @@ pub struct UserAchievementIconFetched_t {
 }
 pub const UserAchievementIconFetched_t_k_iCallback: UserAchievementIconFetched_t__bindgen_ty_1 =
     UserAchievementIconFetched_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserAchievementIconFetched_t__bindgen_ty_1 {
@@ -11879,7 +12035,7 @@ fn bindgen_test_layout_UserAchievementIconFetched_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GlobalAchievementPercentagesReady_t {
     pub m_nGameID: uint64,
@@ -11888,7 +12044,7 @@ pub struct GlobalAchievementPercentagesReady_t {
 pub const GlobalAchievementPercentagesReady_t_k_iCallback:
     GlobalAchievementPercentagesReady_t__bindgen_ty_1 =
     GlobalAchievementPercentagesReady_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GlobalAchievementPercentagesReady_t__bindgen_ty_1 {
@@ -11898,12 +12054,12 @@ pub enum GlobalAchievementPercentagesReady_t__bindgen_ty_1 {
 fn bindgen_test_layout_GlobalAchievementPercentagesReady_t() {
     assert_eq!(
         ::std::mem::size_of::<GlobalAchievementPercentagesReady_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(GlobalAchievementPercentagesReady_t))
     );
     assert_eq!(
         ::std::mem::align_of::<GlobalAchievementPercentagesReady_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(GlobalAchievementPercentagesReady_t)
@@ -11936,7 +12092,7 @@ fn bindgen_test_layout_GlobalAchievementPercentagesReady_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct LeaderboardUGCSet_t {
     pub m_eResult: EResult,
@@ -11944,7 +12100,7 @@ pub struct LeaderboardUGCSet_t {
 }
 pub const LeaderboardUGCSet_t_k_iCallback: LeaderboardUGCSet_t__bindgen_ty_1 =
     LeaderboardUGCSet_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum LeaderboardUGCSet_t__bindgen_ty_1 {
@@ -11954,12 +12110,12 @@ pub enum LeaderboardUGCSet_t__bindgen_ty_1 {
 fn bindgen_test_layout_LeaderboardUGCSet_t() {
     assert_eq!(
         ::std::mem::size_of::<LeaderboardUGCSet_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(LeaderboardUGCSet_t))
     );
     assert_eq!(
         ::std::mem::align_of::<LeaderboardUGCSet_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(LeaderboardUGCSet_t))
     );
     assert_eq!(
@@ -11976,7 +12132,7 @@ fn bindgen_test_layout_LeaderboardUGCSet_t() {
         unsafe {
             &(*(::std::ptr::null::<LeaderboardUGCSet_t>())).m_hSteamLeaderboard as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(LeaderboardUGCSet_t),
@@ -11985,7 +12141,7 @@ fn bindgen_test_layout_LeaderboardUGCSet_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct PS3TrophiesInstalled_t {
     pub m_nGameID: uint64,
@@ -11994,7 +12150,7 @@ pub struct PS3TrophiesInstalled_t {
 }
 pub const PS3TrophiesInstalled_t_k_iCallback: PS3TrophiesInstalled_t__bindgen_ty_1 =
     PS3TrophiesInstalled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum PS3TrophiesInstalled_t__bindgen_ty_1 {
@@ -12004,12 +12160,12 @@ pub enum PS3TrophiesInstalled_t__bindgen_ty_1 {
 fn bindgen_test_layout_PS3TrophiesInstalled_t() {
     assert_eq!(
         ::std::mem::size_of::<PS3TrophiesInstalled_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(PS3TrophiesInstalled_t))
     );
     assert_eq!(
         ::std::mem::align_of::<PS3TrophiesInstalled_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(PS3TrophiesInstalled_t))
     );
     assert_eq!(
@@ -12041,7 +12197,7 @@ fn bindgen_test_layout_PS3TrophiesInstalled_t() {
             &(*(::std::ptr::null::<PS3TrophiesInstalled_t>())).m_ulRequiredDiskSpace as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(PS3TrophiesInstalled_t),
@@ -12050,7 +12206,7 @@ fn bindgen_test_layout_PS3TrophiesInstalled_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GlobalStatsReceived_t {
     pub m_nGameID: uint64,
@@ -12058,7 +12214,7 @@ pub struct GlobalStatsReceived_t {
 }
 pub const GlobalStatsReceived_t_k_iCallback: GlobalStatsReceived_t__bindgen_ty_1 =
     GlobalStatsReceived_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GlobalStatsReceived_t__bindgen_ty_1 {
@@ -12068,12 +12224,12 @@ pub enum GlobalStatsReceived_t__bindgen_ty_1 {
 fn bindgen_test_layout_GlobalStatsReceived_t() {
     assert_eq!(
         ::std::mem::size_of::<GlobalStatsReceived_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(GlobalStatsReceived_t))
     );
     assert_eq!(
         ::std::mem::align_of::<GlobalStatsReceived_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(GlobalStatsReceived_t))
     );
     assert_eq!(
@@ -12125,7 +12281,7 @@ pub struct DlcInstalled_t {
 }
 pub const DlcInstalled_t_k_iCallback: DlcInstalled_t__bindgen_ty_1 =
     DlcInstalled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum DlcInstalled_t__bindgen_ty_1 {
@@ -12154,7 +12310,7 @@ fn bindgen_test_layout_DlcInstalled_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ERegisterActivationCodeResult {
@@ -12173,7 +12329,7 @@ pub struct RegisterActivationCodeResponse_t {
 pub const RegisterActivationCodeResponse_t_k_iCallback:
     RegisterActivationCodeResponse_t__bindgen_ty_1 =
     RegisterActivationCodeResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RegisterActivationCodeResponse_t__bindgen_ty_1 {
@@ -12228,7 +12384,7 @@ pub struct NewUrlLaunchParameters_t {
 }
 pub const NewUrlLaunchParameters_t_k_iCallback: NewUrlLaunchParameters_t__bindgen_ty_1 =
     NewUrlLaunchParameters_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum NewUrlLaunchParameters_t__bindgen_ty_1 {
@@ -12258,7 +12414,7 @@ pub struct AppProofOfPurchaseKeyResponse_t {
 pub const AppProofOfPurchaseKeyResponse_t_k_iCallback:
     AppProofOfPurchaseKeyResponse_t__bindgen_ty_1 =
     AppProofOfPurchaseKeyResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AppProofOfPurchaseKeyResponse_t__bindgen_ty_1 {
@@ -12329,7 +12485,7 @@ fn bindgen_test_layout_AppProofOfPurchaseKeyResponse_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct FileDetailsResult_t {
     pub m_eResult: EResult,
@@ -12339,7 +12495,7 @@ pub struct FileDetailsResult_t {
 }
 pub const FileDetailsResult_t_k_iCallback: FileDetailsResult_t__bindgen_ty_1 =
     FileDetailsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum FileDetailsResult_t__bindgen_ty_1 {
@@ -12349,12 +12505,12 @@ pub enum FileDetailsResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_FileDetailsResult_t() {
     assert_eq!(
         ::std::mem::size_of::<FileDetailsResult_t>(),
-        40usize,
+        36usize,
         concat!("Size of: ", stringify!(FileDetailsResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<FileDetailsResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(FileDetailsResult_t))
     );
     assert_eq!(
@@ -12371,7 +12527,7 @@ fn bindgen_test_layout_FileDetailsResult_t() {
         unsafe {
             &(*(::std::ptr::null::<FileDetailsResult_t>())).m_ulFileSize as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(FileDetailsResult_t),
@@ -12381,7 +12537,7 @@ fn bindgen_test_layout_FileDetailsResult_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<FileDetailsResult_t>())).m_FileSHA as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(FileDetailsResult_t),
@@ -12391,7 +12547,7 @@ fn bindgen_test_layout_FileDetailsResult_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<FileDetailsResult_t>())).m_unFlags as *const _ as usize },
-        36usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(FileDetailsResult_t),
@@ -12410,7 +12566,7 @@ pub struct TimedTrialStatus_t {
 }
 pub const TimedTrialStatus_t_k_iCallback: TimedTrialStatus_t__bindgen_ty_1 =
     TimedTrialStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum TimedTrialStatus_t__bindgen_ty_1 {
@@ -12473,7 +12629,7 @@ fn bindgen_test_layout_TimedTrialStatus_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EP2PSessionError {
@@ -12484,7 +12640,7 @@ pub enum EP2PSessionError {
     k_EP2PSessionErrorDestinationNotLoggedIn_DELETED = 3,
     k_EP2PSessionErrorMax = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EP2PSend {
@@ -12609,7 +12765,7 @@ fn bindgen_test_layout_P2PSessionState_t() {
 }
 pub type SNetSocket_t = uint32;
 pub type SNetListenSocket_t = uint32;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESNetSocketState {
@@ -12625,7 +12781,7 @@ pub enum ESNetSocketState {
     k_ESNetSocketStateRemoteEndDisconnected = 24,
     k_ESNetSocketStateConnectionBroken = 25,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESNetSocketConnectionType {
@@ -12662,7 +12818,7 @@ pub struct P2PSessionRequest_t {
 }
 pub const P2PSessionRequest_t_k_iCallback: P2PSessionRequest_t__bindgen_ty_1 =
     P2PSessionRequest_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum P2PSessionRequest_t__bindgen_ty_1 {
@@ -12701,7 +12857,7 @@ pub struct P2PSessionConnectFail_t {
 }
 pub const P2PSessionConnectFail_t_k_iCallback: P2PSessionConnectFail_t__bindgen_ty_1 =
     P2PSessionConnectFail_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum P2PSessionConnectFail_t__bindgen_ty_1 {
@@ -12755,7 +12911,7 @@ pub struct SocketStatusCallback_t {
 }
 pub const SocketStatusCallback_t_k_iCallback: SocketStatusCallback_t__bindgen_ty_1 =
     SocketStatusCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SocketStatusCallback_t__bindgen_ty_1 {
@@ -12829,7 +12985,7 @@ pub const k_cubUFSTagTypeMax: ::std::os::raw::c_int = 255;
 pub const k_cubUFSTagValueMax: ::std::os::raw::c_int = 255;
 pub const k_ScreenshotThumbWidth: ::std::os::raw::c_int = 200;
 pub type ScreenshotHandle = uint32;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EVRScreenshotType {
@@ -12868,7 +13024,7 @@ pub struct ScreenshotReady_t {
 }
 pub const ScreenshotReady_t_k_iCallback: ScreenshotReady_t__bindgen_ty_1 =
     ScreenshotReady_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ScreenshotReady_t__bindgen_ty_1 {
@@ -12914,7 +13070,7 @@ pub struct ScreenshotRequested_t {
 }
 pub const ScreenshotRequested_t_k_iCallback: ScreenshotRequested_t__bindgen_ty_1 =
     ScreenshotRequested_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ScreenshotRequested_t__bindgen_ty_1 {
@@ -12933,7 +13089,7 @@ fn bindgen_test_layout_ScreenshotRequested_t() {
         concat!("Alignment of ", stringify!(ScreenshotRequested_t))
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AudioPlayback_Status {
@@ -12969,7 +13125,7 @@ pub struct PlaybackStatusHasChanged_t {
 }
 pub const PlaybackStatusHasChanged_t_k_iCallback: PlaybackStatusHasChanged_t__bindgen_ty_1 =
     PlaybackStatusHasChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum PlaybackStatusHasChanged_t__bindgen_ty_1 {
@@ -12995,7 +13151,7 @@ pub struct VolumeHasChanged_t {
 }
 pub const VolumeHasChanged_t_k_iCallback: VolumeHasChanged_t__bindgen_ty_1 =
     VolumeHasChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum VolumeHasChanged_t__bindgen_ty_1 {
@@ -13054,7 +13210,7 @@ pub struct MusicPlayerRemoteWillActivate_t {
 pub const MusicPlayerRemoteWillActivate_t_k_iCallback:
     MusicPlayerRemoteWillActivate_t__bindgen_ty_1 =
     MusicPlayerRemoteWillActivate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerRemoteWillActivate_t__bindgen_ty_1 {
@@ -13081,7 +13237,7 @@ pub struct MusicPlayerRemoteWillDeactivate_t {
 pub const MusicPlayerRemoteWillDeactivate_t_k_iCallback:
     MusicPlayerRemoteWillDeactivate_t__bindgen_ty_1 =
     MusicPlayerRemoteWillDeactivate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerRemoteWillDeactivate_t__bindgen_ty_1 {
@@ -13110,7 +13266,7 @@ pub struct MusicPlayerRemoteToFront_t {
 }
 pub const MusicPlayerRemoteToFront_t_k_iCallback: MusicPlayerRemoteToFront_t__bindgen_ty_1 =
     MusicPlayerRemoteToFront_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerRemoteToFront_t__bindgen_ty_1 {
@@ -13136,7 +13292,7 @@ pub struct MusicPlayerWillQuit_t {
 }
 pub const MusicPlayerWillQuit_t_k_iCallback: MusicPlayerWillQuit_t__bindgen_ty_1 =
     MusicPlayerWillQuit_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWillQuit_t__bindgen_ty_1 {
@@ -13162,7 +13318,7 @@ pub struct MusicPlayerWantsPlay_t {
 }
 pub const MusicPlayerWantsPlay_t_k_iCallback: MusicPlayerWantsPlay_t__bindgen_ty_1 =
     MusicPlayerWantsPlay_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsPlay_t__bindgen_ty_1 {
@@ -13188,7 +13344,7 @@ pub struct MusicPlayerWantsPause_t {
 }
 pub const MusicPlayerWantsPause_t_k_iCallback: MusicPlayerWantsPause_t__bindgen_ty_1 =
     MusicPlayerWantsPause_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsPause_t__bindgen_ty_1 {
@@ -13214,7 +13370,7 @@ pub struct MusicPlayerWantsPlayPrevious_t {
 }
 pub const MusicPlayerWantsPlayPrevious_t_k_iCallback: MusicPlayerWantsPlayPrevious_t__bindgen_ty_1 =
     MusicPlayerWantsPlayPrevious_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsPlayPrevious_t__bindgen_ty_1 {
@@ -13240,7 +13396,7 @@ pub struct MusicPlayerWantsPlayNext_t {
 }
 pub const MusicPlayerWantsPlayNext_t_k_iCallback: MusicPlayerWantsPlayNext_t__bindgen_ty_1 =
     MusicPlayerWantsPlayNext_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsPlayNext_t__bindgen_ty_1 {
@@ -13266,7 +13422,7 @@ pub struct MusicPlayerWantsShuffled_t {
 }
 pub const MusicPlayerWantsShuffled_t_k_iCallback: MusicPlayerWantsShuffled_t__bindgen_ty_1 =
     MusicPlayerWantsShuffled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsShuffled_t__bindgen_ty_1 {
@@ -13304,7 +13460,7 @@ pub struct MusicPlayerWantsLooped_t {
 }
 pub const MusicPlayerWantsLooped_t_k_iCallback: MusicPlayerWantsLooped_t__bindgen_ty_1 =
     MusicPlayerWantsLooped_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsLooped_t__bindgen_ty_1 {
@@ -13342,7 +13498,7 @@ pub struct MusicPlayerWantsVolume_t {
 }
 pub const MusicPlayerWantsVolume_t_k_iCallback: MusicPlayerWantsVolume_t__bindgen_ty_1 =
     MusicPlayerWantsVolume_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsVolume_t__bindgen_ty_1 {
@@ -13380,7 +13536,7 @@ pub struct MusicPlayerSelectsQueueEntry_t {
 }
 pub const MusicPlayerSelectsQueueEntry_t_k_iCallback: MusicPlayerSelectsQueueEntry_t__bindgen_ty_1 =
     MusicPlayerSelectsQueueEntry_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerSelectsQueueEntry_t__bindgen_ty_1 {
@@ -13419,7 +13575,7 @@ pub struct MusicPlayerSelectsPlaylistEntry_t {
 pub const MusicPlayerSelectsPlaylistEntry_t_k_iCallback:
     MusicPlayerSelectsPlaylistEntry_t__bindgen_ty_1 =
     MusicPlayerSelectsPlaylistEntry_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerSelectsPlaylistEntry_t__bindgen_ty_1 {
@@ -13461,7 +13617,7 @@ pub struct MusicPlayerWantsPlayingRepeatStatus_t {
 pub const MusicPlayerWantsPlayingRepeatStatus_t_k_iCallback:
     MusicPlayerWantsPlayingRepeatStatus_t__bindgen_ty_1 =
     MusicPlayerWantsPlayingRepeatStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum MusicPlayerWantsPlayingRepeatStatus_t__bindgen_ty_1 {
@@ -13499,7 +13655,7 @@ fn bindgen_test_layout_MusicPlayerWantsPlayingRepeatStatus_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EHTTPMethod {
@@ -13512,7 +13668,7 @@ pub enum EHTTPMethod {
     k_EHTTPMethodOPTIONS = 6,
     k_EHTTPMethodPATCH = 7,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EHTTPStatusCode {
@@ -13584,7 +13740,7 @@ fn bindgen_test_layout_ISteamHTTP() {
         concat!("Alignment of ", stringify!(ISteamHTTP))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTTPRequestCompleted_t {
     pub m_hRequest: HTTPRequestHandle,
@@ -13595,7 +13751,7 @@ pub struct HTTPRequestCompleted_t {
 }
 pub const HTTPRequestCompleted_t_k_iCallback: HTTPRequestCompleted_t__bindgen_ty_1 =
     HTTPRequestCompleted_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTTPRequestCompleted_t__bindgen_ty_1 {
@@ -13605,12 +13761,12 @@ pub enum HTTPRequestCompleted_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTTPRequestCompleted_t() {
     assert_eq!(
         ::std::mem::size_of::<HTTPRequestCompleted_t>(),
-        32usize,
+        24usize,
         concat!("Size of: ", stringify!(HTTPRequestCompleted_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTTPRequestCompleted_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTTPRequestCompleted_t))
     );
     assert_eq!(
@@ -13629,7 +13785,7 @@ fn bindgen_test_layout_HTTPRequestCompleted_t() {
         unsafe {
             &(*(::std::ptr::null::<HTTPRequestCompleted_t>())).m_ulContextValue as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestCompleted_t),
@@ -13642,7 +13798,7 @@ fn bindgen_test_layout_HTTPRequestCompleted_t() {
             &(*(::std::ptr::null::<HTTPRequestCompleted_t>())).m_bRequestSuccessful as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestCompleted_t),
@@ -13654,7 +13810,7 @@ fn bindgen_test_layout_HTTPRequestCompleted_t() {
         unsafe {
             &(*(::std::ptr::null::<HTTPRequestCompleted_t>())).m_eStatusCode as *const _ as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestCompleted_t),
@@ -13666,7 +13822,7 @@ fn bindgen_test_layout_HTTPRequestCompleted_t() {
         unsafe {
             &(*(::std::ptr::null::<HTTPRequestCompleted_t>())).m_unBodySize as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestCompleted_t),
@@ -13675,7 +13831,7 @@ fn bindgen_test_layout_HTTPRequestCompleted_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTTPRequestHeadersReceived_t {
     pub m_hRequest: HTTPRequestHandle,
@@ -13683,7 +13839,7 @@ pub struct HTTPRequestHeadersReceived_t {
 }
 pub const HTTPRequestHeadersReceived_t_k_iCallback: HTTPRequestHeadersReceived_t__bindgen_ty_1 =
     HTTPRequestHeadersReceived_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTTPRequestHeadersReceived_t__bindgen_ty_1 {
@@ -13693,12 +13849,12 @@ pub enum HTTPRequestHeadersReceived_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTTPRequestHeadersReceived_t() {
     assert_eq!(
         ::std::mem::size_of::<HTTPRequestHeadersReceived_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTTPRequestHeadersReceived_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTTPRequestHeadersReceived_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTTPRequestHeadersReceived_t))
     );
     assert_eq!(
@@ -13718,7 +13874,7 @@ fn bindgen_test_layout_HTTPRequestHeadersReceived_t() {
             &(*(::std::ptr::null::<HTTPRequestHeadersReceived_t>())).m_ulContextValue as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestHeadersReceived_t),
@@ -13727,7 +13883,7 @@ fn bindgen_test_layout_HTTPRequestHeadersReceived_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTTPRequestDataReceived_t {
     pub m_hRequest: HTTPRequestHandle,
@@ -13737,7 +13893,7 @@ pub struct HTTPRequestDataReceived_t {
 }
 pub const HTTPRequestDataReceived_t_k_iCallback: HTTPRequestDataReceived_t__bindgen_ty_1 =
     HTTPRequestDataReceived_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTTPRequestDataReceived_t__bindgen_ty_1 {
@@ -13747,12 +13903,12 @@ pub enum HTTPRequestDataReceived_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTTPRequestDataReceived_t() {
     assert_eq!(
         ::std::mem::size_of::<HTTPRequestDataReceived_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(HTTPRequestDataReceived_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTTPRequestDataReceived_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTTPRequestDataReceived_t))
     );
     assert_eq!(
@@ -13772,7 +13928,7 @@ fn bindgen_test_layout_HTTPRequestDataReceived_t() {
             &(*(::std::ptr::null::<HTTPRequestDataReceived_t>())).m_ulContextValue as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestDataReceived_t),
@@ -13784,7 +13940,7 @@ fn bindgen_test_layout_HTTPRequestDataReceived_t() {
         unsafe {
             &(*(::std::ptr::null::<HTTPRequestDataReceived_t>())).m_cOffset as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestDataReceived_t),
@@ -13797,7 +13953,7 @@ fn bindgen_test_layout_HTTPRequestDataReceived_t() {
             &(*(::std::ptr::null::<HTTPRequestDataReceived_t>())).m_cBytesReceived as *const _
                 as usize
         },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(HTTPRequestDataReceived_t),
@@ -13806,7 +13962,7 @@ fn bindgen_test_layout_HTTPRequestDataReceived_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EInputSourceMode {
@@ -13828,7 +13984,7 @@ pub enum EInputSourceMode {
     k_EInputSourceMode_SingleButton = 15,
     k_EInputSourceMode_Switches = 16,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EInputActionOrigin {
@@ -14241,7 +14397,7 @@ pub enum EInputActionOrigin {
     k_EInputActionOrigin_Count = 406,
     k_EInputActionOrigin_MaximumPossibleValue = 32767,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EXboxOrigin {
@@ -14275,14 +14431,14 @@ pub enum EXboxOrigin {
     k_EXboxOrigin_DPad_East = 27,
     k_EXboxOrigin_Count = 28,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamControllerPad {
     k_ESteamControllerPad_Left = 0,
     k_ESteamControllerPad_Right = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EControllerHapticLocation {
@@ -14290,7 +14446,7 @@ pub enum EControllerHapticLocation {
     k_EControllerHapticLocation_Right = 2,
     k_EControllerHapticLocation_Both = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EControllerHapticType {
@@ -14298,7 +14454,7 @@ pub enum EControllerHapticType {
     k_EControllerHapticType_Tick = 1,
     k_EControllerHapticType_Click = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputType {
@@ -14320,7 +14476,7 @@ pub enum ESteamInputType {
     k_ESteamInputType_Count = 15,
     k_ESteamInputType_MaximumPossibleValue = 255,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputConfigurationEnableType {
@@ -14330,14 +14486,14 @@ pub enum ESteamInputConfigurationEnableType {
     k_ESteamInputConfigurationEnableType_Generic = 4,
     k_ESteamInputConfigurationEnableType_Switch = 8,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputLEDFlag {
     k_ESteamInputLEDFlag_SetColor = 0,
     k_ESteamInputLEDFlag_RestoreUserDefault = 1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputGlyphSize {
@@ -14346,7 +14502,7 @@ pub enum ESteamInputGlyphSize {
     k_ESteamInputGlyphSize_Large = 2,
     k_ESteamInputGlyphSize_Count = 3,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputGlyphStyle {
@@ -14356,7 +14512,7 @@ pub enum ESteamInputGlyphStyle {
     ESteamInputGlyphStyle_NeutralColorABXY = 16,
     ESteamInputGlyphStyle_SolidABXY = 32,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamInputActionEventType {
@@ -14816,14 +14972,14 @@ fn bindgen_test_layout_ISteamInput() {
         concat!("Alignment of ", stringify!(ISteamInput))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamInputDeviceConnected_t {
     pub m_ulConnectedDeviceHandle: InputHandle_t,
 }
 pub const SteamInputDeviceConnected_t_k_iCallback: SteamInputDeviceConnected_t__bindgen_ty_1 =
     SteamInputDeviceConnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInputDeviceConnected_t__bindgen_ty_1 {
@@ -14838,7 +14994,7 @@ fn bindgen_test_layout_SteamInputDeviceConnected_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamInputDeviceConnected_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamInputDeviceConnected_t))
     );
     assert_eq!(
@@ -14855,14 +15011,14 @@ fn bindgen_test_layout_SteamInputDeviceConnected_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamInputDeviceDisconnected_t {
     pub m_ulDisconnectedDeviceHandle: InputHandle_t,
 }
 pub const SteamInputDeviceDisconnected_t_k_iCallback: SteamInputDeviceDisconnected_t__bindgen_ty_1 =
     SteamInputDeviceDisconnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInputDeviceDisconnected_t__bindgen_ty_1 {
@@ -14877,7 +15033,7 @@ fn bindgen_test_layout_SteamInputDeviceDisconnected_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamInputDeviceDisconnected_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamInputDeviceDisconnected_t))
     );
     assert_eq!(
@@ -14894,7 +15050,7 @@ fn bindgen_test_layout_SteamInputDeviceDisconnected_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct SteamInputConfigurationLoaded_t {
     pub m_unAppID: AppId_t,
@@ -14908,7 +15064,7 @@ pub struct SteamInputConfigurationLoaded_t {
 pub const SteamInputConfigurationLoaded_t_k_iCallback:
     SteamInputConfigurationLoaded_t__bindgen_ty_1 =
     SteamInputConfigurationLoaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInputConfigurationLoaded_t__bindgen_ty_1 {
@@ -14918,12 +15074,12 @@ pub enum SteamInputConfigurationLoaded_t__bindgen_ty_1 {
 fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamInputConfigurationLoaded_t>(),
-        40usize,
+        32usize,
         concat!("Size of: ", stringify!(SteamInputConfigurationLoaded_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamInputConfigurationLoaded_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamInputConfigurationLoaded_t))
     );
     assert_eq!(
@@ -14944,7 +15100,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_ulDeviceHandle as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -14957,7 +15113,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_ulMappingCreator
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -14970,7 +15126,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_unMajorRevision
                 as *const _ as usize
         },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -14983,7 +15139,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_unMinorRevision
                 as *const _ as usize
         },
-        28usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -14996,7 +15152,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_bUsesSteamInputAPI
                 as *const _ as usize
         },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -15009,7 +15165,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
             &(*(::std::ptr::null::<SteamInputConfigurationLoaded_t>())).m_bUsesGamepadAPI
                 as *const _ as usize
         },
-        33usize,
+        29usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInputConfigurationLoaded_t),
@@ -15018,7 +15174,7 @@ fn bindgen_test_layout_SteamInputConfigurationLoaded_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EControllerActionOrigin {
@@ -15403,7 +15559,7 @@ pub enum EControllerActionOrigin {
     k_EControllerActionOrigin_Count = 378,
     k_EControllerActionOrigin_MaximumPossibleValue = 32767,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamControllerLEDFlag {
@@ -15457,7 +15613,7 @@ pub enum EUGCMatchingUGCType {
     k_EUGCMatchingUGCType_GameManagedItems = 12,
     k_EUGCMatchingUGCType_All = -1,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUserUGCList {
@@ -15471,7 +15627,7 @@ pub enum EUserUGCList {
     k_EUserUGCList_UsedOrPlayed = 7,
     k_EUserUGCList_Followed = 8,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUserUGCListSortOrder {
@@ -15483,7 +15639,7 @@ pub enum EUserUGCListSortOrder {
     k_EUserUGCListSortOrder_VoteScoreDesc = 5,
     k_EUserUGCListSortOrder_ForModeration = 6,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EUGCQuery {
@@ -15508,7 +15664,7 @@ pub enum EUGCQuery {
     k_EUGCQuery_RankedByLifetimePlaytimeSessions = 18,
     k_EUGCQuery_RankedByLastUpdatedDate = 19,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EItemUpdateStatus {
@@ -15519,7 +15675,7 @@ pub enum EItemUpdateStatus {
     k_EItemUpdateStatusUploadingPreviewFile = 4,
     k_EItemUpdateStatusCommittingChanges = 5,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EItemState {
@@ -15531,7 +15687,7 @@ pub enum EItemState {
     k_EItemStateDownloading = 16,
     k_EItemStateDownloadPending = 32,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EItemStatistic {
@@ -15549,7 +15705,7 @@ pub enum EItemStatistic {
     k_EItemStatistic_NumSecondsPlayedDuringTimePeriod = 11,
     k_EItemStatistic_NumPlaytimeSessionsDuringTimePeriod = 12,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EItemPreviewType {
@@ -15562,7 +15718,7 @@ pub enum EItemPreviewType {
 }
 pub const kNumUGCResultsPerPage: uint32 = 50;
 pub const k_cchDeveloperMetadataMax: uint32 = 5000;
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamUGCDetails_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -15596,12 +15752,12 @@ pub struct SteamUGCDetails_t {
 fn bindgen_test_layout_SteamUGCDetails_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamUGCDetails_t>(),
-        9776usize,
+        9764usize,
         concat!("Size of: ", stringify!(SteamUGCDetails_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamUGCDetails_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamUGCDetails_t))
     );
     assert_eq!(
@@ -15686,7 +15842,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_ulSteamIDOwner as *const _ as usize
         },
-        8160usize,
+        8156usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15698,7 +15854,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_rtimeCreated as *const _ as usize
         },
-        8168usize,
+        8164usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15710,7 +15866,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_rtimeUpdated as *const _ as usize
         },
-        8172usize,
+        8168usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15723,7 +15879,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_rtimeAddedToUserList as *const _
                 as usize
         },
-        8176usize,
+        8172usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15733,7 +15889,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_eVisibility as *const _ as usize },
-        8180usize,
+        8176usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15743,7 +15899,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_bBanned as *const _ as usize },
-        8184usize,
+        8180usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15755,7 +15911,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_bAcceptedForUse as *const _ as usize
         },
-        8185usize,
+        8181usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15767,7 +15923,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_bTagsTruncated as *const _ as usize
         },
-        8186usize,
+        8182usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15777,7 +15933,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_rgchTags as *const _ as usize },
-        8187usize,
+        8183usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15787,7 +15943,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_hFile as *const _ as usize },
-        9216usize,
+        9208usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15799,7 +15955,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_hPreviewFile as *const _ as usize
         },
-        9224usize,
+        9216usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15809,7 +15965,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_pchFileName as *const _ as usize },
-        9232usize,
+        9224usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15819,7 +15975,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_nFileSize as *const _ as usize },
-        9492usize,
+        9484usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15831,7 +15987,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_nPreviewFileSize as *const _ as usize
         },
-        9496usize,
+        9488usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15841,7 +15997,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_rgchURL as *const _ as usize },
-        9500usize,
+        9492usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15851,7 +16007,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_unVotesUp as *const _ as usize },
-        9756usize,
+        9748usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15861,7 +16017,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_unVotesDown as *const _ as usize },
-        9760usize,
+        9752usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15871,7 +16027,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_flScore as *const _ as usize },
-        9764usize,
+        9756usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15883,7 +16039,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
         unsafe {
             &(*(::std::ptr::null::<SteamUGCDetails_t>())).m_unNumChildren as *const _ as usize
         },
-        9768usize,
+        9760usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCDetails_t),
@@ -15908,11 +16064,11 @@ fn bindgen_test_layout_ISteamUGC() {
     );
     assert_eq!(
         ::std::mem::align_of::<ISteamUGC>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ISteamUGC))
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamUGCQueryCompleted_t {
     pub m_handle: UGCQueryHandle_t,
@@ -15924,7 +16080,7 @@ pub struct SteamUGCQueryCompleted_t {
 }
 pub const SteamUGCQueryCompleted_t_k_iCallback: SteamUGCQueryCompleted_t__bindgen_ty_1 =
     SteamUGCQueryCompleted_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamUGCQueryCompleted_t__bindgen_ty_1 {
@@ -15939,7 +16095,7 @@ fn bindgen_test_layout_SteamUGCQueryCompleted_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamUGCQueryCompleted_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamUGCQueryCompleted_t))
     );
     assert_eq!(
@@ -16027,7 +16183,7 @@ pub struct SteamUGCRequestUGCDetailsResult_t {
 pub const SteamUGCRequestUGCDetailsResult_t_k_iCallback:
     SteamUGCRequestUGCDetailsResult_t__bindgen_ty_1 =
     SteamUGCRequestUGCDetailsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamUGCRequestUGCDetailsResult_t__bindgen_ty_1 {
@@ -16037,12 +16193,12 @@ pub enum SteamUGCRequestUGCDetailsResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_SteamUGCRequestUGCDetailsResult_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamUGCRequestUGCDetailsResult_t>(),
-        9784usize,
+        9768usize,
         concat!("Size of: ", stringify!(SteamUGCRequestUGCDetailsResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamUGCRequestUGCDetailsResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SteamUGCRequestUGCDetailsResult_t)
@@ -16066,7 +16222,7 @@ fn bindgen_test_layout_SteamUGCRequestUGCDetailsResult_t() {
             &(*(::std::ptr::null::<SteamUGCRequestUGCDetailsResult_t>())).m_bCachedData as *const _
                 as usize
         },
-        9776usize,
+        9764usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCRequestUGCDetailsResult_t),
@@ -16075,7 +16231,7 @@ fn bindgen_test_layout_SteamUGCRequestUGCDetailsResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct CreateItemResult_t {
     pub m_eResult: EResult,
@@ -16084,7 +16240,7 @@ pub struct CreateItemResult_t {
 }
 pub const CreateItemResult_t_k_iCallback: CreateItemResult_t__bindgen_ty_1 =
     CreateItemResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum CreateItemResult_t__bindgen_ty_1 {
@@ -16094,12 +16250,12 @@ pub enum CreateItemResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_CreateItemResult_t() {
     assert_eq!(
         ::std::mem::size_of::<CreateItemResult_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(CreateItemResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<CreateItemResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(CreateItemResult_t))
     );
     assert_eq!(
@@ -16116,7 +16272,7 @@ fn bindgen_test_layout_CreateItemResult_t() {
         unsafe {
             &(*(::std::ptr::null::<CreateItemResult_t>())).m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(CreateItemResult_t),
@@ -16129,7 +16285,7 @@ fn bindgen_test_layout_CreateItemResult_t() {
             &(*(::std::ptr::null::<CreateItemResult_t>()))
                 .m_bUserNeedsToAcceptWorkshopLegalAgreement as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(CreateItemResult_t),
@@ -16138,7 +16294,7 @@ fn bindgen_test_layout_CreateItemResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SubmitItemUpdateResult_t {
     pub m_eResult: EResult,
@@ -16147,7 +16303,7 @@ pub struct SubmitItemUpdateResult_t {
 }
 pub const SubmitItemUpdateResult_t_k_iCallback: SubmitItemUpdateResult_t__bindgen_ty_1 =
     SubmitItemUpdateResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SubmitItemUpdateResult_t__bindgen_ty_1 {
@@ -16162,7 +16318,7 @@ fn bindgen_test_layout_SubmitItemUpdateResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SubmitItemUpdateResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SubmitItemUpdateResult_t))
     );
     assert_eq!(
@@ -16204,7 +16360,7 @@ fn bindgen_test_layout_SubmitItemUpdateResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct ItemInstalled_t {
     pub m_unAppID: AppId_t,
@@ -16212,7 +16368,7 @@ pub struct ItemInstalled_t {
 }
 pub const ItemInstalled_t_k_iCallback: ItemInstalled_t__bindgen_ty_1 =
     ItemInstalled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ItemInstalled_t__bindgen_ty_1 {
@@ -16222,12 +16378,12 @@ pub enum ItemInstalled_t__bindgen_ty_1 {
 fn bindgen_test_layout_ItemInstalled_t() {
     assert_eq!(
         ::std::mem::size_of::<ItemInstalled_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(ItemInstalled_t))
     );
     assert_eq!(
         ::std::mem::align_of::<ItemInstalled_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ItemInstalled_t))
     );
     assert_eq!(
@@ -16244,7 +16400,7 @@ fn bindgen_test_layout_ItemInstalled_t() {
         unsafe {
             &(*(::std::ptr::null::<ItemInstalled_t>())).m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ItemInstalled_t),
@@ -16253,7 +16409,7 @@ fn bindgen_test_layout_ItemInstalled_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct DownloadItemResult_t {
     pub m_unAppID: AppId_t,
@@ -16262,7 +16418,7 @@ pub struct DownloadItemResult_t {
 }
 pub const DownloadItemResult_t_k_iCallback: DownloadItemResult_t__bindgen_ty_1 =
     DownloadItemResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum DownloadItemResult_t__bindgen_ty_1 {
@@ -16272,12 +16428,12 @@ pub enum DownloadItemResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_DownloadItemResult_t() {
     assert_eq!(
         ::std::mem::size_of::<DownloadItemResult_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(DownloadItemResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<DownloadItemResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(DownloadItemResult_t))
     );
     assert_eq!(
@@ -16294,7 +16450,7 @@ fn bindgen_test_layout_DownloadItemResult_t() {
         unsafe {
             &(*(::std::ptr::null::<DownloadItemResult_t>())).m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(DownloadItemResult_t),
@@ -16304,7 +16460,7 @@ fn bindgen_test_layout_DownloadItemResult_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<DownloadItemResult_t>())).m_eResult as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(DownloadItemResult_t),
@@ -16313,7 +16469,7 @@ fn bindgen_test_layout_DownloadItemResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct UserFavoriteItemsListChanged_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -16322,7 +16478,7 @@ pub struct UserFavoriteItemsListChanged_t {
 }
 pub const UserFavoriteItemsListChanged_t_k_iCallback: UserFavoriteItemsListChanged_t__bindgen_ty_1 =
     UserFavoriteItemsListChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserFavoriteItemsListChanged_t__bindgen_ty_1 {
@@ -16337,7 +16493,7 @@ fn bindgen_test_layout_UserFavoriteItemsListChanged_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<UserFavoriteItemsListChanged_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(UserFavoriteItemsListChanged_t))
     );
     assert_eq!(
@@ -16380,7 +16536,7 @@ fn bindgen_test_layout_UserFavoriteItemsListChanged_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SetUserItemVoteResult_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -16389,7 +16545,7 @@ pub struct SetUserItemVoteResult_t {
 }
 pub const SetUserItemVoteResult_t_k_iCallback: SetUserItemVoteResult_t__bindgen_ty_1 =
     SetUserItemVoteResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SetUserItemVoteResult_t__bindgen_ty_1 {
@@ -16404,7 +16560,7 @@ fn bindgen_test_layout_SetUserItemVoteResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SetUserItemVoteResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SetUserItemVoteResult_t))
     );
     assert_eq!(
@@ -16445,7 +16601,7 @@ fn bindgen_test_layout_SetUserItemVoteResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GetUserItemVoteResult_t {
     pub m_nPublishedFileId: PublishedFileId_t,
@@ -16456,7 +16612,7 @@ pub struct GetUserItemVoteResult_t {
 }
 pub const GetUserItemVoteResult_t_k_iCallback: GetUserItemVoteResult_t__bindgen_ty_1 =
     GetUserItemVoteResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GetUserItemVoteResult_t__bindgen_ty_1 {
@@ -16471,7 +16627,7 @@ fn bindgen_test_layout_GetUserItemVoteResult_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<GetUserItemVoteResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(GetUserItemVoteResult_t))
     );
     assert_eq!(
@@ -16543,7 +16699,7 @@ pub struct StartPlaytimeTrackingResult_t {
 }
 pub const StartPlaytimeTrackingResult_t_k_iCallback: StartPlaytimeTrackingResult_t__bindgen_ty_1 =
     StartPlaytimeTrackingResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum StartPlaytimeTrackingResult_t__bindgen_ty_1 {
@@ -16581,7 +16737,7 @@ pub struct StopPlaytimeTrackingResult_t {
 }
 pub const StopPlaytimeTrackingResult_t_k_iCallback: StopPlaytimeTrackingResult_t__bindgen_ty_1 =
     StopPlaytimeTrackingResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum StopPlaytimeTrackingResult_t__bindgen_ty_1 {
@@ -16612,7 +16768,7 @@ fn bindgen_test_layout_StopPlaytimeTrackingResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct AddUGCDependencyResult_t {
     pub m_eResult: EResult,
@@ -16621,7 +16777,7 @@ pub struct AddUGCDependencyResult_t {
 }
 pub const AddUGCDependencyResult_t_k_iCallback: AddUGCDependencyResult_t__bindgen_ty_1 =
     AddUGCDependencyResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AddUGCDependencyResult_t__bindgen_ty_1 {
@@ -16631,12 +16787,12 @@ pub enum AddUGCDependencyResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_AddUGCDependencyResult_t() {
     assert_eq!(
         ::std::mem::size_of::<AddUGCDependencyResult_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(AddUGCDependencyResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<AddUGCDependencyResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(AddUGCDependencyResult_t))
     );
     assert_eq!(
@@ -16656,7 +16812,7 @@ fn bindgen_test_layout_AddUGCDependencyResult_t() {
             &(*(::std::ptr::null::<AddUGCDependencyResult_t>())).m_nPublishedFileId as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(AddUGCDependencyResult_t),
@@ -16669,7 +16825,7 @@ fn bindgen_test_layout_AddUGCDependencyResult_t() {
             &(*(::std::ptr::null::<AddUGCDependencyResult_t>())).m_nChildPublishedFileId as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(AddUGCDependencyResult_t),
@@ -16678,7 +16834,7 @@ fn bindgen_test_layout_AddUGCDependencyResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoveUGCDependencyResult_t {
     pub m_eResult: EResult,
@@ -16687,7 +16843,7 @@ pub struct RemoveUGCDependencyResult_t {
 }
 pub const RemoveUGCDependencyResult_t_k_iCallback: RemoveUGCDependencyResult_t__bindgen_ty_1 =
     RemoveUGCDependencyResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoveUGCDependencyResult_t__bindgen_ty_1 {
@@ -16697,12 +16853,12 @@ pub enum RemoveUGCDependencyResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoveUGCDependencyResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoveUGCDependencyResult_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(RemoveUGCDependencyResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoveUGCDependencyResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(RemoveUGCDependencyResult_t))
     );
     assert_eq!(
@@ -16722,7 +16878,7 @@ fn bindgen_test_layout_RemoveUGCDependencyResult_t() {
             &(*(::std::ptr::null::<RemoveUGCDependencyResult_t>())).m_nPublishedFileId as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoveUGCDependencyResult_t),
@@ -16735,7 +16891,7 @@ fn bindgen_test_layout_RemoveUGCDependencyResult_t() {
             &(*(::std::ptr::null::<RemoveUGCDependencyResult_t>())).m_nChildPublishedFileId
                 as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoveUGCDependencyResult_t),
@@ -16744,7 +16900,7 @@ fn bindgen_test_layout_RemoveUGCDependencyResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct AddAppDependencyResult_t {
     pub m_eResult: EResult,
@@ -16753,7 +16909,7 @@ pub struct AddAppDependencyResult_t {
 }
 pub const AddAppDependencyResult_t_k_iCallback: AddAppDependencyResult_t__bindgen_ty_1 =
     AddAppDependencyResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AddAppDependencyResult_t__bindgen_ty_1 {
@@ -16763,12 +16919,12 @@ pub enum AddAppDependencyResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_AddAppDependencyResult_t() {
     assert_eq!(
         ::std::mem::size_of::<AddAppDependencyResult_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(AddAppDependencyResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<AddAppDependencyResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(AddAppDependencyResult_t))
     );
     assert_eq!(
@@ -16788,7 +16944,7 @@ fn bindgen_test_layout_AddAppDependencyResult_t() {
             &(*(::std::ptr::null::<AddAppDependencyResult_t>())).m_nPublishedFileId as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(AddAppDependencyResult_t),
@@ -16800,7 +16956,7 @@ fn bindgen_test_layout_AddAppDependencyResult_t() {
         unsafe {
             &(*(::std::ptr::null::<AddAppDependencyResult_t>())).m_nAppID as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(AddAppDependencyResult_t),
@@ -16809,7 +16965,7 @@ fn bindgen_test_layout_AddAppDependencyResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct RemoveAppDependencyResult_t {
     pub m_eResult: EResult,
@@ -16818,7 +16974,7 @@ pub struct RemoveAppDependencyResult_t {
 }
 pub const RemoveAppDependencyResult_t_k_iCallback: RemoveAppDependencyResult_t__bindgen_ty_1 =
     RemoveAppDependencyResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RemoveAppDependencyResult_t__bindgen_ty_1 {
@@ -16828,12 +16984,12 @@ pub enum RemoveAppDependencyResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_RemoveAppDependencyResult_t() {
     assert_eq!(
         ::std::mem::size_of::<RemoveAppDependencyResult_t>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(RemoveAppDependencyResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<RemoveAppDependencyResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(RemoveAppDependencyResult_t))
     );
     assert_eq!(
@@ -16853,7 +17009,7 @@ fn bindgen_test_layout_RemoveAppDependencyResult_t() {
             &(*(::std::ptr::null::<RemoveAppDependencyResult_t>())).m_nPublishedFileId as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoveAppDependencyResult_t),
@@ -16865,7 +17021,7 @@ fn bindgen_test_layout_RemoveAppDependencyResult_t() {
         unsafe {
             &(*(::std::ptr::null::<RemoveAppDependencyResult_t>())).m_nAppID as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(RemoveAppDependencyResult_t),
@@ -16874,7 +17030,7 @@ fn bindgen_test_layout_RemoveAppDependencyResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GetAppDependenciesResult_t {
     pub m_eResult: EResult,
@@ -16885,7 +17041,7 @@ pub struct GetAppDependenciesResult_t {
 }
 pub const GetAppDependenciesResult_t_k_iCallback: GetAppDependenciesResult_t__bindgen_ty_1 =
     GetAppDependenciesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GetAppDependenciesResult_t__bindgen_ty_1 {
@@ -16895,12 +17051,12 @@ pub enum GetAppDependenciesResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_GetAppDependenciesResult_t() {
     assert_eq!(
         ::std::mem::size_of::<GetAppDependenciesResult_t>(),
-        152usize,
+        148usize,
         concat!("Size of: ", stringify!(GetAppDependenciesResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<GetAppDependenciesResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(GetAppDependenciesResult_t))
     );
     assert_eq!(
@@ -16920,7 +17076,7 @@ fn bindgen_test_layout_GetAppDependenciesResult_t() {
             &(*(::std::ptr::null::<GetAppDependenciesResult_t>())).m_nPublishedFileId as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(GetAppDependenciesResult_t),
@@ -16932,7 +17088,7 @@ fn bindgen_test_layout_GetAppDependenciesResult_t() {
         unsafe {
             &(*(::std::ptr::null::<GetAppDependenciesResult_t>())).m_rgAppIDs as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(GetAppDependenciesResult_t),
@@ -16945,7 +17101,7 @@ fn bindgen_test_layout_GetAppDependenciesResult_t() {
             &(*(::std::ptr::null::<GetAppDependenciesResult_t>())).m_nNumAppDependencies as *const _
                 as usize
         },
-        144usize,
+        140usize,
         concat!(
             "Offset of field: ",
             stringify!(GetAppDependenciesResult_t),
@@ -16958,7 +17114,7 @@ fn bindgen_test_layout_GetAppDependenciesResult_t() {
             &(*(::std::ptr::null::<GetAppDependenciesResult_t>())).m_nTotalNumAppDependencies
                 as *const _ as usize
         },
-        148usize,
+        144usize,
         concat!(
             "Offset of field: ",
             stringify!(GetAppDependenciesResult_t),
@@ -16967,7 +17123,7 @@ fn bindgen_test_layout_GetAppDependenciesResult_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct DeleteItemResult_t {
     pub m_eResult: EResult,
@@ -16975,7 +17131,7 @@ pub struct DeleteItemResult_t {
 }
 pub const DeleteItemResult_t_k_iCallback: DeleteItemResult_t__bindgen_ty_1 =
     DeleteItemResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum DeleteItemResult_t__bindgen_ty_1 {
@@ -16985,12 +17141,12 @@ pub enum DeleteItemResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_DeleteItemResult_t() {
     assert_eq!(
         ::std::mem::size_of::<DeleteItemResult_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(DeleteItemResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<DeleteItemResult_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(DeleteItemResult_t))
     );
     assert_eq!(
@@ -17007,7 +17163,7 @@ fn bindgen_test_layout_DeleteItemResult_t() {
         unsafe {
             &(*(::std::ptr::null::<DeleteItemResult_t>())).m_nPublishedFileId as *const _ as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(DeleteItemResult_t),
@@ -17024,7 +17180,7 @@ pub struct UserSubscribedItemsListChanged_t {
 pub const UserSubscribedItemsListChanged_t_k_iCallback:
     UserSubscribedItemsListChanged_t__bindgen_ty_1 =
     UserSubscribedItemsListChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum UserSubscribedItemsListChanged_t__bindgen_ty_1 {
@@ -17071,7 +17227,7 @@ pub struct WorkshopEULAStatus_t {
 }
 pub const WorkshopEULAStatus_t_k_iCallback: WorkshopEULAStatus_t__bindgen_ty_1 =
     WorkshopEULAStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum WorkshopEULAStatus_t__bindgen_ty_1 {
@@ -17184,7 +17340,7 @@ pub struct SteamAppInstalled_t {
 }
 pub const SteamAppInstalled_t_k_iCallback: SteamAppInstalled_t__bindgen_ty_1 =
     SteamAppInstalled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamAppInstalled_t__bindgen_ty_1 {
@@ -17234,7 +17390,7 @@ pub struct SteamAppUninstalled_t {
 }
 pub const SteamAppUninstalled_t_k_iCallback: SteamAppUninstalled_t__bindgen_ty_1 =
     SteamAppUninstalled_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamAppUninstalled_t__bindgen_ty_1 {
@@ -17285,7 +17441,7 @@ pub struct ISteamHTMLSurface__bindgen_vtable(::std::os::raw::c_void);
 pub struct ISteamHTMLSurface {
     pub vtable_: *const ISteamHTMLSurface__bindgen_vtable,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ISteamHTMLSurface_EHTMLMouseButton {
@@ -17293,7 +17449,7 @@ pub enum ISteamHTMLSurface_EHTMLMouseButton {
     eHTMLMouseButton_Right = 1,
     eHTMLMouseButton_Middle = 2,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ISteamHTMLSurface_EMouseCursor {
@@ -17340,7 +17496,7 @@ pub enum ISteamHTMLSurface_EMouseCursor {
     dc_custom = 40,
     dc_last = 41,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ISteamHTMLSurface_EHTMLKeyModifiers {
@@ -17369,7 +17525,7 @@ pub struct HTML_BrowserReady_t {
 }
 pub const HTML_BrowserReady_t_k_iCallback: HTML_BrowserReady_t__bindgen_ty_1 =
     HTML_BrowserReady_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_BrowserReady_t__bindgen_ty_1 {
@@ -17400,7 +17556,7 @@ fn bindgen_test_layout_HTML_BrowserReady_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_NeedsPaint_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17418,7 +17574,7 @@ pub struct HTML_NeedsPaint_t {
 }
 pub const HTML_NeedsPaint_t_k_iCallback: HTML_NeedsPaint_t__bindgen_ty_1 =
     HTML_NeedsPaint_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_NeedsPaint_t__bindgen_ty_1 {
@@ -17428,12 +17584,12 @@ pub enum HTML_NeedsPaint_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_NeedsPaint_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_NeedsPaint_t>(),
-        56usize,
+        52usize,
         concat!("Size of: ", stringify!(HTML_NeedsPaint_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_NeedsPaint_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_NeedsPaint_t))
     );
     assert_eq!(
@@ -17450,7 +17606,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).pBGRA as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17460,7 +17616,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unWide as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17470,7 +17626,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unTall as *const _ as usize },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17480,7 +17636,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unUpdateX as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17490,7 +17646,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unUpdateY as *const _ as usize },
-        28usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17500,7 +17656,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unUpdateWide as *const _ as usize },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17510,7 +17666,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unUpdateTall as *const _ as usize },
-        36usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17520,7 +17676,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unScrollX as *const _ as usize },
-        40usize,
+        36usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17530,7 +17686,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unScrollY as *const _ as usize },
-        44usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17540,7 +17696,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).flPageScale as *const _ as usize },
-        48usize,
+        44usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17550,7 +17706,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NeedsPaint_t>())).unPageSerial as *const _ as usize },
-        52usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NeedsPaint_t),
@@ -17559,7 +17715,7 @@ fn bindgen_test_layout_HTML_NeedsPaint_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_StartRequest_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17570,7 +17726,7 @@ pub struct HTML_StartRequest_t {
 }
 pub const HTML_StartRequest_t_k_iCallback: HTML_StartRequest_t__bindgen_ty_1 =
     HTML_StartRequest_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_StartRequest_t__bindgen_ty_1 {
@@ -17580,12 +17736,12 @@ pub enum HTML_StartRequest_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_StartRequest_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_StartRequest_t>(),
-        40usize,
+        32usize,
         concat!("Size of: ", stringify!(HTML_StartRequest_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_StartRequest_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_StartRequest_t))
     );
     assert_eq!(
@@ -17602,7 +17758,7 @@ fn bindgen_test_layout_HTML_StartRequest_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_StartRequest_t>())).pchURL as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_StartRequest_t),
@@ -17612,7 +17768,7 @@ fn bindgen_test_layout_HTML_StartRequest_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_StartRequest_t>())).pchTarget as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_StartRequest_t),
@@ -17622,7 +17778,7 @@ fn bindgen_test_layout_HTML_StartRequest_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_StartRequest_t>())).pchPostData as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_StartRequest_t),
@@ -17632,7 +17788,7 @@ fn bindgen_test_layout_HTML_StartRequest_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_StartRequest_t>())).bIsRedirect as *const _ as usize },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_StartRequest_t),
@@ -17648,7 +17804,7 @@ pub struct HTML_CloseBrowser_t {
 }
 pub const HTML_CloseBrowser_t_k_iCallback: HTML_CloseBrowser_t__bindgen_ty_1 =
     HTML_CloseBrowser_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_CloseBrowser_t__bindgen_ty_1 {
@@ -17679,7 +17835,7 @@ fn bindgen_test_layout_HTML_CloseBrowser_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_URLChanged_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17691,7 +17847,7 @@ pub struct HTML_URLChanged_t {
 }
 pub const HTML_URLChanged_t_k_iCallback: HTML_URLChanged_t__bindgen_ty_1 =
     HTML_URLChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_URLChanged_t__bindgen_ty_1 {
@@ -17701,12 +17857,12 @@ pub enum HTML_URLChanged_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_URLChanged_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_URLChanged_t>(),
-        48usize,
+        36usize,
         concat!("Size of: ", stringify!(HTML_URLChanged_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_URLChanged_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_URLChanged_t))
     );
     assert_eq!(
@@ -17723,7 +17879,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_URLChanged_t>())).pchURL as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_URLChanged_t),
@@ -17733,7 +17889,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_URLChanged_t>())).pchPostData as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_URLChanged_t),
@@ -17743,7 +17899,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_URLChanged_t>())).bIsRedirect as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_URLChanged_t),
@@ -17753,7 +17909,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_URLChanged_t>())).pchPageTitle as *const _ as usize },
-        32usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_URLChanged_t),
@@ -17765,7 +17921,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
         unsafe {
             &(*(::std::ptr::null::<HTML_URLChanged_t>())).bNewNavigation as *const _ as usize
         },
-        40usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_URLChanged_t),
@@ -17774,7 +17930,7 @@ fn bindgen_test_layout_HTML_URLChanged_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_FinishedRequest_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17783,7 +17939,7 @@ pub struct HTML_FinishedRequest_t {
 }
 pub const HTML_FinishedRequest_t_k_iCallback: HTML_FinishedRequest_t__bindgen_ty_1 =
     HTML_FinishedRequest_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_FinishedRequest_t__bindgen_ty_1 {
@@ -17793,12 +17949,12 @@ pub enum HTML_FinishedRequest_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_FinishedRequest_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_FinishedRequest_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(HTML_FinishedRequest_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_FinishedRequest_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_FinishedRequest_t))
     );
     assert_eq!(
@@ -17815,7 +17971,7 @@ fn bindgen_test_layout_HTML_FinishedRequest_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_FinishedRequest_t>())).pchURL as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_FinishedRequest_t),
@@ -17827,7 +17983,7 @@ fn bindgen_test_layout_HTML_FinishedRequest_t() {
         unsafe {
             &(*(::std::ptr::null::<HTML_FinishedRequest_t>())).pchPageTitle as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_FinishedRequest_t),
@@ -17836,7 +17992,7 @@ fn bindgen_test_layout_HTML_FinishedRequest_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_OpenLinkInNewTab_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17844,7 +18000,7 @@ pub struct HTML_OpenLinkInNewTab_t {
 }
 pub const HTML_OpenLinkInNewTab_t_k_iCallback: HTML_OpenLinkInNewTab_t__bindgen_ty_1 =
     HTML_OpenLinkInNewTab_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_OpenLinkInNewTab_t__bindgen_ty_1 {
@@ -17854,12 +18010,12 @@ pub enum HTML_OpenLinkInNewTab_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_OpenLinkInNewTab_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_OpenLinkInNewTab_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_OpenLinkInNewTab_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_OpenLinkInNewTab_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_OpenLinkInNewTab_t))
     );
     assert_eq!(
@@ -17876,7 +18032,7 @@ fn bindgen_test_layout_HTML_OpenLinkInNewTab_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_OpenLinkInNewTab_t>())).pchURL as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_OpenLinkInNewTab_t),
@@ -17885,7 +18041,7 @@ fn bindgen_test_layout_HTML_OpenLinkInNewTab_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_ChangedTitle_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -17893,7 +18049,7 @@ pub struct HTML_ChangedTitle_t {
 }
 pub const HTML_ChangedTitle_t_k_iCallback: HTML_ChangedTitle_t__bindgen_ty_1 =
     HTML_ChangedTitle_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_ChangedTitle_t__bindgen_ty_1 {
@@ -17903,12 +18059,12 @@ pub enum HTML_ChangedTitle_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_ChangedTitle_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_ChangedTitle_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_ChangedTitle_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_ChangedTitle_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_ChangedTitle_t))
     );
     assert_eq!(
@@ -17925,7 +18081,7 @@ fn bindgen_test_layout_HTML_ChangedTitle_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_ChangedTitle_t>())).pchTitle as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_ChangedTitle_t),
@@ -17943,7 +18099,7 @@ pub struct HTML_SearchResults_t {
 }
 pub const HTML_SearchResults_t_k_iCallback: HTML_SearchResults_t__bindgen_ty_1 =
     HTML_SearchResults_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_SearchResults_t__bindgen_ty_1 {
@@ -18005,7 +18161,7 @@ pub struct HTML_CanGoBackAndForward_t {
 }
 pub const HTML_CanGoBackAndForward_t_k_iCallback: HTML_CanGoBackAndForward_t__bindgen_ty_1 =
     HTML_CanGoBackAndForward_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_CanGoBackAndForward_t__bindgen_ty_1 {
@@ -18074,7 +18230,7 @@ pub struct HTML_HorizontalScroll_t {
 }
 pub const HTML_HorizontalScroll_t_k_iCallback: HTML_HorizontalScroll_t__bindgen_ty_1 =
     HTML_HorizontalScroll_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_HorizontalScroll_t__bindgen_ty_1 {
@@ -18177,7 +18333,7 @@ pub struct HTML_VerticalScroll_t {
 }
 pub const HTML_VerticalScroll_t_k_iCallback: HTML_VerticalScroll_t__bindgen_ty_1 =
     HTML_VerticalScroll_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_VerticalScroll_t__bindgen_ty_1 {
@@ -18266,7 +18422,7 @@ fn bindgen_test_layout_HTML_VerticalScroll_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_LinkAtPosition_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18278,7 +18434,7 @@ pub struct HTML_LinkAtPosition_t {
 }
 pub const HTML_LinkAtPosition_t_k_iCallback: HTML_LinkAtPosition_t__bindgen_ty_1 =
     HTML_LinkAtPosition_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_LinkAtPosition_t__bindgen_ty_1 {
@@ -18288,12 +18444,12 @@ pub enum HTML_LinkAtPosition_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_LinkAtPosition_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_LinkAtPosition_t>(),
-        32usize,
+        24usize,
         concat!("Size of: ", stringify!(HTML_LinkAtPosition_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_LinkAtPosition_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_LinkAtPosition_t))
     );
     assert_eq!(
@@ -18330,7 +18486,7 @@ fn bindgen_test_layout_HTML_LinkAtPosition_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_LinkAtPosition_t>())).pchURL as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_LinkAtPosition_t),
@@ -18340,7 +18496,7 @@ fn bindgen_test_layout_HTML_LinkAtPosition_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_LinkAtPosition_t>())).bInput as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_LinkAtPosition_t),
@@ -18350,7 +18506,7 @@ fn bindgen_test_layout_HTML_LinkAtPosition_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_LinkAtPosition_t>())).bLiveLink as *const _ as usize },
-        25usize,
+        21usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_LinkAtPosition_t),
@@ -18359,7 +18515,7 @@ fn bindgen_test_layout_HTML_LinkAtPosition_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_JSAlert_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18367,7 +18523,7 @@ pub struct HTML_JSAlert_t {
 }
 pub const HTML_JSAlert_t_k_iCallback: HTML_JSAlert_t__bindgen_ty_1 =
     HTML_JSAlert_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_JSAlert_t__bindgen_ty_1 {
@@ -18377,12 +18533,12 @@ pub enum HTML_JSAlert_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_JSAlert_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_JSAlert_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_JSAlert_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_JSAlert_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_JSAlert_t))
     );
     assert_eq!(
@@ -18397,7 +18553,7 @@ fn bindgen_test_layout_HTML_JSAlert_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_JSAlert_t>())).pchMessage as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_JSAlert_t),
@@ -18406,7 +18562,7 @@ fn bindgen_test_layout_HTML_JSAlert_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_JSConfirm_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18414,7 +18570,7 @@ pub struct HTML_JSConfirm_t {
 }
 pub const HTML_JSConfirm_t_k_iCallback: HTML_JSConfirm_t__bindgen_ty_1 =
     HTML_JSConfirm_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_JSConfirm_t__bindgen_ty_1 {
@@ -18424,12 +18580,12 @@ pub enum HTML_JSConfirm_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_JSConfirm_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_JSConfirm_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_JSConfirm_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_JSConfirm_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_JSConfirm_t))
     );
     assert_eq!(
@@ -18446,7 +18602,7 @@ fn bindgen_test_layout_HTML_JSConfirm_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_JSConfirm_t>())).pchMessage as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_JSConfirm_t),
@@ -18455,7 +18611,7 @@ fn bindgen_test_layout_HTML_JSConfirm_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_FileOpenDialog_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18464,7 +18620,7 @@ pub struct HTML_FileOpenDialog_t {
 }
 pub const HTML_FileOpenDialog_t_k_iCallback: HTML_FileOpenDialog_t__bindgen_ty_1 =
     HTML_FileOpenDialog_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_FileOpenDialog_t__bindgen_ty_1 {
@@ -18474,12 +18630,12 @@ pub enum HTML_FileOpenDialog_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_FileOpenDialog_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_FileOpenDialog_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(HTML_FileOpenDialog_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_FileOpenDialog_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_FileOpenDialog_t))
     );
     assert_eq!(
@@ -18496,7 +18652,7 @@ fn bindgen_test_layout_HTML_FileOpenDialog_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_FileOpenDialog_t>())).pchTitle as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_FileOpenDialog_t),
@@ -18508,7 +18664,7 @@ fn bindgen_test_layout_HTML_FileOpenDialog_t() {
         unsafe {
             &(*(::std::ptr::null::<HTML_FileOpenDialog_t>())).pchInitialFile as *const _ as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_FileOpenDialog_t),
@@ -18517,7 +18673,7 @@ fn bindgen_test_layout_HTML_FileOpenDialog_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_NewWindow_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18530,7 +18686,7 @@ pub struct HTML_NewWindow_t {
 }
 pub const HTML_NewWindow_t_k_iCallback: HTML_NewWindow_t__bindgen_ty_1 =
     HTML_NewWindow_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_NewWindow_t__bindgen_ty_1 {
@@ -18540,12 +18696,12 @@ pub enum HTML_NewWindow_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_NewWindow_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_NewWindow_t>(),
-        40usize,
+        32usize,
         concat!("Size of: ", stringify!(HTML_NewWindow_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_NewWindow_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_NewWindow_t))
     );
     assert_eq!(
@@ -18562,7 +18718,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NewWindow_t>())).pchURL as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18572,7 +18728,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NewWindow_t>())).unX as *const _ as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18582,7 +18738,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NewWindow_t>())).unY as *const _ as usize },
-        20usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18592,7 +18748,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NewWindow_t>())).unWide as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18602,7 +18758,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_NewWindow_t>())).unTall as *const _ as usize },
-        28usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18615,7 +18771,7 @@ fn bindgen_test_layout_HTML_NewWindow_t() {
             &(*(::std::ptr::null::<HTML_NewWindow_t>())).unNewWindow_BrowserHandle_IGNORE
                 as *const _ as usize
         },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_NewWindow_t),
@@ -18632,7 +18788,7 @@ pub struct HTML_SetCursor_t {
 }
 pub const HTML_SetCursor_t_k_iCallback: HTML_SetCursor_t__bindgen_ty_1 =
     HTML_SetCursor_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_SetCursor_t__bindgen_ty_1 {
@@ -18673,7 +18829,7 @@ fn bindgen_test_layout_HTML_SetCursor_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_StatusText_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18681,7 +18837,7 @@ pub struct HTML_StatusText_t {
 }
 pub const HTML_StatusText_t_k_iCallback: HTML_StatusText_t__bindgen_ty_1 =
     HTML_StatusText_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_StatusText_t__bindgen_ty_1 {
@@ -18691,12 +18847,12 @@ pub enum HTML_StatusText_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_StatusText_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_StatusText_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_StatusText_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_StatusText_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_StatusText_t))
     );
     assert_eq!(
@@ -18713,7 +18869,7 @@ fn bindgen_test_layout_HTML_StatusText_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_StatusText_t>())).pchMsg as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_StatusText_t),
@@ -18722,7 +18878,7 @@ fn bindgen_test_layout_HTML_StatusText_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_ShowToolTip_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18730,7 +18886,7 @@ pub struct HTML_ShowToolTip_t {
 }
 pub const HTML_ShowToolTip_t_k_iCallback: HTML_ShowToolTip_t__bindgen_ty_1 =
     HTML_ShowToolTip_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_ShowToolTip_t__bindgen_ty_1 {
@@ -18740,12 +18896,12 @@ pub enum HTML_ShowToolTip_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_ShowToolTip_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_ShowToolTip_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_ShowToolTip_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_ShowToolTip_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_ShowToolTip_t))
     );
     assert_eq!(
@@ -18762,7 +18918,7 @@ fn bindgen_test_layout_HTML_ShowToolTip_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_ShowToolTip_t>())).pchMsg as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_ShowToolTip_t),
@@ -18771,7 +18927,7 @@ fn bindgen_test_layout_HTML_ShowToolTip_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct HTML_UpdateToolTip_t {
     pub unBrowserHandle: HHTMLBrowser,
@@ -18779,7 +18935,7 @@ pub struct HTML_UpdateToolTip_t {
 }
 pub const HTML_UpdateToolTip_t_k_iCallback: HTML_UpdateToolTip_t__bindgen_ty_1 =
     HTML_UpdateToolTip_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_UpdateToolTip_t__bindgen_ty_1 {
@@ -18789,12 +18945,12 @@ pub enum HTML_UpdateToolTip_t__bindgen_ty_1 {
 fn bindgen_test_layout_HTML_UpdateToolTip_t() {
     assert_eq!(
         ::std::mem::size_of::<HTML_UpdateToolTip_t>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(HTML_UpdateToolTip_t))
     );
     assert_eq!(
         ::std::mem::align_of::<HTML_UpdateToolTip_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(HTML_UpdateToolTip_t))
     );
     assert_eq!(
@@ -18811,7 +18967,7 @@ fn bindgen_test_layout_HTML_UpdateToolTip_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<HTML_UpdateToolTip_t>())).pchMsg as *const _ as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(HTML_UpdateToolTip_t),
@@ -18827,7 +18983,7 @@ pub struct HTML_HideToolTip_t {
 }
 pub const HTML_HideToolTip_t_k_iCallback: HTML_HideToolTip_t__bindgen_ty_1 =
     HTML_HideToolTip_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_HideToolTip_t__bindgen_ty_1 {
@@ -18866,7 +19022,7 @@ pub struct HTML_BrowserRestarted_t {
 }
 pub const HTML_BrowserRestarted_t_k_iCallback: HTML_BrowserRestarted_t__bindgen_ty_1 =
     HTML_BrowserRestarted_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum HTML_BrowserRestarted_t__bindgen_ty_1 {
@@ -18912,10 +19068,11 @@ fn bindgen_test_layout_HTML_BrowserRestarted_t() {
 }
 pub type SteamItemInstanceID_t = uint64;
 extern "C" {
+    #[link_name = "\u{1}_ZL28k_SteamItemInstanceIDInvalid"]
     pub static k_SteamItemInstanceIDInvalid: SteamItemInstanceID_t;
 }
 pub type SteamItemDef_t = int32;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamItemFlags {
@@ -18923,7 +19080,7 @@ pub enum ESteamItemFlags {
     k_ESteamItemRemoved = 256,
     k_ESteamItemConsumed = 512,
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamItemDetails_t {
     pub m_itemId: SteamItemInstanceID_t,
@@ -18940,7 +19097,7 @@ fn bindgen_test_layout_SteamItemDetails_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamItemDetails_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamItemDetails_t))
     );
     assert_eq!(
@@ -19006,7 +19163,7 @@ fn bindgen_test_layout_ISteamInventory() {
     );
     assert_eq!(
         ::std::mem::align_of::<ISteamInventory>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ISteamInventory))
     );
 }
@@ -19018,7 +19175,7 @@ pub struct SteamInventoryResultReady_t {
 }
 pub const SteamInventoryResultReady_t_k_iCallback: SteamInventoryResultReady_t__bindgen_ty_1 =
     SteamInventoryResultReady_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryResultReady_t__bindgen_ty_1 {
@@ -19068,7 +19225,7 @@ pub struct SteamInventoryFullUpdate_t {
 }
 pub const SteamInventoryFullUpdate_t_k_iCallback: SteamInventoryFullUpdate_t__bindgen_ty_1 =
     SteamInventoryFullUpdate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryFullUpdate_t__bindgen_ty_1 {
@@ -19107,7 +19264,7 @@ pub struct SteamInventoryDefinitionUpdate_t {
 pub const SteamInventoryDefinitionUpdate_t_k_iCallback:
     SteamInventoryDefinitionUpdate_t__bindgen_ty_1 =
     SteamInventoryDefinitionUpdate_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryDefinitionUpdate_t__bindgen_ty_1 {
@@ -19140,7 +19297,7 @@ pub struct SteamInventoryEligiblePromoItemDefIDs_t {
 pub const SteamInventoryEligiblePromoItemDefIDs_t_k_iCallback:
     SteamInventoryEligiblePromoItemDefIDs_t__bindgen_ty_1 =
     SteamInventoryEligiblePromoItemDefIDs_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryEligiblePromoItemDefIDs_t__bindgen_ty_1 {
@@ -19217,7 +19374,7 @@ fn bindgen_test_layout_SteamInventoryEligiblePromoItemDefIDs_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamInventoryStartPurchaseResult_t {
     pub m_result: EResult,
@@ -19227,7 +19384,7 @@ pub struct SteamInventoryStartPurchaseResult_t {
 pub const SteamInventoryStartPurchaseResult_t_k_iCallback:
     SteamInventoryStartPurchaseResult_t__bindgen_ty_1 =
     SteamInventoryStartPurchaseResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryStartPurchaseResult_t__bindgen_ty_1 {
@@ -19237,12 +19394,12 @@ pub enum SteamInventoryStartPurchaseResult_t__bindgen_ty_1 {
 fn bindgen_test_layout_SteamInventoryStartPurchaseResult_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamInventoryStartPurchaseResult_t>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(SteamInventoryStartPurchaseResult_t))
     );
     assert_eq!(
         ::std::mem::align_of::<SteamInventoryStartPurchaseResult_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SteamInventoryStartPurchaseResult_t)
@@ -19266,7 +19423,7 @@ fn bindgen_test_layout_SteamInventoryStartPurchaseResult_t() {
             &(*(::std::ptr::null::<SteamInventoryStartPurchaseResult_t>())).m_ulOrderID as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInventoryStartPurchaseResult_t),
@@ -19279,7 +19436,7 @@ fn bindgen_test_layout_SteamInventoryStartPurchaseResult_t() {
             &(*(::std::ptr::null::<SteamInventoryStartPurchaseResult_t>())).m_ulTransID as *const _
                 as usize
         },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamInventoryStartPurchaseResult_t),
@@ -19297,7 +19454,7 @@ pub struct SteamInventoryRequestPricesResult_t {
 pub const SteamInventoryRequestPricesResult_t_k_iCallback:
     SteamInventoryRequestPricesResult_t__bindgen_ty_1 =
     SteamInventoryRequestPricesResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamInventoryRequestPricesResult_t__bindgen_ty_1 {
@@ -19361,7 +19518,7 @@ fn bindgen_test_layout_ISteamVideo() {
     );
     assert_eq!(
         ::std::mem::align_of::<ISteamVideo>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(ISteamVideo))
     );
 }
@@ -19374,7 +19531,7 @@ pub struct GetVideoURLResult_t {
 }
 pub const GetVideoURLResult_t_k_iCallback: GetVideoURLResult_t__bindgen_ty_1 =
     GetVideoURLResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GetVideoURLResult_t__bindgen_ty_1 {
@@ -19433,7 +19590,7 @@ pub struct GetOPFSettingsResult_t {
 }
 pub const GetOPFSettingsResult_t_k_iCallback: GetOPFSettingsResult_t__bindgen_ty_1 =
     GetOPFSettingsResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GetOPFSettingsResult_t__bindgen_ty_1 {
@@ -19476,7 +19633,7 @@ fn bindgen_test_layout_GetOPFSettingsResult_t() {
         )
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EParentalFeature {
@@ -19523,7 +19680,7 @@ pub struct SteamParentalSettingsChanged_t {
 }
 pub const SteamParentalSettingsChanged_t_k_iCallback: SteamParentalSettingsChanged_t__bindgen_ty_1 =
     SteamParentalSettingsChanged_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamParentalSettingsChanged_t__bindgen_ty_1 {
@@ -19542,7 +19699,7 @@ fn bindgen_test_layout_SteamParentalSettingsChanged_t() {
         concat!("Alignment of ", stringify!(SteamParentalSettingsChanged_t))
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamDeviceFormFactor {
@@ -19581,7 +19738,7 @@ pub struct SteamRemotePlaySessionConnected_t {
 pub const SteamRemotePlaySessionConnected_t_k_iCallback:
     SteamRemotePlaySessionConnected_t__bindgen_ty_1 =
     SteamRemotePlaySessionConnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamRemotePlaySessionConnected_t__bindgen_ty_1 {
@@ -19624,7 +19781,7 @@ pub struct SteamRemotePlaySessionDisconnected_t {
 pub const SteamRemotePlaySessionDisconnected_t_k_iCallback:
     SteamRemotePlaySessionDisconnected_t__bindgen_ty_1 =
     SteamRemotePlaySessionDisconnected_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamRemotePlaySessionDisconnected_t__bindgen_ty_1 {
@@ -19662,24 +19819,24 @@ fn bindgen_test_layout_SteamRemotePlaySessionDisconnected_t() {
         )
     );
 }
-pub type int_least8_t = ::std::os::raw::c_schar;
-pub type int_least16_t = ::std::os::raw::c_short;
-pub type int_least32_t = ::std::os::raw::c_int;
-pub type int_least64_t = ::std::os::raw::c_longlong;
-pub type uint_least8_t = ::std::os::raw::c_uchar;
-pub type uint_least16_t = ::std::os::raw::c_ushort;
-pub type uint_least32_t = ::std::os::raw::c_uint;
-pub type uint_least64_t = ::std::os::raw::c_ulonglong;
+pub type int_least8_t = __int_least8_t;
+pub type int_least16_t = __int_least16_t;
+pub type int_least32_t = __int_least32_t;
+pub type int_least64_t = __int_least64_t;
+pub type uint_least8_t = __uint_least8_t;
+pub type uint_least16_t = __uint_least16_t;
+pub type uint_least32_t = __uint_least32_t;
+pub type uint_least64_t = __uint_least64_t;
 pub type int_fast8_t = ::std::os::raw::c_schar;
-pub type int_fast16_t = ::std::os::raw::c_int;
-pub type int_fast32_t = ::std::os::raw::c_int;
-pub type int_fast64_t = ::std::os::raw::c_longlong;
+pub type int_fast16_t = ::std::os::raw::c_long;
+pub type int_fast32_t = ::std::os::raw::c_long;
+pub type int_fast64_t = ::std::os::raw::c_long;
 pub type uint_fast8_t = ::std::os::raw::c_uchar;
-pub type uint_fast16_t = ::std::os::raw::c_uint;
-pub type uint_fast32_t = ::std::os::raw::c_uint;
-pub type uint_fast64_t = ::std::os::raw::c_ulonglong;
-pub type intmax_t = ::std::os::raw::c_longlong;
-pub type uintmax_t = ::std::os::raw::c_ulonglong;
+pub type uint_fast16_t = ::std::os::raw::c_ulong;
+pub type uint_fast32_t = ::std::os::raw::c_ulong;
+pub type uint_fast64_t = ::std::os::raw::c_ulong;
+pub type intmax_t = __intmax_t;
+pub type uintmax_t = __uintmax_t;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamDatagramRelayAuthTicket {
@@ -19755,7 +19912,7 @@ pub enum ESteamNetworkingAvailability {
     k_ESteamNetworkingAvailability_Unknown = 0,
     k_ESteamNetworkingAvailability__Force32bit = 2147483647,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " Different methods of describing the identity of a network host"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -19768,7 +19925,7 @@ pub enum ESteamNetworkingIdentityType {
     k_ESteamNetworkingIdentityType_UnknownType = 4,
     k_ESteamNetworkingIdentityType__Force32bit = 2147483647,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " \"Fake IPs\" are assigned to hosts, to make it easier to interface with"]
 #[doc = " older code that assumed all hosts will have an IPv4 address"]
@@ -19791,7 +19948,7 @@ pub struct SteamNetworkingIPAddr {
 }
 pub const SteamNetworkingIPAddr_k_cchMaxString: SteamNetworkingIPAddr__bindgen_ty_1 =
     SteamNetworkingIPAddr__bindgen_ty_1::k_cchMaxString;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetworkingIPAddr__bindgen_ty_1 {
@@ -19949,15 +20106,15 @@ fn bindgen_test_layout_SteamNetworkingIPAddr() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?Clear@SteamNetworkingIPAddr@@QEAAXXZ"]
+    #[link_name = "\u{1}_ZN21SteamNetworkingIPAddr5ClearEv"]
     pub fn SteamNetworkingIPAddr_Clear(this: *mut SteamNetworkingIPAddr);
 }
 extern "C" {
-    #[link_name = "\u{1}?IsIPv6AllZeros@SteamNetworkingIPAddr@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK21SteamNetworkingIPAddr14IsIPv6AllZerosEv"]
     pub fn SteamNetworkingIPAddr_IsIPv6AllZeros(this: *const SteamNetworkingIPAddr) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIPv6@SteamNetworkingIPAddr@@QEAAXPEBEG@Z"]
+    #[link_name = "\u{1}_ZN21SteamNetworkingIPAddr7SetIPv6EPKht"]
     pub fn SteamNetworkingIPAddr_SetIPv6(
         this: *mut SteamNetworkingIPAddr,
         ipv6: *const uint8,
@@ -19965,7 +20122,7 @@ extern "C" {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIPv4@SteamNetworkingIPAddr@@QEAAXIG@Z"]
+    #[link_name = "\u{1}_ZN21SteamNetworkingIPAddr7SetIPv4Ejt"]
     pub fn SteamNetworkingIPAddr_SetIPv4(
         this: *mut SteamNetworkingIPAddr,
         nIP: uint32,
@@ -19973,25 +20130,25 @@ extern "C" {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?IsIPv4@SteamNetworkingIPAddr@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK21SteamNetworkingIPAddr6IsIPv4Ev"]
     pub fn SteamNetworkingIPAddr_IsIPv4(this: *const SteamNetworkingIPAddr) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?GetIPv4@SteamNetworkingIPAddr@@QEBAIXZ"]
+    #[link_name = "\u{1}_ZNK21SteamNetworkingIPAddr7GetIPv4Ev"]
     pub fn SteamNetworkingIPAddr_GetIPv4(this: *const SteamNetworkingIPAddr) -> uint32;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIPv6LocalHost@SteamNetworkingIPAddr@@QEAAXG@Z"]
+    #[link_name = "\u{1}_ZN21SteamNetworkingIPAddr16SetIPv6LocalHostEt"]
     pub fn SteamNetworkingIPAddr_SetIPv6LocalHost(this: *mut SteamNetworkingIPAddr, nPort: uint16);
 }
 extern "C" {
-    #[link_name = "\u{1}?IsLocalHost@SteamNetworkingIPAddr@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK21SteamNetworkingIPAddr11IsLocalHostEv"]
     pub fn SteamNetworkingIPAddr_IsLocalHost(this: *const SteamNetworkingIPAddr) -> bool;
 }
 extern "C" {
     #[doc = " Classify address as FakeIP.  This function never returns"]
     #[doc = " k_ESteamNetworkingFakeIPType_Invalid."]
-    #[link_name = "\u{1}?GetFakeIPType@SteamNetworkingIPAddr@@QEBA?AW4ESteamNetworkingFakeIPType@@XZ"]
+    #[link_name = "\u{1}_ZNK21SteamNetworkingIPAddr13GetFakeIPTypeEv"]
     pub fn SteamNetworkingIPAddr_GetFakeIPType(
         this: *const SteamNetworkingIPAddr,
     ) -> ESteamNetworkingFakeIPType;
@@ -20053,7 +20210,7 @@ pub const SteamNetworkingIdentity_k_cchMaxGenericString: SteamNetworkingIdentity
     SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxGenericString;
 pub const SteamNetworkingIdentity_k_cbMaxGenericBytes: SteamNetworkingIdentity__bindgen_ty_1 =
     SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxGenericString;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetworkingIdentity__bindgen_ty_1 {
@@ -20203,50 +20360,50 @@ fn bindgen_test_layout_SteamNetworkingIdentity() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?Clear@SteamNetworkingIdentity@@QEAAXXZ"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity5ClearEv"]
     pub fn SteamNetworkingIdentity_Clear(this: *mut SteamNetworkingIdentity);
 }
 extern "C" {
-    #[link_name = "\u{1}?IsInvalid@SteamNetworkingIdentity@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity9IsInvalidEv"]
     pub fn SteamNetworkingIdentity_IsInvalid(this: *const SteamNetworkingIdentity) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetSteamID@SteamNetworkingIdentity@@QEAAXVCSteamID@@@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity10SetSteamIDE8CSteamID"]
     pub fn SteamNetworkingIdentity_SetSteamID(
         this: *mut SteamNetworkingIdentity,
         steamID: CSteamID,
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetSteamID@SteamNetworkingIdentity@@QEBA?AVCSteamID@@XZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity10GetSteamIDEv"]
     pub fn SteamNetworkingIdentity_GetSteamID(this: *const SteamNetworkingIdentity) -> CSteamID;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetSteamID64@SteamNetworkingIdentity@@QEAAX_K@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity12SetSteamID64Ey"]
     pub fn SteamNetworkingIdentity_SetSteamID64(
         this: *mut SteamNetworkingIdentity,
         steamID: uint64,
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetSteamID64@SteamNetworkingIdentity@@QEBA_KXZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity12GetSteamID64Ev"]
     pub fn SteamNetworkingIdentity_GetSteamID64(this: *const SteamNetworkingIdentity) -> uint64;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIPAddr@SteamNetworkingIdentity@@QEAAXAEBUSteamNetworkingIPAddr@@@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity9SetIPAddrERK21SteamNetworkingIPAddr"]
     pub fn SteamNetworkingIdentity_SetIPAddr(
         this: *mut SteamNetworkingIdentity,
         addr: *const SteamNetworkingIPAddr,
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetIPAddr@SteamNetworkingIdentity@@QEBAPEBUSteamNetworkingIPAddr@@XZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity9GetIPAddrEv"]
     pub fn SteamNetworkingIdentity_GetIPAddr(
         this: *const SteamNetworkingIdentity,
     ) -> *const SteamNetworkingIPAddr;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetIPv4Addr@SteamNetworkingIdentity@@QEAAXIG@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity11SetIPv4AddrEjt"]
     pub fn SteamNetworkingIdentity_SetIPv4Addr(
         this: *mut SteamNetworkingIdentity,
         nIPv4: uint32,
@@ -20254,38 +20411,38 @@ extern "C" {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?GetIPv4@SteamNetworkingIdentity@@QEBAIXZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity7GetIPv4Ev"]
     pub fn SteamNetworkingIdentity_GetIPv4(this: *const SteamNetworkingIdentity) -> uint32;
 }
 extern "C" {
-    #[link_name = "\u{1}?GetFakeIPType@SteamNetworkingIdentity@@QEBA?AW4ESteamNetworkingFakeIPType@@XZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity13GetFakeIPTypeEv"]
     pub fn SteamNetworkingIdentity_GetFakeIPType(
         this: *const SteamNetworkingIdentity,
     ) -> ESteamNetworkingFakeIPType;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetLocalHost@SteamNetworkingIdentity@@QEAAXXZ"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity12SetLocalHostEv"]
     pub fn SteamNetworkingIdentity_SetLocalHost(this: *mut SteamNetworkingIdentity);
 }
 extern "C" {
-    #[link_name = "\u{1}?IsLocalHost@SteamNetworkingIdentity@@QEBA_NXZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity11IsLocalHostEv"]
     pub fn SteamNetworkingIdentity_IsLocalHost(this: *const SteamNetworkingIdentity) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGenericString@SteamNetworkingIdentity@@QEAA_NPEBD@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity16SetGenericStringEPKc"]
     pub fn SteamNetworkingIdentity_SetGenericString(
         this: *mut SteamNetworkingIdentity,
         pszString: *const ::std::os::raw::c_char,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?GetGenericString@SteamNetworkingIdentity@@QEBAPEBDXZ"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity16GetGenericStringEv"]
     pub fn SteamNetworkingIdentity_GetGenericString(
         this: *const SteamNetworkingIdentity,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGenericBytes@SteamNetworkingIdentity@@QEAA_NPEBX_K@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity15SetGenericBytesEPKvm"]
     pub fn SteamNetworkingIdentity_SetGenericBytes(
         this: *mut SteamNetworkingIdentity,
         data: *const ::std::os::raw::c_void,
@@ -20293,7 +20450,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?GetGenericBytes@SteamNetworkingIdentity@@QEBAPEBEAEAH@Z"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity15GetGenericBytesERi"]
     pub fn SteamNetworkingIdentity_GetGenericBytes(
         this: *const SteamNetworkingIdentity,
         cbLen: *mut ::std::os::raw::c_int,
@@ -20306,7 +20463,7 @@ extern "C" {
     #[doc = " k_cchMaxString bytes big to avoid truncation."]
     #[doc = ""]
     #[doc = " See also SteamNetworkingIPAddrRender"]
-    #[link_name = "\u{1}?ToString@SteamNetworkingIdentity@@QEBAXPEAD_K@Z"]
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity8ToStringEPcm"]
     pub fn SteamNetworkingIdentity_ToString(
         this: *const SteamNetworkingIdentity,
         buf: *mut ::std::os::raw::c_char,
@@ -20319,7 +20476,7 @@ extern "C" {
     #[doc = " have any funky characters, etc), then we will return true, and the type is set to"]
     #[doc = " k_ESteamNetworkingIdentityType_UnknownType.  false will only be returned if the string"]
     #[doc = " looks invalid."]
-    #[link_name = "\u{1}?ParseString@SteamNetworkingIdentity@@QEAA_NPEBD@Z"]
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity11ParseStringEPKc"]
     pub fn SteamNetworkingIdentity_ParseString(
         this: *mut SteamNetworkingIdentity,
         pszStr: *const ::std::os::raw::c_char,
@@ -20506,7 +20663,7 @@ impl ESteamNetConnectionEnd {
     pub const k_ESteamNetConnectionEnd_AppException_Generic: ESteamNetConnectionEnd =
         ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min;
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " Enumerate various causes of connection termination.  These are designed to work similar"]
 #[doc = " to HTTP error codes: the numeric range gives you a rough classification as to the source"]
@@ -20560,7 +20717,7 @@ pub const k_nSteamNetworkConnectionInfoFlags_Fast: ::std::os::raw::c_int = 8;
 pub const k_nSteamNetworkConnectionInfoFlags_Relayed: ::std::os::raw::c_int = 16;
 pub const k_nSteamNetworkConnectionInfoFlags_DualWifi: ::std::os::raw::c_int = 32;
 #[doc = " Describe the state of a connection."]
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Copy, Clone)]
 pub struct SteamNetConnectionInfo_t {
     #[doc = " Who is on the other end?  Depending on the connection type and phase of the connection, we might not know"]
@@ -20610,7 +20767,7 @@ fn bindgen_test_layout_SteamNetConnectionInfo_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamNetConnectionInfo_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(SteamNetConnectionInfo_t))
     );
     assert_eq!(
@@ -20775,7 +20932,7 @@ fn bindgen_test_layout_SteamNetConnectionInfo_t() {
 }
 #[doc = " Quick connection state, pared down to something you could call"]
 #[doc = " more frequently without it being too big of a perf hit."]
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamNetConnectionRealTimeStatus_t {
     #[doc = " High level state of the connection"]
@@ -20849,7 +21006,7 @@ fn bindgen_test_layout_SteamNetConnectionRealTimeStatus_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamNetConnectionRealTimeStatus_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SteamNetConnectionRealTimeStatus_t)
@@ -21039,7 +21196,7 @@ fn bindgen_test_layout_SteamNetConnectionRealTimeStatus_t() {
     );
 }
 #[doc = " Quick status of a particular lane"]
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamNetConnectionRealTimeLaneStatus_t {
     pub m_cbPendingUnreliable: ::std::os::raw::c_int,
@@ -21064,7 +21221,7 @@ fn bindgen_test_layout_SteamNetConnectionRealTimeLaneStatus_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamNetConnectionRealTimeLaneStatus_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SteamNetConnectionRealTimeLaneStatus_t)
@@ -21467,7 +21624,7 @@ pub const k_cchMaxSteamNetworkingPingLocationString: ::std::os::raw::c_int = 102
 #[doc = " Special values that are returned by some functions that return a ping."]
 pub const k_nSteamNetworkingPing_Failed: ::std::os::raw::c_int = -1;
 pub const k_nSteamNetworkingPing_Unknown: ::std::os::raw::c_int = -2;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " Configuration values can be applied to different types of objects."]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -21492,7 +21649,7 @@ pub enum ESteamNetworkingConfigScope {
     #[doc = " Options for a specific connection."]
     k_ESteamNetworkingConfigScope__Force32Bit = 2147483647,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ESteamNetworkingConfigDataType {
@@ -21503,7 +21660,7 @@ pub enum ESteamNetworkingConfigDataType {
     k_ESteamNetworkingConfig_Ptr = 5,
     k_ESteamNetworkingConfigDataType__Force32Bit = 2147483647,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " Configuration options"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -22071,7 +22228,7 @@ pub enum ESteamNetworkingGetConfigValueResult {
     k_ESteamNetworkingGetConfigValue_OKInherited = 2,
     k_ESteamNetworkingGetConfigValueResult__Force32Bit = 2147483647,
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[doc = " Detail level for diagnostic output callback."]
 #[doc = " See ISteamNetworkingUtils::SetDebugOutputFunction"]
@@ -22183,7 +22340,7 @@ pub struct SteamNetworkingMessagesSessionRequest_t {
 pub const SteamNetworkingMessagesSessionRequest_t_k_iCallback:
     SteamNetworkingMessagesSessionRequest_t__bindgen_ty_1 =
     SteamNetworkingMessagesSessionRequest_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetworkingMessagesSessionRequest_t__bindgen_ty_1 {
@@ -22243,7 +22400,7 @@ pub struct SteamNetworkingMessagesSessionFailed_t {
 pub const SteamNetworkingMessagesSessionFailed_t_k_iCallback:
     SteamNetworkingMessagesSessionFailed_t__bindgen_ty_1 =
     SteamNetworkingMessagesSessionFailed_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetworkingMessagesSessionFailed_t__bindgen_ty_1 {
@@ -22342,7 +22499,7 @@ fn bindgen_test_layout_ISteamNetworkingSockets() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}??_DISteamNetworkingSockets@@IEAAXXZ"]
+    #[link_name = "\u{1}_ZN23ISteamNetworkingSocketsD1Ev"]
     pub fn ISteamNetworkingSockets_ISteamNetworkingSockets_destructor(
         this: *mut ISteamNetworkingSockets,
     );
@@ -22401,7 +22558,7 @@ pub struct SteamNetConnectionStatusChangedCallback_t {
 pub const SteamNetConnectionStatusChangedCallback_t_k_iCallback:
     SteamNetConnectionStatusChangedCallback_t__bindgen_ty_1 =
     SteamNetConnectionStatusChangedCallback_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetConnectionStatusChangedCallback_t__bindgen_ty_1 {
@@ -22411,7 +22568,7 @@ pub enum SteamNetConnectionStatusChangedCallback_t__bindgen_ty_1 {
 fn bindgen_test_layout_SteamNetConnectionStatusChangedCallback_t() {
     assert_eq!(
         ::std::mem::size_of::<SteamNetConnectionStatusChangedCallback_t>(),
-        712usize,
+        704usize,
         concat!(
             "Size of: ",
             stringify!(SteamNetConnectionStatusChangedCallback_t)
@@ -22419,7 +22576,7 @@ fn bindgen_test_layout_SteamNetConnectionStatusChangedCallback_t() {
     );
     assert_eq!(
         ::std::mem::align_of::<SteamNetConnectionStatusChangedCallback_t>(),
-        8usize,
+        4usize,
         concat!(
             "Alignment of ",
             stringify!(SteamNetConnectionStatusChangedCallback_t)
@@ -22443,7 +22600,7 @@ fn bindgen_test_layout_SteamNetConnectionStatusChangedCallback_t() {
             &(*(::std::ptr::null::<SteamNetConnectionStatusChangedCallback_t>())).m_info as *const _
                 as usize
         },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamNetConnectionStatusChangedCallback_t),
@@ -22456,7 +22613,7 @@ fn bindgen_test_layout_SteamNetConnectionStatusChangedCallback_t() {
             &(*(::std::ptr::null::<SteamNetConnectionStatusChangedCallback_t>())).m_eOldState
                 as *const _ as usize
         },
-        704usize,
+        700usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamNetConnectionStatusChangedCallback_t),
@@ -22484,7 +22641,7 @@ pub struct SteamNetAuthenticationStatus_t {
 }
 pub const SteamNetAuthenticationStatus_t_k_iCallback: SteamNetAuthenticationStatus_t__bindgen_ty_1 =
     SteamNetAuthenticationStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamNetAuthenticationStatus_t__bindgen_ty_1 {
@@ -22551,7 +22708,7 @@ fn bindgen_test_layout_ISteamNetworkingUtils() {
     );
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalConfigValueInt32@ISteamNetworkingUtils@@QEAA_NW4ESteamNetworkingConfigValue@@H@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils25SetGlobalConfigValueInt32E27ESteamNetworkingConfigValuei"]
     pub fn ISteamNetworkingUtils_SetGlobalConfigValueInt32(
         this: *mut ISteamNetworkingUtils,
         eValue: ESteamNetworkingConfigValue,
@@ -22559,7 +22716,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalConfigValueFloat@ISteamNetworkingUtils@@QEAA_NW4ESteamNetworkingConfigValue@@M@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils25SetGlobalConfigValueFloatE27ESteamNetworkingConfigValuef"]
     pub fn ISteamNetworkingUtils_SetGlobalConfigValueFloat(
         this: *mut ISteamNetworkingUtils,
         eValue: ESteamNetworkingConfigValue,
@@ -22567,7 +22724,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalConfigValueString@ISteamNetworkingUtils@@QEAA_NW4ESteamNetworkingConfigValue@@PEBD@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils26SetGlobalConfigValueStringE27ESteamNetworkingConfigValuePKc"]
     pub fn ISteamNetworkingUtils_SetGlobalConfigValueString(
         this: *mut ISteamNetworkingUtils,
         eValue: ESteamNetworkingConfigValue,
@@ -22575,7 +22732,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalConfigValuePtr@ISteamNetworkingUtils@@QEAA_NW4ESteamNetworkingConfigValue@@PEAX@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils23SetGlobalConfigValuePtrE27ESteamNetworkingConfigValuePv"]
     pub fn ISteamNetworkingUtils_SetGlobalConfigValuePtr(
         this: *mut ISteamNetworkingUtils,
         eValue: ESteamNetworkingConfigValue,
@@ -22583,7 +22740,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetConnectionConfigValueInt32@ISteamNetworkingUtils@@QEAA_NIW4ESteamNetworkingConfigValue@@H@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils29SetConnectionConfigValueInt32Ej27ESteamNetworkingConfigValuei"]
     pub fn ISteamNetworkingUtils_SetConnectionConfigValueInt32(
         this: *mut ISteamNetworkingUtils,
         hConn: HSteamNetConnection,
@@ -22592,7 +22749,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetConnectionConfigValueFloat@ISteamNetworkingUtils@@QEAA_NIW4ESteamNetworkingConfigValue@@M@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils29SetConnectionConfigValueFloatEj27ESteamNetworkingConfigValuef"]
     pub fn ISteamNetworkingUtils_SetConnectionConfigValueFloat(
         this: *mut ISteamNetworkingUtils,
         hConn: HSteamNetConnection,
@@ -22601,7 +22758,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetConnectionConfigValueString@ISteamNetworkingUtils@@QEAA_NIW4ESteamNetworkingConfigValue@@PEBD@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils30SetConnectionConfigValueStringEj27ESteamNetworkingConfigValuePKc"]
     pub fn ISteamNetworkingUtils_SetConnectionConfigValueString(
         this: *mut ISteamNetworkingUtils,
         hConn: HSteamNetConnection,
@@ -22610,42 +22767,42 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_SteamNetConnectionStatusChanged@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamNetConnectionStatusChangedCallback_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils49SetGlobalCallback_SteamNetConnectionStatusChangedEPFvP41SteamNetConnectionStatusChangedCallback_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_SteamNetConnectionStatusChanged(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamNetConnectionStatusChanged,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_SteamNetAuthenticationStatusChanged@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamNetAuthenticationStatus_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils53SetGlobalCallback_SteamNetAuthenticationStatusChangedEPFvP30SteamNetAuthenticationStatus_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_SteamNetAuthenticationStatusChanged(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamNetAuthenticationStatusChanged,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_SteamRelayNetworkStatusChanged@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamRelayNetworkStatus_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils48SetGlobalCallback_SteamRelayNetworkStatusChangedEPFvP25SteamRelayNetworkStatus_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_SteamRelayNetworkStatusChanged(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamRelayNetworkStatusChanged,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_FakeIPResult@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamNetworkingFakeIPResult_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils30SetGlobalCallback_FakeIPResultEPFvP29SteamNetworkingFakeIPResult_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_FakeIPResult(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamNetworkingFakeIPResult,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_MessagesSessionRequest@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamNetworkingMessagesSessionRequest_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils40SetGlobalCallback_MessagesSessionRequestEPFvP39SteamNetworkingMessagesSessionRequest_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_MessagesSessionRequest(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamNetworkingMessagesSessionRequest,
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}?SetGlobalCallback_MessagesSessionFailed@ISteamNetworkingUtils@@QEAA_NP6AXPEAUSteamNetworkingMessagesSessionFailed_t@@@Z@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils39SetGlobalCallback_MessagesSessionFailedEPFvP38SteamNetworkingMessagesSessionFailed_tE"]
     pub fn ISteamNetworkingUtils_SetGlobalCallback_MessagesSessionFailed(
         this: *mut ISteamNetworkingUtils,
         fnCallback: FnSteamNetworkingMessagesSessionFailed,
@@ -22656,7 +22813,7 @@ extern "C" {
     #[doc = " (This is just a convenience shortcut; see below for the implementation and"]
     #[doc = " a little insight into how SteamNetworkingConfigValue_t is used when"]
     #[doc = " setting config options during listen socket and connection creation.)"]
-    #[link_name = "\u{1}?SetConfigValueStruct@ISteamNetworkingUtils@@QEAA_NAEBUSteamNetworkingConfigValue_t@@W4ESteamNetworkingConfigScope@@_J@Z"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtils20SetConfigValueStructERK28SteamNetworkingConfigValue_t27ESteamNetworkingConfigScopel"]
     pub fn ISteamNetworkingUtils_SetConfigValueStruct(
         this: *mut ISteamNetworkingUtils,
         opt: *const SteamNetworkingConfigValue_t,
@@ -22665,7 +22822,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}??_DISteamNetworkingUtils@@IEAAXXZ"]
+    #[link_name = "\u{1}_ZN21ISteamNetworkingUtilsD1Ev"]
     pub fn ISteamNetworkingUtils_ISteamNetworkingUtils_destructor(this: *mut ISteamNetworkingUtils);
 }
 impl ISteamNetworkingUtils {
@@ -22817,7 +22974,7 @@ pub struct SteamRelayNetworkStatus_t {
 }
 pub const SteamRelayNetworkStatus_t_k_iCallback: SteamRelayNetworkStatus_t__bindgen_ty_1 =
     SteamRelayNetworkStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum SteamRelayNetworkStatus_t__bindgen_ty_1 {
@@ -23053,7 +23210,7 @@ pub struct GSClientApprove_t {
 }
 pub const GSClientApprove_t_k_iCallback: GSClientApprove_t__bindgen_ty_1 =
     GSClientApprove_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSClientApprove_t__bindgen_ty_1 {
@@ -23103,7 +23260,7 @@ pub struct GSClientDeny_t {
 }
 pub const GSClientDeny_t_k_iCallback: GSClientDeny_t__bindgen_ty_1 =
     GSClientDeny_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSClientDeny_t__bindgen_ty_1 {
@@ -23162,7 +23319,7 @@ pub struct GSClientKick_t {
 }
 pub const GSClientKick_t_k_iCallback: GSClientKick_t__bindgen_ty_1 =
     GSClientKick_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSClientKick_t__bindgen_ty_1 {
@@ -23201,7 +23358,7 @@ fn bindgen_test_layout_GSClientKick_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GSClientAchievementStatus_t {
     pub m_SteamID: uint64,
@@ -23210,7 +23367,7 @@ pub struct GSClientAchievementStatus_t {
 }
 pub const GSClientAchievementStatus_t_k_iCallback: GSClientAchievementStatus_t__bindgen_ty_1 =
     GSClientAchievementStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSClientAchievementStatus_t__bindgen_ty_1 {
@@ -23220,12 +23377,12 @@ pub enum GSClientAchievementStatus_t__bindgen_ty_1 {
 fn bindgen_test_layout_GSClientAchievementStatus_t() {
     assert_eq!(
         ::std::mem::size_of::<GSClientAchievementStatus_t>(),
-        144usize,
+        140usize,
         concat!("Size of: ", stringify!(GSClientAchievementStatus_t))
     );
     assert_eq!(
         ::std::mem::align_of::<GSClientAchievementStatus_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(GSClientAchievementStatus_t))
     );
     assert_eq!(
@@ -23273,7 +23430,7 @@ pub struct GSPolicyResponse_t {
 }
 pub const GSPolicyResponse_t_k_iCallback: GSPolicyResponse_t__bindgen_ty_1 =
     GSPolicyResponse_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSPolicyResponse_t__bindgen_ty_1 {
@@ -23312,7 +23469,7 @@ pub struct GSGameplayStats_t {
 }
 pub const GSGameplayStats_t_k_iCallback: GSGameplayStats_t__bindgen_ty_1 =
     GSGameplayStats_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSGameplayStats_t__bindgen_ty_1 {
@@ -23386,7 +23543,7 @@ pub struct GSClientGroupStatus_t {
 }
 pub const GSClientGroupStatus_t_k_iCallback: GSClientGroupStatus_t__bindgen_ty_1 =
     GSClientGroupStatus_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSClientGroupStatus_t__bindgen_ty_1 {
@@ -23451,7 +23608,7 @@ fn bindgen_test_layout_GSClientGroupStatus_t() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct GSReputation_t {
     pub m_eResult: EResult,
@@ -23464,7 +23621,7 @@ pub struct GSReputation_t {
 }
 pub const GSReputation_t_k_iCallback: GSReputation_t__bindgen_ty_1 =
     GSReputation_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSReputation_t__bindgen_ty_1 {
@@ -23474,12 +23631,12 @@ pub enum GSReputation_t__bindgen_ty_1 {
 fn bindgen_test_layout_GSReputation_t() {
     assert_eq!(
         ::std::mem::size_of::<GSReputation_t>(),
-        40usize,
+        32usize,
         concat!("Size of: ", stringify!(GSReputation_t))
     );
     assert_eq!(
         ::std::mem::align_of::<GSReputation_t>(),
-        8usize,
+        4usize,
         concat!("Alignment of ", stringify!(GSReputation_t))
     );
     assert_eq!(
@@ -23536,7 +23693,7 @@ fn bindgen_test_layout_GSReputation_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<GSReputation_t>())).m_ulBannedGameID as *const _ as usize },
-        24usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(GSReputation_t),
@@ -23546,7 +23703,7 @@ fn bindgen_test_layout_GSReputation_t() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<GSReputation_t>())).m_unBanExpires as *const _ as usize },
-        32usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(GSReputation_t),
@@ -23562,7 +23719,7 @@ pub struct AssociateWithClanResult_t {
 }
 pub const AssociateWithClanResult_t_k_iCallback: AssociateWithClanResult_t__bindgen_ty_1 =
     AssociateWithClanResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum AssociateWithClanResult_t__bindgen_ty_1 {
@@ -23605,7 +23762,7 @@ pub struct ComputeNewPlayerCompatibilityResult_t {
 pub const ComputeNewPlayerCompatibilityResult_t_k_iCallback:
     ComputeNewPlayerCompatibilityResult_t__bindgen_ty_1 =
     ComputeNewPlayerCompatibilityResult_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ComputeNewPlayerCompatibilityResult_t__bindgen_ty_1 {
@@ -23723,7 +23880,7 @@ pub struct GSStatsReceived_t {
 }
 pub const GSStatsReceived_t_k_iCallback: GSStatsReceived_t__bindgen_ty_1 =
     GSStatsReceived_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSStatsReceived_t__bindgen_ty_1 {
@@ -23770,7 +23927,7 @@ pub struct GSStatsStored_t {
 }
 pub const GSStatsStored_t_k_iCallback: GSStatsStored_t__bindgen_ty_1 =
     GSStatsStored_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSStatsStored_t__bindgen_ty_1 {
@@ -23816,7 +23973,7 @@ pub struct GSStatsUnloaded_t {
 }
 pub const GSStatsUnloaded_t_k_iCallback: GSStatsUnloaded_t__bindgen_ty_1 =
     GSStatsUnloaded_t__bindgen_ty_1::k_iCallback;
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum GSStatsUnloaded_t__bindgen_ty_1 {
@@ -30335,7 +30492,7 @@ extern "C" {
         popid: SteamNetworkingPOPID,
     );
 }
-#[repr(i32)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum EServerMode {
@@ -30371,11 +30528,68 @@ extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct __crt_locale_data {
+pub struct __locale_data {
     pub _address: u8,
 }
+pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct __crt_multibyte_data {
-    pub _address: u8,
+pub struct __va_list_tag {
+    pub gp_offset: ::std::os::raw::c_uint,
+    pub fp_offset: ::std::os::raw::c_uint,
+    pub overflow_arg_area: *mut ::std::os::raw::c_void,
+    pub reg_save_area: *mut ::std::os::raw::c_void,
+}
+#[test]
+fn bindgen_test_layout___va_list_tag() {
+    assert_eq!(
+        ::std::mem::size_of::<__va_list_tag>(),
+        24usize,
+        concat!("Size of: ", stringify!(__va_list_tag))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__va_list_tag>(),
+        8usize,
+        concat!("Alignment of ", stringify!(__va_list_tag))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).gp_offset as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(gp_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).fp_offset as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(fp_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).overflow_arg_area as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(overflow_arg_area)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).reg_save_area as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(reg_save_area)
+        )
+    );
 }
