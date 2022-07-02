@@ -531,6 +531,9 @@ pub enum EResult {
     k_EResultInvalidSignature = 121,
     k_EResultParseFailure = 122,
     k_EResultNoVerifiedPhone = 123,
+    k_EResultInsufficientBattery = 124,
+    k_EResultChargerRequired = 125,
+    k_EResultCachedCredentialInvalid = 126,
 }
 #[repr(u32)]
 #[non_exhaustive]
@@ -955,14 +958,6 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[link_name = "\u{1}_ZN8CSteamID19SetFromSteam2StringEPKc9EUniverse"]
-    pub fn CSteamID_SetFromSteam2String(
-        this: *mut CSteamID,
-        pchSteam2ID: *const ::std::os::raw::c_char,
-        eUniverse: EUniverse,
-    ) -> bool;
-}
-extern "C" {
     #[link_name = "\u{1}_ZNK8CSteamID21BValidExternalSteamIDEv"]
     pub fn CSteamID_BValidExternalSteamID(this: *const CSteamID) -> bool;
 }
@@ -1002,14 +997,6 @@ impl CSteamID {
         eDefaultUniverse: EUniverse,
     ) -> bool {
         CSteamID_SetFromStringStrict(self, pchSteamID, eDefaultUniverse)
-    }
-    #[inline]
-    pub unsafe fn SetFromSteam2String(
-        &mut self,
-        pchSteam2ID: *const ::std::os::raw::c_char,
-        eUniverse: EUniverse,
-    ) -> bool {
-        CSteamID_SetFromSteam2String(self, pchSteam2ID, eUniverse)
     }
     #[inline]
     pub unsafe fn BValidExternalSteamID(&self) -> bool {
@@ -4479,6 +4466,33 @@ pub enum EActivateGameOverlayToWebPageMode {
     k_EActivateGameOverlayToWebPageMode_Default = 0,
     k_EActivateGameOverlayToWebPageMode_Modal = 1,
 }
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ECommunityProfileItemType {
+    k_ECommunityProfileItemType_AnimatedAvatar = 0,
+    k_ECommunityProfileItemType_AvatarFrame = 1,
+    k_ECommunityProfileItemType_ProfileModifier = 2,
+    k_ECommunityProfileItemType_ProfileBackground = 3,
+    k_ECommunityProfileItemType_MiniProfileBackground = 4,
+}
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ECommunityProfileItemProperty {
+    k_ECommunityProfileItemProperty_ImageSmall = 0,
+    k_ECommunityProfileItemProperty_ImageLarge = 1,
+    k_ECommunityProfileItemProperty_InternalName = 2,
+    k_ECommunityProfileItemProperty_Title = 3,
+    k_ECommunityProfileItemProperty_Description = 4,
+    k_ECommunityProfileItemProperty_AppID = 5,
+    k_ECommunityProfileItemProperty_TypeID = 6,
+    k_ECommunityProfileItemProperty_Class = 7,
+    k_ECommunityProfileItemProperty_MovieWebM = 8,
+    k_ECommunityProfileItemProperty_MovieMP4 = 9,
+    k_ECommunityProfileItemProperty_MovieWebMSmall = 10,
+    k_ECommunityProfileItemProperty_MovieMP4Small = 11,
+}
 #[repr(C)]
 pub struct ISteamFriends__bindgen_vtable(::std::os::raw::c_void);
 #[repr(C)]
@@ -5638,6 +5652,165 @@ fn bindgen_test_layout_OverlayBrowserProtocolNavigation_t() {
             stringify!(OverlayBrowserProtocolNavigation_t),
             "::",
             stringify!(rgchURI)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct EquippedProfileItemsChanged_t {
+    pub m_steamID: CSteamID,
+}
+pub const EquippedProfileItemsChanged_t_k_iCallback: EquippedProfileItemsChanged_t__bindgen_ty_1 =
+    EquippedProfileItemsChanged_t__bindgen_ty_1::k_iCallback;
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum EquippedProfileItemsChanged_t__bindgen_ty_1 {
+    k_iCallback = 350,
+}
+#[test]
+fn bindgen_test_layout_EquippedProfileItemsChanged_t() {
+    assert_eq!(
+        ::std::mem::size_of::<EquippedProfileItemsChanged_t>(),
+        8usize,
+        concat!("Size of: ", stringify!(EquippedProfileItemsChanged_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<EquippedProfileItemsChanged_t>(),
+        1usize,
+        concat!("Alignment of ", stringify!(EquippedProfileItemsChanged_t))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItemsChanged_t>())).m_steamID as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItemsChanged_t),
+            "::",
+            stringify!(m_steamID)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct EquippedProfileItems_t {
+    pub m_eResult: EResult,
+    pub m_steamID: CSteamID,
+    pub m_bHasAnimatedAvatar: bool,
+    pub m_bHasAvatarFrame: bool,
+    pub m_bHasProfileModifier: bool,
+    pub m_bHasProfileBackground: bool,
+    pub m_bHasMiniProfileBackground: bool,
+}
+pub const EquippedProfileItems_t_k_iCallback: EquippedProfileItems_t__bindgen_ty_1 =
+    EquippedProfileItems_t__bindgen_ty_1::k_iCallback;
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum EquippedProfileItems_t__bindgen_ty_1 {
+    k_iCallback = 351,
+}
+#[test]
+fn bindgen_test_layout_EquippedProfileItems_t() {
+    assert_eq!(
+        ::std::mem::size_of::<EquippedProfileItems_t>(),
+        20usize,
+        concat!("Size of: ", stringify!(EquippedProfileItems_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<EquippedProfileItems_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(EquippedProfileItems_t))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_eResult as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_eResult)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_steamID as *const _ as usize
+        },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_steamID)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_bHasAnimatedAvatar as *const _
+                as usize
+        },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_bHasAnimatedAvatar)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_bHasAvatarFrame as *const _
+                as usize
+        },
+        13usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_bHasAvatarFrame)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_bHasProfileModifier as *const _
+                as usize
+        },
+        14usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_bHasProfileModifier)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_bHasProfileBackground as *const _
+                as usize
+        },
+        15usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_bHasProfileBackground)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<EquippedProfileItems_t>())).m_bHasMiniProfileBackground
+                as *const _ as usize
+        },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(EquippedProfileItems_t),
+            "::",
+            stringify!(m_bHasMiniProfileBackground)
         )
     );
 }
@@ -21219,6 +21392,9 @@ pub enum ESteamNetworkingAvailability {
 pub enum ESteamNetworkingIdentityType {
     k_ESteamNetworkingIdentityType_Invalid = 0,
     k_ESteamNetworkingIdentityType_SteamID = 16,
+    k_ESteamNetworkingIdentityType_XboxPairwiseID = 17,
+    k_ESteamNetworkingIdentityType_SonyPSN = 18,
+    k_ESteamNetworkingIdentityType_GoogleStadia = 19,
     k_ESteamNetworkingIdentityType_IPAddress = 1,
     k_ESteamNetworkingIdentityType_GenericString = 2,
     k_ESteamNetworkingIdentityType_GenericBytes = 3,
@@ -21508,6 +21684,8 @@ pub const SteamNetworkingIdentity_k_cchMaxString: SteamNetworkingIdentity__bindg
     SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString;
 pub const SteamNetworkingIdentity_k_cchMaxGenericString: SteamNetworkingIdentity__bindgen_ty_1 =
     SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxGenericString;
+pub const SteamNetworkingIdentity_k_cchMaxXboxPairwiseID: SteamNetworkingIdentity__bindgen_ty_1 =
+    SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxXboxPairwiseID;
 pub const SteamNetworkingIdentity_k_cbMaxGenericBytes: SteamNetworkingIdentity__bindgen_ty_1 =
     SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxGenericString;
 #[repr(u32)]
@@ -21516,12 +21694,16 @@ pub const SteamNetworkingIdentity_k_cbMaxGenericBytes: SteamNetworkingIdentity__
 pub enum SteamNetworkingIdentity__bindgen_ty_1 {
     k_cchMaxString = 128,
     k_cchMaxGenericString = 32,
+    k_cchMaxXboxPairwiseID = 33,
 }
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
 pub union SteamNetworkingIdentity__bindgen_ty_2 {
     pub m_steamID64: uint64,
+    pub m_PSNID: uint64,
+    pub m_stadiaID: uint64,
     pub m_szGenericString: [::std::os::raw::c_char; 32usize],
+    pub m_szXboxPairwiseID: [::std::os::raw::c_char; 33usize],
     pub m_genericBytes: [uint8; 32usize],
     pub m_szUnknownRawString: [::std::os::raw::c_char; 128usize],
     pub m_ip: SteamNetworkingIPAddr,
@@ -21560,6 +21742,32 @@ fn bindgen_test_layout_SteamNetworkingIdentity__bindgen_ty_2() {
     );
     assert_eq!(
         unsafe {
+            &(*(::std::ptr::null::<SteamNetworkingIdentity__bindgen_ty_2>())).m_PSNID as *const _
+                as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SteamNetworkingIdentity__bindgen_ty_2),
+            "::",
+            stringify!(m_PSNID)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<SteamNetworkingIdentity__bindgen_ty_2>())).m_stadiaID as *const _
+                as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SteamNetworkingIdentity__bindgen_ty_2),
+            "::",
+            stringify!(m_stadiaID)
+        )
+    );
+    assert_eq!(
+        unsafe {
             &(*(::std::ptr::null::<SteamNetworkingIdentity__bindgen_ty_2>())).m_szGenericString
                 as *const _ as usize
         },
@@ -21569,6 +21777,19 @@ fn bindgen_test_layout_SteamNetworkingIdentity__bindgen_ty_2() {
             stringify!(SteamNetworkingIdentity__bindgen_ty_2),
             "::",
             stringify!(m_szGenericString)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<SteamNetworkingIdentity__bindgen_ty_2>())).m_szXboxPairwiseID
+                as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SteamNetworkingIdentity__bindgen_ty_2),
+            "::",
+            stringify!(m_szXboxPairwiseID)
         )
     );
     assert_eq!(
@@ -21690,6 +21911,35 @@ extern "C" {
     pub fn SteamNetworkingIdentity_GetSteamID64(this: *const SteamNetworkingIdentity) -> uint64;
 }
 extern "C" {
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity17SetXboxPairwiseIDEPKc"]
+    pub fn SteamNetworkingIdentity_SetXboxPairwiseID(
+        this: *mut SteamNetworkingIdentity,
+        pszString: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+extern "C" {
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity17GetXboxPairwiseIDEv"]
+    pub fn SteamNetworkingIdentity_GetXboxPairwiseID(
+        this: *const SteamNetworkingIdentity,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity8SetPSNIDEy"]
+    pub fn SteamNetworkingIdentity_SetPSNID(this: *mut SteamNetworkingIdentity, id: uint64);
+}
+extern "C" {
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity8GetPSNIDEv"]
+    pub fn SteamNetworkingIdentity_GetPSNID(this: *const SteamNetworkingIdentity) -> uint64;
+}
+extern "C" {
+    #[link_name = "\u{1}_ZN23SteamNetworkingIdentity11SetStadiaIDEy"]
+    pub fn SteamNetworkingIdentity_SetStadiaID(this: *mut SteamNetworkingIdentity, id: uint64);
+}
+extern "C" {
+    #[link_name = "\u{1}_ZNK23SteamNetworkingIdentity11GetStadiaIDEv"]
+    pub fn SteamNetworkingIdentity_GetStadiaID(this: *const SteamNetworkingIdentity) -> uint64;
+}
+extern "C" {
     #[link_name = "\u{1}_ZN23SteamNetworkingIdentity9SetIPAddrERK21SteamNetworkingIPAddr"]
     pub fn SteamNetworkingIdentity_SetIPAddr(
         this: *mut SteamNetworkingIdentity,
@@ -21806,6 +22056,30 @@ impl SteamNetworkingIdentity {
     #[inline]
     pub unsafe fn GetSteamID64(&self) -> uint64 {
         SteamNetworkingIdentity_GetSteamID64(self)
+    }
+    #[inline]
+    pub unsafe fn SetXboxPairwiseID(&mut self, pszString: *const ::std::os::raw::c_char) -> bool {
+        SteamNetworkingIdentity_SetXboxPairwiseID(self, pszString)
+    }
+    #[inline]
+    pub unsafe fn GetXboxPairwiseID(&self) -> *const ::std::os::raw::c_char {
+        SteamNetworkingIdentity_GetXboxPairwiseID(self)
+    }
+    #[inline]
+    pub unsafe fn SetPSNID(&mut self, id: uint64) {
+        SteamNetworkingIdentity_SetPSNID(self, id)
+    }
+    #[inline]
+    pub unsafe fn GetPSNID(&self) -> uint64 {
+        SteamNetworkingIdentity_GetPSNID(self)
+    }
+    #[inline]
+    pub unsafe fn SetStadiaID(&mut self, id: uint64) {
+        SteamNetworkingIdentity_SetStadiaID(self, id)
+    }
+    #[inline]
+    pub unsafe fn GetStadiaID(&self) -> uint64 {
+        SteamNetworkingIdentity_GetStadiaID(self)
     }
     #[inline]
     pub unsafe fn SetIPAddr(&mut self, addr: *const SteamNetworkingIPAddr) {
@@ -23260,6 +23534,26 @@ pub enum ESteamNetworkingConfigValue {
     #[doc = " scores are on a scale of milliseconds.  The score begins with the"]
     #[doc = " route ping time and is then adjusted.)"]
     k_ESteamNetworkingConfig_P2P_Transport_SDR_Penalty = 106,
+    #[doc = " [connection int32] When selecting P2P transport, add various"]
+    #[doc = " penalties to the scores for selected transports.  (Route selection"]
+    #[doc = " scores are on a scale of milliseconds.  The score begins with the"]
+    #[doc = " route ping time and is then adjusted.)"]
+    k_ESteamNetworkingConfig_P2P_TURN_ServerList = 107,
+    #[doc = " [connection int32] When selecting P2P transport, add various"]
+    #[doc = " penalties to the scores for selected transports.  (Route selection"]
+    #[doc = " scores are on a scale of milliseconds.  The score begins with the"]
+    #[doc = " route ping time and is then adjusted.)"]
+    k_ESteamNetworkingConfig_P2P_TURN_UserList = 108,
+    #[doc = " [connection int32] When selecting P2P transport, add various"]
+    #[doc = " penalties to the scores for selected transports.  (Route selection"]
+    #[doc = " scores are on a scale of milliseconds.  The score begins with the"]
+    #[doc = " route ping time and is then adjusted.)"]
+    k_ESteamNetworkingConfig_P2P_TURN_PassList = 109,
+    #[doc = " [connection int32] When selecting P2P transport, add various"]
+    #[doc = " penalties to the scores for selected transports.  (Route selection"]
+    #[doc = " scores are on a scale of milliseconds.  The score begins with the"]
+    #[doc = " route ping time and is then adjusted.)"]
+    k_ESteamNetworkingConfig_P2P_Transport_ICE_Implementation = 110,
     #[doc = " [int32 global] If the first N pings to a port all fail, mark that port as unavailable for"]
     #[doc = " a while, and try a different one.  Some ISPs and routers may drop the first"]
     #[doc = " packet, so setting this to 1 may greatly disrupt communications."]
@@ -26227,6 +26521,35 @@ extern "C" {
         self_: *mut ISteamFriends,
         pchConnectString: *const ::std::os::raw::c_char,
     );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamFriends_RequestEquippedProfileItems(
+        self_: *mut ISteamFriends,
+        steamID: uint64_steamid,
+    ) -> SteamAPICall_t;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamFriends_BHasEquippedProfileItem(
+        self_: *mut ISteamFriends,
+        steamID: uint64_steamid,
+        itemType: ECommunityProfileItemType,
+    ) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamFriends_GetProfileItemPropertyString(
+        self_: *mut ISteamFriends,
+        steamID: uint64_steamid,
+        itemType: ECommunityProfileItemType,
+        prop: ECommunityProfileItemProperty,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamFriends_GetProfileItemPropertyUint(
+        self_: *mut ISteamFriends,
+        steamID: uint64_steamid,
+        itemType: ECommunityProfileItemType,
+        prop: ECommunityProfileItemProperty,
+    ) -> uint32;
 }
 extern "C" {
     pub fn SteamAPI_SteamUtils_v010() -> *mut ISteamUtils;
