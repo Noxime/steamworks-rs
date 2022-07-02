@@ -10,4 +10,4 @@ macos:
 	cargo build --target x86_64-apple-darwin --features "rebuild-bindings"
 
 local:
-	cargo build --release --features "rebuild-bindings"
+	cargo build --features "rebuild-bindings"
