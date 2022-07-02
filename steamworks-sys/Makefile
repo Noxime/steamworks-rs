@@ -1,13 +1,16 @@
 all: windows linux macos
 
-windows:
+clean:
+	cargo clean
+
+windows: clean
 	cargo build --target x86_64-pc-windows-gnu --features "rebuild-bindings"
 
-linux:
+linux: clean
 	cargo build --target x86_64-unknown-linux-gnu --features "rebuild-bindings"
 
-macos:
+macos: clean
 	cargo build --target x86_64-apple-darwin --features "rebuild-bindings"
 
-local:
+local: clean
 	cargo build --features "rebuild-bindings"
