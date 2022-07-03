@@ -60,7 +60,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "rebuild-bindings")]
     {
-        let binding_path = Path::new("src/bindings.rs").to_owned();
+        let target_os = if triple.contains("windows") {
+            "windows"
+        } else if triple.contains("darwin") {
+            "macos"
+        } else if triple.contains("linux") {
+            "linux"
+        } else {
+            panic!("Unsupported OS");
+        };
+        let binding_path = Path::new(&format!("src/{}_bindings.rs", target_os)).to_owned();
         let bindings = bindgen::Builder::default()
             .header(
                 sdk_loc
