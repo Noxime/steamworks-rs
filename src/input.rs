@@ -101,6 +101,15 @@ impl<Manager> Input<Manager> {
         }
     }
 
+    pub fn get_motion_data(
+        &self,
+        input_handle: sys::InputHandle_t,
+    ) -> sys::InputMotionData_t {
+        unsafe {
+            sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle)
+        }
+    }
+
     /// Shutdown must be called when ending use of this interface.
     pub fn shutdown(&self) {
         unsafe {
