@@ -43,7 +43,7 @@ impl<Manager> Input<Manager> {
     /// Returns a list of the currently connected controllers without allocating
     pub fn get_connected_controllers_slice(&self, mut controllers: impl AsMut<[InputHandle_t]>) {
         let handles = controllers.as_mut();
-        assert!(handles.len() <= sys::STEAM_INPUT_MAX_COUNT as usize);
+        assert!(handles.len() >= sys::STEAM_INPUT_MAX_COUNT as usize);
         unsafe {
             sys::SteamAPI_ISteamInput_GetConnectedControllers(self.input, handles.as_mut_ptr());
         }
