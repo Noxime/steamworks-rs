@@ -41,11 +41,17 @@ impl<Manager> Input<Manager> {
     }
 
     /// Returns a list of the currently connected controllers without allocating, and the count
-    pub fn get_connected_controllers_slice(&self, mut controllers: impl AsMut<[InputHandle_t]>) -> usize {
+    pub fn get_connected_controllers_slice(
+        &self,
+        mut controllers: impl AsMut<[InputHandle_t]>,
+    ) -> usize {
         let handles = controllers.as_mut();
         assert!(handles.len() >= sys::STEAM_INPUT_MAX_COUNT as usize);
         unsafe {
-            return sys::SteamAPI_ISteamInput_GetConnectedControllers(self.input, handles.as_mut_ptr()) as usize;
+            return sys::SteamAPI_ISteamInput_GetConnectedControllers(
+                self.input,
+                handles.as_mut_ptr(),
+            ) as usize;
         }
     }
 
@@ -101,13 +107,8 @@ impl<Manager> Input<Manager> {
         }
     }
 
-    pub fn get_motion_data(
-        &self,
-        input_handle: sys::InputHandle_t,
-    ) -> sys::InputMotionData_t {
-        unsafe {
-            sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle)
-        }
+    pub fn get_motion_data(&self, input_handle: sys::InputHandle_t) -> sys::InputMotionData_t {
+        unsafe { sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle) }
     }
 
     /// Shutdown must be called when ending use of this interface.
