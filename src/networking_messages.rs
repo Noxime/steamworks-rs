@@ -26,7 +26,7 @@
 use crate::networking_types::{
     NetConnectionInfo, NetworkingIdentity, NetworkingMessage, SendFlags,
 };
-use crate::{register_callback, Callback, Inner, SteamError};
+use crate::{register_callback, Callback, CallbackHandle, Inner, SteamError};
 use std::ffi::c_void;
 use std::sync::{Arc, Weak};
 
@@ -184,7 +184,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     pub fn session_request_callback(
         &self,
         mut callback: impl FnMut(SessionRequest<Manager>) + Send + 'static,
-    ) {
+    ) -> CallbackHandle<Manager> {
         let builder = SessionRequestBuilder {
             message: self.net,
             inner: Arc::downgrade(&self.inner),
@@ -197,7 +197,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
                         callback(request);
                     }
                 },
-            );
+            )
         }
     }
 
@@ -208,14 +208,14 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     pub fn session_failed_callback(
         &self,
         mut callback: impl FnMut(NetConnectionInfo) + Send + 'static,
-    ) {
+    ) -> CallbackHandle<Manager> {
         unsafe {
             register_callback(
                 &self.inner,
                 move |failed: NetworkingMessagesSessionFailed| {
                     callback(failed.info);
                 },
-            );
+            )
         }
     }
 }
