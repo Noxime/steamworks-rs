@@ -275,7 +275,6 @@ unsafe impl Callback for NetworkingMessagesSessionFailed {
 /// A request for a new connection.
 ///
 /// Use this to accept or reject the connection.
-/// Letting this struct go out of scope will reject the connection.
 pub struct SessionRequest<Manager> {
     remote: NetworkingIdentity,
     messages: *mut sys::ISteamNetworkingMessages,
@@ -302,23 +301,12 @@ impl<Manager> SessionRequest<Manager> {
     }
 
     /// Reject the connection.
-    pub fn reject(mut self) {
-        self.reject_inner();
-    }
-
-    /// Reject the connection without consuming self, useful for implementing [`Drop`]
-    fn reject_inner(&mut self) {
+    pub fn reject(self) {
         unsafe {
             sys::SteamAPI_ISteamNetworkingMessages_CloseSessionWithUser(
                 self.messages,
                 self.remote.as_ptr(),
             );
         }
-    }
-}
-
-impl<Manager> Drop for SessionRequest<Manager> {
-    fn drop(&mut self) {
-        self.reject_inner();
     }
 }
