@@ -673,13 +673,17 @@ pub enum NetConnectionEnd {
     // 1xxx: Application ended the connection in a "usual" manner.
     //       E.g.: user intentionally disconnected from the server,
     //             gameplay ended normally, etc
+    App(i32),
+    // Use this if you don't need application-specific end reason codes.
     AppGeneric,
 
     // 2xxx: Application ended the connection in some sort of exceptional
     //       or unusual manner that might indicate a bug or configuration
     //       issue.
     //
-    AppException,
+    AppException(i32),
+    // Use this if you don't need exceptional application-specific end reason codes.
+    AppExceptionGeneric,
 
     //
     // System codes.  These will be returned by the system when
@@ -823,7 +827,9 @@ impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
     fn from(end: NetConnectionEnd) -> Self {
         match end {
             NetConnectionEnd::AppGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic,
-            NetConnectionEnd::AppException => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
+            NetConnectionEnd::App(_) => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic,
+            NetConnectionEnd::AppExceptionGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
+            NetConnectionEnd::AppException(_) => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
             NetConnectionEnd::LocalOfflineMode => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode,
             NetConnectionEnd::LocalManyRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity,
             NetConnectionEnd::LocalHostedServerPrimaryRelay => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay,
@@ -858,7 +864,9 @@ impl TryFrom<i32> for NetConnectionEnd {
     fn try_from(end: i32) -> Result<Self, Self::Error> {
         match end {
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32 => Ok(NetConnectionEnd::AppGeneric),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32 => Ok(NetConnectionEnd::AppException),
+            end if end > sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Min as i32 && end < sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Max as i32 => Ok(NetConnectionEnd::App(end)),
+            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32 => Ok(NetConnectionEnd::AppExceptionGeneric),
+            end if end > sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min as i32 && end < sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Max as i32 => Ok(NetConnectionEnd::AppException(end)),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => Ok(NetConnectionEnd::LocalOfflineMode),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => Ok(NetConnectionEnd::LocalManyRelayConnectivity),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => Ok(NetConnectionEnd::LocalHostedServerPrimaryRelay),
@@ -878,7 +886,7 @@ impl TryFrom<i32> for NetConnectionEnd {
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => Ok(NetConnectionEnd::MiscP2PRendezvous),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => Ok(NetConnectionEnd::MiscP2PNATFirewall),
             end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => Ok(NetConnectionEnd::MiscPeerSentNoConnection),
-            _ => panic!("invalid connection end"),
+            _ => panic!("invalid connection end: {}", end),
         }
     }
 }
@@ -887,7 +895,7 @@ impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
     fn from(end: steamworks_sys::ESteamNetConnectionEnd) -> Self {
         match end {
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic => NetConnectionEnd::AppGeneric,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic => NetConnectionEnd::AppException,
+            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic => NetConnectionEnd::AppExceptionGeneric,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode => NetConnectionEnd::LocalOfflineMode,
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity => { NetConnectionEnd::LocalManyRelayConnectivity }
             sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay => { NetConnectionEnd::LocalHostedServerPrimaryRelay }
