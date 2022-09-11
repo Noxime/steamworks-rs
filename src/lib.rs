@@ -543,6 +543,8 @@ impl GameId {
 
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Write};
+
     use serial_test_derive::serial;
 
     use super::*;
