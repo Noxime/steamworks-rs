@@ -6,7 +6,7 @@ use crate::networking_types::{
 };
 use crate::{CallbackHandle, Inner, SResult};
 #[cfg(test)]
-use serial_test_derive::serial;
+use serial_test::serial;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::net::SocketAddr;

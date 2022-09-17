@@ -29,4 +29,3 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
 serial_test = "0.6"
-serial_test_derive = "0.6"

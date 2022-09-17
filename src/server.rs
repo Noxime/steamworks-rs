@@ -1,6 +1,6 @@
 use super::*;
 #[cfg(test)]
-use serial_test_derive::serial;
+use serial_test::serial;
 use std::net::Ipv4Addr;
 
 /// The main entry point into the steam client for servers.
