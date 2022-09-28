@@ -155,6 +155,19 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_SetLobbyData(
+                self.mm,
+                lobby.0,
+                key.as_ptr(),
+                value.as_ptr(),
+            );
+        }
+    }
+
     /// Exits the passed lobby
     pub fn leave_lobby(&self, lobby: LobbyId) {
         unsafe {
