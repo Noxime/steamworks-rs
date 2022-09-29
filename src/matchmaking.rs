@@ -178,7 +178,9 @@ impl<Manager> Matchmaking<Manager> {
             match success {
                 true => Some((
                     CStr::from_ptr(key.as_ptr()).to_string_lossy().into_owned(),
-                    CStr::from_ptr(value.as_ptr()).to_string_lossy().into_owned(),
+                    CStr::from_ptr(value.as_ptr())
+                        .to_string_lossy()
+                        .into_owned(),
                 )),
                 false => None,
             }
