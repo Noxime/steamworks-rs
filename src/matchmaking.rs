@@ -1,6 +1,7 @@
 use super::*;
 #[cfg(test)]
 use serial_test_derive::serial;
+use sys::{k_nMaxLobbyKeyLength, k_cubChatMetadataMax};
 
 /// Access to the steam matchmaking interface
 pub struct Matchmaking<Manager> {
@@ -136,6 +137,10 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    pub fn lobby_data_count(&self, lobby: LobbyId) -> u32 {
+        unsafe { sys::SteamAPI_ISteamMatchmaking_GetLobbyDataCount(self.mm, lobby.0) as _ }
+    }
+
     /// Returns the lobby metadata associated with the specified key from the
     /// specified lobby.
     pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<&str> {
@@ -152,6 +157,29 @@ impl<Manager> Matchmaking<Manager> {
         match data.is_empty() {
             false => Some(data),
             true => None,
+        }
+    }
+
+    pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
+        let mut key = [0u8; k_nMaxLobbyKeyLength as usize];
+        let mut value = [0u8; k_cubChatMetadataMax as usize];
+        let success = unsafe {
+            sys::SteamAPI_ISteamMatchmaking_GetLobbyDataByIndex(
+                self.mm,
+                lobby.0,
+                idx as _,
+                key.as_mut_ptr() as _,
+                key.len() as _,
+                value.as_mut_ptr() as _,
+                value.len() as _,
+            )
+        };
+        match success {
+            true => Some((
+                String::from_utf8(key.to_vec()).unwrap(),
+                String::from_utf8(value.to_vec()).unwrap(),
+            )),
+            false => None,
         }
     }
 
