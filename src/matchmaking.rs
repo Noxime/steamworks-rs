@@ -186,7 +186,7 @@ impl<Manager> Matchmaking<Manager> {
     }
 
     /// Sets the lobby metadata associated with the specified key in the specified lobby.
-    pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) {
+    pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) -> bool {
         let key = CString::new(key).unwrap();
         let value = CString::new(value).unwrap();
         unsafe {
@@ -195,15 +195,15 @@ impl<Manager> Matchmaking<Manager> {
                 lobby.0,
                 key.as_ptr(),
                 value.as_ptr(),
-            );
+            )
         }
     }
 
     /// Deletes the lobby metadata associated with the specified key in the specified lobby.
-    pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) {
+    pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) -> bool {
         let key = CString::new(key).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr());
+            sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr())
         }
     }
 
@@ -353,7 +353,7 @@ pub struct LobbyDataUpdate {
 }
 
 unsafe impl Callback for LobbyDataUpdate {
-    const ID: i32 = 507;
+    const ID: i32 = 505;
     const SIZE: i32 = ::std::mem::size_of::<sys::LobbyDataUpdate_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
