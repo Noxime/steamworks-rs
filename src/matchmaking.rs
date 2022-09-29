@@ -168,6 +168,13 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) {
+        let key = CString::new(key).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr());
+        }
+    }
+
     /// Exits the passed lobby
     pub fn leave_lobby(&self, lobby: LobbyId) {
         unsafe {
