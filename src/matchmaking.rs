@@ -1,7 +1,7 @@
 use super::*;
 #[cfg(test)]
 use serial_test_derive::serial;
-use sys::{k_nMaxLobbyKeyLength, k_cubChatMetadataMax};
+use sys::{k_cubChatMetadataMax, k_nMaxLobbyKeyLength};
 
 /// Access to the steam matchmaking interface
 pub struct Matchmaking<Manager> {
@@ -137,6 +137,7 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Returns the number of data keys in the lobby
     pub fn lobby_data_count(&self, lobby: LobbyId) -> u32 {
         unsafe { sys::SteamAPI_ISteamMatchmaking_GetLobbyDataCount(self.mm, lobby.0) as _ }
     }
@@ -160,6 +161,7 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Returns the lobby metadata associated with the specified index
     pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
         let mut key = [0u8; k_nMaxLobbyKeyLength as usize];
         let mut value = [0u8; k_cubChatMetadataMax as usize];
@@ -183,6 +185,7 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Sets the lobby metadata associated with the specified key in the specified lobby.
     pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) {
         let key = CString::new(key).unwrap();
         let value = CString::new(value).unwrap();
@@ -196,6 +199,7 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Deletes the lobby metadata associated with the specified key in the specified lobby.
     pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) {
         let key = CString::new(key).unwrap();
         unsafe {
@@ -336,6 +340,29 @@ unsafe impl Callback for LobbyChatUpdate {
                 }
                 _ => unreachable!(),
             },
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyDataUpdate {
+    pub lobby: LobbyId,
+    pub member: SteamId,
+    pub success: bool,
+}
+
+unsafe impl Callback for LobbyDataUpdate {
+    const ID: i32 = 507;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyDataUpdate_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
+
+        LobbyDataUpdate {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            member: SteamId(val.m_ulSteamIDMember),
+            success: val.m_bSuccess != 0,
         }
     }
 }
