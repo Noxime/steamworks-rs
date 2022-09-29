@@ -163,10 +163,10 @@ impl<Manager> Matchmaking<Manager> {
 
     /// Returns the lobby metadata associated with the specified index
     pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
-        let mut key = [0u8; k_nMaxLobbyKeyLength as usize];
-        let mut value = [0u8; k_cubChatMetadataMax as usize];
-        let success = unsafe {
-            sys::SteamAPI_ISteamMatchmaking_GetLobbyDataByIndex(
+        let mut key = [0i8; k_nMaxLobbyKeyLength as usize];
+        let mut value = [0i8; k_cubChatMetadataMax as usize];
+        unsafe {
+            let success = sys::SteamAPI_ISteamMatchmaking_GetLobbyDataByIndex(
                 self.mm,
                 lobby.0,
                 idx as _,
@@ -174,14 +174,14 @@ impl<Manager> Matchmaking<Manager> {
                 key.len() as _,
                 value.as_mut_ptr() as _,
                 value.len() as _,
-            )
-        };
-        match success {
-            true => Some((
-                String::from_utf8(key.to_vec()).unwrap(),
-                String::from_utf8(value.to_vec()).unwrap(),
-            )),
-            false => None,
+            );
+            match success {
+                true => Some((
+                    CStr::from_ptr(key.as_ptr()).to_string_lossy().into_owned(),
+                    CStr::from_ptr(value.as_ptr()).to_string_lossy().into_owned(),
+                )),
+                false => None,
+            }
         }
     }
 
@@ -202,9 +202,7 @@ impl<Manager> Matchmaking<Manager> {
     /// Deletes the lobby metadata associated with the specified key in the specified lobby.
     pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) -> bool {
         let key = CString::new(key).unwrap();
-        unsafe {
-            sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr())
-        }
+        unsafe { sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr()) }
     }
 
     /// Exits the passed lobby
