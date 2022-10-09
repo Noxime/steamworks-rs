@@ -4,7 +4,7 @@ pub mod stats;
 pub use self::stat_callback::*;
 use super::*;
 #[cfg(test)]
-use serial_test_derive::serial;
+use serial_test::serial;
 
 /// Access to the steam user interface
 pub struct UserStats<Manager> {

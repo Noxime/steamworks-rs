@@ -1,6 +1,6 @@
 use super::*;
 #[cfg(test)]
-use serial_test_derive::serial;
+use serial_test::serial;
 
 /// Access to the steam matchmaking interface
 pub struct Matchmaking<Manager> {
