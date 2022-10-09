@@ -136,6 +136,11 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Returns the number of data keys in the lobby
+    pub fn lobby_data_count(&self, lobby: LobbyId) -> u32 {
+        unsafe { sys::SteamAPI_ISteamMatchmaking_GetLobbyDataCount(self.mm, lobby.0) as _ }
+    }
+
     /// Returns the lobby metadata associated with the specified key from the
     /// specified lobby.
     pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<&str> {
@@ -153,6 +158,52 @@ impl<Manager> Matchmaking<Manager> {
             false => Some(data),
             true => None,
         }
+    }
+
+    /// Returns the lobby metadata associated with the specified index
+    pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
+        let mut key = [0i8; sys::k_nMaxLobbyKeyLength as usize];
+        let mut value = [0i8; sys::k_cubChatMetadataMax as usize];
+        unsafe {
+            let success = sys::SteamAPI_ISteamMatchmaking_GetLobbyDataByIndex(
+                self.mm,
+                lobby.0,
+                idx as _,
+                key.as_mut_ptr() as _,
+                key.len() as _,
+                value.as_mut_ptr() as _,
+                value.len() as _,
+            );
+            match success {
+                true => Some((
+                    CStr::from_ptr(key.as_ptr()).to_string_lossy().into_owned(),
+                    CStr::from_ptr(value.as_ptr())
+                        .to_string_lossy()
+                        .into_owned(),
+                )),
+                false => None,
+            }
+        }
+    }
+
+    /// Sets the lobby metadata associated with the specified key in the specified lobby.
+    pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) -> bool {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_SetLobbyData(
+                self.mm,
+                lobby.0,
+                key.as_ptr(),
+                value.as_ptr(),
+            )
+        }
+    }
+
+    /// Deletes the lobby metadata associated with the specified key in the specified lobby.
+    pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) -> bool {
+        let key = CString::new(key).unwrap();
+        unsafe { sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr()) }
     }
 
     /// Exits the passed lobby
@@ -288,6 +339,29 @@ unsafe impl Callback for LobbyChatUpdate {
                 }
                 _ => unreachable!(),
             },
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyDataUpdate {
+    pub lobby: LobbyId,
+    pub member: SteamId,
+    pub success: bool,
+}
+
+unsafe impl Callback for LobbyDataUpdate {
+    const ID: i32 = 505;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyDataUpdate_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
+
+        LobbyDataUpdate {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            member: SteamId(val.m_ulSteamIDMember),
+            success: val.m_bSuccess != 0,
         }
     }
 }
