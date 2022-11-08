@@ -237,6 +237,7 @@ impl<Manager> SessionRequestBuilder<Manager> {
         self.inner.upgrade().map(|inner| SessionRequest {
             remote,
             messages: self.message,
+            is_handled: false,
             _inner: inner,
         })
     }
@@ -275,9 +276,11 @@ unsafe impl Callback for NetworkingMessagesSessionFailed {
 /// A request for a new connection.
 ///
 /// Use this to accept or reject the connection.
+/// Letting this struct go out of scope will reject the connection.
 pub struct SessionRequest<Manager> {
     remote: NetworkingIdentity,
     messages: *mut sys::ISteamNetworkingMessages,
+    is_handled: bool,
     _inner: Arc<Inner<Manager>>,
 }
 
@@ -291,7 +294,8 @@ impl<Manager> SessionRequest<Manager> {
     }
 
     /// Accept the connection.
-    pub fn accept(self) {
+    pub fn accept(mut self) {
+        self.is_handled = true;
         unsafe {
             sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
                 self.messages,
@@ -301,12 +305,25 @@ impl<Manager> SessionRequest<Manager> {
     }
 
     /// Reject the connection.
-    pub fn reject(self) {
+    pub fn reject(mut self) {
+        self.reject_inner();
+    }
+
+    fn reject_inner(&mut self) {
+        self.is_handled = true;
         unsafe {
             sys::SteamAPI_ISteamNetworkingMessages_CloseSessionWithUser(
                 self.messages,
                 self.remote.as_ptr(),
             );
+        }
+    }
+}
+
+impl<Manager> Drop for SessionRequest<Manager> {
+    fn drop(&mut self) {
+        if !self.is_handled {
+            self.reject_inner();
         }
     }
 }
