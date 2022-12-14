@@ -3,8 +3,7 @@
 [![Documentation](https://docs.rs/steamworks/badge.svg)](https://docs.rs/steamworks)
 ![License](https://img.shields.io/crates/l/steamworks.svg)
 
-This crate provides rust friendly bindings to the [steamworks sdk](https://partner.steamgames.com/doc/sdk).
-
+This crate provides Rust bindings to the [Steamworks SDK](https://partner.steamgames.com/doc/sdk).
 
 ## Usage
 Add the following to your `Cargo.toml`:
@@ -13,6 +12,11 @@ Add the following to your `Cargo.toml`:
 [dependencies]
 steamworks = "0.9.0"
 ```
+
+| Crate | SDK   | MSRV   |
+|-------|-------|--------|
+| git   | 1.54  | 1.56.1 |
+| 0.9.0 | 1.53a | 1.56.1 |
 
 ## Example
 You can find more examples in [examples](examples).
@@ -65,3 +69,6 @@ fn main() {
 
 ## License
 This crate is dual-licensed under [Apache](./LICENSE-APACHE) and [MIT](./LICENSE-MIT).
+
+## Help, I can't run my game!
+If you are seeing errors like `STATUS_DLL_NOT_FOUND`, `Image not found` etc. You are likely missing the Steamworks SDK Redistributable files. Steamworks-rs loads the SDK dynamically, so the libraries need to exist somewhere the operating system can find them. This is likely next to your game binary (.exe on windows). You can find the required files in the SDK release ZIP, under `lib\steam\redistributable_bin`. See #63 for further details
