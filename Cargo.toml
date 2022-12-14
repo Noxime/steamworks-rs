@@ -17,7 +17,8 @@ raw-bindings = []
 [workspace]
 members = [
     "./steamworks-sys",
-    "examples/chat-example"
+    "examples/chat-example",
+    "examples/workshop"
 ]
 
 [dependencies]
