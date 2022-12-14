@@ -211,7 +211,7 @@ async fn main() {
         if let Ok(lobby) = receiver_create_lobby.try_recv() {
             println!("CREATED LOBBY WITH ID: {}", lobby.raw());
             let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-            ctx.set_contents(lobby.raw().to_string());
+            let _ = ctx.set_contents(lobby.raw().to_string());
             state.state = Box::new(States::Chat(ChatState {
                 own_id: client.user().steam_id(),
                 current_lobby: lobby,

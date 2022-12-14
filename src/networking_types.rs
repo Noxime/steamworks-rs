@@ -1687,7 +1687,7 @@ extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage
         let buffer =
             std::slice::from_raw_parts_mut((*message).m_pData, (*message).m_cbSize as usize);
         // Create the box again and drop it immediately
-        Box::from_raw(buffer.as_mut_ptr());
+        let _ = Box::from_raw(buffer.as_mut_ptr());
     }) {
         eprintln!("{:?}", e);
     }
