@@ -27,6 +27,7 @@ thiserror = "1.0"
 bitflags = "1.2"
 lazy_static = "1.4"
 serde = { version = "1.0", features = ["derive"], optional = true }
+paste = "1.0.11"
 
 [dev-dependencies]
 serial_test = "0.6"
