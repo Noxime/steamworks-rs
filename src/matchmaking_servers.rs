@@ -70,12 +70,12 @@ pub struct MatchmakingServers<Manager> {
 }
 
 impl<Manager> MatchmakingServers<Manager> {
-    pub fn ping_server(ip: std::net::Ipv4Addr, port: u16, callbacks: ping_rust_callbacks) {
+    pub fn ping_server(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: ping_rust_callbacks) {
         unsafe {
             let mut callbacks = create_ping(callbacks);
         
             let query = steamworks_sys::SteamAPI_ISteamMatchmakingServers_PingServer(
-                steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
+                self.mm,
                 ip.into(),
                 port,
                 callbacks.cast(),
