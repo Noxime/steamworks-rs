@@ -13,6 +13,8 @@ edition = "2021"
 [features]
 default = []
 raw-bindings = []
+matchmaking_servers_callbacks = []
+matchmaking_servers_blocking = []
 
 [workspace]
 members = [

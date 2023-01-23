@@ -43,6 +43,7 @@ mod error;
 mod friends;
 mod input;
 mod matchmaking;
+#[allow(dead_code)]
 mod matchmaking_servers;
 mod networking;
 pub mod networking_messages;
