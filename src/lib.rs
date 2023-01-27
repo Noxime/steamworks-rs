@@ -301,7 +301,7 @@ impl<Manager> Client<Manager> {
             let mm = sys::SteamAPI_SteamMatchmakingServers_v002();
             debug_assert!(!mm.is_null());
             MatchmakingServers {
-                mm: mm,
+                mms: mm,
                 inner: self.inner.clone(),
             }
         }
