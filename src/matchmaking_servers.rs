@@ -2,7 +2,68 @@ use super::*;
 #[cfg(test)]
 use serial_test::serial;
 
+unsafe impl Sync for ServerListRequest {}
+unsafe impl Send for ServerListRequest {}
+impl ServerListRequest {
+    unsafe fn clone(&self) -> Self {
+        Self {
+            callbacks: self.callbacks.clone(),
+            handle: self.handle.clone(),
+            mms: self.mms.clone(),
+        }
+    }
+}
+
+struct RawVec(*mut steamworks_sys::MatchMakingKeyValuePair_t, usize);
+unsafe impl Sync for RawVec {}
+unsafe impl Send for RawVec {}
+
+lazy_static! {
+    static ref SERVER_LIST_REQUESTS: Mutex<Vec<(ServerListRequest, u8, RawVec)>> = Mutex::new(Vec::new());
+}
+
+unsafe fn add_servers_request(request: &ServerListRequest) -> Option<()> {
+    let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
+    let index = list.binary_search_by(
+        |i| i.0.handle.cmp(&request.handle)
+    ).ok()?;
+    list[index].1 += 1;
+    
+    Some(())
+}
+
+unsafe fn remove_servers_request(request: &ServerListRequest) -> Option<()> {
+    let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
+    let index = list.binary_search_by(
+        |i| i.0.handle.cmp(&request.handle)
+    ).ok()?;
+    list[index].1 -= 1;
+    
+    if list[index].1 <= 0 {
+        steamworks_sys::SteamAPI_ISteamMatchmakingServers_CancelQuery(
+            steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
+            list[index].0.handle,
+        );
+        steamworks_sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(
+            steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
+            list[index].0.handle,
+        );
+        
+        drop_filters(list[index].2.0, list[index].2.1);
+        // TODO: Возможно это здесь не нужно, ибо вызывается ReleaseRequest
+        free_serverlist(list[index].0.callbacks);
+    }
+    
+    Some(())
+}
+
+// TODO: Привести макрос в нормальный вид
 macro_rules! matchmaking_servers_callback {
+    (
+    
+    ) => {
+    
+    };
     (
         $name:ident;
         $(
@@ -115,12 +176,11 @@ pub struct GameServerItem {
 }
 
 impl GameServerItem {
-    #[inline]
     unsafe fn ptr_to_string(ptr: *const std::os::raw::c_char) -> Option<String> {
         Some(CStr::from_ptr(ptr).to_str().ok()?.to_string())
     }
     
-    pub(crate) fn from_raw_ptr(raw: *mut steamworks_sys::gameserveritem_t) -> Self {
+    fn from_raw_ptr(raw: *mut steamworks_sys::gameserveritem_t) -> Self {
         unsafe {
             let raw = *raw;
             Self {
@@ -180,38 +240,107 @@ matchmaking_servers_callback!(
     refresh_complete(free_serverrules): ()
 );
 
-// TODO: Удалить реквесты и возвращать их только в функциях
+// TODO: Переработать эту хуйню
 matchmaking_servers_callback!(
     ServerList;
     responded(||): (
-        request: steamworks_sys::HServerListRequest => ServerListRequest where (ServerListRequest::new),
+        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
         server: i32 => i32 where (|i| i)
     ),
     failed(||): (
-        request: steamworks_sys::HServerListRequest => ServerListRequest where (ServerListRequest::new),
+        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
         server: i32 => i32 where (|i| i)
     ),
-    refresh_complete(||): (
-        request: steamworks_sys::HServerListRequest => ServerListRequest where (ServerListRequest::new),
+    refresh_complete((|real, request, _| {
+        let list = SERVER_LIST_REQUESTS.lock().unwrap(); // TODO: Убрать unwrap
+        let index = list.binary_search_by(
+            |i| i.0.callbacks.cmp(&real)
+        ).unwrap();
+        remove_servers_request(&list[index].0).unwrap();
+    })): (
+        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
         response: steamworks_sys::EMatchMakingServerResponse => steamworks_sys::EMatchMakingServerResponse where (|i| i)
     )
 );
 
+unsafe fn create_filters(
+    filters: HashMap<String, String>
+) -> Option<(*mut steamworks_sys::MatchMakingKeyValuePair_t, usize)> {
+    let mut list = Vec::with_capacity(filters.len());
+    
+    for filter in filters {
+        let filter = (filter.0.as_bytes(), filter.1.as_bytes());
+        
+        if filter.0.len() <= 255 || filter.1.len() <= 255 {
+            // TODO: return enum with error name
+            return None;
+        }
+        
+        let key = &*(filter.0 as *const [u8] as *const [i8]);
+        let value = &*(filter.1 as *const [u8] as *const [i8]);
+        
+        list.push(steamworks_sys::MatchMakingKeyValuePair_t {
+            m_szKey: key.try_into().ok()?,
+            m_szValue: value.try_into().ok()?,
+        });
+    }
+    
+    list.shrink_to_fit();
+    
+    let len = list.len();
+    let ptr = list.as_mut_ptr();
+    
+    std::mem::forget(list);
+    
+    Some((ptr, len))
+}
+
+unsafe fn drop_filters(
+    vec: *mut steamworks_sys::MatchMakingKeyValuePair_t,
+    size: usize,
+) {
+    drop(Vec::from_raw_parts(vec, size, size))
+}
+
 pub struct ServerListRequest {
-    pub(crate) handle: steamworks_sys::HServerListRequest,
-    pub(crate) callbacks: *mut ServerList_callbacks_real,
-    pub(crate) mms: *mut steamworks_sys::ISteamMatchmakingServers,
+    handle: steamworks_sys::HServerListRequest,
+    callbacks: *mut ServerList_callbacks_real,
+    mms: *mut steamworks_sys::ISteamMatchmakingServers,
 }
 
 impl ServerListRequest {
-    pub unsafe fn new(
+    unsafe fn init(
         handle: steamworks_sys::HServerListRequest,
         callbacks: *mut ServerList_callbacks_real,
-        mms: *mut steamworks_sys::ISteamMatchmakingServers
-    ) -> Self {
-        Self {
-            handle, callbacks, mms
-        }
+        mms: *mut steamworks_sys::ISteamMatchmakingServers,
+        vec: (*mut steamworks_sys::MatchMakingKeyValuePair_t, usize)
+    ) -> Option<Self> {
+        let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
+        let request = Self {
+            handle,
+            callbacks,
+            mms,
+        };
+        list.binary_search_by(
+            |i| i.0.handle.cmp(&handle)
+        ).err()?;
+        
+        list.push(
+            (request.clone(), 1, RawVec(vec.0, vec.1))
+        );
+        
+        Some(request)
+    }
+    
+    unsafe fn get(
+        handle: steamworks_sys::HServerListRequest,
+    ) -> Option<Self> {
+        let list = SERVER_LIST_REQUESTS.lock().ok()?;
+        let index = list.binary_search_by(
+            |i| i.0.handle.cmp(&handle)
+        ).ok()?;
+        add_servers_request(&list[index].0)?;
+        Some(list[index].0.clone())
     }
     
     pub fn get_server_count(&self) -> i32 {
@@ -235,22 +364,30 @@ impl ServerListRequest {
         }
     }
     
-    pub fn refresh_query(&self) {
+    pub fn refresh_query(&self) -> Option<()> {
         unsafe {
             steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(
                 self.mms,
                 self.handle,
             );
+    
+            add_servers_request(self)?;
+    
+            Some(())
         }
     }
     
-    pub fn refresh_server(&self, server: i32) {
+    pub fn refresh_server(&self, server: i32) -> Option<()> {
         unsafe {
             steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(
                 self.mms,
                 self.handle,
                 server,
             );
+            
+            add_servers_request(self)?;
+            
+            Some(())
         }
     }
 }
@@ -258,22 +395,12 @@ impl ServerListRequest {
 impl Drop for ServerListRequest {
     fn drop(&mut self) {
         unsafe {
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_CancelQuery(
-                steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
-                self.handle,
-            );
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(
-                steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
-                self.handle,
-            );
-            
-            // TODO: Возможно это здесь не нужно, ибо вызывается ReleaseRequest
-            free_serverlist(self.callbacks);
+            remove_servers_request(self).unwrap(); // TODO: убрать unwrap
         }
     }
 }
 
-/// Access to the steam matchmaking_servers interface
+/// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers<Manager> {
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
     pub(crate) inner: Arc<Inner<Manager>>,
@@ -335,29 +462,28 @@ impl<Manager> MatchmakingServers<Manager> {
     }
     
     pub fn request_history_servers(
-        id: impl Into<AppId>,
+        &self,
+        id: impl Into<steamworks_sys::AppId_t>,
         filters: HashMap<String, String>,
         callbacks: ServerListCallbacks,
-    ) -> Option<()> {
+    ) -> Option<ServerListRequest> {
         unsafe {
-            // let filters = {
-            //     let mut list = Vec::with_capacity(filters.len());
-            //
-            //     for filter in filters {
-            //         let key = ;
-            //         let value = ;
-            //
-            //         assert!(key.len() <= 255);
-            //         assert!(value.len() <= 255);
-            //
-            //         list.push(steamworks_sys::MatchMakingKeyValuePair_t {
-            //             m_szKey: key,
-            //             m_szValue: value,
-            //         });
-            //     }
-            // };
+            let mut filters = create_filters(filters)?;
+            let callbacks = create_serverlist(callbacks)?;
             
-            Some(())
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestHistoryServerList(
+                self.mms,
+                id.into(),
+                &mut filters.0 as *mut *mut _,
+                filters.1 as u32,
+                callbacks.cast()
+            );
+            
+            let request = ServerListRequest::init(
+                request, callbacks, self.mms, filters
+            )?;
+            
+            Some(request)
         }
     }
 }
