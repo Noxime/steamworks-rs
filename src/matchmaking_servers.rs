@@ -30,7 +30,7 @@ unsafe impl Sync for RawVec {}
 unsafe impl Send for RawVec {}
 
 lazy_static! {
-    static ref SERVER_LIST_REQUESTS: Mutex<Vec<(ServerListRequest, u8, RawVec)>> = Mutex::new(Vec::new());
+    static ref SERVER_LIST_REQUESTS: Mutex<Vec<(ServerListRequest, u8, Option<RawVec>)>> = Mutex::new(Vec::new());
 }
 
 unsafe fn add_servers_request(request: &ServerListRequest) -> Option<()> {
@@ -60,7 +60,9 @@ unsafe fn remove_servers_request(request: &ServerListRequest) -> Option<()> {
             list[index].0.handle,
         );
         
-        drop_filters(list[index].2.0, list[index].2.1);
+        if let Some(filters) = &list[index].2 {
+            drop_filters(filters.0, filters.1);
+        }
         // TODO: Возможно это здесь не нужно, ибо вызывается ReleaseRequest
         free_serverlist(list[index].0.callbacks);
     }
@@ -320,7 +322,7 @@ impl ServerListRequest {
     unsafe fn init(
         handle: steamworks_sys::HServerListRequest,
         callbacks: *mut ServerList_callbacks_real,
-        filters: (*mut steamworks_sys::MatchMakingKeyValuePair_t, usize),
+        filters: Option<RawVec>,
         mms: *mut steamworks_sys::ISteamMatchmakingServers,
     ) -> Option<Self> {
         let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
@@ -334,7 +336,7 @@ impl ServerListRequest {
         ).err()?;
         
         list.push(
-            (request.raw_clone(), 2, RawVec(filters.0, filters.1))
+            (request.raw_clone(), 2, filters)
         );
         
         Some(request)
@@ -514,7 +516,10 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request,
+                callbacks,
+                Some(RawVec(filters.0, filters.1)),
+                self.mms,
             )?;
             
             Some(request)
@@ -540,7 +545,10 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request,
+                callbacks,
+                Some(RawVec(filters.0, filters.1)),
+                self.mms,
             )?;
             
             Some(request)
@@ -566,7 +574,10 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request,
+                callbacks,
+                Some(RawVec(filters.0, filters.1)),
+                self.mms,
             )?;
             
             Some(request)
@@ -592,7 +603,10 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request,
+                callbacks,
+                Some(RawVec(filters.0, filters.1)),
+                self.mms,
             )?;
             
             Some(request)
@@ -614,7 +628,7 @@ impl<Manager> MatchmakingServers<Manager> {
             );
         
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request, callbacks, None, self.mms,
             )?;
         
             Some(request)
@@ -640,7 +654,10 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, filters, self.mms,
+                request,
+                callbacks,
+                Some(RawVec(filters.0, filters.1)),
+                self.mms,
             )?;
             
             Some(request)
