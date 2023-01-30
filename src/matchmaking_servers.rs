@@ -5,11 +5,22 @@ use serial_test::serial;
 unsafe impl Sync for ServerListRequest {}
 unsafe impl Send for ServerListRequest {}
 impl ServerListRequest {
-    unsafe fn clone(&self) -> Self {
+    unsafe fn raw_clone(&self) -> Self {
         Self {
             callbacks: self.callbacks.clone(),
             handle: self.handle.clone(),
             mms: self.mms.clone(),
+        }
+    }
+}
+impl Clone for ServerListRequest {
+    /// Can cause panic, be careful
+    fn clone(&self) -> Self {
+        unsafe {
+            let request = self.raw_clone();
+            add_servers_request(&request).unwrap(); // TODO: Убрать unwrap
+            
+            request
         }
     }
 }
@@ -252,11 +263,8 @@ matchmaking_servers_callback!(
         server: i32 => i32 where (|i| i)
     ),
     refresh_complete((|real, request, _| {
-        let list = SERVER_LIST_REQUESTS.lock().unwrap(); // TODO: Убрать unwrap
-        let index = list.binary_search_by(
-            |i| i.0.callbacks.cmp(&real)
-        ).unwrap();
-        remove_servers_request(&list[index].0).unwrap();
+        let request = ServerListRequest::get(request).unwrap(); // TODO: Убрать unwrap
+        remove_servers_request(&request).unwrap();
     })): (
         request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
         response: steamworks_sys::EMatchMakingServerResponse => steamworks_sys::EMatchMakingServerResponse where (|i| i)
@@ -312,8 +320,8 @@ impl ServerListRequest {
     unsafe fn init(
         handle: steamworks_sys::HServerListRequest,
         callbacks: *mut ServerList_callbacks_real,
+        filters: (*mut steamworks_sys::MatchMakingKeyValuePair_t, usize),
         mms: *mut steamworks_sys::ISteamMatchmakingServers,
-        vec: (*mut steamworks_sys::MatchMakingKeyValuePair_t, usize)
     ) -> Option<Self> {
         let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
         let request = Self {
@@ -326,7 +334,7 @@ impl ServerListRequest {
         ).err()?;
         
         list.push(
-            (request.clone(), 1, RawVec(vec.0, vec.1))
+            (request.raw_clone(), 2, RawVec(filters.0, filters.1))
         );
         
         Some(request)
@@ -339,8 +347,25 @@ impl ServerListRequest {
         let index = list.binary_search_by(
             |i| i.0.handle.cmp(&handle)
         ).ok()?;
-        add_servers_request(&list[index].0)?;
-        Some(list[index].0.clone())
+        let request = list[index].0.raw_clone();
+        drop(list);
+        add_servers_request(&request)?;
+        
+        Some(request)
+    }
+    
+    unsafe fn get_by_callbacks(
+        callbacks: *mut ServerList_callbacks_real
+    ) -> Option<Self> {
+        let list = SERVER_LIST_REQUESTS.lock().ok()?;
+        let index = list.binary_search_by(
+            |i| i.0.callbacks.cmp(&callbacks)
+        ).ok()?;
+        let request = list[index].0.raw_clone();
+        drop(list);
+        add_servers_request(&request)?;
+    
+        Some(request)
     }
     
     pub fn get_server_count(&self) -> i32 {
@@ -480,7 +505,7 @@ impl<Manager> MatchmakingServers<Manager> {
             );
             
             let request = ServerListRequest::init(
-                request, callbacks, self.mms, filters
+                request, callbacks, filters, self.mms,
             )?;
             
             Some(request)
@@ -489,3 +514,27 @@ impl<Manager> MatchmakingServers<Manager> {
 }
 
 // TODO: Tests
+#[test]
+fn test_history() {
+    let (client, single) = Client::init_app(304930).unwrap();
+    client.matchmaking_servers().request_history_servers(
+        304930,
+        HashMap::new(),
+        ServerListCallbacks {
+            responded: Box::new(|handle, server| {
+                println!("{}", handle.unwrap().get_server_details(server).server_name.unwrap());
+            }),
+            failed: Box::new(|handle, server| {
+            
+            }),
+            refresh_complete: Box::new(|handle, server| {
+                println!("Complete!");
+            }),
+        }
+    ).unwrap();
+    
+    loop {
+        single.run_callbacks();
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+}
