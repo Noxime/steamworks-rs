@@ -463,7 +463,7 @@ impl<Manager> MatchmakingServers<Manager> {
     
     pub fn request_history_servers(
         &self,
-        id: impl Into<steamworks_sys::AppId_t>,
+        id: impl Into<AppId>,
         filters: HashMap<String, String>,
         callbacks: ServerListCallbacks,
     ) -> Option<ServerListRequest> {
@@ -473,7 +473,7 @@ impl<Manager> MatchmakingServers<Manager> {
             
             let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestHistoryServerList(
                 self.mms,
-                id.into(),
+                id.into().0,
                 &mut filters.0 as *mut *mut _,
                 filters.1 as u32,
                 callbacks.cast()
