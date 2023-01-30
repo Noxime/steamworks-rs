@@ -415,6 +415,15 @@ impl ServerListRequest {
             Some(())
         }
     }
+    
+    pub fn is_refreshing(&self) -> bool {
+        unsafe {
+            steamworks_sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
+                self.mms,
+                self.handle,
+            )
+        }
+    }
 }
 
 impl Drop for ServerListRequest {
@@ -486,6 +495,58 @@ impl<Manager> MatchmakingServers<Manager> {
         }
     }
     
+    pub fn request_favorites_servers(
+        &self,
+        id: impl Into<AppId>,
+        filters: HashMap<String, String>,
+        callbacks: ServerListCallbacks,
+    ) -> Option<ServerListRequest> {
+        unsafe {
+            let mut filters = create_filters(filters)?;
+            let callbacks = create_serverlist(callbacks)?;
+            
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestFavoritesServerList(
+                self.mms,
+                id.into().0,
+                &mut filters.0 as *mut *mut _,
+                filters.1 as u32,
+                callbacks.cast()
+            );
+            
+            let request = ServerListRequest::init(
+                request, callbacks, filters, self.mms,
+            )?;
+            
+            Some(request)
+        }
+    }
+    
+    pub fn request_friends_servers(
+        &self,
+        id: impl Into<AppId>,
+        filters: HashMap<String, String>,
+        callbacks: ServerListCallbacks,
+    ) -> Option<ServerListRequest> {
+        unsafe {
+            let mut filters = create_filters(filters)?;
+            let callbacks = create_serverlist(callbacks)?;
+            
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestFriendsServerList(
+                self.mms,
+                id.into().0,
+                &mut filters.0 as *mut *mut _,
+                filters.1 as u32,
+                callbacks.cast()
+            );
+            
+            let request = ServerListRequest::init(
+                request, callbacks, filters, self.mms,
+            )?;
+            
+            Some(request)
+        }
+    }
+    
     pub fn request_history_servers(
         &self,
         id: impl Into<AppId>,
@@ -497,6 +558,80 @@ impl<Manager> MatchmakingServers<Manager> {
             let callbacks = create_serverlist(callbacks)?;
             
             let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestHistoryServerList(
+                self.mms,
+                id.into().0,
+                &mut filters.0 as *mut *mut _,
+                filters.1 as u32,
+                callbacks.cast()
+            );
+            
+            let request = ServerListRequest::init(
+                request, callbacks, filters, self.mms,
+            )?;
+            
+            Some(request)
+        }
+    }
+    
+    pub fn request_internet_servers(
+        &self,
+        id: impl Into<AppId>,
+        filters: HashMap<String, String>,
+        callbacks: ServerListCallbacks,
+    ) -> Option<ServerListRequest> {
+        unsafe {
+            let mut filters = create_filters(filters)?;
+            let callbacks = create_serverlist(callbacks)?;
+            
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestInternetServerList(
+                self.mms,
+                id.into().0,
+                &mut filters.0 as *mut *mut _,
+                filters.1 as u32,
+                callbacks.cast()
+            );
+            
+            let request = ServerListRequest::init(
+                request, callbacks, filters, self.mms,
+            )?;
+            
+            Some(request)
+        }
+    }
+    
+    pub fn request_lan_servers(
+        &self,
+        id: impl Into<AppId>,
+        callbacks: ServerListCallbacks,
+    ) -> Option<ServerListRequest> {
+        unsafe {
+            let callbacks = create_serverlist(callbacks)?;
+        
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
+                self.mms,
+                id.into().0,
+                callbacks.cast()
+            );
+        
+            let request = ServerListRequest::init(
+                request, callbacks, filters, self.mms,
+            )?;
+        
+            Some(request)
+        }
+    }
+    
+    pub fn request_spectators_servers(
+        &self,
+        id: impl Into<AppId>,
+        filters: HashMap<String, String>,
+        callbacks: ServerListCallbacks,
+    ) -> Option<ServerListRequest> {
+        unsafe {
+            let mut filters = create_filters(filters)?;
+            let callbacks = create_serverlist(callbacks)?;
+            
+            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestSpectatorServerList(
                 self.mms,
                 id.into().0,
                 &mut filters.0 as *mut *mut _,
