@@ -12,6 +12,39 @@ pub struct Utils<Manager> {
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
+pub struct GamepadTextInputDismissed {
+    pub submitted: bool,
+    pub submitted_text_len: Option<u32>,
+}
+
+unsafe impl Callback for GamepadTextInputDismissed {
+    const ID: i32 = 714;
+    const SIZE: i32 = ::std::mem::size_of::<sys::GamepadTextInputDismissed_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::GamepadTextInputDismissed_t);
+        GamepadTextInputDismissed {
+            submitted: val.m_bSubmitted,
+            submitted_text_len: if val.m_bSubmitted {
+                Some(val.m_unSubmittedText)
+            } else {
+                None
+            },
+        }
+    }
+}
+
+pub struct FloatingGamepadTextInputDismissed;
+
+unsafe impl Callback for FloatingGamepadTextInputDismissed {
+    const ID: i32 = 738;
+    const SIZE: i32 = ::std::mem::size_of::<sys::FloatingGamepadTextInputDismissed_t>() as i32;
+
+    unsafe fn from_raw(_: *mut c_void) -> Self {
+        FloatingGamepadTextInputDismissed
+    }
+}
+
 pub enum NotificationPosition {
     TopLeft,
     TopRight,
@@ -225,17 +258,22 @@ impl<Manager> Utils<Manager> {
     }
 
     /// Activates the Big Picture text input dialog which only supports gamepad input.
-    pub fn show_gamepad_text_input(
+    pub fn show_gamepad_text_input<F>(
         &self,
         input_mode: GamepadTextInputMode,
         input_line_mode: GamepadTextInputLineMode,
         description: &str,
         max_characters: u32,
         existing_text: Option<&str>,
-    ) -> bool {
+        dismissed_cb: F,
+    ) -> bool
+    where
+        F: FnMut(GamepadTextInputDismissed) + 'static + Send,
+    {
         unsafe {
             let description = CString::new(description).unwrap();
             let existing_text = existing_text.map(|s| CString::new(s).unwrap());
+            register_callback(&self._inner, dismissed_cb);
             sys::SteamAPI_ISteamUtils_ShowGamepadTextInput(
                 self.utils,
                 input_mode.into(),
@@ -254,15 +292,20 @@ impl<Manager> Utils<Manager> {
     ///
     /// The text field position is specified in pixels relative the origin of the game window and is used to
     /// position the floating keyboard in a way that doesn't cover the text field.
-    pub fn show_floating_gamepad_text_input(
+    pub fn show_floating_gamepad_text_input<F>(
         &self,
         keyboard_mode: FloatingGamepadTextInputMode,
         x: i32,
         y: i32,
         width: i32,
         height: i32,
-    ) -> bool {
+        dismissed_cb: F,
+    ) -> bool
+    where
+        F: FnMut(FloatingGamepadTextInputDismissed) + 'static + Send,
+    {
         unsafe {
+            register_callback(&self._inner, dismissed_cb);
             sys::SteamAPI_ISteamUtils_ShowFloatingGamepadTextInput(
                 self.utils,
                 keyboard_mode.into(),
