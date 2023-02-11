@@ -19,6 +19,68 @@ pub enum NotificationPosition {
     BottomRight,
 }
 
+pub enum GamepadTextInputMode {
+    Normal,
+    Password,
+}
+
+impl From<GamepadTextInputMode> for sys::EGamepadTextInputMode {
+    fn from(mode: GamepadTextInputMode) -> Self {
+        match mode {
+            GamepadTextInputMode::Normal => {
+                sys::EGamepadTextInputMode::k_EGamepadTextInputModeNormal
+            }
+            GamepadTextInputMode::Password => {
+                sys::EGamepadTextInputMode::k_EGamepadTextInputModePassword
+            }
+        }
+    }
+}
+
+pub enum GamepadTextInputLineMode {
+    SingleLine,
+    MultipleLines,
+}
+
+impl From<GamepadTextInputLineMode> for sys::EGamepadTextInputLineMode {
+    fn from(mode: GamepadTextInputLineMode) -> Self {
+        match mode {
+            GamepadTextInputLineMode::SingleLine => {
+                sys::EGamepadTextInputLineMode::k_EGamepadTextInputLineModeSingleLine
+            }
+            GamepadTextInputLineMode::MultipleLines => {
+                sys::EGamepadTextInputLineMode::k_EGamepadTextInputLineModeMultipleLines
+            }
+        }
+    }
+}
+
+pub enum FloatingGamepadTextInputMode {
+    SingleLine,
+    MultipleLines,
+    Email,
+    Numeric,
+}
+
+impl From<FloatingGamepadTextInputMode> for sys::EFloatingGamepadTextInputMode {
+    fn from(mode: FloatingGamepadTextInputMode) -> Self {
+        match mode {
+            FloatingGamepadTextInputMode::SingleLine => {
+                sys::EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine
+            }
+            FloatingGamepadTextInputMode::MultipleLines => {
+                sys::EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeMultipleLines
+            }
+            FloatingGamepadTextInputMode::Email => {
+                sys::EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeEmail
+            }
+            FloatingGamepadTextInputMode::Numeric => {
+                sys::EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeNumeric
+            }
+        }
+    }
+}
+
 lazy_static! {
     /// Global rust warning callback
     static ref WARNING_CALLBACK: RwLock<Option<Box<dyn Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
@@ -116,6 +178,99 @@ impl<Manager> Utils<Manager> {
         *lock = Some(Box::new(cb));
         unsafe {
             sys::SteamAPI_ISteamUtils_SetWarningMessageHook(self.utils, Some(c_warning_callback));
+        }
+    }
+
+    /// Gets the gamepad text input from the Big Picture overlay.
+    ///
+    /// This must be called within the `GamepadTextInputDismissed_t` callback, and only if
+    /// `GamepadTextInputDismissed_t::m_bSubmitted` is true.
+    ///
+    /// Provides the text input as UTF-8.
+    pub fn get_entered_gamepad_text_input(&self) -> Option<String> {
+        unsafe {
+            let mut buf = [0u8; 1024];
+            let len = 0;
+            let res = sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextInput(
+                self.utils,
+                buf.as_mut_ptr() as *mut i8,
+                buf.len() as u32,
+            );
+            if res {
+                Some(String::from_utf8_lossy(&buf[..len as usize]).into_owned())
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Gets the length of the gamepad text input from the Big Picture overlay.
+    ///
+    /// This must be called within the `GamepadTextInputDismissed_t` callback, and only if
+    /// `GamepadTextInputDismissed_t::m_bSubmitted` is true.
+    pub fn get_entered_gamepad_text_input_length(&self) -> Option<usize> {
+        unsafe {
+            let res = sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextLength(self.utils);
+            if res > 0 {
+                Some(res as usize)
+            } else {
+                None
+            }
+        }
+    }
+
+    /// Checks if Steam is running on a Steam Deck device.
+    pub fn is_steam_running_on_steam_deck(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(self.utils) }
+    }
+
+    /// Activates the Big Picture text input dialog which only supports gamepad input.
+    pub fn show_gamepad_text_input(
+        &self,
+        input_mode: GamepadTextInputMode,
+        input_line_mode: GamepadTextInputLineMode,
+        description: &str,
+        max_characters: u32,
+        existing_text: Option<&str>,
+    ) -> bool {
+        unsafe {
+            let description = CString::new(description).unwrap();
+            let existing_text = existing_text.map(|s| CString::new(s).unwrap());
+            sys::SteamAPI_ISteamUtils_ShowGamepadTextInput(
+                self.utils,
+                input_mode.into(),
+                input_line_mode.into(),
+                description.as_ptr(),
+                max_characters,
+                existing_text
+                    .as_ref()
+                    .map(|s| s.as_ptr())
+                    .unwrap_or(std::ptr::null()),
+            )
+        }
+    }
+
+    /// Opens a floating keyboard over the game content and sends OS keyboard keys directly to the game.
+    ///
+    /// The text field position is specified in pixels relative the origin of the game window and is used to
+    /// position the floating keyboard in a way that doesn't cover the text field.
+    pub fn show_floating_gamepad_text_input(
+        &self,
+        keyboard_mode: FloatingGamepadTextInputMode,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamUtils_ShowFloatingGamepadTextInput(
+                self.utils,
+                keyboard_mode.into(),
+                x,
+                y,
+                width,
+                height,
+            )
         }
     }
 }
