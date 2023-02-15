@@ -220,17 +220,16 @@ impl<Manager> Utils<Manager> {
     /// `GamepadTextInputDismissed_t::m_bSubmitted` is true.
     ///
     /// Provides the text input as UTF-8.
-    pub fn get_entered_gamepad_text_input(&self) -> Option<String> {
+    pub fn get_entered_gamepad_text_input(&self, length: usize) -> Option<String> {
         unsafe {
-            let mut buf = [0u8; 1024];
-            let len = 0;
+            let mut buf = vec![0u8; length];
             let res = sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextInput(
                 self.utils,
                 buf.as_mut_ptr() as *mut i8,
                 buf.len() as u32,
             );
             if res {
-                Some(String::from_utf8_lossy(&buf[..len as usize]).into_owned())
+                Some(String::from_utf8_lossy(&buf[..length]).into_owned())
             } else {
                 None
             }
