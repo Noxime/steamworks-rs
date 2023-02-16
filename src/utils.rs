@@ -13,7 +13,6 @@ pub struct Utils<Manager> {
 }
 
 pub struct GamepadTextInputDismissed {
-    pub submitted: bool,
     pub submitted_text_len: Option<u32>,
 }
 
@@ -24,12 +23,7 @@ unsafe impl Callback for GamepadTextInputDismissed {
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GamepadTextInputDismissed_t);
         GamepadTextInputDismissed {
-            submitted: val.m_bSubmitted,
-            submitted_text_len: if val.m_bSubmitted {
-                Some(val.m_unSubmittedText)
-            } else {
-                None
-            },
+            submitted_text_len: val.m_bSubmitted.then_some(val.m_unSubmittedText),
         }
     }
 }
@@ -216,38 +210,22 @@ impl<Manager> Utils<Manager> {
 
     /// Gets the gamepad text input from the Big Picture overlay.
     ///
-    /// This must be called within the `GamepadTextInputDismissed_t` callback, and only if
-    /// `GamepadTextInputDismissed_t::m_bSubmitted` is true.
-    ///
-    /// Provides the text input as UTF-8.
-    pub fn get_entered_gamepad_text_input(&self, length: usize) -> Option<String> {
+    /// This must be called within the `show_gamepad_text_input` callback. Returns `Some(String)` if user submitted the
+    /// text, and `None` otherwise
+    pub fn get_entered_gamepad_text_input(
+        &self,
+        dismissed_data: &GamepadTextInputDismissed,
+    ) -> Option<String> {
         unsafe {
-            let mut buf = vec![0u8; length];
-            let res = sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextInput(
+            let len = dismissed_data.submitted_text_len?;
+            let mut buf = vec![0u8; len as usize];
+
+            sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextInput(
                 self.utils,
                 buf.as_mut_ptr() as *mut i8,
-                buf.len() as u32,
-            );
-            if res {
-                Some(String::from_utf8_lossy(&buf[..length]).into_owned())
-            } else {
-                None
-            }
-        }
-    }
-
-    /// Gets the length of the gamepad text input from the Big Picture overlay.
-    ///
-    /// This must be called within the `GamepadTextInputDismissed_t` callback, and only if
-    /// `GamepadTextInputDismissed_t::m_bSubmitted` is true.
-    pub fn get_entered_gamepad_text_input_length(&self) -> Option<usize> {
-        unsafe {
-            let res = sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextLength(self.utils);
-            if res > 0 {
-                Some(res as usize)
-            } else {
-                None
-            }
+                len,
+            )
+            .then(|| String::from_utf8(buf).expect("Steamworks returned invalid UTF-8 string"))
         }
     }
 
@@ -291,6 +269,8 @@ impl<Manager> Utils<Manager> {
     ///
     /// The text field position is specified in pixels relative the origin of the game window and is used to
     /// position the floating keyboard in a way that doesn't cover the text field.
+    ///
+    /// Callback is triggered when user dismisses the text input
     pub fn show_floating_gamepad_text_input<F>(
         &self,
         keyboard_mode: FloatingGamepadTextInputMode,
@@ -298,13 +278,15 @@ impl<Manager> Utils<Manager> {
         y: i32,
         width: i32,
         height: i32,
-        dismissed_cb: F,
+        mut dismissed_cb: F,
     ) -> bool
     where
-        F: FnMut(FloatingGamepadTextInputDismissed) + 'static + Send,
+        F: FnMut() + 'static + Send, // TODO: Support FnOnce callbacks
     {
         unsafe {
-            register_callback(&self._inner, dismissed_cb);
+            register_callback(&self._inner, move |_: FloatingGamepadTextInputDismissed| {
+                dismissed_cb();
+            });
             sys::SteamAPI_ISteamUtils_ShowFloatingGamepadTextInput(
                 self.utils,
                 keyboard_mode.into(),
