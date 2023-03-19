@@ -138,4 +138,22 @@ impl<Manager> Apps<Manager> {
             }
         }
     }
+
+    /// Returns the command line if the game was launched via Steam URL
+    ///
+    /// If the game was not launched through Steam URL, this returns an empty string.
+    ///
+    /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamApps#GetLaunchCommandLine)
+    pub fn launch_command_line(&self) -> String {
+        unsafe {
+            let mut buffer = vec![0; 256];
+            let _bytes = sys::SteamAPI_ISteamApps_GetLaunchCommandLine(
+                self.apps,
+                buffer.as_mut_ptr(),
+                buffer.len() as _,
+            );
+            let command_line = CStr::from_ptr(buffer.as_ptr());
+            command_line.to_string_lossy().into_owned()
+        }
+    }
 }
