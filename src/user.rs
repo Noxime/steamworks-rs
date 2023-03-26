@@ -251,6 +251,29 @@ unsafe impl Callback for ValidateAuthTicketResponse {
     }
 }
 
+// Called when a microtransaction authorization response is received
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MicroTxnAuthorizationResponse {
+    pub app_id: AppId,
+    pub order_id: u64,
+    pub authorized: bool,
+}
+
+unsafe impl Callback for MicroTxnAuthorizationResponse {
+    const ID: i32 = 152;
+    const SIZE: i32 = std::mem::size_of::<sys::MicroTxnAuthorizationResponse_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::MicroTxnAuthorizationResponse_t);
+        MicroTxnAuthorizationResponse {
+            app_id: val.m_unAppID.into(),
+            order_id: val.m_ulOrderID.into(),
+            authorized: val.m_bAuthorized == 1,
+        }
+    }
+}
+
 /// Called when a connection to the Steam servers is made.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
