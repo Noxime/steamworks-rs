@@ -19,9 +19,8 @@ pub struct CallbackHandle<Manager = ClientManager> {
     inner: Weak<Inner<Manager>>,
 }
 unsafe impl<Manager> Send for CallbackHandle<Manager> {}
-
-impl<Manager> Drop for CallbackHandle<Manager> {
-    fn drop(&mut self) {
+impl<Manager> CallbackHandle<Manager> {
+    pub fn disconnect(&self) {
         if let Some(inner) = self.inner.upgrade() {
             match inner.callbacks.lock() {
                 Ok(mut cb) => {
@@ -55,7 +54,7 @@ where
     }
     CallbackHandle {
         id: C::ID,
-        inner: Arc::downgrade(&inner),
+        inner: Arc::downgrade(inner),
     }
 }
 
