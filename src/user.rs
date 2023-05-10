@@ -19,6 +19,11 @@ impl<Manager> User<Manager> {
         unsafe { sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32 }
     }
 
+    /// Returns whether the current user's Steam client is connected to the Steam servers.
+    pub fn logged_on(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUser_BLoggedOn(self.user) }
+    }
+
     /// Retrieve an authentication session ticket that can be sent
     /// to an entity that wishes to verify you.
     ///
