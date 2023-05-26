@@ -46,6 +46,12 @@ bitflags! {
     }
 }
 
+pub enum OverlayToStoreFlag {
+    None = 0,
+    AddToCart = 1,
+    AddToCartAndShow = 2,
+}
+
 /// Access to the steam friends interface
 pub struct Friends<Manager> {
     pub(crate) friends: *mut sys::ISteamFriends,
@@ -110,7 +116,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    // I don't know why this is part of friends either
+    // I don't know why these are part of friends either
     pub fn activate_game_overlay_to_web_page(&self, url: &str) {
         unsafe {
             let url = CString::new(url).unwrap();
@@ -118,6 +124,40 @@ impl<Manager> Friends<Manager> {
                 self.friends,
                 url.as_ptr() as *const _,
                 sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default,
+            );
+        }
+    }
+
+    pub fn activate_game_overlay_to_store(
+        &self,
+        app_id: AppId,
+        overlay_to_store_flag: OverlayToStoreFlag,
+    ) {
+        unsafe {
+            let overlay_to_store_flag = match overlay_to_store_flag {
+                OverlayToStoreFlag::None => sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_None,
+                OverlayToStoreFlag::AddToCart => {
+                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCart
+                }
+                OverlayToStoreFlag::AddToCartAndShow => {
+                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCartAndShow
+                }
+            };
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayToStore(
+                self.friends,
+                app_id.0,
+                overlay_to_store_flag,
+            );
+        }
+    }
+
+    pub fn activate_game_overlay_to_user(&self, dialog: &str, user: SteamId) {
+        let dialog = CString::new(dialog).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
+                self.friends,
+                dialog.as_ptr() as *const _,
+                user.0,
             );
         }
     }
