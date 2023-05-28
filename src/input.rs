@@ -55,6 +55,14 @@ impl<Manager> Input<Manager> {
         }
     }
 
+    /// Return ESteamInputType for a connected controller by handle
+    pub fn get_input_type_for_handle(
+        &self,
+        input_handle: sys::InputHandle_t,
+    ) -> sys::ESteamInputType {
+        unsafe { sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input, input_handle) }
+    }
+
     /// Returns the associated ControllerActionSet handle for the specified controller,
     pub fn get_action_set_handle(&self, action_set_name: &str) -> sys::InputActionSetHandle_t {
         let name = CString::new(action_set_name).unwrap();
