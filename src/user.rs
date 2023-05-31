@@ -1,4 +1,5 @@
 use super::*;
+use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
 
@@ -35,7 +36,16 @@ impl<Manager> User<Manager> {
     ///
     /// When the multiplayer session terminates you must call
     /// `cancel_authentication_ticket`
-    pub fn authentication_session_ticket(&self) -> (AuthTicket, Vec<u8>) {
+    pub fn authentication_session_ticket_with_steam_id(
+        &self,
+        steam_id: SteamId,
+    ) -> (AuthTicket, Vec<u8>) {
+        self.authentication_session_ticket(NetworkingIdentity::new_steam_id(steam_id))
+    }
+    pub fn authentication_session_ticket(
+        &self,
+        network_identity: NetworkingIdentity,
+    ) -> (AuthTicket, Vec<u8>) {
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
@@ -44,6 +54,7 @@ impl<Manager> User<Manager> {
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
+                network_identity.as_ptr(),
             );
             ticket.truncate(ticket_len as usize);
             (AuthTicket(auth_ticket), ticket)
@@ -113,6 +124,31 @@ impl<Manager> User<Manager> {
             sys::SteamAPI_ISteamUser_EndAuthSession(self.user, user.0);
         }
     }
+
+    /// Retrieve an authentication ticket to be sent to the entity that
+    /// wishes to authenticate you using the
+    /// ISteamUserAuth/AuthenticateUserTicket Web API.
+    ///
+    /// The calling application must wait for the
+    /// `TicketForWebApiResponse` callback generated  
+    /// by the API call to access the ticket.
+    ///  
+    /// It is best practice to use an identity string for
+    /// each service that will consume tickets.
+    ///   
+    /// This API can not be used to create a ticket for
+    /// use by the BeginAuthSession/ISteamGameServer::BeginAuthSession.
+    /// Use the `authentication_session_ticket` API instead
+    pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
+        unsafe {
+            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(
+                self.user,
+                identity.as_ptr() as *const ::std::os::raw::c_char,
+            );
+
+            AuthTicket(auth_ticket)
+        }
+    }
 }
 
 /// Errors from `begin_authentication_session`
@@ -137,16 +173,22 @@ pub enum AuthSessionError {
 
 #[test]
 #[serial]
-fn test() {
+fn test_auth_dll() {
     let (client, single) = Client::init().unwrap();
     let user = client.user();
 
-    let _cb = client
-        .register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
-    let _cb = client.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
+    let _cb = client.register_callback(|v: AuthSessionTicketResponse| {
+        println!("Got dll auth response: {:?}", v)
+    });
+    let _cb = client.register_callback(|v: ValidateAuthTicketResponse| {
+        println!("Got validate auth reponse: {:?}", v)
+    });
 
     let id = user.steam_id();
-    let (auth, ticket) = user.authentication_session_ticket();
+    let (auth, ticket) = user.authentication_session_ticket_with_steam_id(id);
+
+    println!("{:?}", auth);
+    println!("{:?}", ticket);
 
     println!("{:?}", user.begin_authentication_session(id, &ticket));
 
@@ -175,6 +217,7 @@ pub struct AuthTicket(pub(crate) sys::HAuthTicket);
 /// Called when generating a authentication session ticket.
 ///
 /// This can be used to verify the ticket was created successfully.
+#[derive(Debug)]
 pub struct AuthSessionTicketResponse {
     /// The ticket in question
     pub ticket: AuthTicket,
@@ -195,6 +238,60 @@ unsafe impl Callback for AuthSessionTicketResponse {
             } else {
                 Err(val.m_eResult.into())
             },
+        }
+    }
+}
+
+#[test]
+#[serial]
+fn test_auth_webapi() {
+    let (client, single) = Client::init().unwrap();
+    let user = client.user();
+
+    let _cb = client.register_callback(|v: TicketForWebApiResponse| {
+        println!("Got webapi auth response: {:?}", v)
+    });
+
+    let auth = user.authentication_session_ticket_for_webapi("myIdentity");
+
+    println!("{:?}", auth);
+
+    for _ in 0..20 {
+        single.run_callbacks();
+        ::std::thread::sleep(::std::time::Duration::from_millis(100));
+    }
+
+    println!("END");
+}
+
+/// Called when generating a authentication session ticket for web api.
+///
+/// This can be used to verify the ticket was created successfully.
+#[derive(Debug)]
+pub struct TicketForWebApiResponse {
+    pub ticket_handle: AuthTicket,
+    pub result: SResult<()>,
+    pub ticket_len: i32,
+    pub ticket: Vec<u8>,
+}
+
+unsafe impl Callback for TicketForWebApiResponse {
+    const ID: i32 = 168;
+    const SIZE: i32 = ::std::mem::size_of::<sys::GetTicketForWebApiResponse_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        println!("From raw: {:?}", raw);
+
+        let val = &mut *(raw as *mut sys::GetTicketForWebApiResponse_t);
+        TicketForWebApiResponse {
+            ticket_handle: AuthTicket(val.m_hAuthTicket),
+            result: if val.m_eResult == sys::EResult::k_EResultOK {
+                Ok(())
+            } else {
+                Err(val.m_eResult.into())
+            },
+            ticket_len: val.m_cubTicket,
+            ticket: val.m_rgubTicket.to_vec(),
         }
     }
 }
