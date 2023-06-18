@@ -994,7 +994,7 @@ pub struct InvalidEnumValue;
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
 pub struct NetConnectionInfo {
-    inner: sys::SteamNetConnectionInfo_t,
+    pub(crate) inner: sys::SteamNetConnectionInfo_t,
 }
 
 #[allow(dead_code)]
