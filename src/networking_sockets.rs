@@ -1,8 +1,8 @@
 use crate::networking_sockets_callback;
 use crate::networking_types::{
-    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo, NetworkingAvailability,
-    NetworkingAvailabilityError, NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage,
-    SendFlags, SteamIpAddr,
+    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo, NetQuickConnectionInfo,
+    NetworkingAvailability, NetworkingAvailabilityError, NetworkingConfigEntry, NetworkingIdentity,
+    NetworkingMessage, SendFlags, SteamIpAddr,
 };
 use crate::{CallbackHandle, Inner, SResult};
 #[cfg(test)]
@@ -283,6 +283,28 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         };
         if was_successful {
             Ok(NetConnectionInfo { inner: info })
+        } else {
+            Err(false)
+        }
+    }
+
+    /// Returns a small set of information about the real-time state of the connection.
+    ///
+    /// Returns false if the connection handle is invalid, or the connection has ended.
+    pub fn get_quick_connection_info(
+        &self,
+        connection: &NetConnection<Manager>,
+    ) -> Result<NetQuickConnectionInfo, bool> {
+        let mut info: sys::SteamNetworkingQuickConnectionStatus = unsafe { std::mem::zeroed() };
+        let was_successful = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetQuickConnectionStatus(
+                self.sockets,
+                connection.handle,
+                &mut info,
+            )
+        };
+        if was_successful {
+            Ok(NetQuickConnectionInfo { inner: info })
         } else {
             Err(false)
         }
