@@ -1100,11 +1100,15 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
 #[derive(Debug, Clone)]
 pub struct NetConnectionStatusChanged {
+    /// The handle of the connection that has changed state
+    // (only important for the ListenSocketEvent, so it can stay for now in the crate visibility)
     pub(crate) connection: sys::HSteamNetConnection,
+    /// Full connection info
     pub connection_info: NetConnectionInfo,
 
     // Debug is intentionally ignored during dead-code analysis
     #[allow(dead_code)]
+    /// Previous state.  (Current state is in m_info.m_eState)
     pub old_state: NetworkingConnectionState,
 }
 
