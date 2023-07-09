@@ -994,7 +994,7 @@ pub struct InvalidEnumValue;
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
 pub struct NetConnectionInfo {
-    inner: sys::SteamNetConnectionInfo_t,
+    pub(crate) inner: sys::SteamNetConnectionInfo_t,
 }
 
 #[allow(dead_code)]
@@ -1063,10 +1063,6 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     }
 }
 
-/// This in an internal callback that will be used by Steam Networking Sockets directly.
-/// It should not be created manually.
-///
-///
 /// This callback is posted whenever a connection is created, destroyed, or changes state.
 /// The m_info field will contain a complete description of the connection at the time the
 /// change occurred and the callback was posted.  In particular, m_eState will have the
@@ -1103,13 +1099,17 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
 #[derive(Debug, Clone)]
-pub(crate) struct NetConnectionStatusChanged {
+pub struct NetConnectionStatusChanged {
+    /// The handle of the connection that has changed state
+    // (only important for the ListenSocketEvent, so it can stay for now in the crate visibility)
     pub(crate) connection: sys::HSteamNetConnection,
-    pub(crate) connection_info: NetConnectionInfo,
+    /// Full connection info
+    pub connection_info: NetConnectionInfo,
 
     // Debug is intentionally ignored during dead-code analysis
     #[allow(dead_code)]
-    pub(crate) old_state: NetworkingConnectionState,
+    /// Previous state.  (Current state is in m_info.m_eState)
+    pub old_state: NetworkingConnectionState,
 }
 
 unsafe impl Callback for NetConnectionStatusChanged {

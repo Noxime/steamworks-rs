@@ -1,6 +1,6 @@
 use crate::networking_sockets_callback;
 use crate::networking_types::{
-    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetworkingAvailability,
+    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo, NetworkingAvailability,
     NetworkingAvailabilityError, NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage,
     SendFlags, SteamIpAddr,
 };
@@ -263,6 +263,28 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
             handle: poll_group,
             sockets: self.sockets,
             inner: self.inner.clone(),
+        }
+    }
+
+    /// Returns basic information about the high-level state of the connection.
+    ///
+    /// Returns false if the connection handle is invalid.
+    pub fn get_connection_info(
+        &self,
+        connection: &NetConnection<Manager>,
+    ) -> Result<NetConnectionInfo, bool> {
+        let mut info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
+        let was_successful = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
+                self.sockets,
+                connection.handle,
+                &mut info,
+            )
+        };
+        if was_successful {
+            Ok(NetConnectionInfo { inner: info })
+        } else {
+            Err(false)
         }
     }
 }
@@ -881,7 +903,7 @@ pub struct InvalidHandle;
 mod tests {
     use std::net::Ipv4Addr;
 
-    use crate::Client;
+    use crate::{networking_types::NetworkingConnectionState, Client};
 
     use super::*;
     use crate::networking_types::{
@@ -949,6 +971,20 @@ mod tests {
             ListenSocketEvent::Connected(connected) => connected.take_connection(),
             _ => panic!("unexpected event"),
         };
+
+        println!("Get connection info remote client");
+        let info = sockets.get_connection_info(&to_client).unwrap();
+        match info.state() {
+            Ok(state) => assert_eq!(state, NetworkingConnectionState::Connected),
+            _ => panic!("unexpected state"),
+        }
+
+        println!("Get connection info server");
+        let info = sockets.get_connection_info(&to_server).unwrap();
+        match info.state() {
+            Ok(state) => assert_eq!(state, NetworkingConnectionState::Connected),
+            _ => panic!("unexpected state"),
+        }
 
         println!("Send message to server");
         to_server
