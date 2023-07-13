@@ -141,9 +141,12 @@ impl<Manager> User<Manager> {
     /// Use the `authentication_session_ticket` API instead
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
         unsafe {
+            let c_str = CString::new(identity).unwrap();
+            let c_world: *const ::std::os::raw::c_char = c_str.as_ptr() as *const ::std::os::raw::c_char;
+            
             let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(
                 self.user,
-                identity.as_ptr() as *const ::std::os::raw::c_char,
+                c_world,
             );
 
             AuthTicket(auth_ticket)
