@@ -142,12 +142,10 @@ impl<Manager> User<Manager> {
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
         unsafe {
             let c_str = CString::new(identity).unwrap();
-            let c_world: *const ::std::os::raw::c_char = c_str.as_ptr() as *const ::std::os::raw::c_char;
-            
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(
-                self.user,
-                c_world,
-            );
+            let c_world: *const ::std::os::raw::c_char =
+                c_str.as_ptr() as *const ::std::os::raw::c_char;
+
+            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_world);
 
             AuthTicket(auth_ticket)
         }
