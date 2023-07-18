@@ -3255,6 +3255,24 @@ fn bindgen_test_layout_GetAuthSessionTicketResponse_t() {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct GetTicketForWebApiResponse_t {
+    pub m_hAuthTicket: HAuthTicket,
+    pub m_eResult: EResult,
+    pub m_cubTicket: std::os::raw::c_int,
+    pub m_rgubTicket: [uint8; 2560],
+}
+pub const GetTicketForWebApiResponse_t_k_iCallback: GetTicketForWebApiResponse_t__bindgen_ty_1 =
+    GetTicketForWebApiResponse_t__bindgen_ty_1::k_iCallback;
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum GetTicketForWebApiResponse_t__bindgen_ty_1 {
+    k_iCallback = 168,
+}
+
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct GameWebCallback_t {
     pub m_szURL: [::std::os::raw::c_char; 256usize],
 }
@@ -24565,7 +24583,7 @@ extern "C" {
     ) -> *mut ISteamRemotePlay;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUser_v021() -> *mut ISteamUser;
+    pub fn SteamAPI_SteamUser_v023() -> *mut ISteamUser;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUser_GetHSteamUser(self_: *mut ISteamUser) -> HSteamUser;
@@ -24657,6 +24675,7 @@ extern "C" {
         pTicket: *mut ::std::os::raw::c_void,
         cbMaxTicket: ::std::os::raw::c_int,
         pcbTicket: *mut uint32,
+        pSteamNetworkingIdentity: *const SteamNetworkingIdentity,
     ) -> HAuthTicket;
 }
 extern "C" {
@@ -24746,6 +24765,12 @@ extern "C" {
         self_: *mut ISteamUser,
         eNewState: EDurationControlOnlineState,
     ) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUser_GetAuthTicketForWebApi(
+        self_: *mut ISteamUser,
+        pchIdentity: *const ::std::os::raw::c_char
+    ) -> HAuthTicket;
 }
 extern "C" {
     pub fn SteamAPI_SteamFriends_v017() -> *mut ISteamFriends;
@@ -28148,7 +28173,7 @@ extern "C" {
     pub fn SteamAPI_SteamUGC_v016() -> *mut ISteamUGC;
 }
 extern "C" {
-    pub fn SteamAPI_SteamGameServerUGC_v016() -> *mut ISteamUGC;
+    pub fn SteamAPI_SteamGameServerUGC_v017() -> *mut ISteamUGC;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
@@ -30148,7 +30173,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamGameServer_v014() -> *mut ISteamGameServer;
+    pub fn SteamAPI_SteamGameServer_v015() -> *mut ISteamGameServer;
 }
 extern "C" {
     pub fn SteamAPI_ISteamGameServer_SetProduct(
@@ -30280,6 +30305,7 @@ extern "C" {
         pTicket: *mut ::std::os::raw::c_void,
         cbMaxTicket: ::std::os::raw::c_int,
         pcbTicket: *mut uint32,
+        pSteamNetworkingIdentity: *const SteamNetworkingIdentity,
     ) -> HAuthTicket;
 }
 extern "C" {
