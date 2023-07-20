@@ -270,7 +270,7 @@ impl<Manager> Matchmaking<Manager> {
         unsafe { sys::SteamAPI_ISteamMatchmaking_SetLobbyJoinable(self.mm, lobby.0, joinable) }
     }
 
-    pub fn send_lobby_chat_message(&self, lobby: LobbyId, msg: Vec<u8>) {
+    pub fn send_lobby_chat_message(&self, lobby: LobbyId, msg: &[u8]) {
         unsafe {
             steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
                 self.mm,
