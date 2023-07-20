@@ -124,9 +124,7 @@ impl<Manager> Matchmaking<Manager> {
                 api_call,
                 CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
-                    cb(if io_error {
-                        Err(())
-                    } else if v.m_EChatRoomEnterResponse != 1 {
+                    cb(if io_error || v.m_EChatRoomEnterResponse != 1 {
                         Err(())
                     } else {
                         Ok(LobbyId(v.m_ulSteamIDLobby))
@@ -270,6 +268,17 @@ impl<Manager> Matchmaking<Manager> {
     /// Returns true on success, false if the current user doesn't own the lobby.
     pub fn set_lobby_joinable(&self, lobby: LobbyId, joinable: bool) -> bool {
         unsafe { sys::SteamAPI_ISteamMatchmaking_SetLobbyJoinable(self.mm, lobby.0, joinable) }
+    }
+
+    pub fn send_lobby_chat_message(&mut self, lobby: LobbyId, msg: Vec<u8>) {
+        unsafe {
+            steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
+                self.mm,
+                lobby.0,
+                msg.as_ptr() as *const c_void,
+                msg.len() as i32,
+            );
+        }
     }
 }
 
