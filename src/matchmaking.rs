@@ -270,14 +270,43 @@ impl<Manager> Matchmaking<Manager> {
         unsafe { sys::SteamAPI_ISteamMatchmaking_SetLobbyJoinable(self.mm, lobby.0, joinable) }
     }
 
-    pub fn send_lobby_chat_message(&self, lobby: LobbyId, msg: &[u8]) {
-        unsafe {
+    /// Broadcasts a chat message (text or binary data) to all users in the lobby.
+    ///
+    /// # Parameters
+    /// - `lobby`: The Steam ID of the lobby to send the chat message to.
+    /// - `msg`: This can be text or binary data, up to 4 Kilobytes in size.
+    ///
+    /// # Description
+    /// All users in the lobby (including the local user) will receive a `LobbyChatMsg_t` callback
+    /// with the message.
+    ///
+    /// If you're sending binary data, you should prefix a header to the message so that you know
+    /// to treat it as your custom data rather than a plain old text message.
+    ///
+    /// For communication that needs to be arbitrated (e.g., having a user pick from a set of characters),
+    /// you can use the lobby owner as the decision maker. `GetLobbyOwner` returns the current lobby owner.
+    /// There is guaranteed to always be one and only one lobby member who is the owner.
+    /// So for the choose-a-character scenario, the user who is picking a character would send the binary
+    /// message 'I want to be Zoe', the lobby owner would see that message, see if it was OK, and broadcast
+    /// the appropriate result (user X is Zoe).
+    ///
+    /// These messages are sent via the Steam back-end, and so the bandwidth available is limited.
+    /// For higher-volume traffic like voice or game data, you'll want to use the Steam Networking API.
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the message was successfully sent. Returns an error of type `SteamError` if the
+    /// message is too small or too large, or if no connection to Steam could be made.
+    pub fn send_lobby_chat_message(&self, lobby: LobbyId, msg: &[u8]) -> Result<(), SteamError> {
+        match unsafe {
             steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
                 self.mm,
                 lobby.0,
                 msg.as_ptr() as *const c_void,
                 msg.len() as i32,
-            );
+            )
+        } {
+            true => Ok(()),
+            false => Err(SteamError::IOFailure),
         }
     }
 }
