@@ -29709,7 +29709,7 @@ extern "C" {
         pStatus: *mut SteamNetConnectionRealTimeStatus_t,
         nLanes: ::std::os::raw::c_int,
         pLanes: *mut SteamNetConnectionRealTimeLaneStatus_t,
-    ) -> bool;
+    ) -> EResult;
 }
 extern "C" {
     pub fn SteamAPI_ISteamNetworkingSockets_GetDetailedConnectionStatus(

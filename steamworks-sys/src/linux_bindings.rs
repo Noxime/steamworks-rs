@@ -21225,7 +21225,7 @@ fn bindgen_test_layout_SteamNetConnectionInfo_t() {
 #[doc = " more frequently without it being too big of a perf hit."]
 #[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
-pub struct SteamNetConnectionRealTimeLaneStatus_t {
+pub struct SteamNetConnectionRealTimeStatus_t {
     #[doc = " High level state of the connection"]
     pub m_eState: ESteamNetworkingConnectionState,
     #[doc = " Current ping (ms)"]
@@ -21289,201 +21289,198 @@ pub struct SteamNetConnectionRealTimeLaneStatus_t {
     pub reserved: [uint32; 16usize],
 }
 #[test]
-fn bindgen_test_layout_SteamNetConnectionRealTimeLaneStatus_t() {
+fn bindgen_test_layout_SteamNetConnectionRealTimeStatus_t() {
     assert_eq!(
-        ::std::mem::size_of::<SteamNetConnectionRealTimeLaneStatus_t>(),
+        ::std::mem::size_of::<SteamNetConnectionRealTimeStatus_t>(),
         120usize,
-        concat!(
-            "Size of: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t)
-        )
+        concat!("Size of: ", stringify!(SteamNetConnectionRealTimeStatus_t))
     );
     assert_eq!(
-        ::std::mem::align_of::<SteamNetConnectionRealTimeLaneStatus_t>(),
+        ::std::mem::align_of::<SteamNetConnectionRealTimeStatus_t>(),
         4usize,
         concat!(
             "Alignment of ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t)
+            stringify!(SteamNetConnectionRealTimeStatus_t)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_eState as *const _
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_eState as *const _
                 as usize
         },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_eState)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_nPing as *const _
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_nPing as *const _
                 as usize
         },
         4usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_nPing)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>()))
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>()))
                 .m_flConnectionQualityLocal as *const _ as usize
         },
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flConnectionQualityLocal)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>()))
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>()))
                 .m_flConnectionQualityRemote as *const _ as usize
         },
         12usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flConnectionQualityRemote)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_flOutPacketsPerSec
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_flOutPacketsPerSec
                 as *const _ as usize
         },
         16usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flOutPacketsPerSec)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_flOutBytesPerSec
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_flOutBytesPerSec
                 as *const _ as usize
         },
         20usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flOutBytesPerSec)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_flInPacketsPerSec
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_flInPacketsPerSec
                 as *const _ as usize
         },
         24usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flInPacketsPerSec)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_flInBytesPerSec
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_flInBytesPerSec
                 as *const _ as usize
         },
         28usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_flInBytesPerSec)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>()))
-                .m_nSendRateBytesPerSecond as *const _ as usize
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_nSendRateBytesPerSecond
+                as *const _ as usize
         },
         32usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_nSendRateBytesPerSecond)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_cbPendingUnreliable
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_cbPendingUnreliable
                 as *const _ as usize
         },
         36usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_cbPendingUnreliable)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_cbPendingReliable
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_cbPendingReliable
                 as *const _ as usize
         },
         40usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_cbPendingReliable)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>()))
-                .m_cbSentUnackedReliable as *const _ as usize
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_cbSentUnackedReliable
+                as *const _ as usize
         },
         44usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_cbSentUnackedReliable)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).m_usecQueueTime
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).m_usecQueueTime
                 as *const _ as usize
         },
         48usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(m_usecQueueTime)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<SteamNetConnectionRealTimeLaneStatus_t>())).reserved as *const _
+            &(*(::std::ptr::null::<SteamNetConnectionRealTimeStatus_t>())).reserved as *const _
                 as usize
         },
         56usize,
         concat!(
             "Offset of field: ",
-            stringify!(SteamNetConnectionRealTimeLaneStatus_t),
+            stringify!(SteamNetConnectionRealTimeStatus_t),
             "::",
             stringify!(reserved)
         )
@@ -29540,7 +29537,7 @@ extern "C" {
         self_: *mut ISteamNetworkingMessages,
         identityRemote: *const SteamNetworkingIdentity,
         pConnectionInfo: *mut SteamNetConnectionInfo_t,
-        pQuickStatus: *mut SteamNetConnectionRealTimeLaneStatus_t,
+        pQuickStatus: *mut SteamNetConnectionRealTimeStatus_t,
     ) -> ESteamNetworkingConnectionState;
 }
 extern "C" {
@@ -29677,7 +29674,7 @@ extern "C" {
         pStatus: *mut SteamNetConnectionRealTimeStatus_t,
         nLanes: ::std::os::raw::c_int,
         pLanes: *mut SteamNetConnectionRealTimeLaneStatus_t,
-    ) -> bool;
+    ) -> EResult;
 }
 extern "C" {
     pub fn SteamAPI_ISteamNetworkingSockets_GetDetailedConnectionStatus(

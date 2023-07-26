@@ -1,9 +1,12 @@
-use crate::networking_types::{
-    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo,
-    NetConnectionRealTimeInfo, NetworkingAvailability, NetworkingAvailabilityError,
-    NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage, SendFlags, SteamIpAddr,
-};
 use crate::{networking_sockets_callback, networking_types::NetConnectionRealTimeLaneStatus};
+use crate::{
+    networking_types::{
+        ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo,
+        NetConnectionRealTimeInfo, NetworkingAvailability, NetworkingAvailabilityError,
+        NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage, SendFlags, SteamIpAddr,
+    },
+    SteamError,
+};
 use crate::{CallbackHandle, Inner, SResult};
 #[cfg(test)]
 use serial_test::serial;
@@ -302,12 +305,12 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
             NetConnectionRealTimeInfo,
             Vec<NetConnectionRealTimeLaneStatus>,
         ),
-        bool,
+        SteamError,
     > {
         let mut info: sys::SteamNetConnectionRealTimeStatus_t = unsafe { std::mem::zeroed() };
         let mut p_lanes: Vec<sys::SteamNetConnectionRealTimeLaneStatus_t> =
             Vec::with_capacity(lanes as usize);
-        let was_successful = unsafe {
+        let result = unsafe {
             // Get a reference to the uninitialized part of our Vec's buffer
             let uninitialized = p_lanes.spare_capacity_mut();
             let status = sys::SteamAPI_ISteamNetworkingSockets_GetConnectionRealTimeStatus(
@@ -321,7 +324,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
             p_lanes.set_len(lanes as usize);
             status
         };
-        if was_successful {
+        if result == sys::EResult::k_EResultOK {
             Ok((
                 NetConnectionRealTimeInfo { inner: info },
                 p_lanes
@@ -330,7 +333,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
                     .collect(),
             ))
         } else {
-            Err(false)
+            Err(result.into())
         }
     }
     /// Configure multiple outbound messages streams ("lanes") on a connection, and control head-of-line blocking between them. Messages within a given lane are always sent in the order they are queued, but messages from different lanes may be sent out of order. Each lane has its own message number sequence. The first message sent on each lane will be assigned the number 1.
@@ -346,7 +349,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         num_lanes: i32,
         lane_priorities: &[i32],
         lane_weights: &[u16],
-    ) -> Result<(), bool> {
+    ) -> Result<(), SteamError> {
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_ConfigureConnectionLanes(
                 self.sockets,
@@ -359,7 +362,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         if result == sys::EResult::k_EResultOK {
             Ok(())
         } else {
-            Err(false)
+            Err(result.into())
         }
     }
 }
