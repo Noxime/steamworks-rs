@@ -1063,13 +1063,13 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     }
 }
 
-/// SteamNetworkingQuickConnectionStatus structure
+/// SteamNetConnectionRealTimeStatus_t structure
 #[derive(Clone)]
-pub struct NetQuickConnectionInfo {
-    pub(crate) inner: sys::SteamNetworkingQuickConnectionStatus,
+pub struct NetConnectionRealTimeInfo {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeStatus_t,
 }
 
-impl NetQuickConnectionInfo {
+impl NetConnectionRealTimeInfo {
     pub fn connection_state(&self) -> Result<NetworkingConnectionState, InvalidConnectionState> {
         self.inner.m_eState.try_into()
     }
@@ -1170,7 +1170,7 @@ impl NetQuickConnectionInfo {
     }
 }
 
-impl Debug for NetQuickConnectionInfo {
+impl Debug for NetConnectionRealTimeInfo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NetQuickConnectionInfo")
             .field("connection_state", &self.connection_state())
@@ -1193,8 +1193,58 @@ impl Debug for NetQuickConnectionInfo {
     }
 }
 
-impl From<sys::SteamNetworkingQuickConnectionStatus> for NetQuickConnectionInfo {
-    fn from(info: steamworks_sys::SteamNetworkingQuickConnectionStatus) -> Self {
+impl From<sys::SteamNetConnectionRealTimeStatus_t> for NetConnectionRealTimeInfo {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeStatus_t) -> Self {
+        Self { inner: info }
+    }
+}
+
+/// Quick status of a particular lane
+#[derive(Clone)]
+pub struct NetConnectionRealTimeLaneStatus {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeLaneStatus_t,
+}
+
+impl NetConnectionRealTimeLaneStatus {
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_unreliable(&self) -> i32 {
+        self.inner.m_cbPendingUnreliable
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_reliable(&self) -> i32 {
+        self.inner.m_cbPendingReliable
+    }
+    /// Number of bytes of reliable data that has been placed the wire, but
+    /// for which we have not yet received an acknowledgment, and thus we may
+    /// have to re-transmit.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn sent_unacked_reliable(&self) -> i32 {
+        self.inner.m_cbSentUnackedReliable
+    }
+    /// Lane-specific queue time.  This value takes into consideration lane priorities
+    /// and weights, and how much data is queued in each lane, and attempts to predict
+    /// how any data currently queued will be sent out.
+    pub fn queued_send_bytes(&self) -> i64 {
+        self.inner.m_usecQueueTime
+    }
+}
+
+impl From<sys::SteamNetConnectionRealTimeLaneStatus_t> for NetConnectionRealTimeLaneStatus {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeLaneStatus_t) -> Self {
         Self { inner: info }
     }
 }
