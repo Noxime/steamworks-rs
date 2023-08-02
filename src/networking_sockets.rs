@@ -12,6 +12,7 @@ use std::ffi::CString;
 use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
+use sys::SteamNetworkingMessage_t;
 
 use steamworks_sys as sys;
 
@@ -263,6 +264,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
             handle: poll_group,
             sockets: self.sockets,
             inner: self.inner.clone(),
+            message_buffer: Vec::new(),
         }
     }
 
@@ -445,7 +447,7 @@ pub struct NetConnection<Manager> {
     socket: Option<Arc<InnerSocket<Manager>>>,
     _callback_handle: Option<Arc<CallbackHandle<Manager>>>,
     _event_receiver: Option<Receiver<()>>,
-
+    message_buffer: Vec<*mut SteamNetworkingMessage_t>,
     is_handled: bool,
 }
 
@@ -466,6 +468,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: Some(socket),
             _callback_handle: None,
             _event_receiver: None,
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -491,6 +494,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: None,
             _callback_handle: Some(callback),
             _event_receiver: Some(receiver),
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -509,6 +513,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: None,
             _callback_handle: None,
             _event_receiver: None,
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -776,21 +781,24 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// If any messages are returned, you MUST call SteamNetworkingMessage_t::Release() on each
     /// of them free up resources after you are done.  It is safe to keep the object alive for
     /// a little while (put it into some queue, etc), and you may call Release() from any thread.
-    pub fn receive_messages(&self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
-        // TODO: Optionally make it possible to reuse the same buffer to avoid allocation
-        let mut buffer = Vec::with_capacity(batch_size);
+    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
                 self.sockets,
                 self.handle,
-                buffer.as_mut_ptr(),
+                self.message_buffer.as_mut_ptr(),
                 batch_size as _,
             );
-            buffer.set_len(message_count as usize);
+            self.message_buffer.set_len(message_count as usize);
         }
 
-        buffer
-            .into_iter()
+        self.message_buffer
+            .drain(..)
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
@@ -860,25 +868,31 @@ pub struct NetPollGroup<Manager> {
     handle: sys::HSteamNetPollGroup,
     sockets: *mut sys::ISteamNetworkingSockets,
     inner: Arc<Inner<Manager>>,
+    message_buffer: Vec<*mut SteamNetworkingMessage_t>,
 }
 
 unsafe impl<Manager: Send + Sync> Send for NetPollGroup<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for NetPollGroup<Manager> {}
 
 impl<Manager> NetPollGroup<Manager> {
-    pub fn receive_messages(&self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
-        let mut buffer = Vec::with_capacity(batch_size);
+    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
         unsafe {
             let count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
                 self.sockets,
                 self.handle,
-                buffer.as_mut_ptr(),
+                self.message_buffer.as_mut_ptr(),
                 batch_size as _,
             ) as usize;
-            buffer.set_len(count);
+            self.message_buffer.set_len(count);
         }
-        buffer
-            .into_iter()
+
+        self.message_buffer
+            .drain(..)
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
@@ -941,7 +955,7 @@ mod tests {
             .unwrap();
 
         println!("Create connection");
-        let to_server = sockets
+        let mut to_server = sockets
             .connect_by_ip_address(bound_ip, debug_config)
             .unwrap();
 
@@ -967,7 +981,7 @@ mod tests {
         }
 
         let event = socket.try_receive_event().unwrap();
-        let to_client = match event {
+        let mut to_client = match event {
             ListenSocketEvent::Connected(connected) => connected.take_connection(),
             _ => panic!("unexpected event"),
         };
