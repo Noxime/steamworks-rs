@@ -22786,7 +22786,7 @@ fn bindgen_test_layout_SteamNetConnectionRealTimeStatus_t() {
         )
     );
 }
-#[doc = " Quick status of a particular lane"]
+#[doc = " Realtime status of a particular lane"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamNetConnectionRealTimeLaneStatus_t {
@@ -26065,7 +26065,7 @@ extern "C" {
 extern "C" {
     pub fn SteamAPI_ISteamUser_GetAuthTicketForWebApi(
         self_: *mut ISteamUser,
-        pchIdentity: *const ::std::os::raw::c_char
+        pchIdentity: *const ::std::os::raw::c_char,
     ) -> HAuthTicket;
 }
 extern "C" {

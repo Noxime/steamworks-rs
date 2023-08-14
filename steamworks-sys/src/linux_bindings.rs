@@ -3270,7 +3270,6 @@ pub enum GetTicketForWebApiResponse_t__bindgen_ty_1 {
     k_iCallback = 168,
 }
 
-
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct GameWebCallback_t {
@@ -24766,7 +24765,7 @@ extern "C" {
 extern "C" {
     pub fn SteamAPI_ISteamUser_GetAuthTicketForWebApi(
         self_: *mut ISteamUser,
-        pchIdentity: *const ::std::os::raw::c_char
+        pchIdentity: *const ::std::os::raw::c_char,
     ) -> HAuthTicket;
 }
 extern "C" {

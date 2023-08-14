@@ -24800,7 +24800,7 @@ extern "C" {
 extern "C" {
     pub fn SteamAPI_ISteamUser_GetAuthTicketForWebApi(
         self_: *mut ISteamUser,
-        pchIdentity: *const ::std::os::raw::c_char
+        pchIdentity: *const ::std::os::raw::c_char,
     ) -> HAuthTicket;
 }
 extern "C" {

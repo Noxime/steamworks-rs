@@ -5,28 +5,32 @@ use steamworks::{Client, ClientManager, PublishedFileId, UGC};
 fn create_item(ugc: &UGC<ClientManager>) {
     // creating a new workshop item
     // make sure you change the appid to the specified game
-    ugc.create_item(480, steamworks::FileType::Community, |create_result| {
-        // handle the result
-        match create_result {
-            Ok((published_id, needs_to_agree_to_terms)) => {
-                // if the user needs to agree to the terms of use, they will need to do that before you can upload any files
-                // in any case, make sure you save the published_id somewhere, like a manifest file.
-                // it is needed for all further calls
-                if needs_to_agree_to_terms {
-                    println!(
-                        "You need to agree to the terms of use before you can upload any files"
-                    );
-                } else {
-                    println!("Published item with id {}", published_id);
+    ugc.create_item(
+        steamworks::AppId(480),
+        steamworks::FileType::Community,
+        |create_result| {
+            // handle the result
+            match create_result {
+                Ok((published_id, needs_to_agree_to_terms)) => {
+                    // if the user needs to agree to the terms of use, they will need to do that before you can upload any files
+                    // in any case, make sure you save the published_id somewhere, like a manifest file.
+                    // it is needed for all further calls
+                    if needs_to_agree_to_terms {
+                        println!(
+                            "You need to agree to the terms of use before you can upload any files"
+                        );
+                    } else {
+                        println!("Published item with id {:?}", published_id);
+                    }
+                }
+                Err(e) => {
+                    // an error occurred, usually because the app is not authorized to create items
+                    // or the user is banned from the community
+                    println!("Error creating workshop item: {:?}", e);
                 }
             }
-            Err(e) => {
-                // an error occurred, usually because the app is not authorized to create items
-                // or the user is banned from the community
-                println!("Error creating workshop item: {:?}", e);
-            }
-        }
-    });
+        },
+    );
 }
 
 fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
@@ -47,12 +51,12 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
     // - once an upload is started, it cannot be cancelled!
     // - content_path is the path to a folder which houses the content you wish to upload
     let upload_handle = ugc
-        .start_item_update(480, published_id)
-        .content_path("/absolute/path/to/content")
+        .start_item_update(steamworks::AppId(480), published_id)
+        .content_path(Path::new("/absolute/path/to/content"))
         .preview_path(Path::new("/absolute/path/to/preview.png"))
         .title("Item title")
         .description("Item description")
-        .tags([])
+        .tags(Vec::<String>::new())
         .visibility(steamworks::PublishedFileVisibility::Public)
         .submit(Some("My changenotes"), |upload_result| {
             // handle the result
@@ -68,7 +72,7 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
                         // this is the definite indicator that an item was uploaded successfully
                         // the watch handle is NOT an accurate indicator whether the upload is done
                         // the progress on the other hand IS accurate and can simply be used to monitor the upload
-                        println!("Uploaded item with id {}", published_id);
+                        println!("Uploaded item with id {:?}", published_id);
                     }
                 }
                 Err(e) => {
@@ -82,11 +86,11 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
 
 fn delete_item(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
     // deleting an item
-    ugc.delete_item(published_id, |delete_result| {
+    ugc.delete_item(published_id, move |delete_result| {
         match delete_result {
             Ok(()) => {
                 // item has been deleted
-                println!("Deleted item with id {}", published_id);
+                println!("Deleted item with id {:?}", published_id);
             }
             Err(e) => {
                 // the item could not be deleted
@@ -139,6 +143,4 @@ fn main() {
     callback_thread
         .join()
         .expect("Failed to join callback thread");
-
-    Ok(())
 }
