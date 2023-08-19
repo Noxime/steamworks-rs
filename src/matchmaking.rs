@@ -309,6 +309,276 @@ impl<Manager> Matchmaking<Manager> {
             false => Err(SteamError::IOFailure),
         }
     }
+    /// Adds a string comparison filter to the lobby list request.
+    ///
+    /// This method adds a filter that compares a specific string attribute in lobbies
+    /// with the provided value. Lobbies matching this criterion will be included in the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: The attribute key to compare.
+    /// * `value`: The value to compare against.
+    ///
+    pub fn set_request_lobby_list_string_filter(&self, key: &str, value: &str) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
+                self.mm,
+                key.as_ptr() as _,
+                value.as_ptr() as _,
+                sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            );
+        }
+    }
+    /// Adds a numerical comparison filter to the lobby list request.
+    ///
+    /// This method adds a filter that compares a specific numerical attribute in lobbies
+    /// with the provided value. Lobbies matching this criterion will be included in the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: The attribute key to compare.
+    /// * `value`: The value to compare against.
+    ///
+    pub fn set_request_lobby_list_numerical_filter(&self, key: &str, value: i32) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
+                self.mm,
+                key.as_ptr() as _,
+                value,
+                sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            );
+        }
+    }
+    /// Adds a near value filter to the lobby list request.
+    ///
+    /// This method adds a filter that sorts the lobby results based on their closeness
+    /// to a specific value. No actual filtering is performed; lobbies are sorted based on proximity.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: The attribute key to use for sorting.
+    /// * `value`: The reference value for sorting.
+    ///
+    pub fn set_request_lobby_list_near_value_filter(&self, key: &str, value: i32) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
+                self.mm,
+                key.as_ptr() as _,
+                value,
+            );
+        }
+    }
+    /// Adds a filter for available open slots to the lobby list request.
+    ///
+    /// This method adds a filter that includes lobbies having a specific number of open slots.
+    ///
+    /// # Arguments
+    ///
+    /// * `open_slots`: The number of open slots in a lobby to filter by.
+    ///
+    pub fn set_request_lobby_list_slots_available_filter(&self, open_slots: u8) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListFilterSlotsAvailable(
+                self.mm,
+                open_slots as i32,
+            );
+        }
+    }
+    /// Adds a distance filter to the lobby list request.
+    ///
+    /// This method adds a filter that includes lobbies within a certain distance criterion.
+    ///
+    /// # Arguments
+    ///
+    /// * `distance`: The `DistanceFilter` indicating the distance criterion for the filter.
+    ///
+    pub fn set_request_lobby_list_distance_filter(&self, distance: DistanceFilter) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListDistanceFilter(
+                self.mm,
+                distance.into(),
+            );
+        }
+    }
+    /// Adds a result count filter to the lobby list request.
+    ///
+    /// This method adds a filter to limit the number of lobby results returned by the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `count`: The maximum number of lobby results to include in the response.
+    ///
+    pub fn set_request_lobby_list_result_count_filter(&self, count: u64) {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListResultCountFilter(
+                self.mm,
+                count as i32,
+            );
+        }
+    }
+
+    /// Sets filters for the lobbies to be returned from [`request_lobby_list`].
+    ///
+    /// This method is used to apply various filters to the lobby list retrieval process.
+    /// Call this method before calling `request_lobby_list` to ensure that the specified filters
+    /// are taken into account when fetching the list of available lobbies.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter`: A [`LobbyListFilter`] struct containing the filter criteria to be applied.
+    ///
+    /// [`request_lobby_list`]: #method.request_lobby_list
+    /// [`LobbyListFilter`]: struct.LobbyListFilter.html
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use steamworks::*;
+    /// fn main() {
+    ///     let (client, single) = Client::init().unwrap();
+    ///     client.matchmaking().set_lobby_list_filter(
+    ///         LobbyListFilter {
+    ///            string: Some(("name", "My Lobby")),
+    ///           ..Default::default()
+    ///       }
+    ///    ).request_lobby_list(|lobbies| {
+    ///         println!("Lobbies: {:?}", lobbies);
+    ///     });
+    /// }
+    /// ```
+    pub fn set_lobby_list_filter(&self, filter: LobbyListFilter) -> &Self {
+        if let Some((key, value)) = filter.string {
+            self.set_request_lobby_list_string_filter(key, value);
+        }
+        if let Some((key, value)) = filter.number {
+            self.set_request_lobby_list_numerical_filter(key, value);
+        }
+        if let Some((key, value)) = filter.near_value {
+            self.set_request_lobby_list_near_value_filter(key, value);
+        }
+        if let Some(distance) = filter.distance {
+            self.set_request_lobby_list_distance_filter(distance);
+        }
+        if let Some(open_slots) = filter.open_slots {
+            self.set_request_lobby_list_slots_available_filter(open_slots);
+        }
+        if let Some(count) = filter.count {
+            self.set_request_lobby_list_result_count_filter(count);
+        }
+        self
+    }
+}
+
+/// Filters for the lobbies to be returned from `request_lobby_list`.
+///
+/// This struct is designed to be used as part of the filtering process
+/// when calling the [`set_lobby_list_filter`] method.
+///
+/// # Fields
+///
+/// - `string`: A string comparison filter that matches lobby attributes with specific strings.
+/// - `number`: A number comparison filter that matches lobby attributes with specific integer values.
+/// - `near_value`: Specifies a value, and the results will be sorted closest to this value (no actual filtering).
+/// - `open_slots`: Filters lobbies based on the number of open slots they have.
+/// - `distance`: Filters lobbies based on a distance criterion.
+/// - `count`: Specifies the maximum number of lobby results to be returned.
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct LobbyListFilter<'a> {
+    /// A string comparison filter that matches lobby attributes with specific strings.
+    string: Option<(&'a str, &'a str)>,
+    /// A number comparison filter that matches lobby attributes with specific integer values
+    number: Option<(&'a str, i32)>,
+    /// Specifies a value, and the results will be sorted closest to this value (no actual filtering)
+    near_value: Option<(&'a str, i32)>,
+    /// Filters lobbies based on the number of open slots they have
+    open_slots: Option<u8>,
+    /// Filters lobbies based on a distance criterion
+    distance: Option<DistanceFilter>,
+    /// Specifies the maximum number of lobby results to be returned
+    count: Option<u64>,
+}
+
+impl<'a> LobbyListFilter<'a> {
+    /// Sets the string comparison filter for the lobby list filter.
+    ///
+    /// # Arguments
+    ///
+    /// * `string`: A tuple containing the attribute name and the target string value to match.
+    ///
+    pub fn set_string(&mut self, string: Option<(&'a str, &'a str)>) {
+        self.string = string;
+    }
+
+    /// Sets the number comparison filter for the lobby list filter.
+    ///
+    /// # Arguments
+    ///
+    /// * `number`: A tuple containing the attribute name and the target integer value to match.
+    ///
+    pub fn set_number(&mut self, number: Option<(&'a str, i32)>) {
+        self.number = number;
+    }
+
+    /// Sets the near value filter for the lobby list filter.
+    ///
+    /// # Arguments
+    ///
+    /// * `near_value`: A tuple containing the attribute name and the reference integer value.
+    ///                 Lobby results will be sorted based on their closeness to this value.
+    ///
+    pub fn set_near_value(&mut self, near_value: Option<(&'a str, i32)>) {
+        self.near_value = near_value;
+    }
+
+    /// Sets the open slots filter for the lobby list filter.
+    ///
+    /// # Arguments
+    ///
+    /// * `open_slots`: The number of open slots to filter lobbies by.
+    ///
+    pub fn set_open_slots(&mut self, open_slots: Option<u8>) {
+        self.open_slots = open_slots;
+    }
+
+    /// Sets the distance filter for the lobby list filter.
+    ///
+    /// # Arguments
+    ///
+    /// * `distance`: A distance filter that specifies a distance criterion for filtering lobbies.
+    ///
+    pub fn set_distance(&mut self, distance: Option<DistanceFilter>) {
+        self.distance = distance;
+    }
+
+    /// Sets the maximum number of lobby results to be returned.
+    ///
+    /// # Arguments
+    ///
+    /// * `count`: The maximum number of lobby results to retrieve.
+    ///
+    pub fn set_count(&mut self, count: Option<u64>) {
+        self.count = count;
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum DistanceFilter {
+    Close,
+    #[default]
+    Default,
+    Far,
+    Worldwide,
+}
+
+impl From<DistanceFilter> for sys::ELobbyDistanceFilter {
+    fn from(filter: DistanceFilter) -> Self {
+        match filter {
+            DistanceFilter::Close => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterClose,
+            DistanceFilter::Default => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterDefault,
+            DistanceFilter::Far => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterFar,
+            DistanceFilter::Worldwide => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterWorldwide,
+        }
+    }
 }
 
 /// Flags describing how a users lobby state has changed. This is provided from `LobbyChatUpdate`.
