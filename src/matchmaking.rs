@@ -489,6 +489,7 @@ impl<Manager> Matchmaking<Manager> {
 /// - `distance`: Filters lobbies based on a distance criterion.
 /// - `count`: Specifies the maximum number of lobby results to be returned.
 #[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyListFilter<'a> {
     /// A string comparison filter that matches lobby attributes with specific strings.
     string: Option<(&'a str, &'a str)>,
@@ -568,6 +569,7 @@ impl<'a> LobbyListFilter<'a> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DistanceFilter {
     Close,
     #[default]
