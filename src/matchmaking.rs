@@ -319,7 +319,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_string_filter(&self, key: &str, value: &str) {
+    pub fn set_request_lobby_list_string_filter(&self, key: &str, value: &str) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
                 self.mm,
@@ -328,6 +328,7 @@ impl<Manager> Matchmaking<Manager> {
                 sys::ELobbyComparison::k_ELobbyComparisonEqual,
             );
         }
+        self
     }
     /// Adds a numerical comparison filter to the lobby list request.
     ///
@@ -339,7 +340,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_numerical_filter(&self, key: &str, value: i32) {
+    pub fn set_request_lobby_list_numerical_filter(&self, key: &str, value: i32) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
                 self.mm,
@@ -348,6 +349,7 @@ impl<Manager> Matchmaking<Manager> {
                 sys::ELobbyComparison::k_ELobbyComparisonEqual,
             );
         }
+        self
     }
     /// Adds a near value filter to the lobby list request.
     ///
@@ -359,7 +361,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to use for sorting.
     /// * `value`: The reference value for sorting.
     ///
-    pub fn set_request_lobby_list_near_value_filter(&self, key: &str, value: i32) {
+    pub fn set_request_lobby_list_near_value_filter(&self, key: &str, value: i32) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
                 self.mm,
@@ -367,6 +369,7 @@ impl<Manager> Matchmaking<Manager> {
                 value,
             );
         }
+        self
     }
     /// Adds a filter for available open slots to the lobby list request.
     ///
@@ -376,13 +379,14 @@ impl<Manager> Matchmaking<Manager> {
     ///
     /// * `open_slots`: The number of open slots in a lobby to filter by.
     ///
-    pub fn set_request_lobby_list_slots_available_filter(&self, open_slots: u8) {
+    pub fn set_request_lobby_list_slots_available_filter(&self, open_slots: u8) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListFilterSlotsAvailable(
                 self.mm,
                 open_slots as i32,
             );
         }
+        self
     }
     /// Adds a distance filter to the lobby list request.
     ///
@@ -392,13 +396,14 @@ impl<Manager> Matchmaking<Manager> {
     ///
     /// * `distance`: The `DistanceFilter` indicating the distance criterion for the filter.
     ///
-    pub fn set_request_lobby_list_distance_filter(&self, distance: DistanceFilter) {
+    pub fn set_request_lobby_list_distance_filter(&self, distance: DistanceFilter) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListDistanceFilter(
                 self.mm,
                 distance.into(),
             );
         }
+        self
     }
     /// Adds a result count filter to the lobby list request.
     ///
@@ -408,13 +413,14 @@ impl<Manager> Matchmaking<Manager> {
     ///
     /// * `count`: The maximum number of lobby results to include in the response.
     ///
-    pub fn set_request_lobby_list_result_count_filter(&self, count: u64) {
+    pub fn set_request_lobby_list_result_count_filter(&self, count: u64) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListResultCountFilter(
                 self.mm,
                 count as i32,
             );
         }
+        self
     }
 
     /// Sets filters for the lobbies to be returned from [`request_lobby_list`].
