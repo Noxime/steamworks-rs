@@ -492,10 +492,13 @@ impl<Manager> Matchmaking<Manager> {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyListFilter<'a> {
     /// A string comparison filter that matches lobby attributes with specific strings.
+    #[cfg_attr(feature = "serde", serde(borrow))]
     string: Option<(&'a str, &'a str)>,
     /// A number comparison filter that matches lobby attributes with specific integer values
+    #[cfg_attr(feature = "serde", serde(borrow))]
     number: Option<(&'a str, i32)>,
     /// Specifies a value, and the results will be sorted closest to this value (no actual filtering)
+    #[cfg_attr(feature = "serde", serde(borrow))]
     near_value: Option<(&'a str, i32)>,
     /// Filters lobbies based on the number of open slots they have
     open_slots: Option<u8>,
