@@ -493,19 +493,19 @@ impl<Manager> Matchmaking<Manager> {
 pub struct LobbyListFilter<'a> {
     /// A string comparison filter that matches lobby attributes with specific strings.
     #[cfg_attr(feature = "serde", serde(borrow))]
-    string: Option<(&'a str, &'a str)>,
+    pub string: Option<(&'a str, &'a str)>,
     /// A number comparison filter that matches lobby attributes with specific integer values
     #[cfg_attr(feature = "serde", serde(borrow))]
-    number: Option<(&'a str, i32)>,
+    pub number: Option<(&'a str, i32)>,
     /// Specifies a value, and the results will be sorted closest to this value (no actual filtering)
     #[cfg_attr(feature = "serde", serde(borrow))]
-    near_value: Option<(&'a str, i32)>,
+    pub near_value: Option<(&'a str, i32)>,
     /// Filters lobbies based on the number of open slots they have
-    open_slots: Option<u8>,
+    pub open_slots: Option<u8>,
     /// Filters lobbies based on a distance criterion
-    distance: Option<DistanceFilter>,
+    pub distance: Option<DistanceFilter>,
     /// Specifies the maximum number of lobby results to be returned
-    count: Option<u64>,
+    pub count: Option<u64>,
 }
 
 impl<'a> LobbyListFilter<'a> {
