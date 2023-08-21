@@ -321,14 +321,14 @@ impl<Manager> Matchmaking<Manager> {
     ///
     pub fn add_request_lobby_list_string_filter(
         &self,
-        StringFilter(key, value): StringFilter,
+        StringFilter(key, value, kind): StringFilter,
     ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
                 self.mm,
                 key.as_ptr() as _,
                 value.as_ptr() as _,
-                sys::ELobbyComparison::k_ELobbyComparisonEqual,
+                kind.into(),
             );
         }
         self
@@ -454,8 +454,8 @@ impl<Manager> Matchmaking<Manager> {
     ///     client.matchmaking().set_lobby_list_filter(
     ///         LobbyListFilter {
     ///             string: Some(&[
-    ///                 StringFilter("name", "My Lobby"),
-    ///                 StringFilter("gamemode", "ffa"),
+    ///                 StringFilter("name", "My Lobby", StringFilterKind::Include),
+    ///                 StringFilter("gamemode", "ffa", StringFilterKind::Include),
     ///             ]),
     ///             number: Some(&[
     ///                 NumberFilter("elo", 1500, ComparisonFilter::GreaterThan),
@@ -554,7 +554,23 @@ pub type NearFilters<'a> = &'a [NearFilter<'a>];
 /// * `1`: The target string value for matching.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct StringFilter<'a>(pub &'a str, pub &'a str);
+pub struct StringFilter<'a>(pub &'a str, pub &'a str, pub StringFilterKind);
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum StringFilterKind {
+    #[default]
+    Include,
+    Exclude,
+}
+
+impl From<StringFilterKind> for sys::ELobbyComparison {
+    fn from(filter: StringFilterKind) -> Self {
+        match filter {
+            StringFilterKind::Include => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            StringFilterKind::Exclude => sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
+        }
+    }
+}
 
 /// A filter used for numerical attribute comparison in lobby filtering.
 ///
@@ -819,7 +835,7 @@ fn test_lobby() {
     });
 
     mm.set_lobby_list_filter(LobbyListFilter {
-        string: Some(&[StringFilter("name", "My Lobby")]),
+        string: Some(&[StringFilter("name", "My Lobby", StringFilterKind::Include)]),
         ..Default::default()
     });
 
