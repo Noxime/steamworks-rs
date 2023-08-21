@@ -319,7 +319,10 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_string_filter(&self, key: &str, value: &str) -> &Self {
+    pub fn set_request_lobby_list_string_filter(
+        &self,
+        StringFilter(key, value): StringFilter,
+    ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
                 self.mm,
@@ -340,13 +343,16 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_numerical_filter(&self, key: &str, value: i32) -> &Self {
+    pub fn set_request_lobby_list_numerical_filter(
+        &self,
+        NumberFilter(key, value, comparison): NumberFilter,
+    ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
                 self.mm,
                 key.as_ptr() as _,
                 value,
-                sys::ELobbyComparison::k_ELobbyComparisonEqual,
+                comparison.into(),
             );
         }
         self
@@ -361,7 +367,10 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to use for sorting.
     /// * `value`: The reference value for sorting.
     ///
-    pub fn set_request_lobby_list_near_value_filter(&self, key: &str, value: i32) -> &Self {
+    pub fn set_request_lobby_list_near_value_filter(
+        &self,
+        NearFilter(key, value): NearFilter,
+    ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
                 self.mm,
@@ -444,24 +453,49 @@ impl<Manager> Matchmaking<Manager> {
     ///     let (client, single) = Client::init().unwrap();
     ///     client.matchmaking().set_lobby_list_filter(
     ///         LobbyListFilter {
-    ///            string: Some(("name", "My Lobby")),
-    ///           ..Default::default()
-    ///       }
-    ///    ).request_lobby_list(|lobbies| {
+    ///             string: Some(&[
+    ///                 StringFilter("name", "My Lobby"),
+    ///                 StringFilter("gamemode", "ffa"),
+    ///             ]),
+    ///             number: Some(&[
+    ///                 NumberFilter("elo", 1500, ComparisonFilter::GreaterThan),
+    ///                 NumberFilter("elo", 2000, ComparisonFilter::LessThan)
+    ///             ]),
+    ///             ..Default::default()
+    ///         }
+    ///     ).request_lobby_list(|lobbies| {
     ///         println!("Lobbies: {:?}", lobbies);
     ///     });
     /// }
     /// ```
-    pub fn set_lobby_list_filter(&self, filter: LobbyListFilter) -> &Self {
-        if let Some((key, value)) = filter.string {
-            self.set_request_lobby_list_string_filter(key, value);
-        }
-        if let Some((key, value)) = filter.number {
-            self.set_request_lobby_list_numerical_filter(key, value);
-        }
-        if let Some((key, value)) = filter.near_value {
-            self.set_request_lobby_list_near_value_filter(key, value);
-        }
+    pub fn set_lobby_list_filter<'a>(&self, filter: LobbyListFilter<'a>) -> &Self {
+        filter
+            .string
+            .into_iter()
+            .flatten()
+            .into_iter()
+            .map(Clone::clone)
+            .for_each(|str_filter| {
+                self.set_request_lobby_list_string_filter(str_filter);
+            });
+        filter
+            .number
+            .into_iter()
+            .flatten()
+            .into_iter()
+            .map(Clone::clone)
+            .for_each(|num_filter| {
+                self.set_request_lobby_list_numerical_filter(num_filter);
+            });
+        filter
+            .near_value
+            .into_iter()
+            .flatten()
+            .into_iter()
+            .map(|value| *value)
+            .for_each(|near_filter| {
+                self.set_request_lobby_list_near_value_filter(near_filter);
+            });
         if let Some(distance) = filter.distance {
             self.set_request_lobby_list_distance_filter(distance);
         }
@@ -488,18 +522,18 @@ impl<Manager> Matchmaking<Manager> {
 /// - `open_slots`: Filters lobbies based on the number of open slots they have.
 /// - `distance`: Filters lobbies based on a distance criterion.
 /// - `count`: Specifies the maximum number of lobby results to be returned.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyListFilter<'a> {
     /// A string comparison filter that matches lobby attributes with specific strings.
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub string: Option<(&'a str, &'a str)>,
+    pub string: Option<StringFilters<'a>>,
     /// A number comparison filter that matches lobby attributes with specific integer values
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub number: Option<(&'a str, i32)>,
+    pub number: Option<NumberFilters<'a>>,
     /// Specifies a value, and the results will be sorted closest to this value (no actual filtering)
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub near_value: Option<(&'a str, i32)>,
+    pub near_value: Option<NearFilters<'a>>,
     /// Filters lobbies based on the number of open slots they have
     pub open_slots: Option<u8>,
     /// Filters lobbies based on a distance criterion
@@ -508,6 +542,57 @@ pub struct LobbyListFilter<'a> {
     pub count: Option<u64>,
 }
 
+pub type StringFilters<'a> = &'a [StringFilter<'a>];
+pub type NumberFilters<'a> = &'a [NumberFilter<'a>];
+pub type NearFilters<'a> = &'a [NearFilter<'a>];
+
+/// A filter used for string based key value comparisons.
+///
+/// # Fields
+///
+/// * `0`: The attribute key for comparison.
+/// * `1`: The target string value for matching.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct StringFilter<'a>(pub &'a str, pub &'a str);
+
+/// A filter used for numerical attribute comparison in lobby filtering.
+///
+/// # Fields
+///
+/// * `key`: The attribute key for comparison.
+/// * `value`: The target numerical value for matching.
+/// * `comparison`: The comparison mode indicating how the numerical values should be compared.
+///
+/// # Example
+///
+/// ```no_run
+/// let elo_filter = NumberFilter {
+///     key: "lobby_elo",
+///     value: 1500,
+///     comparison: ComparisonFilter::GreaterThan,
+/// };
+/// ```
+///
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct NumberFilter<'a>(pub &'a str, pub i32, pub ComparisonFilter);
+
+/// A filter used for near-value sorting in lobby filtering.
+///
+/// This struct enables sorting the lobby results based on their closeness to a reference value.
+/// It includes two fields: the attribute key to use for sorting and the reference numerical value.
+///
+/// This filter does not perform actual filtering but rather sorts the results based on proximity.
+///
+/// # Fields
+///
+/// * `0`: The attribute key to use for sorting.
+/// * `1`: The reference numerical value used for sorting proximity.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct NearFilter<'a>(pub &'a str, pub i32);
+
 impl<'a> LobbyListFilter<'a> {
     /// Sets the string comparison filter for the lobby list filter.
     ///
@@ -515,8 +600,9 @@ impl<'a> LobbyListFilter<'a> {
     ///
     /// * `string`: A tuple containing the attribute name and the target string value to match.
     ///
-    pub fn set_string(&mut self, string: Option<(&'a str, &'a str)>) {
+    pub fn set_string(mut self, string: Option<StringFilters<'a>>) -> Self {
         self.string = string;
+        self
     }
 
     /// Sets the number comparison filter for the lobby list filter.
@@ -525,8 +611,9 @@ impl<'a> LobbyListFilter<'a> {
     ///
     /// * `number`: A tuple containing the attribute name and the target integer value to match.
     ///
-    pub fn set_number(&mut self, number: Option<(&'a str, i32)>) {
+    pub fn set_number(mut self, number: Option<NumberFilters<'a>>) -> Self {
         self.number = number;
+        self
     }
 
     /// Sets the near value filter for the lobby list filter.
@@ -536,8 +623,9 @@ impl<'a> LobbyListFilter<'a> {
     /// * `near_value`: A tuple containing the attribute name and the reference integer value.
     ///                 Lobby results will be sorted based on their closeness to this value.
     ///
-    pub fn set_near_value(&mut self, near_value: Option<(&'a str, i32)>) {
+    pub fn set_near_value(mut self, near_value: Option<NearFilters<'a>>) -> Self {
         self.near_value = near_value;
+        self
     }
 
     /// Sets the open slots filter for the lobby list filter.
@@ -546,8 +634,9 @@ impl<'a> LobbyListFilter<'a> {
     ///
     /// * `open_slots`: The number of open slots to filter lobbies by.
     ///
-    pub fn set_open_slots(&mut self, open_slots: Option<u8>) {
+    pub fn set_open_slots(mut self, open_slots: Option<u8>) -> Self {
         self.open_slots = open_slots;
+        self
     }
 
     /// Sets the distance filter for the lobby list filter.
@@ -556,8 +645,9 @@ impl<'a> LobbyListFilter<'a> {
     ///
     /// * `distance`: A distance filter that specifies a distance criterion for filtering lobbies.
     ///
-    pub fn set_distance(&mut self, distance: Option<DistanceFilter>) {
+    pub fn set_distance(mut self, distance: Option<DistanceFilter>) -> Self {
         self.distance = distance;
+        self
     }
 
     /// Sets the maximum number of lobby results to be returned.
@@ -566,8 +656,9 @@ impl<'a> LobbyListFilter<'a> {
     ///
     /// * `count`: The maximum number of lobby results to retrieve.
     ///
-    pub fn set_count(&mut self, count: Option<u64>) {
+    pub fn set_count(mut self, count: Option<u64>) -> Self {
         self.count = count;
+        self
     }
 }
 
@@ -588,6 +679,35 @@ impl From<DistanceFilter> for sys::ELobbyDistanceFilter {
             DistanceFilter::Default => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterDefault,
             DistanceFilter::Far => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterFar,
             DistanceFilter::Worldwide => sys::ELobbyDistanceFilter::k_ELobbyDistanceFilterWorldwide,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum ComparisonFilter {
+    #[default]
+    Equal,
+    NotEqual,
+    GreaterThan,
+    GreaterThanEqualTo,
+    LessThan,
+    LessThanEqualTo,
+}
+
+impl From<ComparisonFilter> for sys::ELobbyComparison {
+    fn from(filter: ComparisonFilter) -> Self {
+        match filter {
+            ComparisonFilter::Equal => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            ComparisonFilter::NotEqual => sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
+            ComparisonFilter::GreaterThan => sys::ELobbyComparison::k_ELobbyComparisonGreaterThan,
+            ComparisonFilter::GreaterThanEqualTo => {
+                sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan
+            }
+            ComparisonFilter::LessThan => sys::ELobbyComparison::k_ELobbyComparisonLessThan,
+            ComparisonFilter::LessThanEqualTo => {
+                sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan
+            }
         }
     }
 }
@@ -696,6 +816,11 @@ fn test_lobby() {
     });
     mm.create_lobby(LobbyType::Private, 4, |v| {
         println!("Create: {:?}", v);
+    });
+
+    mm.set_lobby_list_filter(LobbyListFilter {
+        string: Some(&[StringFilter("name", "My Lobby")]),
+        ..Default::default()
     });
 
     for _ in 0..100 {
