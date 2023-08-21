@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
@@ -321,7 +323,7 @@ impl<Manager> Matchmaking<Manager> {
     ///
     pub fn add_request_lobby_list_string_filter(
         &self,
-        StringFilter(key, value, kind): StringFilter,
+        StringFilter(LobbyKey(key), value, kind): StringFilter,
     ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
@@ -345,7 +347,7 @@ impl<Manager> Matchmaking<Manager> {
     ///
     pub fn add_request_lobby_list_numerical_filter(
         &self,
-        NumberFilter(key, value, comparison): NumberFilter,
+        NumberFilter(LobbyKey(key), value, comparison): NumberFilter,
     ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
@@ -369,7 +371,7 @@ impl<Manager> Matchmaking<Manager> {
     ///
     pub fn add_request_lobby_list_near_value_filter(
         &self,
-        NearFilter(key, value): NearFilter,
+        NearFilter(LobbyKey(key), value): NearFilter,
     ) -> &Self {
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
@@ -454,8 +456,12 @@ impl<Manager> Matchmaking<Manager> {
     ///     client.matchmaking().set_lobby_list_filter(
     ///         LobbyListFilter {
     ///             string: Some(&[
-    ///                 StringFilter("name", "My Lobby", StringFilterKind::Include),
-    ///                 StringFilter("gamemode", "ffa", StringFilterKind::Include),
+    ///                 StringFilter(
+    ///                     LobbyKey::new("name"), "My Lobby", StringFilterKind::Include
+    ///                 ),
+    ///                 StringFilter(
+    ///                     LobbyKey::new("gamemode"), "ffa", StringFilterKind::Include
+    ///                 ),
     ///             ]),
     ///             number: Some(&[
     ///                 NumberFilter("elo", 1500, ComparisonFilter::GreaterThan),
@@ -542,6 +548,69 @@ pub struct LobbyListFilter<'a> {
     pub count: Option<u64>,
 }
 
+/// A wrapper for a lobby key string.
+///
+/// This struct provides a wrapper for a lobby key string. It is used to validate
+/// constructed keys and to ensure that they do not exceed the maximum allowed length.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyKey<'a>(pub(crate) &'a str);
+
+impl<'a> std::ops::Deref for LobbyKey<'a> {
+    type Target = &'a str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default, Error)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyKeyTooLongError;
+
+impl Display for LobbyKeyTooLongError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Lobby key is greater than {} characters",
+            sys::k_nMaxLobbyKeyLength
+        )
+    }
+}
+
+impl<'a> LobbyKey<'a> {
+    /// Attempts to create a new `LobbyKey` from a provided string key.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: The string key to create a `LobbyKey` from.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error of type [`LobbyKeyTooLongError`] if the provided key's length
+    /// exceeds k_nMaxLobbyKeyLength (255 characters).
+    pub fn try_new(key: &'a str) -> Result<Self, LobbyKeyTooLongError> {
+        if key.len() > sys::k_nMaxLobbyKeyLength as usize {
+            Err(LobbyKeyTooLongError)
+        } else {
+            Ok(LobbyKey(key))
+        }
+    }
+    /// Creates a new `LobbyKey` from a provided string key.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: The string key to create a `LobbyKey` from.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the provided key's length exceeds 255 characters.
+    /// ```
+    pub fn new(key: &'a str) -> Self {
+        Self::try_new(key).unwrap()
+    }
+}
+
 pub type StringFilters<'a> = &'a [StringFilter<'a>];
 pub type NumberFilters<'a> = &'a [NumberFilter<'a>];
 pub type NearFilters<'a> = &'a [NearFilter<'a>];
@@ -554,9 +623,10 @@ pub type NearFilters<'a> = &'a [NearFilter<'a>];
 /// * `1`: The target string value for matching.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct StringFilter<'a>(pub &'a str, pub &'a str, pub StringFilterKind);
+pub struct StringFilter<'a>(pub LobbyKey<'a>, pub &'a str, pub StringFilterKind);
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum StringFilterKind {
     #[default]
     Include,
@@ -592,7 +662,7 @@ impl From<StringFilterKind> for sys::ELobbyComparison {
 ///
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct NumberFilter<'a>(pub &'a str, pub i32, pub ComparisonFilter);
+pub struct NumberFilter<'a>(pub LobbyKey<'a>, pub i32, pub ComparisonFilter);
 
 /// A filter used for near-value sorting in lobby filtering.
 ///
@@ -607,7 +677,7 @@ pub struct NumberFilter<'a>(pub &'a str, pub i32, pub ComparisonFilter);
 /// * `1`: The reference numerical value used for sorting proximity.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct NearFilter<'a>(pub &'a str, pub i32);
+pub struct NearFilter<'a>(pub LobbyKey<'a>, pub i32);
 
 impl<'a> LobbyListFilter<'a> {
     /// Sets the string comparison filter for the lobby list filter.
@@ -835,7 +905,11 @@ fn test_lobby() {
     });
 
     mm.set_lobby_list_filter(LobbyListFilter {
-        string: Some(&[StringFilter("name", "My Lobby", StringFilterKind::Include)]),
+        string: Some(&[StringFilter(
+            LobbyKey::new("name"),
+            "My Lobby",
+            StringFilterKind::Include,
+        )]),
         ..Default::default()
     });
 
