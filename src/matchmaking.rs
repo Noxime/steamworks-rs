@@ -319,7 +319,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_string_filter(
+    pub fn add_request_lobby_list_string_filter(
         &self,
         StringFilter(key, value): StringFilter,
     ) -> &Self {
@@ -343,7 +343,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to compare.
     /// * `value`: The value to compare against.
     ///
-    pub fn set_request_lobby_list_numerical_filter(
+    pub fn add_request_lobby_list_numerical_filter(
         &self,
         NumberFilter(key, value, comparison): NumberFilter,
     ) -> &Self {
@@ -367,7 +367,7 @@ impl<Manager> Matchmaking<Manager> {
     /// * `key`: The attribute key to use for sorting.
     /// * `value`: The reference value for sorting.
     ///
-    pub fn set_request_lobby_list_near_value_filter(
+    pub fn add_request_lobby_list_near_value_filter(
         &self,
         NearFilter(key, value): NearFilter,
     ) -> &Self {
@@ -476,7 +476,7 @@ impl<Manager> Matchmaking<Manager> {
             .into_iter()
             .map(Clone::clone)
             .for_each(|str_filter| {
-                self.set_request_lobby_list_string_filter(str_filter);
+                self.add_request_lobby_list_string_filter(str_filter);
             });
         filter
             .number
@@ -485,7 +485,7 @@ impl<Manager> Matchmaking<Manager> {
             .into_iter()
             .map(Clone::clone)
             .for_each(|num_filter| {
-                self.set_request_lobby_list_numerical_filter(num_filter);
+                self.add_request_lobby_list_numerical_filter(num_filter);
             });
         filter
             .near_value
@@ -494,7 +494,7 @@ impl<Manager> Matchmaking<Manager> {
             .into_iter()
             .map(|value| *value)
             .for_each(|near_filter| {
-                self.set_request_lobby_list_near_value_filter(near_filter);
+                self.add_request_lobby_list_near_value_filter(near_filter);
             });
         if let Some(distance) = filter.distance {
             self.set_request_lobby_list_distance_filter(distance);
