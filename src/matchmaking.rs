@@ -455,7 +455,7 @@ impl<Manager> Matchmaking<Manager> {
     ///     let (client, single) = Client::init().unwrap();
     ///     client.matchmaking().set_lobby_list_filter(
     ///         LobbyListFilter {
-    ///             string: Some(&[
+    ///             string: Some(vec![
     ///                 StringFilter(
     ///                     LobbyKey::new("name"), "My Lobby", StringFilterKind::Include
     ///                 ),
@@ -463,7 +463,7 @@ impl<Manager> Matchmaking<Manager> {
     ///                     LobbyKey::new("gamemode"), "ffa", StringFilterKind::Include
     ///                 ),
     ///             ]),
-    ///             number: Some(&[
+    ///             number: Some(vec![
     ///                 NumberFilter("elo", 1500, ComparisonFilter::GreaterThan),
     ///                 NumberFilter("elo", 2000, ComparisonFilter::LessThan)
     ///             ]),
@@ -474,31 +474,17 @@ impl<Manager> Matchmaking<Manager> {
     ///     });
     /// }
     /// ```
-    pub fn set_lobby_list_filter<'a>(&self, filter: LobbyListFilter<'a>) -> &Self {
-        filter
-            .string
-            .into_iter()
-            .flatten()
-            .into_iter()
-            .map(Clone::clone)
-            .for_each(|str_filter| {
-                self.add_request_lobby_list_string_filter(str_filter);
-            });
-        filter
-            .number
-            .into_iter()
-            .flatten()
-            .into_iter()
-            .map(Clone::clone)
-            .for_each(|num_filter| {
-                self.add_request_lobby_list_numerical_filter(num_filter);
-            });
+    pub fn set_lobby_list_filter(&self, filter: LobbyListFilter<'_>) -> &Self {
+        filter.string.into_iter().flatten().for_each(|str_filter| {
+            self.add_request_lobby_list_string_filter(str_filter);
+        });
+        filter.number.into_iter().flatten().for_each(|num_filter| {
+            self.add_request_lobby_list_numerical_filter(num_filter);
+        });
         filter
             .near_value
             .into_iter()
             .flatten()
-            .into_iter()
-            .map(|value| *value)
             .for_each(|near_filter| {
                 self.add_request_lobby_list_near_value_filter(near_filter);
             });
@@ -532,7 +518,7 @@ impl<Manager> Matchmaking<Manager> {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyListFilter<'a> {
     /// A string comparison filter that matches lobby attributes with specific strings.
-    #[cfg_attr(feature = "serde", serde(borrow))]
+    //#[cfg_attr(feature = "serde", serde(borrow))]
     pub string: Option<StringFilters<'a>>,
     /// A number comparison filter that matches lobby attributes with specific integer values
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -611,9 +597,9 @@ impl<'a> LobbyKey<'a> {
     }
 }
 
-pub type StringFilters<'a> = &'a [StringFilter<'a>];
-pub type NumberFilters<'a> = &'a [NumberFilter<'a>];
-pub type NearFilters<'a> = &'a [NearFilter<'a>];
+pub type StringFilters<'a> = Vec<StringFilter<'a>>;
+pub type NumberFilters<'a> = Vec<NumberFilter<'a>>;
+pub type NearFilters<'a> = Vec<NearFilter<'a>>;
 
 /// A filter used for string based key value comparisons.
 ///
@@ -623,7 +609,11 @@ pub type NearFilters<'a> = &'a [NearFilter<'a>];
 /// * `1`: The target string value for matching.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct StringFilter<'a>(pub LobbyKey<'a>, pub &'a str, pub StringFilterKind);
+pub struct StringFilter<'a>(
+    #[cfg_attr(feature = "serde", serde(borrow))] pub LobbyKey<'a>,
+    pub &'a str,
+    pub StringFilterKind,
+);
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -662,7 +652,11 @@ impl From<StringFilterKind> for sys::ELobbyComparison {
 ///
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct NumberFilter<'a>(pub LobbyKey<'a>, pub i32, pub ComparisonFilter);
+pub struct NumberFilter<'a>(
+    #[cfg_attr(feature = "serde", serde(borrow))] pub LobbyKey<'a>,
+    pub i32,
+    pub ComparisonFilter,
+);
 
 /// A filter used for near-value sorting in lobby filtering.
 ///
@@ -677,7 +671,10 @@ pub struct NumberFilter<'a>(pub LobbyKey<'a>, pub i32, pub ComparisonFilter);
 /// * `1`: The reference numerical value used for sorting proximity.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct NearFilter<'a>(pub LobbyKey<'a>, pub i32);
+pub struct NearFilter<'a>(
+    #[cfg_attr(feature = "serde", serde(borrow))] pub LobbyKey<'a>,
+    pub i32,
+);
 
 impl<'a> LobbyListFilter<'a> {
     /// Sets the string comparison filter for the lobby list filter.
@@ -905,7 +902,7 @@ fn test_lobby() {
     });
 
     mm.set_lobby_list_filter(LobbyListFilter {
-        string: Some(&[StringFilter(
+        string: Some(vec![StringFilter(
             LobbyKey::new("name"),
             "My Lobby",
             StringFilterKind::Include,
