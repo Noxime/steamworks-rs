@@ -292,6 +292,40 @@ impl<Manager> UserStats<Manager> {
         }
     }
 
+    /// Asynchronously fetch the data for the percentage of players who have received each achievement
+    /// for the current game globally.
+    /// 
+    /// You must have called `request_current_stats()` and it needs to return successfully via its
+    /// callback prior to calling this!*
+    /// 
+    /// **Note: Not sure if this is applicable, as the other achievement functions requiring
+    /// `request_current_stats()` don't specifically need it to be called in order for them to complete
+    /// successfully. Maybe it autoruns via `Client::init()/init_app()` somehow?*
+    pub fn request_global_achievement_percentages<F>(&self, cb: F)
+    where
+        F: FnOnce(Result<GameId, SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUserStats_RequestGlobalAchievementPercentages(
+                self.user_stats,
+            );
+            register_call_result::<sys::GlobalAchievementPercentagesReady_t, _, _>(
+                &self.inner,
+                api_call,
+                // `CALLBACK_BASE_ID + <number>`: <number> is found in Steamworks `isteamuserstats.h` header file
+                // (Under `struct GlobalAchievementPercentagesReady_t {...};` in this case)
+                CALLBACK_BASE_ID + 10,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else {
+                        Ok(GameId(v.m_nGameID))
+                    })
+                },
+            );
+        }
+    }
+
     /// Send the changed stats and achievements data to the server for permanent storage.
     ///
     /// * Triggers a [`UserStatsStored`](../struct.UserStatsStored.html) callback if successful.
