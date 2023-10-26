@@ -59,6 +59,9 @@ fn main() {
     let (client,single) = Client::init_app(AppId(4000)).unwrap();
     let name = "GMA_BALLEATER";
 
+    let user_stats = client.user_stats();
+    let achievement = user_stats.achievement(name);
+
     let ach_name = achievement.get_achievement_display_attribute("name").unwrap();
     let ach_desc = achievement.get_achievement_display_attribute("desc").unwrap();
     let ach_hidden = achievement.get_achievement_display_attribute("hidden").unwrap().parse::<u32>().unwrap();
@@ -85,7 +88,7 @@ Returns a `Vec<u8>` buffer containing the image data for the specified achieveme
 
 To convert the buffer into an image, you can use an external crate to convert the `Vec<u8>` (`Uint8Array`) into a file (such as `.jpg`) and save it to disk - there's plenty of [Rust crates](https://crates.io/crates/image) or [NPM libraries](https://www.npmjs.com/package/jpeg-js) that can do this.
 
-#### Example
+#### Example:
 
 ```rust
 use steamworks::{Client,AppId};
@@ -98,5 +101,46 @@ fn main() {
     let achievement = user_stats.achievement(name);
 
     let _ach_icon_handle = achievement.get_achievement_icon().expect("Failed getting achievement icon RGBA buffer");
+}
+```
+
+`get_num_achievements()`
+-
+
+Returns the number of achievements for the current AppId.
+
+> *Returns `0` if the current AppId has no achievements.*
+
+#### Example:
+
+```rust
+use steamworks::{Client,AppId};
+
+fn main() {
+    let (client,single) = Client::init_app(AppId(4000)).unwrap();
+
+    let num = client.user_stats().get_num_achievements().expect("Failed to get number of achievements");
+
+    println!("{}",num);
+}
+```
+
+`get_achievement_names()`
+-
+
+Returns a `Vec<String>` containing the API names of all achievements for the current AppId.
+
+> *The returned string value will be empty if the specified index is invalid.*
+
+#### Example:
+
+```rust
+use steamworks::{Client,AppId};
+
+fn main() {
+    let (client,single) = Client::init_app(AppId(4000)).unwrap();
+    let name = "GMA_BALLEATER";
+
+    let names = client.user_stats().get_achievement_names().expect("Failed to get achievement names");
 }
 ```
