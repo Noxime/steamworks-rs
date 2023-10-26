@@ -467,6 +467,49 @@ impl<Manager> UserStats<Manager> {
             parent: self,
         }
     }
+
+    /// Get the number of achievements defined in the App Admin panel of the Steamworks website.
+    ///
+    /// This is used for iterating through all of the achievements with GetAchievementName.
+    ///
+    /// Returns 0 if the current App ID has no achievements.
+    /// 
+    /// *Note: Returns an error for AppId `480` (Spacewar)!*
+    pub fn get_num_achievements(&self) -> Result<u32,()> {
+        unsafe {
+            let num = sys::SteamAPI_ISteamUserStats_GetNumAchievements(
+                self.user_stats,
+            );
+            if num != 0 {
+                Ok(num)
+            } else {
+                Err(())
+            }
+        }
+    }
+
+    /// Returns an array of all achievement names for the current AppId.
+    /// 
+    /// Returns an empty string for an achievement name if `iAchievement` is not a valid index,
+    /// and the current AppId must have achievements.
+    pub fn get_achievement_names(&self) -> Option<Vec<String>> {
+        let num = self.get_num_achievements().expect("Failed to get number of achievements");
+        let mut names = Vec::new();
+
+        for i in 0..num {
+            unsafe {
+                let name = sys::SteamAPI_ISteamUserStats_GetAchievementName(
+                    self.user_stats,
+                    i
+                );
+
+                let c_str = CStr::from_ptr(name).to_string_lossy().into_owned();
+
+                names.push(c_str);
+            }
+        }
+        Some(names)
+    }
 }
 
 #[derive(Clone, Debug)]
