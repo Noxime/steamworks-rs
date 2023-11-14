@@ -994,7 +994,7 @@ pub struct InvalidEnumValue;
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
 pub struct NetConnectionInfo {
-    inner: sys::SteamNetConnectionInfo_t,
+    pub(crate) inner: sys::SteamNetConnectionInfo_t,
 }
 
 #[allow(dead_code)]
@@ -1063,10 +1063,192 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     }
 }
 
-/// This in an internal callback that will be used by Steam Networking Sockets directly.
-/// It should not be created manually.
-///
-///
+/// SteamNetConnectionRealTimeStatus_t structure
+#[derive(Clone)]
+pub struct NetConnectionRealTimeInfo {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeStatus_t,
+}
+
+impl NetConnectionRealTimeInfo {
+    pub fn connection_state(&self) -> Result<NetworkingConnectionState, InvalidConnectionState> {
+        self.inner.m_eState.try_into()
+    }
+
+    // ping in ms
+    pub fn ping(&self) -> i32 {
+        self.inner.m_nPing
+    }
+
+    /// Connection quality measured locally, 0...1.  (Percentage of packets delivered)
+    pub fn connection_quality_local(&self) -> f32 {
+        self.inner.m_flConnectionQualityLocal
+    }
+
+    /// Packet delivery success rate as observed from remote host
+    pub fn connection_quality_remote(&self) -> f32 {
+        self.inner.m_flConnectionQualityRemote
+    }
+
+    /// Current data rates from recent history
+    pub fn out_packets_per_sec(&self) -> f32 {
+        self.inner.m_flOutPacketsPerSec
+    }
+
+    /// Current data rates from recent history
+    pub fn out_bytes_per_sec(&self) -> f32 {
+        self.inner.m_flOutBytesPerSec
+    }
+    /// Current data rates from recent history
+    pub fn in_packets_per_sec(&self) -> f32 {
+        self.inner.m_flInPacketsPerSec
+    }
+
+    /// Current data rates from recent history
+    pub fn in_bytes_per_sec(&self) -> f32 {
+        self.inner.m_flInBytesPerSec
+    }
+
+    /// Estimate rate that we believe that we can send data to our peer.
+    /// Note that this could be significantly higher than m_flOutBytesPerSec,
+    /// meaning the capacity of the channel is higher than you are sending data.
+    /// (That's OK!)
+    pub fn send_rate_bytes_per_sec(&self) -> i32 {
+        self.inner.m_nSendRateBytesPerSecond
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    pub fn pending_unreliable(&self) -> i32 {
+        self.inner.m_cbPendingUnreliable
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    pub fn pending_reliable(&self) -> i32 {
+        self.inner.m_cbPendingReliable
+    }
+
+    /// Number of bytes of reliable data that has been placed the wire, but
+    /// for which we have not yet received an acknowledgment, and thus we may
+    /// have to re-transmit.
+    pub fn sent_unacked_reliable(&self) -> i32 {
+        self.inner.m_cbSentUnackedReliable
+    }
+
+    /// If you asked us to send a message right now, how long would that message
+    /// sit in the queue before we actually started putting packets on the wire?
+    /// (And assuming Nagle does not cause any packets to be delayed.)
+    ///
+    /// In general, data that is sent by the application is limited by the
+    /// bandwidth of the channel.  If you send data faster than this, it must
+    /// be queued and put on the wire at a metered rate.  Even sending a small amount
+    /// of data (e.g. a few MTU, say ~3k) will require some of the data to be delayed
+    /// a bit.
+    ///
+    /// In general, the estimated delay will be approximately equal to
+    ///
+    ///		( m_cbPendingUnreliable+m_cbPendingReliable ) / m_nSendRateBytesPerSecond
+    ///
+    /// plus or minus one MTU.  It depends on how much time has elapsed since the last
+    /// packet was put on the wire.  For example, the queue might have *just* been emptied,
+    /// and the last packet placed on the wire, and we are exactly up against the send
+    /// rate limit.  In that case we might need to wait for one packet's worth of time to
+    /// elapse before we can send again.  On the other extreme, the queue might have data
+    /// in it waiting for Nagle.  (This will always be less than one packet, because as soon
+    /// as we have a complete packet we would send it.)  In that case, we might be ready
+    /// to send data now, and this value will be 0.
+    pub fn queued_send_bytes(&self) -> i64 {
+        self.inner.m_usecQueueTime
+    }
+}
+
+impl Debug for NetConnectionRealTimeInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NetQuickConnectionInfo")
+            .field("connection_state", &self.connection_state())
+            .field("ping", &self.ping())
+            .field("connection_quality_local", &self.connection_quality_local())
+            .field(
+                "connection_quality_remote",
+                &self.connection_quality_remote(),
+            )
+            .field("out_packets_per_sec", &self.out_packets_per_sec())
+            .field("out_bytes_per_sec", &self.out_bytes_per_sec())
+            .field("in_packets_per_sec", &self.in_packets_per_sec())
+            .field("in_bytes_per_sec", &self.in_bytes_per_sec())
+            .field("send_rate_bytes_per_sec", &self.send_rate_bytes_per_sec())
+            .field("pending_unreliable", &self.pending_unreliable())
+            .field("pending_reliable", &self.pending_reliable())
+            .field("sent_unacked_reliable", &self.sent_unacked_reliable())
+            .field("queued_send_bytes", &self.queued_send_bytes())
+            .finish()
+    }
+}
+
+impl From<sys::SteamNetConnectionRealTimeStatus_t> for NetConnectionRealTimeInfo {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeStatus_t) -> Self {
+        Self { inner: info }
+    }
+}
+
+/// Quick status of a particular lane
+#[derive(Clone)]
+pub struct NetConnectionRealTimeLaneStatus {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeLaneStatus_t,
+}
+
+impl NetConnectionRealTimeLaneStatus {
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_unreliable(&self) -> i32 {
+        self.inner.m_cbPendingUnreliable
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_reliable(&self) -> i32 {
+        self.inner.m_cbPendingReliable
+    }
+    /// Number of bytes of reliable data that has been placed the wire, but
+    /// for which we have not yet received an acknowledgment, and thus we may
+    /// have to re-transmit.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn sent_unacked_reliable(&self) -> i32 {
+        self.inner.m_cbSentUnackedReliable
+    }
+    /// Lane-specific queue time.  This value takes into consideration lane priorities
+    /// and weights, and how much data is queued in each lane, and attempts to predict
+    /// how any data currently queued will be sent out.
+    pub fn queued_send_bytes(&self) -> i64 {
+        self.inner.m_usecQueueTime
+    }
+}
+
+impl From<sys::SteamNetConnectionRealTimeLaneStatus_t> for NetConnectionRealTimeLaneStatus {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeLaneStatus_t) -> Self {
+        Self { inner: info }
+    }
+}
+
 /// This callback is posted whenever a connection is created, destroyed, or changes state.
 /// The m_info field will contain a complete description of the connection at the time the
 /// change occurred and the callback was posted.  In particular, m_eState will have the
@@ -1103,13 +1285,17 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
 #[derive(Debug, Clone)]
-pub(crate) struct NetConnectionStatusChanged {
+pub struct NetConnectionStatusChanged {
+    /// The handle of the connection that has changed state
+    // (only important for the ListenSocketEvent, so it can stay for now in the crate visibility)
     pub(crate) connection: sys::HSteamNetConnection,
-    pub(crate) connection_info: NetConnectionInfo,
+    /// Full connection info
+    pub connection_info: NetConnectionInfo,
 
     // Debug is intentionally ignored during dead-code analysis
     #[allow(dead_code)]
-    pub(crate) old_state: NetworkingConnectionState,
+    /// Previous state.  (Current state is in m_info.m_eState)
+    pub old_state: NetworkingConnectionState,
 }
 
 unsafe impl Callback for NetConnectionStatusChanged {

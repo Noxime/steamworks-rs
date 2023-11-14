@@ -343,7 +343,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam user interface
     pub fn user(&self) -> User<Manager> {
         unsafe {
-            let user = sys::SteamAPI_SteamUser_v021();
+            let user = sys::SteamAPI_SteamUser_v023();
             debug_assert!(!user.is_null());
             User {
                 user,

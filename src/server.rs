@@ -1,4 +1,5 @@
 use super::*;
+use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
 use std::net::Ipv4Addr;
@@ -83,7 +84,7 @@ impl Server {
                 return Err(SteamError::InitFailed);
             }
             sys::SteamAPI_ManualDispatch_Init();
-            let server_raw = sys::SteamAPI_SteamGameServer_v014();
+            let server_raw = sys::SteamAPI_SteamGameServer_v015();
             let server = Arc::new(Inner {
                 _manager: ServerManager { _priv: () },
                 callbacks: Mutex::new(Callbacks {
@@ -138,7 +139,16 @@ impl Server {
     ///
     /// When the multiplayer session terminates you must call
     /// `cancel_authentication_ticket`
-    pub fn authentication_session_ticket(&self) -> (AuthTicket, Vec<u8>) {
+    pub fn authentication_session_ticket_with_steam_id(
+        &self,
+        steam_id: SteamId,
+    ) -> (AuthTicket, Vec<u8>) {
+        self.authentication_session_ticket(NetworkingIdentity::new_steam_id(steam_id))
+    }
+    pub fn authentication_session_ticket(
+        &self,
+        network_identity: NetworkingIdentity,
+    ) -> (AuthTicket, Vec<u8>) {
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
@@ -147,6 +157,7 @@ impl Server {
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
+                network_identity.as_ptr(),
             );
             ticket.truncate(ticket_len as usize);
             (AuthTicket(auth_ticket), ticket)
@@ -301,7 +312,7 @@ impl Server {
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamGameServerUGC_v016();
+            let ugc = sys::SteamAPI_SteamGameServerUGC_v017();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
@@ -347,12 +358,15 @@ fn test() {
 
     println!("{:?}", server.steam_id());
 
-    let _cb = server
-        .register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
-    let _cb = server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
+    let _cb = server.register_callback(|v: AuthSessionTicketResponse| {
+        println!("Got auth ticket response: {:?}", v.result)
+    });
+    let _cb = server.register_callback(|v: ValidateAuthTicketResponse| {
+        println!("Got validate auth ticket response: {:?}", v)
+    });
 
     let id = server.steam_id();
-    let (auth, ticket) = server.authentication_session_ticket();
+    let (auth, ticket) = server.authentication_session_ticket_with_steam_id(id);
 
     println!("{:?}", server.begin_authentication_session(id, &ticket));
 
