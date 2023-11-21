@@ -930,6 +930,10 @@ impl<Manager: 'static> NetConnection<Manager> {
         debug_assert!(was_successful);
     }
 
+    pub fn run_callbacks(&self) {
+        unsafe { sys::SteamAPI_ISteamNetworkingSockets_RunCallbacks(self.sockets) }
+    }
+
     /// Set the connection state to be handled externally. The struct will no longer close the connection on drop.
     pub(crate) fn handle_connection(&mut self) {
         self.is_handled = true
