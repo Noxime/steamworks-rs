@@ -271,6 +271,20 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         }
     }
 
+    pub fn get_authentication_status(
+        &self,
+    ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+        let mut details: sys::SteamNetAuthenticationStatus_t = unsafe { std::mem::zeroed() };
+        let auth = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetAuthenticationStatus(
+                self.sockets,
+                &mut details,
+            )
+        };
+
+        auth.try_into()
+    }
+
     /// Returns basic information about the high-level state of the connection.
     ///
     /// Returns false if the connection handle is invalid.
@@ -859,7 +873,10 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// If any messages are returned, you MUST call SteamNetworkingMessage_t::Release() on each
     /// of them free up resources after you are done.  It is safe to keep the object alive for
     /// a little while (put it into some queue, etc), and you may call Release() from any thread.
-    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
+    pub fn receive_messages(
+        &mut self,
+        batch_size: usize,
+    ) -> Result<Vec<NetworkingMessage<Manager>>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -872,16 +889,20 @@ impl<Manager: 'static> NetConnection<Manager> {
                 self.message_buffer.as_mut_ptr(),
                 batch_size as _,
             );
+            if message_count < 0 {
+                return Err(InvalidHandle);
+            }
             self.message_buffer.set_len(message_count as usize);
         }
 
-        self.message_buffer
+        Ok(self
+            .message_buffer
             .drain(..)
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
             })
-            .collect()
+            .collect())
     }
 
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
@@ -1120,7 +1141,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(100));
 
         println!("Receive message");
-        let messages = to_client.receive_messages(10);
+        let messages = to_client.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[1, 1, 2, 5]);
 
@@ -1132,7 +1153,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(100));
 
         println!("Receive message");
-        let messages = to_server.receive_messages(10);
+        let messages = to_server.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[3, 3, 3, 1]);
 
@@ -1147,7 +1168,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(1000));
 
         println!("Receive message");
-        let messages = to_server.receive_messages(10);
+        let messages = to_server.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[1, 2, 34, 5]);
     }
