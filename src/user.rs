@@ -218,7 +218,7 @@ pub struct AuthTicket(pub(crate) sys::HAuthTicket);
 /// Called when generating a authentication session ticket.
 ///
 /// This can be used to verify the ticket was created successfully.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AuthSessionTicketResponse {
     /// The ticket in question
     pub ticket: AuthTicket,
@@ -299,7 +299,7 @@ unsafe impl Callback for TicketForWebApiResponse {
 
 /// Called when an authentication ticket has been
 /// validated.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ValidateAuthTicketResponse {
     /// The steam id of the entity that provided the ticket
     pub steam_id: SteamId,
@@ -435,7 +435,7 @@ unsafe impl Callback for SteamServerConnectFailure {
 }
 
 /// Errors from `ValidateAuthTicketResponse`
-#[derive(Debug, Error)]
+#[derive(Clone, Debug, Error)]
 pub enum AuthSessionValidateError {
     /// The user in question is not connected to steam
     #[error("user not connected to steam")]

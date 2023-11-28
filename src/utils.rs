@@ -12,6 +12,7 @@ pub struct Utils<Manager> {
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
+#[derive(Clone, Debug)]
 pub struct GamepadTextInputDismissed {
     pub submitted_text_len: Option<u32>,
 }
@@ -28,6 +29,7 @@ unsafe impl Callback for GamepadTextInputDismissed {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct FloatingGamepadTextInputDismissed;
 
 unsafe impl Callback for FloatingGamepadTextInputDismissed {

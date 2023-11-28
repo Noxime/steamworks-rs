@@ -14,7 +14,7 @@ use super::*;
 ///     }
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserStatsReceived {
     pub steam_id: SteamId,
     pub game_id: GameId,
@@ -51,7 +51,7 @@ unsafe impl Callback for UserStatsReceived {
 ///     }
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserStatsStored {
     pub game_id: GameId,
     pub result: Result<(), SteamError>,
@@ -86,7 +86,7 @@ unsafe impl Callback for UserStatsStored {
 ///     // ...
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserAchievementStored {
     pub game_id: GameId,
     pub achievement_name: String,
