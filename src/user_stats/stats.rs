@@ -89,15 +89,15 @@ impl<M> AchievementHelper<'_, M> {
             Err(())
         }
     }
-    
+
     /// Returns the percentage of users who have unlocked the specified achievement.
-    /// 
+    ///
     /// You must have called `request_global_achievement_percentages()` and it needs to return
     /// successfully via its callback prior to calling this.
-    /// 
+    ///
     /// *Note: Always returns an error for AppId `480` (Spacewar)!
     /// Other AppIds work fine though.*
-    /// 
+    ///
     /// # Example
     ///
     /// ```no_run
@@ -109,7 +109,7 @@ impl<M> AchievementHelper<'_, M> {
     ///         let user_stats = client.user_stats();
     ///         let achievement = user_stats.achievement("WIN_THE_GAME");
     ///         let ach_percent = achievement.get_achievement_achieved_percent().expect("Failed to get achievement percentage");
-    /// 
+    ///
     ///         println!("{}",ach_percent);
     ///     } else {
     ///         println!("Error requesting global achievement percentages");
@@ -138,24 +138,24 @@ impl<M> AchievementHelper<'_, M> {
     ///
     /// This receives the value from a dictionary/map keyvalue store, so you must provide one
     /// of the following keys:
-    /// 
+    ///
     /// - `"name"` to retrive the localized achievement name in UTF8
     /// - `"desc"` to retrive the localized achievement description in UTF8
     /// - `"hidden"` for retrieving if an achievement is hidden. Returns `"0"` when not hidden,
     /// `"1"` when hidden
-    /// 
+    ///
     /// This localization is provided based on the games language if it's set, otherwise it
     /// checks if a localization is available for the users Steam UI Language. If that fails
     /// too, then it falls back to english.
-    /// 
+    ///
     /// This function returns the value as a `string` upon success if all of the following
     /// conditions are met; otherwise, an empty string: `""`.
-    /// 
+    ///
     /// - `request_current_stats()` has completed and successfully returned its callback.
     /// - The specified achievement exists in App Admin on the Steamworks website, and the
     /// changes are published.
     /// - The specified `pchKey` is valid.
-    /// 
+    ///
     /// # Example
     ///
     /// ```no_run
@@ -186,10 +186,10 @@ impl<M> AchievementHelper<'_, M> {
     }
 
     /// Gets the icon for an achievement.
-    /// 
+    ///
     /// The image is returned as a handle to be used with `ISteamUtils::GetImageRGBA` to get
     /// the actual image data.*
-    /// 
+    ///
     /// **Note: This is handled within the function. Returns a `Vec<u8>` buffer on success,
     /// which can be converted into the image data and saved to disk (e.g. via external RGBA to image crate).*
     pub fn get_achievement_icon(&self) -> Option<Vec<u8>> {
@@ -200,28 +200,18 @@ impl<M> AchievementHelper<'_, M> {
                 self.name.as_ptr() as *const _,
             );
             if img == 0 {
-                return None
+                return None;
             }
             let mut width = 0;
             let mut height = 0;
-            if !sys::SteamAPI_ISteamUtils_GetImageSize(
-                utils, 
-                img, 
-                &mut width, 
-                &mut height
-            ) {
-                return None
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
             }
             assert_eq!(width, 64);
             assert_eq!(height, 64);
             let mut dest = vec![0; 64 * 64 * 4];
-            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(
-                utils,
-                 img,
-                 dest.as_mut_ptr(),
-                 64 * 64 * 4
-                ) {
-                return None
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
+                return None;
             }
             Some(dest)
         }
