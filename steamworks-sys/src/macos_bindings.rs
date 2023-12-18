@@ -28201,7 +28201,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUGC_v016() -> *mut ISteamUGC;
+    pub fn SteamAPI_SteamUGC_v017() -> *mut ISteamUGC;
 }
 extern "C" {
     pub fn SteamAPI_SteamGameServerUGC_v017() -> *mut ISteamUGC;
