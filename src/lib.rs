@@ -87,7 +87,7 @@ pub struct SingleClient<Manager = ClientManager> {
     _not_sync: PhantomData<*mut ()>,
 }
 
-struct Inner<Manager> {
+pub struct Inner<Manager> {
     _manager: Manager,
     callbacks: Mutex<Callbacks>,
     networking_sockets_data: Mutex<NetworkingSocketsData<Manager>>,
