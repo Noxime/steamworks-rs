@@ -1032,6 +1032,121 @@ impl<Manager> Drop for QueryHandle<Manager> {
     }
 }
 impl<Manager> QueryHandle<Manager> {
+    /// Excludes items with a specific tag.
+    ///
+    /// Panics if `tag` could not be converted to a `CString`.
+    pub fn exclude_tag(self, tag: &str) -> Self {
+        let cstr = CString::new(tag)
+            .expect("String passed to exclude_tag could not be converted to a c string");
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Only include items with a specific tag.
+    ///
+    /// Panics if `tag` could not be converted to a `CString`.
+    pub fn require_tag(self, tag: &str) -> Self {
+        let cstr = CString::new(tag)
+            .expect("String passed to require_tag could not be converted to a c string");
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
+    pub fn any_required(self, any: bool) -> Self {
+        let ok =
+            unsafe { sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), any) };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets the language to return the title and description in for the items on a pending UGC Query.
+    ///
+    /// Defaults to "english"
+    pub fn language(self, language: &str) -> Self {
+        let cstr = CString::new(language)
+            .expect("String passed to language could not be converted to a c string");
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Sets whether results will be returned from the cache for the specific period of time on a pending UGC Query.
+    ///
+    /// Age is in seconds.
+    pub fn allow_cached_response(self, max_age_s: u32) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(
+                self.ugc,
+                self.handle.unwrap(),
+                max_age_s,
+            )
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include the full description in results
+    pub fn include_long_desc(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(
+                self.ugc,
+                self.handle.unwrap(),
+                include,
+            )
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include children in results
+    pub fn include_children(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include metadata in results
+    pub fn include_metadata(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include additional previews in results
+    pub fn include_additional_previews(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(
+                self.ugc,
+                self.handle.unwrap(),
+                include,
+            )
+        };
+        debug_assert!(ok);
+        self
+    }
+
+    /// Include key value tags in results
+    pub fn include_key_value_tags(self, include: bool) -> Self {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(self.ugc, self.handle.unwrap(), include)
+        };
+        debug_assert!(ok);
+        self
+    }
+
     /// Adds a tag that must be present on all returned items.
     pub fn add_required_tag(self, tag: &str) -> Self {
         let cstr = CString::new(tag).unwrap();
@@ -1219,121 +1334,6 @@ impl<Manager> QueryHandle<Manager> {
                 key_cstr.as_ptr(),
                 value_cstr.as_ptr(),
             )
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Excludes items with a specific tag.
-    ///
-    /// Panics if `tag` could not be converted to a `CString`.
-    pub fn exclude_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag)
-            .expect("String passed to exclude_tag could not be converted to a c string");
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Only include items with a specific tag.
-    ///
-    /// Panics if `tag` could not be converted to a `CString`.
-    pub fn require_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag)
-            .expect("String passed to require_tag could not be converted to a c string");
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
-    pub fn any_required(self, any: bool) -> Self {
-        let ok =
-            unsafe { sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), any) };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Sets the language to return the title and description in for the items on a pending UGC Query.
-    ///
-    /// Defaults to "english"
-    pub fn language(self, language: &str) -> Self {
-        let cstr = CString::new(language)
-            .expect("String passed to language could not be converted to a c string");
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Sets whether results will be returned from the cache for the specific period of time on a pending UGC Query.
-    ///
-    /// Age is in seconds.
-    pub fn allow_cached_response(self, max_age_s: u32) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(
-                self.ugc,
-                self.handle.unwrap(),
-                max_age_s,
-            )
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Include the full description in results
-    pub fn include_long_desc(self, include: bool) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnLongDescription(
-                self.ugc,
-                self.handle.unwrap(),
-                include,
-            )
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Include children in results
-    pub fn include_children(self, include: bool) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Include metadata in results
-    pub fn include_metadata(self, include: bool) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Include additional previews in results
-    pub fn include_additional_previews(self, include: bool) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(
-                self.ugc,
-                self.handle.unwrap(),
-                include,
-            )
-        };
-        debug_assert!(ok);
-        self
-    }
-
-    /// Include key value tags in results
-    pub fn include_key_value_tags(self, include: bool) -> Self {
-        let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(self.ugc, self.handle.unwrap(), include)
         };
         debug_assert!(ok);
         self
