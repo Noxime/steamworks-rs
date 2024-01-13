@@ -1,0 +1,60 @@
+name: Rebuild bindings
+
+on: workflow_dispatch
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        id: toolchain
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+          override: true
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        if: runner.os == 'linux'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - run: cargo build --features "rebuild-bindings"
+        working-directory: steamworks-sys
+        env:
+          STEAM_SDK_LOCATION: ./lib/steam
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-linux-bindings
+          path: steamworks-sys/src/linux_bindings.rs
+        if: matrix.os == 'ubuntu-latest'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-macos-bindings
+          path: steamworks-sys/src/macos_bindings.rs
+        if: matrix.os == 'macos-latest'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-windows-bindings
+          path: steamworks-sys/src/windows_bindings.rs
+        if: matrix.os == 'windows-latest'
