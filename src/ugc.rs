@@ -423,6 +423,66 @@ bitflags! {
     }
 }
 
+/// Users can control what user-generated content they want to see under the Mature Content Filtering section in their preferences.
+/// This filtering is done automatically by Steam servers, but first, user-generated content must be tagged appropriately.
+/// Developers can use AddContentDescriptor and RemoveContentDescriptor calls to manage content descriptors a piece of UGC has.
+/// These can be retrieved from the result of a query via GetQueryUGCContentDescriptors.
+pub enum UGCContentDescriptorID {
+    /// Some Nudity or Sexual Content: Contains content that has some nudity or sexual themes, but not as the primary focus.
+    NudityOrSexualContent = 1,
+    /// Frequent Violence or Gore: Contains content that features extreme violence or gore.
+    FrequentViolenceOrGore = 2,
+    /// Adult Only Sexual Content: Contains content that is sexually explicit or graphic and is intended for adults only. Users must affirm that they are at least eighteen years old before they can view content with this content descriptor.
+    AdultOnlySexualContent = 3,
+    /// Frequent Nudity or Sexual Content: Contains content that primarily features nudity or sexual themes. Users must affirm that they are at least eighteen years old before they can view content with this content descriptor.
+    GratuitousSexualContent = 4,
+    /// General Mature Content: Contains mature topics that may not be appropriate for all audiences.
+    AnyMatureContent = 5,
+}
+impl Into<sys::EUGCContentDescriptorID> for UGCContentDescriptorID {
+    fn into(self) -> sys::EUGCContentDescriptorID {
+        match self {
+            UGCContentDescriptorID::NudityOrSexualContent => {
+                sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_NudityOrSexualContent
+            }
+            UGCContentDescriptorID::FrequentViolenceOrGore => {
+                sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_FrequentViolenceOrGore
+            }
+            UGCContentDescriptorID::AdultOnlySexualContent => {
+                sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent
+            }
+            UGCContentDescriptorID::GratuitousSexualContent => {
+                sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_GratuitousSexualContent
+            }
+            UGCContentDescriptorID::AnyMatureContent => {
+                sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AnyMatureContent
+            }
+        }
+    }
+}
+impl From<sys::EUGCContentDescriptorID> for UGCContentDescriptorID {
+    fn from(content_descriptor_id: sys::EUGCContentDescriptorID) -> UGCContentDescriptorID {
+        match content_descriptor_id {
+            sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_NudityOrSexualContent => {
+                UGCContentDescriptorID::NudityOrSexualContent
+            }
+            sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_FrequentViolenceOrGore => {
+                UGCContentDescriptorID::FrequentViolenceOrGore
+            }
+            sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent => {
+                UGCContentDescriptorID::AdultOnlySexualContent
+            }
+            sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_GratuitousSexualContent => {
+                UGCContentDescriptorID::GratuitousSexualContent
+            }
+            sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AnyMatureContent => {
+                UGCContentDescriptorID::AnyMatureContent
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct DownloadItemResult {
@@ -908,6 +968,28 @@ impl<Manager> UpdateHandle<Manager> {
                 self.ugc,
                 self.handle,
                 key.as_ptr()
+            ));
+        }
+        self
+    }
+
+    pub fn add_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_AddContentDescriptor(
+                self.ugc,
+                self.handle,
+                desc_id.into(),
+            ));
+        }
+        self
+    }
+
+    pub fn remove_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
+        unsafe {
+            assert!(sys::SteamAPI_ISteamUGC_RemoveContentDescriptor(
+                self.ugc,
+                self.handle,
+                desc_id.into()
             ));
         }
         self
@@ -1494,6 +1576,27 @@ impl<'a> QueryResults<'a> {
         } else {
             None
         }
+    }
+
+    /// Gets UGCContentDescriptors of the published file at the specified index.
+    pub fn content_descriptor(&self, index: u32) -> Vec<UGCContentDescriptorID> {
+        let mut descriptors: [sys::EUGCContentDescriptorID; 10] = unsafe { std::mem::zeroed() };
+        let max_entries = descriptors.len() as std::ffi::c_uint;
+
+        let num_descriptors = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCContentDescriptors(
+                self.ugc,
+                self.handle,
+                index,
+                descriptors.as_mut_ptr(),
+                max_entries,
+            )
+        } as usize;
+
+        Vec::from(&descriptors[..num_descriptors])
+            .iter()
+            .map(|&x| x.into())
+            .collect()
     }
 
     /// Gets a result.
