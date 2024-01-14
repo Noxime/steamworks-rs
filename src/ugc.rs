@@ -874,13 +874,14 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
-    pub fn tags<S: AsRef<str>>(self, tags: Vec<S>) -> Self {
+    pub fn tags<S: AsRef<str>>(self, tags: Vec<S>, allow_admin_tags: bool) -> Self {
         unsafe {
             let mut tags = SteamParamStringArray::new(&tags);
             assert!(sys::SteamAPI_ISteamUGC_SetItemTags(
                 self.ugc,
                 self.handle,
-                &tags.as_raw()
+                &tags.as_raw(),
+                allow_admin_tags
             ));
         }
         self
@@ -1356,7 +1357,7 @@ impl<Manager> QueryHandle<Manager> {
                 api_call,
                 CALLBACK_BASE_ID + 1,
                 move |v, io_error| {
-                    let ugc = sys::SteamAPI_SteamUGC_v017();
+                    let ugc = sys::SteamAPI_SteamUGC_v018();
                     if io_error {
                         sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
                         cb(Err(SteamError::IOFailure));

@@ -56,7 +56,7 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
         .preview_path(Path::new("/absolute/path/to/preview.png"))
         .title("Item title")
         .description("Item description")
-        .tags(Vec::<String>::new())
+        .tags(Vec::<String>::new(), false)
         .visibility(steamworks::PublishedFileVisibility::Public)
         .submit(Some("My changenotes"), |upload_result| {
             // handle the result
