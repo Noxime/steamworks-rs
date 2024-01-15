@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::sys;
 use std::{
     convert::TryFrom,
-    ffi::{c_char, CString},
+    ffi::{c_char, CStr},
 };
 
 /// Covers errors that can be returned by the steamworks API
@@ -755,8 +755,10 @@ impl SteamAPIInitError {
         result: sys::ESteamAPIInitResult,
         message: sys::SteamErrMsg,
     ) -> Self {
-        let err_str = unsafe { CString::from_raw(message.as_ptr() as *mut c_char) };
-        let err_string = err_str.into_string().unwrap();
+        let err_string = unsafe {
+            let cstr = CStr::from_ptr(message.as_ptr() as *const c_char);
+            cstr.to_string_lossy().to_owned().into_owned()
+        };
 
         match result {
             sys::ESteamAPIInitResult::k_ESteamAPIInitResult_FailedGeneric => {
