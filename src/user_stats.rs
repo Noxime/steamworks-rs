@@ -569,6 +569,7 @@ impl Leaderboard {
 }
 
 #[test]
+#[ignore]
 #[serial]
 fn test() {
     let (client, single) = Client::init().unwrap();

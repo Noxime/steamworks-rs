@@ -7,3 +7,4 @@ Cargo.lock
 *.iml
 steamworks-sys/lib/steam/*
 !steamworks-sys/lib/steam/redistributable_bin/
+!steamworks-sys/lib/steam/public/

@@ -9,10 +9,11 @@ extern crate lazy_static;
 pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
+use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
 use std::marker::PhantomData;
 use std::sync::mpsc::Sender;
@@ -57,6 +58,8 @@ mod user_stats;
 mod utils;
 
 pub type SResult<T> = Result<T, SteamError>;
+
+pub type SIResult<T> = Result<T, SteamAPIInitError>;
 
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
@@ -134,6 +137,44 @@ where
 }
 
 impl Client<ClientManager> {
+    fn steam_api_init_ex(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
+        let versions: Vec<&[u8]> = vec![
+            sys::STEAMUTILS_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGUTILS_INTERFACE_VERSION,
+            sys::STEAMAPPLIST_INTERFACE_VERSION,
+            sys::STEAMAPPS_INTERFACE_VERSION,
+            sys::STEAMCONTROLLER_INTERFACE_VERSION,
+            sys::STEAMFRIENDS_INTERFACE_VERSION,
+            sys::STEAMGAMESEARCH_INTERFACE_VERSION,
+            sys::STEAMHTMLSURFACE_INTERFACE_VERSION,
+            sys::STEAMHTTP_INTERFACE_VERSION,
+            sys::STEAMINPUT_INTERFACE_VERSION,
+            sys::STEAMINVENTORY_INTERFACE_VERSION,
+            sys::STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION,
+            sys::STEAMMATCHMAKING_INTERFACE_VERSION,
+            sys::STEAMMUSICREMOTE_INTERFACE_VERSION,
+            sys::STEAMMUSIC_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGMESSAGES_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGSOCKETS_INTERFACE_VERSION,
+            sys::STEAMNETWORKING_INTERFACE_VERSION,
+            sys::STEAMPARENTALSETTINGS_INTERFACE_VERSION,
+            sys::STEAMPARTIES_INTERFACE_VERSION,
+            sys::STEAMREMOTEPLAY_INTERFACE_VERSION,
+            sys::STEAMREMOTESTORAGE_INTERFACE_VERSION,
+            sys::STEAMSCREENSHOTS_INTERFACE_VERSION,
+            sys::STEAMUGC_INTERFACE_VERSION,
+            sys::STEAMUSERSTATS_INTERFACE_VERSION,
+            sys::STEAMUSER_INTERFACE_VERSION,
+            sys::STEAMVIDEO_INTERFACE_VERSION,
+            b"\0",
+        ];
+
+        let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
+        let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
+
+        unsafe { sys::SteamInternal_SteamAPI_Init(merged_versions_ptr, p_out_err_msg) }
+    }
+
     /// Attempts to initialize the steamworks api and returns
     /// a client to access the rest of the api.
     ///
@@ -152,14 +193,18 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    pub fn init() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
         static_assert_send::<Client<ClientManager>>();
         static_assert_sync::<Client<ClientManager>>();
         static_assert_send::<SingleClient<ClientManager>>();
         unsafe {
-            if !sys::SteamAPI_Init() {
-                return Err(SteamError::InitFailed);
+            let mut err_msg: sys::SteamErrMsg = [0; 1024];
+            let result = Self::steam_api_init_ex(&mut err_msg);
+
+            if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
+                return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
             }
+
             sys::SteamAPI_ManualDispatch_Init();
             let client = Arc::new(Inner {
                 _manager: ClientManager { _priv: () },
@@ -199,7 +244,7 @@ impl Client<ClientManager> {
     /// * The app ID isn't completely set up.
     pub fn init_app<ID: Into<AppId>>(
         app_id: ID,
-    ) -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    ) -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
         let app_id = app_id.into().0.to_string();
         std::env::set_var("SteamAppId", &app_id);
         std::env::set_var("SteamGameId", app_id);
@@ -367,7 +412,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam remote play interface
     pub fn remote_play(&self) -> RemotePlay<Manager> {
         unsafe {
-            let rp = sys::SteamAPI_SteamRemotePlay_v001();
+            let rp = sys::SteamAPI_SteamRemotePlay_v002();
             debug_assert!(!rp.is_null());
             RemotePlay {
                 rp,
@@ -394,7 +439,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC<Manager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v017();
+            let ugc = sys::SteamAPI_SteamUGC_v018();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
