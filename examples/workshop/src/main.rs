@@ -50,7 +50,7 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
     // notes:
     // - once an upload is started, it cannot be cancelled!
     // - content_path is the path to a folder which houses the content you wish to upload
-    let upload_handle = ugc
+    let _upload_handle = ugc
         .start_item_update(steamworks::AppId(480), published_id)
         .content_path(Path::new("/absolute/path/to/content"))
         .preview_path(Path::new("/absolute/path/to/preview.png"))
