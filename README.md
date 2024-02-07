@@ -10,13 +10,13 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-steamworks = "0.10.0"
+steamworks = "0.11.0"
 ```
 
 | Crate  | SDK   | MSRV   |
 |--------|-------|--------|
 | git    | 1.58a | 1.71.1 |
-| 0.11.0 | 1.54  | 1.71.1 |
+| 0.11.0 | 1.58a | 1.71.1 |
 | 0.10.0 | 1.54  | 1.56.1 |
 | 0.9.0  | 1.53a | 1.56.1 |
 
