@@ -1,6 +1,6 @@
 [package]
 name = "steamworks"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Thinkofname"]
 description = "Provides rust friendly bindings to the steamworks sdk"
 license = "MIT / Apache-2.0"
@@ -9,6 +9,7 @@ documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
 edition = "2021"
+rust-version = "1.71.1"
 
 [features]
 default = []
@@ -22,7 +23,7 @@ members = [
 ]
 
 [dependencies]
-steamworks-sys = {path = "./steamworks-sys", version = "0.10.0"}
+steamworks-sys = { path = "./steamworks-sys", version = "0.11.0" }
 thiserror = "1.0"
 bitflags = "1.2"
 lazy_static = "1.4"
