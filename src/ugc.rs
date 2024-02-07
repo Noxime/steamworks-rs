@@ -1648,6 +1648,8 @@ impl<'a> QueryResults<'a> {
                 owner: SteamId(raw_details.m_ulSteamIDOwner),
                 time_created: raw_details.m_rtimeCreated,
                 time_updated: raw_details.m_rtimeUpdated,
+                time_added_to_user_list: raw_details.m_rtimeAddedToUserList,
+                visibility: raw_details.m_eVisibility.into(),
                 banned: raw_details.m_bBanned,
                 accepted_for_use: raw_details.m_bAcceptedForUse,
                 url: CStr::from_ptr(raw_details.m_rgchURL.as_ptr())
@@ -1777,6 +1779,9 @@ pub struct QueryResult {
     pub time_created: u32,
     /// Time updated in unix epoch seconds format
     pub time_updated: u32,
+    /// Time when the user added the published item to their list (not always applicable), provided in Unix epoch format (time since Jan 1st, 1970).
+    pub time_added_to_user_list: u32,
+    pub visibility: PublishedFileVisibility,
     pub banned: bool,
     pub accepted_for_use: bool,
     pub tags: Vec<String>,
