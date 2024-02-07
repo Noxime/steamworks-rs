@@ -305,7 +305,7 @@ pub(crate) struct SteamParamStringArray(Vec<*mut i8>);
 impl Drop for SteamParamStringArray {
     fn drop(&mut self) {
         for c_string in &self.0 {
-            unsafe { CString::from_raw(*c_string) };
+            unsafe { drop(CString::from_raw(*c_string)) };
         }
     }
 }

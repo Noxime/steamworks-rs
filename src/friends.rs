@@ -280,6 +280,24 @@ unsafe impl Callback for PersonaStateChange {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GameOverlayActivated {
+    pub active: bool,
+}
+
+unsafe impl Callback for GameOverlayActivated {
+    const ID: i32 = CALLBACK_BASE_ID + 31;
+    const SIZE: i32 = std::mem::size_of::<sys::GameOverlayActivated_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
+        Self {
+            active: val.m_bActive == 1,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GameLobbyJoinRequested {
     pub lobby_steam_id: LobbyId,
     pub friend_steam_id: SteamId,
