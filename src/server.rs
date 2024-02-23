@@ -18,6 +18,7 @@ unsafe impl Send for Server {}
 unsafe impl Sync for Server {}
 
 /// Used to set the mode that a gameserver will run in
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ServerMode {
     /// Don't authenticate user logins.
     ///
