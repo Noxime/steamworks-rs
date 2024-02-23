@@ -17,6 +17,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use sys::SteamNetworkingMessage_t;
 
+use crate::networking_types::AppNetConnectionEnd;
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
@@ -948,7 +949,7 @@ impl<Manager> Drop for NetConnection<Manager> {
                 sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
                     self.sockets,
                     self.handle,
-                    NetConnectionEnd::AppGeneric.into(),
+                    NetConnectionEnd::App(AppNetConnectionEnd::generic_normal()).into(),
                     debug_string.as_ptr(),
                     false,
                 )

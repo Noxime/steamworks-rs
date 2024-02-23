@@ -12,6 +12,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 use std::panic::catch_unwind;
 use std::sync::Arc;
 use steamworks_sys as sys;
+use steamworks_sys::ESteamNetConnectionEnd;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -650,12 +651,91 @@ impl TryFrom<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState
 #[error("Invalid state")]
 pub struct InvalidConnectionState;
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct AppNetConnectionEnd {
+    code: i32,
+}
+
+impl AppNetConnectionEnd {
+    pub fn code(&self) -> i32 {
+        self.code
+    }
+
+    /// Create a generic normal net connection end.
+    pub fn generic_normal() -> Self {
+        Self {
+            code: ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32,
+        }
+    }
+
+    /// Create a normal net connection end.
+    ///
+    /// Indicates that the application ended the connection in a "usual" manner.
+    /// E.g.: user intentionally disconnected from the server,
+    /// gameplay ended normally, etc
+    ///
+    /// Panics if `code` is not between 1000 and 1999.
+    pub fn normal(code: i32) -> Self {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Max as i32;
+        if code < min || code > max {
+            panic!("app net connection end code {} is out of range. App normal codes must be between {} and {}", code, min, max);
+        }
+
+        Self { code }
+    }
+
+    /// Creates a generic exception net connection end code.
+    pub fn generic_exception() -> Self {
+        Self {
+            code: ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32,
+        }
+    }
+
+    /// Create a exception net connection end.
+    ///
+    /// Indicates that the application ended the connection in some sort of exceptional
+    /// or unusual manner that might indicate a bug or configuration
+    /// issue.
+    ///
+    /// Panics if `code` is not between 2000 and 2999.
+    pub fn exception(code: i32) -> Self {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Max as i32;
+        if code < min || code > max {
+            panic!("app net connection end code {} is out of range. App exceptions code must be between {} and {}", code, min, max);
+        }
+
+        Self { code }
+    }
+
+    /// Returns true if the connection ended in a "normal" way, like a user intentionally disconnecting.
+    pub fn is_normal(&self) -> bool {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Max as i32;
+
+        self.code >= min && self.code <= max
+    }
+
+    /// Returns true if the connection ended because of an error.
+    pub fn is_exception(&self) -> bool {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Max as i32;
+
+        self.code >= min && self.code <= max
+    }
+}
+
 /// Enumerate various causes of connection termination.  These are designed to work similar
 /// to HTTP error codes: the numeric range gives you a rough classification as to the source
 /// of the problem.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetConnectionEnd {
-    //
+    /// Invalid/sentinel value
+    ///
+    /// Int value: 0
+    Invalid,
+
     // Application codes.  These are the values you will pass to
     // ISteamNetworkingSockets::CloseConnection.  You can use these codes if
     // you want to plumb through application-specific reason codes.  If you don't
@@ -669,17 +749,10 @@ pub enum NetConnectionEnd {
     // proportion of connections terminates in an exceptional manner,
     // this can trigger an alert.
     //
-
     // 1xxx: Application ended the connection in a "usual" manner.
     //       E.g.: user intentionally disconnected from the server,
     //             gameplay ended normally, etc
-    AppGeneric,
-
-    // 2xxx: Application ended the connection in some sort of exceptional
-    //       or unusual manner that might indicate a bug or configuration
-    //       issue.
-    //
-    AppException,
+    App(AppNetConnectionEnd),
 
     //
     // System codes.  These will be returned by the system when
@@ -709,7 +782,7 @@ pub enum NetConnectionEnd {
     // on our end
     LocalHostedServerPrimaryRelay,
 
-    // We're not able to get the SDR network config.  This is
+    // We're not able to get the network config.  This is
     // *almost* always a local issue, since the network config
     // comes from the CDN, which is pretty darn reliable.
     LocalNetworkConfig,
@@ -817,98 +890,140 @@ pub enum NetConnectionEnd {
     //   reason (perhaps a bug), and believes that is it is
     //   acknowledging our closure.
     MiscPeerSentNoConnection,
-}
 
-impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
-    fn from(end: NetConnectionEnd) -> Self {
-        match end {
-            NetConnectionEnd::AppGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic,
-            NetConnectionEnd::AppException => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
-            NetConnectionEnd::LocalOfflineMode => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode,
-            NetConnectionEnd::LocalManyRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity,
-            NetConnectionEnd::LocalHostedServerPrimaryRelay => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay,
-            NetConnectionEnd::LocalNetworkConfig => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig,
-            NetConnectionEnd::LocalRights => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights,
-            NetConnectionEnd::LocalP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses,
-            NetConnectionEnd::RemoteTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout,
-            NetConnectionEnd::RemoteBadEncrypt => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt,
-            NetConnectionEnd::RemoteBadCert => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert,
-            NetConnectionEnd::RemoteBadProtocolVersion => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion,
-            NetConnectionEnd::RemoteP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses,
-            NetConnectionEnd::MiscGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic,
-            NetConnectionEnd::MiscInternalError => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError,
-            NetConnectionEnd::MiscTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout,
-            NetConnectionEnd::MiscSteamConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity,
-            NetConnectionEnd::MiscNoRelaySessionsToClient => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient,
-            NetConnectionEnd::MiscP2PRendezvous => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous,
-            NetConnectionEnd::MiscP2PNATFirewall => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall,
-            NetConnectionEnd::MiscPeerSentNoConnection => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection,
-        }
-    }
+    /// A code that could not be handled.
+    Other(i32),
 }
 
 impl From<NetConnectionEnd> for i32 {
     fn from(end: NetConnectionEnd) -> Self {
-        sys::ESteamNetConnectionEnd::from(end) as i32
-    }
-}
-
-impl TryFrom<i32> for NetConnectionEnd {
-    type Error = InvalidEnumValue;
-    fn try_from(end: i32) -> Result<Self, Self::Error> {
+        use ESteamNetConnectionEnd::*;
         match end {
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32 => Ok(NetConnectionEnd::AppGeneric),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32 => Ok(NetConnectionEnd::AppException),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => Ok(NetConnectionEnd::LocalOfflineMode),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => Ok(NetConnectionEnd::LocalManyRelayConnectivity),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => Ok(NetConnectionEnd::LocalHostedServerPrimaryRelay),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig as i32 => Ok(NetConnectionEnd::LocalNetworkConfig),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights as i32 => Ok(NetConnectionEnd::LocalRights),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::LocalP2PICENoPublicAddresses),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout as i32 => Ok(NetConnectionEnd::RemoteTimeout),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => Ok(NetConnectionEnd::RemoteBadEncrypt),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert as i32 => Ok(NetConnectionEnd::RemoteBadCert),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => Ok(NetConnectionEnd::RemoteBadProtocolVersion),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::RemoteP2PICENoPublicAddresses),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic as i32 => Ok(NetConnectionEnd::MiscGeneric),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError as i32 => Ok(NetConnectionEnd::MiscInternalError),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout as i32 => Ok(NetConnectionEnd::MiscTimeout),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => Ok(NetConnectionEnd::MiscSteamConnectivity),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => Ok(NetConnectionEnd::MiscNoRelaySessionsToClient),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => Ok(NetConnectionEnd::MiscP2PRendezvous),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => Ok(NetConnectionEnd::MiscP2PNATFirewall),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => Ok(NetConnectionEnd::MiscPeerSentNoConnection),
-            _ => panic!("invalid connection end"),
+            NetConnectionEnd::Invalid => k_ESteamNetConnectionEnd_Invalid as i32,
+            NetConnectionEnd::App(app_net_connection_end) => app_net_connection_end.code(),
+            NetConnectionEnd::LocalOfflineMode => k_ESteamNetConnectionEnd_Local_OfflineMode as i32,
+            NetConnectionEnd::LocalManyRelayConnectivity => {
+                k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32
+            }
+            NetConnectionEnd::LocalHostedServerPrimaryRelay => {
+                k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32
+            }
+            NetConnectionEnd::LocalNetworkConfig => {
+                k_ESteamNetConnectionEnd_Local_NetworkConfig as i32
+            }
+            NetConnectionEnd::LocalRights => k_ESteamNetConnectionEnd_Local_Rights as i32,
+            NetConnectionEnd::LocalP2PICENoPublicAddresses => {
+                k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32
+            }
+            NetConnectionEnd::RemoteTimeout => k_ESteamNetConnectionEnd_Remote_Timeout as i32,
+            NetConnectionEnd::RemoteBadEncrypt => k_ESteamNetConnectionEnd_Remote_BadCrypt as i32,
+            NetConnectionEnd::RemoteBadCert => k_ESteamNetConnectionEnd_Remote_BadCert as i32,
+            NetConnectionEnd::RemoteBadProtocolVersion => {
+                k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32
+            }
+            NetConnectionEnd::RemoteP2PICENoPublicAddresses => {
+                k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32
+            }
+            NetConnectionEnd::MiscGeneric => k_ESteamNetConnectionEnd_Misc_Generic as i32,
+            NetConnectionEnd::MiscInternalError => {
+                k_ESteamNetConnectionEnd_Misc_InternalError as i32
+            }
+            NetConnectionEnd::MiscTimeout => k_ESteamNetConnectionEnd_Misc_Timeout as i32,
+            NetConnectionEnd::MiscSteamConnectivity => {
+                k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32
+            }
+            NetConnectionEnd::MiscNoRelaySessionsToClient => {
+                k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32
+            }
+            NetConnectionEnd::MiscP2PRendezvous => {
+                k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32
+            }
+            NetConnectionEnd::MiscP2PNATFirewall => {
+                k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32
+            }
+            NetConnectionEnd::MiscPeerSentNoConnection => {
+                k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32
+            }
+            NetConnectionEnd::Other(code) => code,
         }
     }
 }
 
-impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
-    fn from(end: steamworks_sys::ESteamNetConnectionEnd) -> Self {
+impl From<i32> for NetConnectionEnd {
+    fn from(end: i32) -> Self {
+        use ESteamNetConnectionEnd::*;
         match end {
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic => NetConnectionEnd::AppGeneric,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic => NetConnectionEnd::AppException,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode => NetConnectionEnd::LocalOfflineMode,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity => { NetConnectionEnd::LocalManyRelayConnectivity }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay => { NetConnectionEnd::LocalHostedServerPrimaryRelay }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig => { NetConnectionEnd::LocalNetworkConfig }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights => NetConnectionEnd::LocalRights,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::LocalP2PICENoPublicAddresses }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout => NetConnectionEnd::RemoteTimeout,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt => NetConnectionEnd::RemoteBadEncrypt,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert => NetConnectionEnd::RemoteBadCert,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion => { NetConnectionEnd::RemoteBadProtocolVersion }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::RemoteP2PICENoPublicAddresses }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic => NetConnectionEnd::MiscGeneric,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError => NetConnectionEnd::MiscInternalError,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout => NetConnectionEnd::MiscTimeout,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity => { NetConnectionEnd::MiscSteamConnectivity }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient => { NetConnectionEnd::MiscNoRelaySessionsToClient }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous => { NetConnectionEnd::MiscP2PRendezvous }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall => { NetConnectionEnd::MiscP2PNATFirewall }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection => { NetConnectionEnd::MiscPeerSentNoConnection }
-            _ => panic!("invalid connection end"),
+            end if end == k_ESteamNetConnectionEnd_Invalid as i32 => NetConnectionEnd::Invalid,
+            end if end >= k_ESteamNetConnectionEnd_App_Min as i32
+                && end <= k_ESteamNetConnectionEnd_AppException_Max as i32 =>
+            {
+                NetConnectionEnd::App(AppNetConnectionEnd { code: end })
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => {
+                NetConnectionEnd::LocalOfflineMode
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => {
+                NetConnectionEnd::LocalManyRelayConnectivity
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => {
+                NetConnectionEnd::LocalHostedServerPrimaryRelay
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_NetworkConfig as i32 => {
+                NetConnectionEnd::LocalNetworkConfig
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_Rights as i32 => {
+                NetConnectionEnd::LocalRights
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32 => {
+                NetConnectionEnd::LocalP2PICENoPublicAddresses
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_Timeout as i32 => {
+                NetConnectionEnd::RemoteTimeout
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => {
+                NetConnectionEnd::RemoteBadEncrypt
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadCert as i32 => {
+                NetConnectionEnd::RemoteBadCert
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => {
+                NetConnectionEnd::RemoteBadProtocolVersion
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => {
+                NetConnectionEnd::RemoteP2PICENoPublicAddresses
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_Generic as i32 => {
+                NetConnectionEnd::MiscGeneric
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_InternalError as i32 => {
+                NetConnectionEnd::MiscInternalError
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_Timeout as i32 => {
+                NetConnectionEnd::MiscTimeout
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => {
+                NetConnectionEnd::MiscSteamConnectivity
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => {
+                NetConnectionEnd::MiscNoRelaySessionsToClient
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => {
+                NetConnectionEnd::MiscP2PRendezvous
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => {
+                NetConnectionEnd::MiscP2PNATFirewall
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => {
+                NetConnectionEnd::MiscPeerSentNoConnection
+            }
+            end => Self::Other(end),
         }
+    }
+}
+
+impl From<ESteamNetConnectionEnd> for NetConnectionEnd {
+    fn from(end: ESteamNetConnectionEnd) -> Self {
+        (end as i32).into()
     }
 }
 
@@ -1030,8 +1145,7 @@ impl NetConnectionInfo {
     }
 
     pub fn end_reason(&self) -> Option<NetConnectionEnd> {
-        if self.inner.m_eEndReason
-            == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Invalid as _
+        if self.inner.m_eEndReason == ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Invalid as _
         {
             None
         } else {

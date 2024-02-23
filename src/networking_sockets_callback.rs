@@ -1,6 +1,6 @@
 use crate::networking_sockets::NetConnection;
 use crate::networking_types::{
-    NetConnectionEnd, NetConnectionStatusChanged, NetworkingConnectionState,
+    AppNetConnectionEnd, NetConnectionEnd, NetConnectionStatusChanged, NetworkingConnectionState,
 };
 use crate::{register_callback, CallbackHandle, Inner};
 use std::sync::{Arc, Weak};
@@ -83,7 +83,7 @@ impl<Manager: 'static> ConnectionCallbackHandler<Manager> {
     fn reject_connection(&self, connection_handle: sys::HSteamNetConnection) {
         if let Some(inner) = self.inner.upgrade() {
             NetConnection::new_internal(connection_handle, self.sockets, inner.clone()).close(
-                NetConnectionEnd::AppGeneric,
+                NetConnectionEnd::App(AppNetConnectionEnd::generic_normal()).into(),
                 Some("no new connections will be accepted"),
                 false,
             );
