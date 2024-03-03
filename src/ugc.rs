@@ -1661,6 +1661,9 @@ impl<'a> QueryResults<'a> {
                 num_children: raw_details.m_unNumChildren,
                 tags,
                 tags_truncated: raw_details.m_bTagsTruncated,
+                file_name: CStr::from_ptr(raw_details.m_pchFileName.as_ptr())
+                    .to_string_lossy()
+                    .into_owned(),
                 file_type: raw_details.m_eFileType.into(),
                 file_size: raw_details.m_nFileSize.max(0) as u32,
             })
@@ -1786,6 +1789,8 @@ pub struct QueryResult {
     pub accepted_for_use: bool,
     pub tags: Vec<String>,
     pub tags_truncated: bool,
+    /// Original file name of the workshop item. Used in old games, like Total War: Shogun 2.
+    pub file_name: String,
     pub file_type: FileType,
     pub file_size: u32,
 
