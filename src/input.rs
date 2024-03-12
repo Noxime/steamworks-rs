@@ -61,6 +61,34 @@ impl<Manager> Input<Manager> {
         unsafe { sys::SteamAPI_ISteamInput_GetActionSetHandle(self.input, name.as_ptr()) }
     }
 
+    /// Returns the input type for a controler
+    pub fn get_input_type_for_handle(
+        &self,
+        input_handle: sys::InputHandle_t,
+    ) -> sys::ESteamInputType {
+        unsafe { sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input, input_handle) }
+    }
+
+    /// Returns the glyph for an input action
+    pub fn get_glyph_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
+        unsafe {
+            let glyph_path =
+                sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
+            let glyph_path = CStr::from_ptr(glyph_path);
+            glyph_path.to_string_lossy().into_owned()
+        }
+    }
+
+    /// Returns the name of an input action
+    pub fn get_string_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
+        unsafe {
+            let name_path =
+                sys::SteamAPI_ISteamInput_GetStringForActionOrigin(self.input, action_origin);
+            let name_path = CStr::from_ptr(name_path);
+            name_path.to_string_lossy().into_owned()
+        }
+    }
+
     /// Reconfigure the controller to use the specified action set
     /// This is cheap, and can be safely called repeatedly.
     pub fn activate_action_set_handle(
