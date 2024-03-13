@@ -8,6 +8,24 @@ pub struct Input<Manager> {
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
+pub enum InputType {
+    Unknown,
+    SteamController,
+    XBox360Controller,
+    XBoxOneController,
+    GenericGamepad,
+    PS4Controller,
+    AppleMFiController,
+    AndroidController,
+    SwitchJoyConPair,
+    SwitchJoyConSingle,
+    SwitchProController,
+    MobileTouch,
+    PS3Controller,
+    PS5Controller,
+    SteamDeckController,
+}
+
 impl<Manager> Input<Manager> {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
@@ -62,11 +80,41 @@ impl<Manager> Input<Manager> {
     }
 
     /// Returns the input type for a controler
-    pub fn get_input_type_for_handle(
-        &self,
-        input_handle: sys::InputHandle_t,
-    ) -> sys::ESteamInputType {
-        unsafe { sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input, input_handle) }
+    pub fn get_input_type_for_handle(&self, input_handle: sys::InputHandle_t) -> InputType {
+        let input_type: sys::ESteamInputType =
+            unsafe { sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input, input_handle) };
+
+        match input_type {
+            sys::ESteamInputType::k_ESteamInputType_SteamController => InputType::SteamController,
+            sys::ESteamInputType::k_ESteamInputType_GenericGamepad => InputType::GenericGamepad,
+            sys::ESteamInputType::k_ESteamInputType_PS4Controller => InputType::PS4Controller,
+            sys::ESteamInputType::k_ESteamInputType_SwitchJoyConPair => InputType::SwitchJoyConPair,
+            sys::ESteamInputType::k_ESteamInputType_MobileTouch => InputType::MobileTouch,
+            sys::ESteamInputType::k_ESteamInputType_PS3Controller => InputType::PS3Controller,
+            sys::ESteamInputType::k_ESteamInputType_PS5Controller => InputType::PS5Controller,
+            sys::ESteamInputType::k_ESteamInputType_XBox360Controller => {
+                InputType::XBox360Controller
+            }
+            sys::ESteamInputType::k_ESteamInputType_XBoxOneController => {
+                InputType::XBoxOneController
+            }
+            sys::ESteamInputType::k_ESteamInputType_AppleMFiController => {
+                InputType::AppleMFiController
+            }
+            sys::ESteamInputType::k_ESteamInputType_AndroidController => {
+                InputType::AndroidController
+            }
+            sys::ESteamInputType::k_ESteamInputType_SwitchJoyConSingle => {
+                InputType::SwitchJoyConSingle
+            }
+            sys::ESteamInputType::k_ESteamInputType_SwitchProController => {
+                InputType::SwitchProController
+            }
+            sys::ESteamInputType::k_ESteamInputType_SteamDeckController => {
+                InputType::SteamDeckController
+            }
+            _ => InputType::Unknown,
+        }
     }
 
     /// Returns the glyph for an input action
