@@ -92,6 +92,82 @@ impl<Manager> Friends<Manager> {
         }
     }
 
+    /// Returns a small (32x32) avatar for the current user in RGBA format
+    pub fn small_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let user: *mut sys::ISteamUser = sys::SteamAPI_SteamUser_v023();
+            let steam_id = sys::SteamAPI_ISteamUser_GetSteamID(user);
+            let utils = sys::SteamAPI_SteamUtils_v010();
+            let img = sys::SteamAPI_ISteamFriends_GetSmallFriendAvatar(self.friends, steam_id);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
+            }
+            assert_eq!(width, 32);
+            assert_eq!(height, 32);
+            let mut dest = vec![0; 32 * 32 * 4];
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 32 * 32 * 4) {
+                return None;
+            }
+            Some(dest)
+        }
+    }
+
+    /// Returns a small (64x64) avatar for the current user in RGBA format
+    pub fn medium_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let user: *mut sys::ISteamUser = sys::SteamAPI_SteamUser_v023();
+            let steam_id = sys::SteamAPI_ISteamUser_GetSteamID(user);
+            let utils = sys::SteamAPI_SteamUtils_v010();
+            let img = sys::SteamAPI_ISteamFriends_GetMediumFriendAvatar(self.friends, steam_id);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
+            }
+            assert_eq!(width, 64);
+            assert_eq!(height, 64);
+            let mut dest = vec![0; 64 * 64 * 4];
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
+                return None;
+            }
+            Some(dest)
+        }
+    }
+
+    /// Returns a small (184x184) avatar for the current user in RGBA format
+    pub fn large_avatar(&self) -> Option<Vec<u8>> {
+        unsafe {
+            let user: *mut sys::ISteamUser = sys::SteamAPI_SteamUser_v023();
+            let steam_id = sys::SteamAPI_ISteamUser_GetSteamID(user);
+            let utils = sys::SteamAPI_SteamUtils_v010();
+            let img = sys::SteamAPI_ISteamFriends_GetLargeFriendAvatar(self.friends, steam_id);
+            if img == 0 {
+                return None;
+            }
+            let mut width = 0;
+            let mut height = 0;
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
+            }
+            assert_eq!(width, 184);
+            assert_eq!(height, 184);
+            let mut dest = vec![0; 184 * 184 * 4];
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4)
+            {
+                return None;
+            }
+            Some(dest)
+        }
+    }
+
     pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend<Manager>> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(self.friends, flags.bits() as _);
