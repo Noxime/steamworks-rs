@@ -111,6 +111,31 @@ impl<Manager> Friends<Manager> {
             friends
         }
     }
+
+    /// Get a list of users from a specific source (e.g. gameserver)
+    /// Despite the misleading name, it does not return only friends
+    /// but all users from the source that are currently connected.
+    /// This does however require some local client to be connected to the source.
+    pub fn get_friends_from_source(&self, source: SteamId) -> Vec<Friend<Manager>> {
+        unsafe {
+            let count =
+                sys::SteamAPI_ISteamFriends_GetFriendCountFromSource(self.friends, source.0);
+            if count == -1 {
+                return Vec::new();
+            }
+            let mut friends = Vec::with_capacity(count as usize);
+            for idx in 0..count {
+                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetFriendFromSourceByIndex(
+                    self.friends,
+                    source.0,
+                    idx,
+                ));
+                friends.push(self.get_friend(friend));
+            }
+            friends
+        }
+    }
+
     /// Returns recently played with players list
     pub fn get_coplay_friends(&self) -> Vec<Friend<Manager>> {
         unsafe {
