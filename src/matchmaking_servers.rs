@@ -1,82 +1,6 @@
 use super::*;
-#[cfg(test)]
-use serial_test::serial;
 
-unsafe impl Sync for ServerListRequest {}
-unsafe impl Send for ServerListRequest {}
-impl ServerListRequest {
-    unsafe fn raw_clone(&self) -> Self {
-        Self {
-            callbacks: self.callbacks.clone(),
-            handle: self.handle.clone(),
-            mms: self.mms.clone(),
-        }
-    }
-}
-impl Clone for ServerListRequest {
-    /// Can cause panic, be careful
-    fn clone(&self) -> Self {
-        unsafe {
-            let request = self.raw_clone();
-            add_servers_request(&request).unwrap(); // TODO: Убрать unwrap
-            
-            request
-        }
-    }
-}
-
-struct RawVec(*mut steamworks_sys::MatchMakingKeyValuePair_t, usize);
-unsafe impl Sync for RawVec {}
-unsafe impl Send for RawVec {}
-
-lazy_static! {
-    static ref SERVER_LIST_REQUESTS: Mutex<Vec<(ServerListRequest, u8, Option<RawVec>)>> = Mutex::new(Vec::new());
-}
-
-unsafe fn add_servers_request(request: &ServerListRequest) -> Option<()> {
-    let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
-    let index = list.binary_search_by(
-        |i| i.0.handle.cmp(&request.handle)
-    ).ok()?;
-    list[index].1 += 1;
-    
-    Some(())
-}
-
-unsafe fn remove_servers_request(request: &ServerListRequest) -> Option<()> {
-    let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
-    let index = list.binary_search_by(
-        |i| i.0.handle.cmp(&request.handle)
-    ).ok()?;
-    list[index].1 -= 1;
-    
-    if list[index].1 <= 0 {
-        steamworks_sys::SteamAPI_ISteamMatchmakingServers_CancelQuery(
-            steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
-            list[index].0.handle,
-        );
-        steamworks_sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(
-            steamworks_sys::SteamAPI_SteamMatchmakingServers_v002(),
-            list[index].0.handle,
-        );
-        
-        if let Some(filters) = &list[index].2 {
-            drop_filters(filters.0, filters.1);
-        }
-        // TODO: Возможно это здесь не нужно, ибо вызывается ReleaseRequest
-        free_serverlist(list[index].0.callbacks);
-    }
-    
-    Some(())
-}
-
-// TODO: Привести макрос в нормальный вид
 macro_rules! matchmaking_servers_callback {
-    (
-    
-    ) => {
-    
-    };
     (
         $name:ident;
         $(
@@ -85,7 +9,7 @@ macro_rules! matchmaking_servers_callback {
     ) => {
         paste::item! {
             $(
-                extern fn [<$name:lower _ $fn_name _virtual>](_self: *mut [<$name _callbacks_real>] $(, $fn_arg_name: $cpp_fn_arg)*) {
+                extern fn [<$name:lower _ $fn_name _virtual>](_self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
                     unsafe {
                         ((*(*_self).rust_callbacks).$fn_name)($($normalize_fn ($fn_arg_name)),*);
                         $clear_after_call (
@@ -105,45 +29,45 @@ macro_rules! matchmaking_servers_callback {
             }
             
             #[repr(C)]
-            struct [<$name _callbacks_real>] {
-                pub vtable: *mut [<$name _callbacks_virtual>],
+            struct [<$name CallbacksReal>] {
+                pub vtable: *mut [<$name CallbacksVirtual>],
                 pub rust_callbacks: *mut [<$name Callbacks>],
             }
             
             #[repr(C)]
-            struct [<$name _callbacks_virtual>] {
+            struct [<$name CallbacksVirtual>] {
                 $(
-                    pub $fn_name: extern fn(*mut [<$name _callbacks_real>] $(, $cpp_fn_arg)*)
+                    pub $fn_name: extern fn(*mut [<$name CallbacksReal>] $(, $cpp_fn_arg)*)
                 ),*
             }
             
-            unsafe fn [<create_ $name:lower>](rust_callbacks: [<$name Callbacks>]) -> Option<*mut [<$name _callbacks_real>]> {
-                let vtable_layout = std::alloc::Layout::new::<[<$name _callbacks_virtual>]>();
-                let callbacks_layout = std::alloc::Layout::new::<[<$name _callbacks_real>]>();
+            unsafe fn [<create_ $name:lower>](rust_callbacks: [<$name Callbacks>]) -> Option<*mut [<$name CallbacksReal>]> {
+                let vtable_layout = std::alloc::Layout::new::<[<$name CallbacksVirtual>]>();
+                let callbacks_layout = std::alloc::Layout::new::<[<$name CallbacksReal>]>();
                 let rustcallbacks_layout = std::alloc::Layout::new::<[<$name Callbacks>]>();
                 let __callbacks: *mut [<$name Callbacks>] = std::alloc::alloc(rustcallbacks_layout).cast();
                 if __callbacks.is_null() {
                     return None;
                 }
                 __callbacks.write(rust_callbacks);
-                let vtable: *mut [<$name _callbacks_virtual>] = std::alloc::alloc(vtable_layout).cast();
+                let vtable: *mut [<$name CallbacksVirtual>] = std::alloc::alloc(vtable_layout).cast();
                 if vtable.is_null() {
                     return None;
                 }
                 {
-                    let strct = [<$name _callbacks_virtual>] {
+                    let strct = [<$name CallbacksVirtual>] {
                         $(
                             $fn_name: [<$name:lower _ $fn_name _virtual>]
                         ),*
                     };
                     vtable.write(strct);
                 }
-                let callbacks: *mut [<$name _callbacks_real>] = std::alloc::alloc(callbacks_layout).cast();
+                let callbacks: *mut [<$name CallbacksReal>] = std::alloc::alloc(callbacks_layout).cast();
                 if callbacks.is_null() {
                     return None;
                 }
                 {
-                    let strct = [<$name _callbacks_real>] {
+                    let strct = [<$name CallbacksReal>] {
                         vtable: vtable,
                         rust_callbacks: __callbacks,
                     };
@@ -153,9 +77,9 @@ macro_rules! matchmaking_servers_callback {
                 Some(callbacks)
             }
             
-            unsafe fn [<free_ $name:lower>](real: *mut [<$name _callbacks_real>]) {
-                let vtable_layout = std::alloc::Layout::new::<[<$name _callbacks_virtual>]>();
-                let callbacks_layout = std::alloc::Layout::new::<[<$name _callbacks_real>]>();
+            unsafe fn [<free_ $name:lower>](real: *mut [<$name CallbacksReal>]) {
+                let vtable_layout = std::alloc::Layout::new::<[<$name CallbacksVirtual>]>();
+                let callbacks_layout = std::alloc::Layout::new::<[<$name CallbacksReal>]>();
                 let rustcallbacks_layout = std::alloc::Layout::new::<[<$name Callbacks>]>();
                 
                 std::alloc::dealloc((*real).rust_callbacks.cast(), rustcallbacks_layout);
@@ -253,189 +177,6 @@ matchmaking_servers_callback!(
     refresh_complete(free_serverrules): ()
 );
 
-// TODO: Переработать эту хуйню
-matchmaking_servers_callback!(
-    ServerList;
-    responded(||): (
-        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
-        server: i32 => i32 where (|i| i)
-    ),
-    failed(||): (
-        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
-        server: i32 => i32 where (|i| i)
-    ),
-    refresh_complete((|real, request, _| {
-        let request = ServerListRequest::get(request).unwrap(); // TODO: Убрать unwrap
-        remove_servers_request(&request).unwrap();
-    })): (
-        request: steamworks_sys::HServerListRequest => Option<ServerListRequest> where (ServerListRequest::get),
-        response: steamworks_sys::EMatchMakingServerResponse => steamworks_sys::EMatchMakingServerResponse where (|i| i)
-    )
-);
-
-unsafe fn create_filters(
-    filters: HashMap<String, String>
-) -> Option<(*mut steamworks_sys::MatchMakingKeyValuePair_t, usize)> {
-    let mut list = Vec::with_capacity(filters.len());
-    
-    for filter in filters {
-        let filter = (filter.0.as_bytes(), filter.1.as_bytes());
-        
-        if filter.0.len() <= 255 || filter.1.len() <= 255 {
-            // TODO: return enum with error name
-            return None;
-        }
-        
-        let key = &*(filter.0 as *const [u8] as *const [i8]);
-        let value = &*(filter.1 as *const [u8] as *const [i8]);
-        
-        list.push(steamworks_sys::MatchMakingKeyValuePair_t {
-            m_szKey: key.try_into().ok()?,
-            m_szValue: value.try_into().ok()?,
-        });
-    }
-    
-    list.shrink_to_fit();
-    
-    let len = list.len();
-    let ptr = list.as_mut_ptr();
-    
-    std::mem::forget(list);
-    
-    Some((ptr, len))
-}
-
-unsafe fn drop_filters(
-    vec: *mut steamworks_sys::MatchMakingKeyValuePair_t,
-    size: usize,
-) {
-    drop(Vec::from_raw_parts(vec, size, size))
-}
-
-pub struct ServerListRequest {
-    handle: steamworks_sys::HServerListRequest,
-    callbacks: *mut ServerList_callbacks_real,
-    mms: *mut steamworks_sys::ISteamMatchmakingServers,
-}
-
-impl ServerListRequest {
-    unsafe fn init(
-        handle: steamworks_sys::HServerListRequest,
-        callbacks: *mut ServerList_callbacks_real,
-        filters: Option<RawVec>,
-        mms: *mut steamworks_sys::ISteamMatchmakingServers,
-    ) -> Option<Self> {
-        let mut list = SERVER_LIST_REQUESTS.lock().ok()?;
-        let request = Self {
-            handle,
-            callbacks,
-            mms,
-        };
-        list.binary_search_by(
-            |i| i.0.handle.cmp(&handle)
-        ).err()?;
-        
-        list.push(
-            (request.raw_clone(), 2, filters)
-        );
-        
-        Some(request)
-    }
-    
-    unsafe fn get(
-        handle: steamworks_sys::HServerListRequest,
-    ) -> Option<Self> {
-        let list = SERVER_LIST_REQUESTS.lock().ok()?;
-        let index = list.binary_search_by(
-            |i| i.0.handle.cmp(&handle)
-        ).ok()?;
-        let request = list[index].0.raw_clone();
-        drop(list);
-        add_servers_request(&request)?;
-        
-        Some(request)
-    }
-    
-    unsafe fn get_by_callbacks(
-        callbacks: *mut ServerList_callbacks_real
-    ) -> Option<Self> {
-        let list = SERVER_LIST_REQUESTS.lock().ok()?;
-        let index = list.binary_search_by(
-            |i| i.0.callbacks.cmp(&callbacks)
-        ).ok()?;
-        let request = list[index].0.raw_clone();
-        drop(list);
-        add_servers_request(&request)?;
-    
-        Some(request)
-    }
-    
-    pub fn get_server_count(&self) -> i32 {
-        unsafe {
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
-                self.mms,
-                self.handle
-            )
-        }
-    }
-    
-    pub fn get_server_details(&self, server: i32) -> GameServerItem {
-        unsafe {
-            let server_item = steamworks_sys::SteamAPI_ISteamMatchmakingServers_GetServerDetails(
-                self.mms,
-                self.handle,
-                server
-            );
-            
-            GameServerItem::from_raw_ptr(server_item)
-        }
-    }
-    
-    pub fn refresh_query(&self) -> Option<()> {
-        unsafe {
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(
-                self.mms,
-                self.handle,
-            );
-    
-            add_servers_request(self)?;
-    
-            Some(())
-        }
-    }
-    
-    pub fn refresh_server(&self, server: i32) -> Option<()> {
-        unsafe {
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(
-                self.mms,
-                self.handle,
-                server,
-            );
-            
-            add_servers_request(self)?;
-            
-            Some(())
-        }
-    }
-    
-    pub fn is_refreshing(&self) -> bool {
-        unsafe {
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
-                self.mms,
-                self.handle,
-            )
-        }
-    }
-}
-
-impl Drop for ServerListRequest {
-    fn drop(&mut self) {
-        unsafe {
-            remove_servers_request(self).unwrap(); // TODO: убрать unwrap
-        }
-    }
-}
-
 /// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers<Manager> {
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
@@ -496,196 +237,25 @@ impl<Manager> MatchmakingServers<Manager> {
             Some(())
         }
     }
-    
-    pub fn request_favorites_servers(
-        &self,
-        id: impl Into<AppId>,
-        filters: HashMap<String, String>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let mut filters = create_filters(filters)?;
-            let callbacks = create_serverlist(callbacks)?;
-            
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestFavoritesServerList(
-                self.mms,
-                id.into().0,
-                &mut filters.0 as *mut *mut _,
-                filters.1 as u32,
-                callbacks.cast()
-            );
-            
-            let request = ServerListRequest::init(
-                request,
-                callbacks,
-                Some(RawVec(filters.0, filters.1)),
-                self.mms,
-            )?;
-            
-            Some(request)
-        }
-    }
-    
-    pub fn request_friends_servers(
-        &self,
-        id: impl Into<AppId>,
-        filters: HashMap<String, String>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let mut filters = create_filters(filters)?;
-            let callbacks = create_serverlist(callbacks)?;
-            
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestFriendsServerList(
-                self.mms,
-                id.into().0,
-                &mut filters.0 as *mut *mut _,
-                filters.1 as u32,
-                callbacks.cast()
-            );
-            
-            let request = ServerListRequest::init(
-                request,
-                callbacks,
-                Some(RawVec(filters.0, filters.1)),
-                self.mms,
-            )?;
-            
-            Some(request)
-        }
-    }
-    
-    pub fn request_history_servers(
-        &self,
-        id: impl Into<AppId>,
-        filters: HashMap<String, String>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let mut filters = create_filters(filters)?;
-            let callbacks = create_serverlist(callbacks)?;
-            
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestHistoryServerList(
-                self.mms,
-                id.into().0,
-                &mut filters.0 as *mut *mut _,
-                filters.1 as u32,
-                callbacks.cast()
-            );
-            
-            let request = ServerListRequest::init(
-                request,
-                callbacks,
-                Some(RawVec(filters.0, filters.1)),
-                self.mms,
-            )?;
-            
-            Some(request)
-        }
-    }
-    
-    pub fn request_internet_servers(
-        &self,
-        id: impl Into<AppId>,
-        filters: HashMap<String, String>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let mut filters = create_filters(filters)?;
-            let callbacks = create_serverlist(callbacks)?;
-            
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestInternetServerList(
-                self.mms,
-                id.into().0,
-                &mut filters.0 as *mut *mut _,
-                filters.1 as u32,
-                callbacks.cast()
-            );
-            
-            let request = ServerListRequest::init(
-                request,
-                callbacks,
-                Some(RawVec(filters.0, filters.1)),
-                self.mms,
-            )?;
-            
-            Some(request)
-        }
-    }
-    
-    pub fn request_lan_servers(
-        &self,
-        id: impl Into<AppId>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let callbacks = create_serverlist(callbacks)?;
-        
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
-                self.mms,
-                id.into().0,
-                callbacks.cast()
-            );
-        
-            let request = ServerListRequest::init(
-                request, callbacks, None, self.mms,
-            )?;
-        
-            Some(request)
-        }
-    }
-    
-    pub fn request_spectators_servers(
-        &self,
-        id: impl Into<AppId>,
-        filters: HashMap<String, String>,
-        callbacks: ServerListCallbacks,
-    ) -> Option<ServerListRequest> {
-        unsafe {
-            let mut filters = create_filters(filters)?;
-            let callbacks = create_serverlist(callbacks)?;
-            
-            let request = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestSpectatorServerList(
-                self.mms,
-                id.into().0,
-                &mut filters.0 as *mut *mut _,
-                filters.1 as u32,
-                callbacks.cast()
-            );
-            
-            let request = ServerListRequest::init(
-                request,
-                callbacks,
-                Some(RawVec(filters.0, filters.1)),
-                self.mms,
-            )?;
-            
-            Some(request)
-        }
-    }
 }
 
-// TODO: Tests
 #[test]
 fn test_history() {
     let (client, single) = Client::init_app(304930).unwrap();
-    client.matchmaking_servers().request_history_servers(
-        304930,
-        HashMap::new(),
-        ServerListCallbacks {
-            responded: Box::new(|handle, server| {
-                println!("{}", handle.unwrap().get_server_details(server).server_name.unwrap());
+    client.matchmaking_servers().ping_server(
+        std::net::Ipv4Addr::new(213, 32, 111, 44),
+        27015,
+        PingCallbacks {
+            responded: Box::new(|info| {
+                println!("server name: {}", info.server_name.unwrap())
             }),
-            failed: Box::new(|handle, server| {
-            
-            }),
-            refresh_complete: Box::new(|handle, server| {
-                println!("Complete!");
+            failed: Box::new(|| {
+
             }),
         }
     ).unwrap();
     
-    loop {
+    for _ in 0..50 {
         single.run_callbacks();
         std::thread::sleep(std::time::Duration::from_millis(20));
     }
