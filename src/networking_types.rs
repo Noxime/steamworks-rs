@@ -1500,7 +1500,7 @@ impl NetworkingConfigEntry {
     }
 
     pub fn new_float(value_type: NetworkingConfigValue, value: f32) -> Self {
-        debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Int64);
+        debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Float);
 
         let mut config = Self::new_uninitialized_config_value();
         unsafe {
