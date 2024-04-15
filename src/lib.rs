@@ -43,7 +43,6 @@ mod error;
 mod friends;
 mod input;
 mod matchmaking;
-#[allow(dead_code)]
 mod matchmaking_servers;
 mod networking;
 pub mod networking_messages;
@@ -302,7 +301,7 @@ impl<Manager> Client<Manager> {
             debug_assert!(!mm.is_null());
             MatchmakingServers {
                 mms: mm,
-                inner: self.inner.clone(),
+                _inner: self.inner.clone(),
             }
         }
     }

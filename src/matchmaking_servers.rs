@@ -189,7 +189,7 @@ pub enum MMSErrors {
 /// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers<Manager> {
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
 impl<Manager> MatchmakingServers<Manager> {
