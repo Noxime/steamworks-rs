@@ -207,8 +207,9 @@ impl<M> AchievementHelper<'_, M> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 64);
-            assert_eq!(height, 64);
+            if width != 64 || height != 64 {
+                return None;
+            }
             let mut dest = vec![0; 64 * 64 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
                 return None;
