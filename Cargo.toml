@@ -14,6 +14,7 @@ rust-version = "1.71.1"
 [features]
 default = []
 raw-bindings = []
+image = ["dep:image"]
 
 [workspace]
 members = [
@@ -28,6 +29,7 @@ thiserror = "1.0"
 bitflags = "1.2"
 lazy_static = "1.4"
 serde = { version = "1.0", features = ["derive"], optional = true }
+image = { version = "0.25.1", optional = true, default-features = false }
 
 [dev-dependencies]
 serial_test = "1"
