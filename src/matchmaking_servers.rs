@@ -1,6 +1,5 @@
 use std::time::{Duration, TryFromFloatSecsError};
 use std::net::Ipv4Addr;
-use std::str::FromStr;
 
 use super::*;
 
@@ -50,15 +49,10 @@ macro_rules! matchmaking_servers_callback {
                 ),*
             }
             
-            unsafe fn [<create_ $name:lower>](rust_callbacks: [<$name Callbacks>]) -> Option<*mut [<$name CallbacksReal>]> {
+            unsafe fn [<create_ $name:lower>](rust_callbacks: Box<[<$name Callbacks>]>) -> Option<*mut [<$name CallbacksReal>]> {
                 let vtable_layout = std::alloc::Layout::new::<[<$name CallbacksVirtual>]>();
                 let callbacks_layout = std::alloc::Layout::new::<[<$name CallbacksReal>]>();
-                let rustcallbacks_layout = std::alloc::Layout::new::<[<$name Callbacks>]>();
-                let __callbacks: *mut [<$name Callbacks>] = std::alloc::alloc(rustcallbacks_layout).cast();
-                if __callbacks.is_null() {
-                    return None;
-                }
-                __callbacks.write(rust_callbacks);
+                let __callbacks: *mut [<$name Callbacks>] = Box::into_raw(rust_callbacks);
                 let vtable: *mut [<$name CallbacksVirtual>] = std::alloc::alloc(vtable_layout).cast();
                 if vtable.is_null() {
                     return None;
@@ -89,9 +83,8 @@ macro_rules! matchmaking_servers_callback {
             unsafe fn [<free_ $name:lower>](real: *mut [<$name CallbacksReal>]) {
                 let vtable_layout = std::alloc::Layout::new::<[<$name CallbacksVirtual>]>();
                 let callbacks_layout = std::alloc::Layout::new::<[<$name CallbacksReal>]>();
-                let rustcallbacks_layout = std::alloc::Layout::new::<[<$name Callbacks>]>();
                 
-                std::alloc::dealloc((*real).rust_callbacks.cast(), rustcallbacks_layout);
+                drop(Box::from_raw((*real).rust_callbacks));
                 std::alloc::dealloc((*real).vtable.cast(), vtable_layout);
                 std::alloc::dealloc(real.cast(), callbacks_layout);
             }
@@ -195,7 +188,7 @@ pub struct MatchmakingServers<Manager> {
 impl<Manager> MatchmakingServers<Manager> {
     pub fn ping_server(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: PingCallbacks) -> Result<(), MMSErrors> {
         unsafe {
-            let callbacks = create_ping(callbacks).ok_or(MMSErrors::CreationError)?;
+            let callbacks = create_ping(Box::new(callbacks)).ok_or(MMSErrors::CreationError)?;
         
             let query = steamworks_sys::SteamAPI_ISteamMatchmakingServers_PingServer(
                 self.mms,
@@ -214,7 +207,7 @@ impl<Manager> MatchmakingServers<Manager> {
     
     pub fn player_details(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: PlayerDetailsCallbacks) -> Result<(), MMSErrors> {
         unsafe {
-            let callbacks = create_playerdetails(callbacks).ok_or(MMSErrors::CreationError)?;
+            let callbacks = create_playerdetails(Box::new(callbacks)).ok_or(MMSErrors::CreationError)?;
             
             let query = steamworks_sys::SteamAPI_ISteamMatchmakingServers_PlayerDetails(
                 self.mms,
@@ -233,7 +226,7 @@ impl<Manager> MatchmakingServers<Manager> {
     
     pub fn server_rules(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: ServerRulesCallbacks) -> Result<(), MMSErrors> {
         unsafe {
-            let callbacks = create_serverrules(callbacks).ok_or(MMSErrors::CreationError)?;
+            let callbacks = create_serverrules(Box::new(callbacks)).ok_or(MMSErrors::CreationError)?;
     
             let query = steamworks_sys::SteamAPI_ISteamMatchmakingServers_ServerRules(
                 self.mms,
