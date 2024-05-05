@@ -1,4 +1,4 @@
-use std::time::{Duration, TryFromFloatSecsError};
+use std::time::Duration;
 use std::net::Ipv4Addr;
 
 use super::*;
@@ -158,7 +158,7 @@ matchmaking_servers_callback!(
     add_player(||): (
         name: *const std::os::raw::c_char => &CStr where (CStr::from_ptr),
         score: i32 => i32 where (|i| i),
-        time_played: f32 => Result<Duration, TryFromFloatSecsError> where (|raw| std::time::Duration::try_from_secs_f32(raw))
+        time_played: f32 => f32 where (|i| i)
     ),
     failed(free_playerdetails): (),
     refresh_complete(free_playerdetails): ()
