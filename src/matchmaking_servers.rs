@@ -141,7 +141,6 @@ macro_rules! gen_server_list_fn {
                 req.real = callbacks;
                 req.filters = filters;
                 req.h_req = handle;
-                req.initialized = true;
     
                 drop(req);
     
@@ -250,7 +249,6 @@ matchmaking_servers_callback!(
             Arc::new(Mutex::new(ServerListRequest {
                 h_req: ptr::null_mut(),
                 released: false,
-                initialized: false,
                 mms: ptr::null_mut(),
                 real: ptr::null_mut(),
                 filters: (std::ptr::null_mut(), 0),
@@ -282,8 +280,6 @@ pub enum ServerResponse {
 pub struct ServerListRequest {
     pub (self) h_req: steamworks_sys::HServerListRequest,
     pub (self) released: bool,
-    // Todo: probably not needed
-    pub (self) initialized: bool,
     pub (self) mms: *mut sys::ISteamMatchmakingServers,
     pub (self) real: *mut ServerListCallbacksReal,
     pub (self) filters: (*mut steamworks_sys::MatchMakingKeyValuePair_t, usize),
@@ -319,7 +315,7 @@ impl ServerListRequest {
     }
 
     fn released(&self) -> Option<()> {
-        if !self.initialized || self.released {
+        if self.released {
             None
         } else {
             Some(())
@@ -526,7 +522,6 @@ impl<Manager> MatchmakingServers<Manager> {
             // No filters here, leaving defaults. Then check its in ServerListRequest::release
             // req.filters = filters;
             req.h_req = handle;
-            req.initialized = true;
 
             drop(req);
 
