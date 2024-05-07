@@ -267,9 +267,17 @@ matchmaking_servers_callback!(
     ),
     refresh_complete({}): (
         request: steamworks_sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self, request) },
-        response: steamworks_sys::EMatchMakingServerResponse => steamworks_sys::EMatchMakingServerResponse where {response}
+        response: ServerResponse => ServerResponse where {response}
     )
 );
+
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ServerResponse {
+    ServerResponded = 0,
+    ServerFailedToRespond = 1,
+    NoServersListedOnMasterServer = 2,
+}
 
 pub struct ServerListRequest {
     pub (self) h_req: steamworks_sys::HServerListRequest,
