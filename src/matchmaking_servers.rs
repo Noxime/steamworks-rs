@@ -1,4 +1,5 @@
 use std::ptr;
+use std::rc::Rc;
 use std::time::Duration;
 use std::net::Ipv4Addr;
 
@@ -21,7 +22,9 @@ macro_rules! matchmaking_servers_callback {
                             #[allow(unused_parens)]
                             let [<$fn_arg_name _norm>]: $rust_fn_arg = $normalize;
                         )*
-                        ((*(*$self).rust_callbacks).$fn_name)($([<$fn_arg_name _norm>]),*);
+                        // In case of dropping rust_callbacks inside $fn_name
+                        let rc_fn = Rc::clone(&(*(*$self).rust_callbacks).$fn_name);
+                        (*rc_fn)($([<$fn_arg_name _norm>]),*);
                         $clear_after_call;
                     }
                 }
@@ -29,7 +32,7 @@ macro_rules! matchmaking_servers_callback {
             
             pub struct [<$name Callbacks>] {
                 $(
-                    pub (self) $fn_name: Box<dyn Fn($($rust_fn_arg),*)>,
+                    pub (self) $fn_name: Rc<Box<dyn Fn($($rust_fn_arg),*)>>,
                 )*
                 $(
                     pub (self) $additional_name: $additional_type,
@@ -37,9 +40,10 @@ macro_rules! matchmaking_servers_callback {
             }
 
             impl [<$name Callbacks>] {
+                // Arc can also be here, without Box
                 pub fn new($($fn_name: Box<dyn Fn($($rust_fn_arg),*)>),*) -> Self {
                     Self {
-                        $($fn_name,)*
+                        $($fn_name: Rc::new($fn_name),)*
                         $($additional_name: $additional_content,)*
                     }
                 }
