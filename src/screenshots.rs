@@ -15,10 +15,10 @@ impl<Manager> Screenshots<Manager> {
     ///
     /// Hooking is disabled by default, and only ever enabled if you do so with this function.
     ///
-    /// If the hooking is enabled, then the [`ScreenshotRequested`] callback will be sent if the user presses the hotkey or when [`trigger_screenshot`] is called,
-    /// and then the game is expected to call `write_screenshot` or [`add_screenshot_to_library`] in response.
+    /// If the hooking is enabled, then the [`ScreenshotRequested`] callback will be sent if the user presses the hotkey or when [`Self::trigger_screenshot`] is called,
+    /// and then the game is expected to call `WriteScreenshot` or [`Self::add_screenshot_to_library`] in response.
     ///
-    /// You can check if hooking is enabled with `is_screenshots_hooked``.
+    /// You can check if hooking is enabled with [`Self::is_screenshots_hooked`].
     pub fn hook_screenshots(&self, hook: bool) {
         unsafe {
             sys::SteamAPI_ISteamScreenshots_HookScreenshots(self.screenshots, hook);
@@ -27,7 +27,7 @@ impl<Manager> Screenshots<Manager> {
 
     /// Checks if the app is hooking screenshots, or if the Steam Overlay is handling them.
     ///
-    /// This can be toggled with [`hook_screenshots`].
+    /// This can be toggled with [`Self::hook_screenshots`].
     ///
     /// Returns
     /// - `true` if the game is hooking screenshots and is expected to handle them; otherwise, `false`.
@@ -38,10 +38,10 @@ impl<Manager> Screenshots<Manager> {
     /// Either causes the Steam Overlay to take a screenshot, or tells your screenshot manager that a screenshot needs to be taken.
     /// Depending on the value of IsScreenshotsHooked.
     ///
-    /// Triggers a [`ScreenshotRequested`] callback.
-    /// Triggers a [`ScreenshotReady`] callback.
-    /// Only causes [`ScreenshotRequested`] if hooking has been enabled with [`hook_screenshots`].
-    /// Otherwise [`ScreenshotReady`] will be called when the screenshot has been saved and added to the library.
+    /// - Triggers a [`ScreenshotRequested`] callback.
+    /// - Triggers a [`ScreenshotReady`] callback.
+    /// - Only causes [`ScreenshotRequested`] if hooking has been enabled with [`Self::hook_screenshots`].
+    /// - Otherwise [`ScreenshotReady`] will be called when the screenshot has been saved and added to the library.
     pub fn trigger_screenshot(&self) {
         unsafe {
             sys::SteamAPI_ISteamScreenshots_TriggerScreenshot(self.screenshots);
@@ -93,14 +93,16 @@ impl<Manager> Screenshots<Manager> {
 
 #[derive(Debug, Error)]
 pub enum ScreenshotLibraryAddError {
-    /// Steam failed to save the file for an unspecified reason
+    /// Steam failed to save the file for an unspecified reason.
     #[error("The screenshot file could not be saved")]
     SavingFailed,
-    /// One of the paths provided was invalid
+    /// One of the paths provided was invalid.
     #[error("Invalid path")]
     InvalidPath,
 }
 
+/// A screenshot has been requested by the user from the Steam screenshot hotkey.
+/// This will only be called if [`Screenshots::hook_screenshots`] has been enabled, in which case Steam will not take the screenshot itself.
 #[derive(Clone, Debug)]
 pub struct ScreenshotRequested;
 
@@ -115,15 +117,19 @@ unsafe impl Callback for ScreenshotRequested {
 
 #[derive(Clone, Debug, Error)]
 pub enum ScreenshotReadyError {
+    /// The screenshot could not be loaded or parsed.
     #[error("The screenshot could not be loaded or parsed")]
     Fail,
+    /// The screenshot could not be saved to the disk.
     #[error("The screenshot could not be saved to the disk")]
     IoFailure,
 }
 
+/// A screenshot successfully written or otherwise added to the library and can now be tagged.
 #[derive(Clone, Debug)]
 pub struct ScreenshotReady {
-    pub handle: Result<ScreenshotHandle, ScreenshotReadyError>,
+    /// The screenshot handle that has been written.
+    pub local_handle: Result<ScreenshotHandle, ScreenshotReadyError>,
 }
 
 unsafe impl Callback for ScreenshotReady {
@@ -132,13 +138,13 @@ unsafe impl Callback for ScreenshotReady {
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let status = *(raw as *mut sys::ScreenshotReady_t);
-        let handle = match status.m_eResult {
+        let local_handle = match status.m_eResult {
             sys::EResult::k_EResultOK => Ok(status.m_hLocal),
             sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::Fail),
             _ => Err(ScreenshotReadyError::Fail),
         };
 
-        Self { handle }
+        Self { local_handle }
     }
 }
 
