@@ -36,7 +36,7 @@ impl<Manager> Screenshots<Manager> {
     }
 
     /// Either causes the Steam Overlay to take a screenshot, or tells your screenshot manager that a screenshot needs to be taken.
-    /// Depending on the value of IsScreenshotsHooked.
+    /// Depending on the value of [`Self::is_screenshots_hooked`].
     ///
     /// - Triggers a [`ScreenshotRequested`] callback.
     /// - Triggers a [`ScreenshotReady`] callback.
