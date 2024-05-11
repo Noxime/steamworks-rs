@@ -303,7 +303,7 @@ pub struct SteamFileInfo {
 #[serial]
 fn test_cloud() {
     use std::io::{Read, Write};
-    let (client, _single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
 
     let rs = client.remote_storage();
     println!("Listing files:");

@@ -100,7 +100,7 @@ impl Server {
         query_port: u16,
         server_mode: ServerMode,
         version: &str,
-    ) -> SIResult<(Server, SingleClient<ServerManager>)> {
+    ) -> SIResult<(Server, Client<ServerManager>)> {
         unsafe {
             let version = CString::new(version).unwrap();
 
@@ -148,10 +148,7 @@ impl Server {
                     inner: server.clone(),
                     server: server_raw,
                 },
-                SingleClient {
-                    inner: server,
-                    _not_sync: PhantomData,
-                },
+                Client { inner: server },
             ))
         }
     }

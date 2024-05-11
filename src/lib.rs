@@ -15,7 +15,6 @@ use core::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
-use std::marker::PhantomData;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, Weak};
 
@@ -83,13 +82,6 @@ impl<Manager> Clone for Client<Manager> {
     }
 }
 
-/// Allows access parts of the steam api that can only be called
-/// on a single thread at any given time.
-pub struct SingleClient<Manager = ClientManager> {
-    inner: Arc<Inner<Manager>>,
-    _not_sync: PhantomData<*mut ()>,
-}
-
 struct Inner<Manager> {
     _manager: Manager,
     callbacks: Mutex<Callbacks>,
@@ -118,7 +110,6 @@ unsafe impl<Manager: Send + Sync> Send for Inner<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for Inner<Manager> {}
 unsafe impl<Manager: Send + Sync> Send for Client<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for Client<Manager> {}
-unsafe impl<Manager: Send + Sync> Send for SingleClient<Manager> {}
 
 /// Returns true if the app wasn't launched through steam and
 /// begins relaunching it, the app should exit as soon as possible.
@@ -193,10 +184,9 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    pub fn init() -> SIResult<Client<ClientManager>> {
         static_assert_send::<Client<ClientManager>>();
         static_assert_sync::<Client<ClientManager>>();
-        static_assert_send::<SingleClient<ClientManager>>();
         unsafe {
             let mut err_msg: sys::SteamErrMsg = [0; 1024];
             let result = Self::steam_api_init_ex(&mut err_msg);
@@ -218,15 +208,7 @@ impl Client<ClientManager> {
                     connection_callback: Default::default(),
                 }),
             });
-            Ok((
-                Client {
-                    inner: client.clone(),
-                },
-                SingleClient {
-                    inner: client,
-                    _not_sync: PhantomData,
-                },
-            ))
+            Ok(Client { inner: client })
         }
     }
 
@@ -242,18 +224,17 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init_app<ID: Into<AppId>>(
-        app_id: ID,
-    ) -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    pub fn init_app<ID: Into<AppId>>(app_id: ID) -> SIResult<Client<ClientManager>> {
         let app_id = app_id.into().0.to_string();
         std::env::set_var("SteamAppId", &app_id);
         std::env::set_var("SteamGameId", app_id);
         Client::init()
     }
 }
-impl<M> SingleClient<M>
+
+impl<Manager> Client<Manager>
 where
-    M: Manager,
+    Manager: crate::Manager,
 {
     /// Runs any currently pending callbacks
     ///
@@ -264,7 +245,7 @@ where
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
         unsafe {
-            let pipe = M::get_pipe();
+            let pipe = Manager::get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
             let mut callback = std::mem::zeroed();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
@@ -297,9 +278,7 @@ where
             }
         }
     }
-}
 
-impl<Manager> Client<Manager> {
     /// Registers the passed function as a callback for the
     /// given type.
     ///
@@ -609,7 +588,7 @@ mod tests {
     #[test]
     #[serial]
     fn basic_test() {
-        let (client, single) = Client::init().unwrap();
+        let client = Client::init().unwrap();
 
         let _cb = client.register_callback(|p: PersonaStateChange| {
             println!("Got callback: {:?}", p);
@@ -641,7 +620,7 @@ mod tests {
         friends.request_user_information(SteamId(76561198174976054), true);
 
         for _ in 0..50 {
-            single.run_callbacks();
+            client.run_callbacks();
             ::std::thread::sleep(::std::time::Duration::from_millis(100));
         }
     }
