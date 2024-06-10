@@ -193,9 +193,7 @@ impl<Manager> Input<Manager> {
     /// the overlay. In desktop mode a popup window version of Big Picture will
     /// be created and open the configuration.
     pub fn show_binding_panel(&self, input_handle: sys::InputHandle_t) -> bool {
-        unsafe {
-            sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input, input_handle)
-        }
+        unsafe { sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input, input_handle) }
     }
 
     /// Shutdown must be called when ending use of this interface.
