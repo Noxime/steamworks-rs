@@ -141,7 +141,6 @@ impl Client<ClientManager> {
         let versions: Vec<&[u8]> = vec![
             sys::STEAMUTILS_INTERFACE_VERSION,
             sys::STEAMNETWORKINGUTILS_INTERFACE_VERSION,
-            sys::STEAMAPPLIST_INTERFACE_VERSION,
             sys::STEAMAPPS_INTERFACE_VERSION,
             sys::STEAMCONTROLLER_INTERFACE_VERSION,
             sys::STEAMFRIENDS_INTERFACE_VERSION,
