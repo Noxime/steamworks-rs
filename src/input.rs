@@ -73,6 +73,14 @@ impl<Manager> Input<Manager> {
         }
     }
 
+    /// Allows to load a specific Action Manifest File localy
+    pub fn set_input_action_manifest_file_path(&self, path: &str) -> bool {
+        let path = CString::new(path).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamInput_SetInputActionManifestFilePath(self.input, path.as_ptr())
+        }
+    }
+
     /// Returns the associated ControllerActionSet handle for the specified controller,
     pub fn get_action_set_handle(&self, action_set_name: &str) -> sys::InputActionSetHandle_t {
         let name = CString::new(action_set_name).unwrap();
