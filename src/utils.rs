@@ -155,6 +155,11 @@ impl<Manager> Utils<Manager> {
         }
     }
 
+    /// Returns whether or not the overlay is enabled in Steam
+    pub fn is_overlay_enabled(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUtils_IsOverlayEnabled(self.utils) }
+    }
+
     /// Returns the language the steam client is currently
     /// running in.
     ///
