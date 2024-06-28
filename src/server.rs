@@ -358,7 +358,7 @@ impl Server {
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamGameServerUGC_v018();
+            let ugc = sys::SteamAPI_SteamGameServerUGC_v020();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,

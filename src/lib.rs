@@ -452,7 +452,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC<Manager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v018();
+            let ugc = sys::SteamAPI_SteamUGC_v020();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,

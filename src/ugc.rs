@@ -1439,7 +1439,7 @@ impl<Manager> QueryHandle<Manager> {
                 api_call,
                 CALLBACK_BASE_ID + 1,
                 move |v, io_error| {
-                    let ugc = sys::SteamAPI_SteamUGC_v018();
+                    let ugc = sys::SteamAPI_SteamUGC_v020();
                     if io_error {
                         sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
                         cb(Err(SteamError::IOFailure));

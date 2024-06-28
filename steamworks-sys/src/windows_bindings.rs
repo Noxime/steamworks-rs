@@ -261,11 +261,12 @@ pub const STEAM_CONTROLLER_MAX_ACTIVE_LAYERS: u32 = 16;
 pub const STEAM_CONTROLLER_MIN_ANALOG_ACTION_DATA: f64 = -1.0;
 pub const STEAM_CONTROLLER_MAX_ANALOG_ACTION_DATA: f64 = 1.0;
 pub const STEAMCONTROLLER_INTERFACE_VERSION: &[u8; 19] = b"SteamController008\0";
-pub const STEAMUGC_INTERFACE_VERSION: &[u8; 30] = b"STEAMUGC_INTERFACE_VERSION018\0";
+pub const STEAMUGC_INTERFACE_VERSION: &[u8; 30] = b"STEAMUGC_INTERFACE_VERSION020\0";
 pub const STEAMHTMLSURFACE_INTERFACE_VERSION: &[u8; 39] =
     b"STEAMHTMLSURFACE_INTERFACE_VERSION_005\0";
 pub const STEAMINVENTORY_INTERFACE_VERSION: &[u8; 30] = b"STEAMINVENTORY_INTERFACE_V003\0";
-pub const STEAMVIDEO_INTERFACE_VERSION: &[u8; 26] = b"STEAMVIDEO_INTERFACE_V002\0";
+pub const STEAMTIMELINE_INTERFACE_VERSION: &[u8; 29] = b"STEAMTIMELINE_INTERFACE_V001\0";
+pub const STEAMVIDEO_INTERFACE_VERSION: &[u8; 26] = b"STEAMVIDEO_INTERFACE_V007\0";
 pub const STEAMPARENTALSETTINGS_INTERFACE_VERSION: &[u8; 43] =
     b"STEAMPARENTALSETTINGS_INTERFACE_VERSION001\0";
 pub const STEAMREMOTEPLAY_INTERFACE_VERSION: &[u8; 37] = b"STEAMREMOTEPLAY_INTERFACE_VERSION002\0";
@@ -766,6 +767,17 @@ pub enum EDurationControlOnlineState {
     k_EDurationControlOnlineState_Offline = 1,
     k_EDurationControlOnlineState_Online = 2,
     k_EDurationControlOnlineState_OnlineHighPri = 3,
+}
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum EBetaBranchFlags {
+    k_EBetaBranch_None = 0,
+    k_EBetaBranch_Default = 1,
+    k_EBetaBranch_Available = 2,
+    k_EBetaBranch_Private = 4,
+    k_EBetaBranch_Selected = 8,
+    k_EBetaBranch_Installed = 16,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -2695,266 +2707,12 @@ pub const k_iSteamChatCallbacks: _bindgen_ty_37 = _bindgen_ty_37::k_iSteamChatCa
 pub enum _bindgen_ty_37 {
     k_iSteamChatCallbacks = 5900,
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct CSteamAPIContext {
-    pub m_pSteamClient: *mut ISteamClient,
-    pub m_pSteamUser: *mut ISteamUser,
-    pub m_pSteamFriends: *mut ISteamFriends,
-    pub m_pSteamUtils: *mut ISteamUtils,
-    pub m_pSteamMatchmaking: *mut ISteamMatchmaking,
-    pub m_pSteamGameSearch: *mut ISteamGameSearch,
-    pub m_pSteamUserStats: *mut ISteamUserStats,
-    pub m_pSteamApps: *mut ISteamApps,
-    pub m_pSteamMatchmakingServers: *mut ISteamMatchmakingServers,
-    pub m_pSteamNetworking: *mut ISteamNetworking,
-    pub m_pSteamRemoteStorage: *mut ISteamRemoteStorage,
-    pub m_pSteamScreenshots: *mut ISteamScreenshots,
-    pub m_pSteamHTTP: *mut ISteamHTTP,
-    pub m_pController: *mut ISteamController,
-    pub m_pSteamUGC: *mut ISteamUGC,
-    pub m_pSteamMusic: *mut ISteamMusic,
-    pub m_pSteamMusicRemote: *mut ISteamMusicRemote,
-    pub m_pSteamHTMLSurface: *mut ISteamHTMLSurface,
-    pub m_pSteamInventory: *mut ISteamInventory,
-    pub m_pSteamVideo: *mut ISteamVideo,
-    pub m_pSteamParentalSettings: *mut ISteamParentalSettings,
-    pub m_pSteamInput: *mut ISteamInput,
-}
-#[test]
-fn bindgen_test_layout_CSteamAPIContext() {
-    const UNINIT: ::std::mem::MaybeUninit<CSteamAPIContext> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<CSteamAPIContext>(),
-        176usize,
-        concat!("Size of: ", stringify!(CSteamAPIContext))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CSteamAPIContext>(),
-        8usize,
-        concat!("Alignment of ", stringify!(CSteamAPIContext))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamClient) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamClient)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamUser) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamUser)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamFriends) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamFriends)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamUtils) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamUtils)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamMatchmaking) as usize - ptr as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamMatchmaking)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamGameSearch) as usize - ptr as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamGameSearch)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamUserStats) as usize - ptr as usize },
-        48usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamUserStats)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamApps) as usize - ptr as usize },
-        56usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamApps)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamMatchmakingServers) as usize - ptr as usize },
-        64usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamMatchmakingServers)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamNetworking) as usize - ptr as usize },
-        72usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamNetworking)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamRemoteStorage) as usize - ptr as usize },
-        80usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamRemoteStorage)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamScreenshots) as usize - ptr as usize },
-        88usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamScreenshots)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamHTTP) as usize - ptr as usize },
-        96usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamHTTP)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pController) as usize - ptr as usize },
-        104usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pController)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamUGC) as usize - ptr as usize },
-        112usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamUGC)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamMusic) as usize - ptr as usize },
-        120usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamMusic)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamMusicRemote) as usize - ptr as usize },
-        128usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamMusicRemote)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamHTMLSurface) as usize - ptr as usize },
-        136usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamHTMLSurface)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamInventory) as usize - ptr as usize },
-        144usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamInventory)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamVideo) as usize - ptr as usize },
-        152usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamVideo)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamParentalSettings) as usize - ptr as usize },
-        160usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamParentalSettings)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).m_pSteamInput) as usize - ptr as usize },
-        168usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CSteamAPIContext),
-            "::",
-            stringify!(m_pSteamInput)
-        )
-    );
+pub const k_iSteamTimelineCallbacks: _bindgen_ty_38 = _bindgen_ty_38::k_iSteamTimelineCallbacks;
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum _bindgen_ty_38 {
+    k_iSteamTimelineCallbacks = 6000,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4063,12 +3821,12 @@ fn bindgen_test_layout_FriendGameInfo_t() {
 }
 pub const k_usFriendGameInfoQueryPort_NotInitialized: uint16 = 65535;
 pub const k_usFriendGameInfoQueryPort_Error: uint16 = 65534;
-pub const k_cchPersonaNameMax: _bindgen_ty_38 = _bindgen_ty_38::k_cchPersonaNameMax;
-pub const k_cwchPersonaNameMax: _bindgen_ty_38 = _bindgen_ty_38::k_cwchPersonaNameMax;
+pub const k_cchPersonaNameMax: _bindgen_ty_39 = _bindgen_ty_39::k_cchPersonaNameMax;
+pub const k_cwchPersonaNameMax: _bindgen_ty_39 = _bindgen_ty_39::k_cwchPersonaNameMax;
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_38 {
+pub enum _bindgen_ty_39 {
     k_cchPersonaNameMax = 128,
     k_cwchPersonaNameMax = 32,
 }
@@ -4086,27 +3844,27 @@ pub enum EUserRestriction {
     k_nUserRestrictionTrading = 64,
 }
 pub const k_cubChatMetadataMax: uint32 = 8192;
-pub const k_cchMaxRichPresenceKeys: _bindgen_ty_39 = _bindgen_ty_39::k_cchMaxRichPresenceKeys;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_39 {
-    k_cchMaxRichPresenceKeys = 30,
-}
-pub const k_cchMaxRichPresenceKeyLength: _bindgen_ty_40 =
-    _bindgen_ty_40::k_cchMaxRichPresenceKeyLength;
+pub const k_cchMaxRichPresenceKeys: _bindgen_ty_40 = _bindgen_ty_40::k_cchMaxRichPresenceKeys;
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_40 {
-    k_cchMaxRichPresenceKeyLength = 64,
+    k_cchMaxRichPresenceKeys = 30,
 }
-pub const k_cchMaxRichPresenceValueLength: _bindgen_ty_41 =
-    _bindgen_ty_41::k_cchMaxRichPresenceValueLength;
+pub const k_cchMaxRichPresenceKeyLength: _bindgen_ty_41 =
+    _bindgen_ty_41::k_cchMaxRichPresenceKeyLength;
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_41 {
+    k_cchMaxRichPresenceKeyLength = 64,
+}
+pub const k_cchMaxRichPresenceValueLength: _bindgen_ty_42 =
+    _bindgen_ty_42::k_cchMaxRichPresenceValueLength;
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum _bindgen_ty_42 {
     k_cchMaxRichPresenceValueLength = 256,
 }
 #[repr(i32)]
@@ -10870,25 +10628,25 @@ fn bindgen_test_layout_RemoteStorageLocalFileChange_t() {
         concat!("Alignment of ", stringify!(RemoteStorageLocalFileChange_t))
     );
 }
-pub const k_cchStatNameMax: _bindgen_ty_42 = _bindgen_ty_42::k_cchStatNameMax;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_42 {
-    k_cchStatNameMax = 128,
-}
-pub const k_cchLeaderboardNameMax: _bindgen_ty_43 = _bindgen_ty_43::k_cchLeaderboardNameMax;
+pub const k_cchStatNameMax: _bindgen_ty_43 = _bindgen_ty_43::k_cchStatNameMax;
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_43 {
-    k_cchLeaderboardNameMax = 128,
+    k_cchStatNameMax = 128,
 }
-pub const k_cLeaderboardDetailsMax: _bindgen_ty_44 = _bindgen_ty_44::k_cLeaderboardDetailsMax;
+pub const k_cchLeaderboardNameMax: _bindgen_ty_44 = _bindgen_ty_44::k_cchLeaderboardNameMax;
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_44 {
+    k_cchLeaderboardNameMax = 128,
+}
+pub const k_cLeaderboardDetailsMax: _bindgen_ty_45 = _bindgen_ty_45::k_cLeaderboardDetailsMax;
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum _bindgen_ty_45 {
     k_cLeaderboardDetailsMax = 64,
 }
 pub type SteamLeaderboard_t = uint64;
@@ -15272,6 +15030,7 @@ pub struct SteamUGCDetails_t {
     pub m_unVotesDown: uint32,
     pub m_flScore: f32,
     pub m_unNumChildren: uint32,
+    pub m_ulTotalFilesSize: uint64,
 }
 #[test]
 fn bindgen_test_layout_SteamUGCDetails_t() {
@@ -15279,7 +15038,7 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<SteamUGCDetails_t>(),
-        9776usize,
+        9784usize,
         concat!("Size of: ", stringify!(SteamUGCDetails_t))
     );
     assert_eq!(
@@ -15547,6 +15306,16 @@ fn bindgen_test_layout_SteamUGCDetails_t() {
             stringify!(m_unNumChildren)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).m_ulTotalFilesSize) as usize - ptr as usize },
+        9776usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SteamUGCDetails_t),
+            "::",
+            stringify!(m_ulTotalFilesSize)
+        )
+    );
 }
 #[repr(C)]
 pub struct ISteamUGC__bindgen_vtable(::std::os::raw::c_void);
@@ -15684,7 +15453,7 @@ fn bindgen_test_layout_SteamUGCRequestUGCDetailsResult_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<SteamUGCRequestUGCDetailsResult_t>(),
-        9784usize,
+        9792usize,
         concat!("Size of: ", stringify!(SteamUGCRequestUGCDetailsResult_t))
     );
     assert_eq!(
@@ -15707,7 +15476,7 @@ fn bindgen_test_layout_SteamUGCRequestUGCDetailsResult_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).m_bCachedData) as usize - ptr as usize },
-        9776usize,
+        9784usize,
         concat!(
             "Offset of field: ",
             stringify!(SteamUGCRequestUGCDetailsResult_t),
@@ -15848,6 +15617,8 @@ fn bindgen_test_layout_SubmitItemUpdateResult_t() {
 pub struct ItemInstalled_t {
     pub m_unAppID: AppId_t,
     pub m_nPublishedFileId: PublishedFileId_t,
+    pub m_hLegacyContent: UGCHandle_t,
+    pub m_unManifestID: uint64,
 }
 pub const ItemInstalled_t_k_iCallback: ItemInstalled_t__bindgen_ty_1 =
     ItemInstalled_t__bindgen_ty_1::k_iCallback;
@@ -15863,7 +15634,7 @@ fn bindgen_test_layout_ItemInstalled_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ItemInstalled_t>(),
-        16usize,
+        32usize,
         concat!("Size of: ", stringify!(ItemInstalled_t))
     );
     assert_eq!(
@@ -15889,6 +15660,26 @@ fn bindgen_test_layout_ItemInstalled_t() {
             stringify!(ItemInstalled_t),
             "::",
             stringify!(m_nPublishedFileId)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).m_hLegacyContent) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ItemInstalled_t),
+            "::",
+            stringify!(m_hLegacyContent)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).m_unManifestID) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ItemInstalled_t),
+            "::",
+            stringify!(m_unManifestID)
         )
     );
 }
@@ -18772,6 +18563,48 @@ fn bindgen_test_layout_SteamInventoryRequestPricesResult_t() {
         )
     );
 }
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ETimelineGameMode {
+    k_ETimelineGameMode_Invalid = 0,
+    k_ETimelineGameMode_Playing = 1,
+    k_ETimelineGameMode_Staging = 2,
+    k_ETimelineGameMode_Menus = 3,
+    k_ETimelineGameMode_LoadingScreen = 4,
+    k_ETimelineGameMode_Max = 5,
+}
+#[repr(i32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ETimelineEventClipPriority {
+    k_ETimelineEventClipPriority_Invalid = 0,
+    k_ETimelineEventClipPriority_None = 1,
+    k_ETimelineEventClipPriority_Standard = 2,
+    k_ETimelineEventClipPriority_Featured = 3,
+}
+pub const k_unMaxTimelinePriority: uint32 = 1000;
+pub const k_flMaxTimelineEventDuration: f32 = 600.0;
+#[repr(C)]
+pub struct ISteamTimeline__bindgen_vtable(::std::os::raw::c_void);
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ISteamTimeline {
+    pub vtable_: *const ISteamTimeline__bindgen_vtable,
+}
+#[test]
+fn bindgen_test_layout_ISteamTimeline() {
+    assert_eq!(
+        ::std::mem::size_of::<ISteamTimeline>(),
+        8usize,
+        concat!("Size of: ", stringify!(ISteamTimeline))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ISteamTimeline>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ISteamTimeline))
+    );
+}
 #[repr(C)]
 pub struct ISteamVideo__bindgen_vtable(::std::os::raw::c_void);
 #[repr(C)]
@@ -18921,7 +18754,8 @@ pub enum EParentalFeature {
     k_EFeatureTest = 12,
     k_EFeatureSiteLicense = 13,
     k_EFeatureKioskMode_Deprecated = 14,
-    k_EFeatureMax = 15,
+    k_EFeatureBlockAlways = 15,
+    k_EFeatureMax = 16,
 }
 #[repr(C)]
 pub struct ISteamParentalSettings__bindgen_vtable(::std::os::raw::c_void);
@@ -20422,8 +20256,10 @@ pub enum ESteamNetworkingConfigValue {
     k_ESteamNetworkingConfig_SendRateMax = 11,
     #[doc = " [connection int32] Nagle time, in microseconds.  When SendMessage is called, if\n the outgoing message is less than the size of the MTU, it will be\n queued for a delay equal to the Nagle timer value.  This is to ensure\n that if the application sends several small messages rapidly, they are\n coalesced into a single packet.\n See historical RFC 896.  Value is in microseconds.\n Default is 5000us (5ms)."]
     k_ESteamNetworkingConfig_NagleTime = 12,
-    #[doc = " [connection int32] Don't automatically fail IP connections that don't have\n strong auth.  On clients, this means we will attempt the connection even if\n we don't know our identity or can't get a cert.  On the server, it means that\n we won't automatically reject a connection due to a failure to authenticate.\n (You can examine the incoming connection and decide whether to accept it.)\n\n This is a dev configuration value, and you should not let users modify it in\n production."]
+    #[doc = " [connection int32] Don't automatically fail IP connections that don't have\n strong auth.  On clients, this means we will attempt the connection even if\n we don't know our identity or can't get a cert.  On the server, it means that\n we won't automatically reject a connection due to a failure to authenticate.\n (You can examine the incoming connection and decide whether to accept it.)\n\n 0: Don't attempt or accept unauthorized connections\n 1: Attempt authorization when connecting, and allow unauthorized peers, but emit warnings\n 2: don't attempt authentication, or complain if peer is unauthenticated\n\n This is a dev configuration value, and you should not let users modify it in\n production."]
     k_ESteamNetworkingConfig_IP_AllowWithoutAuth = 23,
+    #[doc = " [connection int32] The same as IP_AllowWithoutAuth, but will only apply\n for connections to/from localhost addresses.  Whichever value is larger\n (more permissive) will be used."]
+    k_ESteamNetworkingConfig_IPLocalHost_AllowWithoutAuth = 52,
     #[doc = " [connection int32] Do not send UDP packets with a payload of\n larger than N bytes.  If you set this, k_ESteamNetworkingConfig_MTU_DataSize\n is automatically adjusted"]
     k_ESteamNetworkingConfig_MTU_PacketSize = 32,
     #[doc = " [connection int32] (read only) Maximum message size you can send that\n will not fragment, based on k_ESteamNetworkingConfig_MTU_PacketSize"]
@@ -24793,6 +24629,34 @@ extern "C" {
     pub fn SteamAPI_ISteamApps_SetDlcContext(self_: *mut ISteamApps, nAppID: AppId_t) -> bool;
 }
 extern "C" {
+    pub fn SteamAPI_ISteamApps_GetNumBetas(
+        self_: *mut ISteamApps,
+        unAppID: AppId_t,
+        pnAvailable: *mut ::std::os::raw::c_int,
+        pnPrivate: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamApps_GetBetaInfo(
+        self_: *mut ISteamApps,
+        unAppID: AppId_t,
+        iBetaIndex: ::std::os::raw::c_int,
+        punFlags: *mut uint32,
+        punBuildID: *mut uint32,
+        pchBetaName: *mut ::std::os::raw::c_char,
+        cchBetaName: ::std::os::raw::c_int,
+        pchDescription: *mut ::std::os::raw::c_char,
+        cchDescription: ::std::os::raw::c_int,
+    ) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamApps_SetActiveBeta(
+        self_: *mut ISteamApps,
+        unAppID: AppId_t,
+        pchBetaName: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+extern "C" {
     pub fn SteamAPI_SteamNetworking_v006() -> *mut ISteamNetworking;
 }
 extern "C" {
@@ -25972,10 +25836,10 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUGC_v018() -> *mut ISteamUGC;
+    pub fn SteamAPI_SteamUGC_v020() -> *mut ISteamUGC;
 }
 extern "C" {
-    pub fn SteamAPI_SteamGameServerUGC_v018() -> *mut ISteamUGC;
+    pub fn SteamAPI_SteamGameServerUGC_v020() -> *mut ISteamUGC;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
@@ -26143,6 +26007,24 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn SteamAPI_ISteamUGC_GetNumSupportedGameVersions(
+        self_: *mut ISteamUGC,
+        handle: UGCQueryHandle_t,
+        index: uint32,
+    ) -> uint32;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUGC_GetSupportedGameVersionData(
+        self_: *mut ISteamUGC,
+        handle: UGCQueryHandle_t,
+        index: uint32,
+        versionIndex: uint32,
+        pchGameBranchMin: *mut ::std::os::raw::c_char,
+        pchGameBranchMax: *mut ::std::os::raw::c_char,
+        cchGameBranchSize: uint32,
+    ) -> bool;
+}
+extern "C" {
     pub fn SteamAPI_ISteamUGC_GetQueryUGCContentDescriptors(
         self_: *mut ISteamUGC,
         handle: UGCQueryHandle_t,
@@ -26246,6 +26128,13 @@ extern "C" {
         self_: *mut ISteamUGC,
         handle: UGCQueryHandle_t,
         unMaxAgeSeconds: uint32,
+    ) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUGC_SetAdminQuery(
+        self_: *mut ISteamUGC,
+        handle: UGCUpdateHandle_t,
+        bAdminQuery: bool,
     ) -> bool;
 }
 extern "C" {
@@ -26456,6 +26345,14 @@ extern "C" {
         self_: *mut ISteamUGC,
         handle: UGCUpdateHandle_t,
         descid: EUGCContentDescriptorID,
+    ) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUGC_SetRequiredGameVersions(
+        self_: *mut ISteamUGC,
+        handle: UGCUpdateHandle_t,
+        pszGameBranchMin: *const ::std::os::raw::c_char,
+        pszGameBranchMax: *const ::std::os::raw::c_char,
     ) -> bool;
 }
 extern "C" {
@@ -27187,7 +27084,41 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamVideo_v002() -> *mut ISteamVideo;
+    pub fn SteamAPI_SteamTimeline_v001() -> *mut ISteamTimeline;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamTimeline_SetTimelineStateDescription(
+        self_: *mut ISteamTimeline,
+        pchDescription: *const ::std::os::raw::c_char,
+        flTimeDelta: f32,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamTimeline_ClearTimelineStateDescription(
+        self_: *mut ISteamTimeline,
+        flTimeDelta: f32,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamTimeline_AddTimelineEvent(
+        self_: *mut ISteamTimeline,
+        pchIcon: *const ::std::os::raw::c_char,
+        pchTitle: *const ::std::os::raw::c_char,
+        pchDescription: *const ::std::os::raw::c_char,
+        unPriority: uint32,
+        flStartOffsetSeconds: f32,
+        flDurationSeconds: f32,
+        ePossibleClip: ETimelineEventClipPriority,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamTimeline_SetTimelineGameMode(
+        self_: *mut ISteamTimeline,
+        eMode: ETimelineGameMode,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_SteamVideo_v007() -> *mut ISteamVideo;
 }
 extern "C" {
     pub fn SteamAPI_ISteamVideo_GetVideoURL(self_: *mut ISteamVideo, unVideoAppID: AppId_t);
