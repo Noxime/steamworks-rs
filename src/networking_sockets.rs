@@ -1031,7 +1031,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_create_listen_socket_ip() {
-        let (client, _single) = Client::init().unwrap();
+        let client = Client::init().unwrap();
         let sockets = client.networking_sockets();
         let socket_result = sockets.create_listen_socket_ip(
             SocketAddr::new(Ipv4Addr::new(0, 0, 0, 0).into(), 12345),
@@ -1042,7 +1042,7 @@ mod tests {
 
     #[test]
     fn test_socket_connection() {
-        let (client, single) = Client::init().unwrap();
+        let client = Client::init().unwrap();
         let sockets = client.networking_sockets();
 
         sockets.init_authentication().unwrap();
@@ -1065,7 +1065,7 @@ mod tests {
 
         println!("Run callbacks");
         for _ in 0..5 {
-            single.run_callbacks();
+            client.run_callbacks();
             std::thread::sleep(::std::time::Duration::from_millis(50));
         }
 
@@ -1080,7 +1080,7 @@ mod tests {
 
         println!("Run callbacks");
         for _ in 0..5 {
-            single.run_callbacks();
+            client.run_callbacks();
             std::thread::sleep(::std::time::Duration::from_millis(50));
         }
 

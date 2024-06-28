@@ -891,7 +891,7 @@ unsafe impl Callback for LobbyDataUpdate {
 #[test]
 #[serial]
 fn test_lobby() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
     let mm = client.matchmaking();
 
     mm.request_lobby_list(|v| {
@@ -911,7 +911,7 @@ fn test_lobby() {
     });
 
     for _ in 0..100 {
-        single.run_callbacks();
+        client.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
     }
 }

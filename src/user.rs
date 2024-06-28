@@ -175,7 +175,7 @@ pub enum AuthSessionError {
 #[test]
 #[serial]
 fn test_auth_dll() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
     let user = client.user();
 
     let _cb = client.register_callback(|v: AuthSessionTicketResponse| {
@@ -194,7 +194,7 @@ fn test_auth_dll() {
     println!("{:?}", user.begin_authentication_session(id, &ticket));
 
     for _ in 0..20 {
-        single.run_callbacks();
+        client.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
@@ -203,7 +203,7 @@ fn test_auth_dll() {
     user.cancel_authentication_ticket(auth);
 
     for _ in 0..20 {
-        single.run_callbacks();
+        client.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(50));
     }
 
@@ -246,7 +246,7 @@ unsafe impl Callback for AuthSessionTicketResponse {
 #[test]
 #[serial]
 fn test_auth_webapi() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
     let user = client.user();
 
     let _cb = client.register_callback(|v: TicketForWebApiResponse| {
@@ -258,7 +258,7 @@ fn test_auth_webapi() {
     println!("{:?}", auth);
 
     for _ in 0..20 {
-        single.run_callbacks();
+        client.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
     }
 
