@@ -344,6 +344,10 @@ impl<Manager> Friend<Manager> {
     pub fn nick_name(&self) -> Option<String> {
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetPlayerNickname(self.friends, self.id.0);
+            if name.is_null() {
+                return None;
+            }
+
             let name = CStr::from_ptr(name);
             if name.is_empty() {
                 None
