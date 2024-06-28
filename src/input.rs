@@ -30,10 +30,8 @@ impl<Manager> Input<Manager> {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
     /// each frame, otherwise Steam Input will updated when SteamAPI_RunCallbacks() is called
-    pub fn init(&self, explicitly_call_run_frame: bool) {
-        unsafe {
-            sys::SteamAPI_ISteamInput_Init(self.input, explicitly_call_run_frame);
-        }
+    pub fn init(&self, explicitly_call_run_frame: bool) -> bool {
+        unsafe { sys::SteamAPI_ISteamInput_Init(self.input, explicitly_call_run_frame) }
     }
 
     /// Synchronize API state with the latest Steam Input action data available. This
