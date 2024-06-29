@@ -311,6 +311,17 @@ impl Server {
         }
     }
 
+    /// Login to a generic account by token
+    /// `None` if token.len() != 32
+    pub fn log_on(&self, token: &CStr) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_LogOn(
+                self.server,
+                token.as_ptr()
+            );
+        }
+    }
+
     /// If active, updates the master server with this server's presence so players can find it via
     /// the steam matchmaking/server browser interfaces.
     pub fn enable_heartbeats(&self, active: bool) {
