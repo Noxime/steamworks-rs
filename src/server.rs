@@ -353,6 +353,20 @@ impl Server {
         }
     }
 
+    pub fn set_key_value(&self, key: String, value: String) -> Result<(), std::ffi::NulError> {
+        let key = CString::new(key)?;
+        let value = CString::new(value)?;
+
+        unsafe {
+            Ok(
+                sys::SteamAPI_ISteamGameServer_SetKeyValue(
+                    self.server,
+                    key.as_ptr(),
+                    value.as_ptr()
+            ))
+        }
+    }
+
     /// Returns an accessor to the steam UGC interface (steam workshop)
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
