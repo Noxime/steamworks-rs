@@ -139,103 +139,11 @@ where
 }
 
 impl Client<ClientManager> {
-    fn steam_api_init_ex(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
-        let versions: Vec<&[u8]> = vec![
-            sys::STEAMUTILS_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGUTILS_INTERFACE_VERSION,
-            sys::STEAMAPPS_INTERFACE_VERSION,
-            sys::STEAMCONTROLLER_INTERFACE_VERSION,
-            sys::STEAMFRIENDS_INTERFACE_VERSION,
-            sys::STEAMGAMESEARCH_INTERFACE_VERSION,
-            sys::STEAMHTMLSURFACE_INTERFACE_VERSION,
-            sys::STEAMHTTP_INTERFACE_VERSION,
-            sys::STEAMINPUT_INTERFACE_VERSION,
-            sys::STEAMINVENTORY_INTERFACE_VERSION,
-            sys::STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION,
-            sys::STEAMMATCHMAKING_INTERFACE_VERSION,
-            sys::STEAMMUSICREMOTE_INTERFACE_VERSION,
-            sys::STEAMMUSIC_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGMESSAGES_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGSOCKETS_INTERFACE_VERSION,
-            sys::STEAMNETWORKING_INTERFACE_VERSION,
-            sys::STEAMPARENTALSETTINGS_INTERFACE_VERSION,
-            sys::STEAMPARTIES_INTERFACE_VERSION,
-            sys::STEAMREMOTEPLAY_INTERFACE_VERSION,
-            sys::STEAMREMOTESTORAGE_INTERFACE_VERSION,
-            sys::STEAMSCREENSHOTS_INTERFACE_VERSION,
-            sys::STEAMUGC_INTERFACE_VERSION,
-            sys::STEAMUSERSTATS_INTERFACE_VERSION,
-            sys::STEAMUSER_INTERFACE_VERSION,
-            sys::STEAMVIDEO_INTERFACE_VERSION,
-            b"\0",
-        ];
-
-        let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
-        let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
-
-        unsafe { sys::SteamInternal_SteamAPI_Init(merged_versions_ptr, p_out_err_msg) }
-    }
-
     /// Call to the native SteamAPI_Init function.
     /// should not be used directly, but through either
     /// init_flat() or init_flat_app()
     fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
         unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
-    }
-
-    /// Attempts to initialize the steamworks api and returns
-    /// a client to access the rest of the api.
-    ///
-    /// This should only ever have one instance per a program.
-    ///
-    /// # Errors
-    ///
-    /// This can fail if:
-    /// * The steam client isn't running
-    /// * The app ID of the game couldn't be determined.
-    ///
-    ///   If the game isn't being run through steam this can be provided by
-    ///   placing a `steam_appid.txt` with the ID inside in the current
-    ///   working directory. Alternatively, you can use `Client::init_app(<app_id>)`
-    ///   to force a specific app ID.
-    /// * The game isn't running on the same user/level as the steam client
-    /// * The user doesn't own a license for the game.
-    /// * The app ID isn't completely set up.
-    pub fn init() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
-        static_assert_send::<Client<ClientManager>>();
-        static_assert_sync::<Client<ClientManager>>();
-        static_assert_send::<SingleClient<ClientManager>>();
-        unsafe {
-            let mut err_msg: sys::SteamErrMsg = [0; 1024];
-            let result = Self::steam_api_init_ex(&mut err_msg);
-
-            if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
-                return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
-            }
-
-            sys::SteamAPI_ManualDispatch_Init();
-            let client = Arc::new(Inner {
-                _manager: ClientManager { _priv: () },
-                callbacks: Mutex::new(Callbacks {
-                    callbacks: HashMap::new(),
-                    call_results: HashMap::new(),
-                }),
-                networking_sockets_data: Mutex::new(NetworkingSocketsData {
-                    sockets: Default::default(),
-                    independent_connections: Default::default(),
-                    connection_callback: Default::default(),
-                }),
-            });
-            Ok((
-                Client {
-                    inner: client.clone(),
-                },
-                SingleClient {
-                    inner: client,
-                    _not_sync: PhantomData,
-                },
-            ))
-        }
     }
 
     /// Attempts to initialize the steamworks api without full API integration
@@ -257,7 +165,7 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init_flat() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    pub fn init() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
         static_assert_send::<Client<ClientManager>>();
         static_assert_sync::<Client<ClientManager>>();
         static_assert_send::<SingleClient<ClientManager>>();
@@ -294,7 +202,8 @@ impl Client<ClientManager> {
         }
     }
 
-    /// Attempts to initialize the steamworks api **for a specified app ID**
+    /// Attempts to initialize the steamworks api with the APP_ID
+    /// without full API integration through SteamAPI_InitFlat
     /// and returns a client to access the rest of the api.
     ///
     /// This should only ever have one instance per a program.
@@ -313,28 +222,6 @@ impl Client<ClientManager> {
         std::env::set_var("SteamAppId", &app_id);
         std::env::set_var("SteamGameId", app_id);
         Client::init()
-    }
-
-    /// Attempts to initialize the steamworks api with the APP_ID
-    /// without full API integration through SteamAPI_InitFlat
-    /// and returns a client to access the rest of the api.
-    ///
-    /// This should only ever have one instance per a program.
-    ///
-    /// # Errors
-    ///
-    /// This can fail if:
-    /// * The steam client isn't running
-    /// * The game isn't running on the same user/level as the steam client
-    /// * The user doesn't own a license for the game.
-    /// * The app ID isn't completely set up.
-    pub fn init_flat_app<ID: Into<AppId>>(
-        app_id: ID,
-    ) -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
-        let app_id = app_id.into().0.to_string();
-        std::env::set_var("SteamAppId", &app_id);
-        std::env::set_var("SteamGameId", app_id);
-        Client::init_flat()
     }
 }
 impl<M> SingleClient<M>
