@@ -293,7 +293,7 @@ impl<Manager> Client<Manager> {
             }
         }
     }
-    
+
     /// Returns an accessor to the steam matchmaking_servers interface
     pub fn matchmaking_servers(&self) -> MatchmakingServers<Manager> {
         unsafe {
