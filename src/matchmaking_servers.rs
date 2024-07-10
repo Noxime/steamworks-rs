@@ -160,6 +160,7 @@ pub struct GameServerItem {
     pub server_name: String,
     pub game_dir: String,
     pub map: String,
+    pub tags: String,
 }
 
 impl GameServerItem {
@@ -188,6 +189,7 @@ impl GameServerItem {
                 server_name: CStr::from_ptr(raw.m_szServerName.as_ptr()).to_string_lossy().into_owned(),
                 game_dir: CStr::from_ptr(raw.m_szGameDir.as_ptr()).to_string_lossy().into_owned(),
                 map: CStr::from_ptr(raw.m_szMap.as_ptr()).to_string_lossy().into_owned(),
+                tags: CStr::from_ptr(raw.m_szGameTags.as_ptr()).to_string_lossy().into_owned(),
             
                 last_time_played: Duration::from_secs(raw.m_ulTimeLastPlayed.into())
             }
