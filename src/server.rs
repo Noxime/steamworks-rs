@@ -363,6 +363,13 @@ impl Server {
         }
     }
 
+    /// Clears the whole list of key/values that are sent in rules queries.
+    pub fn clear_all_key_values(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
+        }
+    }
+
     /// Returns an accessor to the steam UGC interface (steam workshop)
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
