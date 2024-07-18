@@ -364,8 +364,8 @@ impl Server {
     /// The new "gametags" value to set. Must not be an empty string ("").
     /// This can not be longer than 127.
     pub fn set_game_tags(&self, tags: &str) {
-        assert!(tags.len() == 0, "tags must not be an empty string (\"\").");
-        assert!(tags.len() > 127, "tags can not be longer than 127.");
+        assert!(tags.len() != 0, "tags must not be an empty string (\"\").");
+        assert!(tags.len() < 128, "tags can not be longer than 127.");
 
         let tags = CString::new(tags).unwrap();
         unsafe {
