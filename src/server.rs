@@ -340,7 +340,7 @@ impl Server {
     pub fn set_server_name(&self, server_name: &str) {
         let server_name = CString::new(server_name).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, server_name.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetServerName(self.server, server_name.as_ptr());
         }
     }
 
