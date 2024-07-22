@@ -195,6 +195,15 @@ impl<Manager> Input<Manager> {
         unsafe { sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle) }
     }
 
+    /// Invokes the Steam overlay and brings up the binding screen.
+    /// Returns true for success, false if overlay is disabled/unavailable.
+    /// If the player is using Big Picture Mode the configuration will open in
+    /// the overlay. In desktop mode a popup window version of Big Picture will
+    /// be created and open the configuration.
+    pub fn show_binding_panel(&self, input_handle: sys::InputHandle_t) -> bool {
+        unsafe { sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input, input_handle) }
+    }
+
     /// Shutdown must be called when ending use of this interface.
     pub fn shutdown(&self) {
         unsafe {
