@@ -142,7 +142,7 @@ impl Client<ClientManager> {
     /// Call to the native SteamAPI_Init function.
     /// should not be used directly, but through either
     /// init_flat() or init_flat_app()
-    fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
+    unsafe fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
         unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
     }
 
