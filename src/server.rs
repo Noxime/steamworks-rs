@@ -361,6 +361,23 @@ impl Server {
         }
     }
 
+    /// Add/update a rules key/value pair.
+    pub fn set_key_value(&self, key: &str, value: &str) {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetKeyValue(self.server, key.as_ptr(), value.as_ptr());
+        }
+    }
+
+    /// Clears the whole list of key/values that are sent in rules queries.
+    pub fn clear_all_key_values(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
+        }
+    }
+
     /// Returns an accessor to the steam UGC interface (steam workshop)
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
