@@ -311,6 +311,14 @@ impl Server {
         }
     }
 
+    /// Login to a generic account by token
+    pub fn log_on(&self, token: &str) {
+        let token = CString::new(token).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_LogOn(self.server, token.as_ptr());
+        }
+    }
+
     /// If active, updates the master server with this server's presence so players can find it via
     /// the steam matchmaking/server browser interfaces.
     pub fn enable_heartbeats(&self, active: bool) {
@@ -340,7 +348,7 @@ impl Server {
     pub fn set_server_name(&self, server_name: &str) {
         let server_name = CString::new(server_name).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, server_name.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetServerName(self.server, server_name.as_ptr());
         }
     }
 
@@ -370,6 +378,23 @@ impl Server {
         let tags = CString::new(tags).unwrap();
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetGameTags(self.server, tags.as_ptr());
+        }
+    }
+
+    /// Add/update a rules key/value pair.
+    pub fn set_key_value(&self, key: &str, value: &str) {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetKeyValue(self.server, key.as_ptr(), value.as_ptr());
+        }
+    }
+
+    /// Clears the whole list of key/values that are sent in rules queries.
+    pub fn clear_all_key_values(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
         }
     }
 

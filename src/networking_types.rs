@@ -542,7 +542,7 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
             NetworkingConfigValue::SDRClientMinPingsBeforePingAccurate => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_MinPingsBeforePingAccurate,
             NetworkingConfigValue::SDRClientSingleSocket => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_SingleSocket,
             NetworkingConfigValue::SDRClientForceRelayCluster => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_ForceRelayCluster,
-            NetworkingConfigValue::SDRClientDebugTicketAddress => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_DebugTicketAddress,
+            NetworkingConfigValue::SDRClientDebugTicketAddress => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_DevTicket,
             NetworkingConfigValue::SDRClientForceProxyAddr => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_ForceProxyAddr,
             NetworkingConfigValue::SDRClientFakeClusterPing => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_FakeClusterPing,
             NetworkingConfigValue::LogLevelAckRTT => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_LogLevel_AckRTT,

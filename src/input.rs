@@ -30,10 +30,8 @@ impl<Manager> Input<Manager> {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
     /// each frame, otherwise Steam Input will updated when SteamAPI_RunCallbacks() is called
-    pub fn init(&self, explicitly_call_run_frame: bool) {
-        unsafe {
-            sys::SteamAPI_ISteamInput_Init(self.input, explicitly_call_run_frame);
-        }
+    pub fn init(&self, explicitly_call_run_frame: bool) -> bool {
+        unsafe { sys::SteamAPI_ISteamInput_Init(self.input, explicitly_call_run_frame) }
     }
 
     /// Synchronize API state with the latest Steam Input action data available. This
@@ -70,6 +68,14 @@ impl<Manager> Input<Manager> {
                 self.input,
                 handles.as_mut_ptr(),
             ) as usize;
+        }
+    }
+
+    /// Allows to load a specific Action Manifest File localy
+    pub fn set_input_action_manifest_file_path(&self, path: &str) -> bool {
+        let path = CString::new(path).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamInput_SetInputActionManifestFilePath(self.input, path.as_ptr())
         }
     }
 
@@ -185,6 +191,15 @@ impl<Manager> Input<Manager> {
 
     pub fn get_motion_data(&self, input_handle: sys::InputHandle_t) -> sys::InputMotionData_t {
         unsafe { sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle) }
+    }
+
+    /// Invokes the Steam overlay and brings up the binding screen.
+    /// Returns true for success, false if overlay is disabled/unavailable.
+    /// If the player is using Big Picture Mode the configuration will open in
+    /// the overlay. In desktop mode a popup window version of Big Picture will
+    /// be created and open the configuration.
+    pub fn show_binding_panel(&self, input_handle: sys::InputHandle_t) -> bool {
+        unsafe { sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input, input_handle) }
     }
 
     /// Shutdown must be called when ending use of this interface.
