@@ -317,11 +317,11 @@ impl<Manager> Matchmaking<Manager> {
     /// # Parameters
     /// - `lobby`: The Steam ID of the lobby to get the chat message from.
     /// - `chat_id`: The index of the chat entry in the lobby.
-    /// - `buffer`: Return the message data by copying it into this buffer. The buffer should be up
-    /// to 4 Kilobytes.
+    /// - `buffer`: Buffer to save retrieved message data to. The buffer should be no
+    /// more than 4 Kilobytes.
     ///
     /// # Returns
-    /// Returns `usize` The number of bytes copied into buffer
+    /// Returns `&[u8]` A resliced byte array of the message buffer
     pub fn get_lobby_chat_entry<'a>(
         &self,
         lobby: LobbyId,
