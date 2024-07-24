@@ -139,45 +139,16 @@ where
 }
 
 impl Client<ClientManager> {
-    fn steam_api_init_ex(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
-        let versions: Vec<&[u8]> = vec![
-            sys::STEAMUTILS_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGUTILS_INTERFACE_VERSION,
-            sys::STEAMAPPS_INTERFACE_VERSION,
-            sys::STEAMCONTROLLER_INTERFACE_VERSION,
-            sys::STEAMFRIENDS_INTERFACE_VERSION,
-            sys::STEAMGAMESEARCH_INTERFACE_VERSION,
-            sys::STEAMHTMLSURFACE_INTERFACE_VERSION,
-            sys::STEAMHTTP_INTERFACE_VERSION,
-            sys::STEAMINPUT_INTERFACE_VERSION,
-            sys::STEAMINVENTORY_INTERFACE_VERSION,
-            sys::STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION,
-            sys::STEAMMATCHMAKING_INTERFACE_VERSION,
-            sys::STEAMMUSICREMOTE_INTERFACE_VERSION,
-            sys::STEAMMUSIC_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGMESSAGES_INTERFACE_VERSION,
-            sys::STEAMNETWORKINGSOCKETS_INTERFACE_VERSION,
-            sys::STEAMNETWORKING_INTERFACE_VERSION,
-            sys::STEAMPARENTALSETTINGS_INTERFACE_VERSION,
-            sys::STEAMPARTIES_INTERFACE_VERSION,
-            sys::STEAMREMOTEPLAY_INTERFACE_VERSION,
-            sys::STEAMREMOTESTORAGE_INTERFACE_VERSION,
-            sys::STEAMSCREENSHOTS_INTERFACE_VERSION,
-            sys::STEAMUGC_INTERFACE_VERSION,
-            sys::STEAMUSERSTATS_INTERFACE_VERSION,
-            sys::STEAMUSER_INTERFACE_VERSION,
-            sys::STEAMVIDEO_INTERFACE_VERSION,
-            b"\0",
-        ];
-
-        let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
-        let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
-
-        unsafe { sys::SteamInternal_SteamAPI_Init(merged_versions_ptr, p_out_err_msg) }
+    /// Call to the native SteamAPI_Init function.
+    /// should not be used directly, but through either
+    /// init_flat() or init_flat_app()
+    unsafe fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
+        unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
     }
 
-    /// Attempts to initialize the steamworks api and returns
-    /// a client to access the rest of the api.
+    /// Attempts to initialize the steamworks api without full API integration
+    /// through SteamAPI_InitFlat added in SDK 1.59
+    /// and returns a client to access the rest of the api.
     ///
     /// This should only ever have one instance per a program.
     ///
@@ -200,7 +171,7 @@ impl Client<ClientManager> {
         static_assert_send::<SingleClient<ClientManager>>();
         unsafe {
             let mut err_msg: sys::SteamErrMsg = [0; 1024];
-            let result = Self::steam_api_init_ex(&mut err_msg);
+            let result = Self::steam_api_init_flat(&mut err_msg);
 
             if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
                 return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
@@ -231,7 +202,8 @@ impl Client<ClientManager> {
         }
     }
 
-    /// Attempts to initialize the steamworks api **for a specified app ID**
+    /// Attempts to initialize the steamworks api with the APP_ID
+    /// without full API integration through SteamAPI_InitFlat
     /// and returns a client to access the rest of the api.
     ///
     /// This should only ever have one instance per a program.
