@@ -312,6 +312,16 @@ impl<Manager> Matchmaking<Manager> {
         }
     }
 
+    /// Gets the data from a lobby chat message after receiving a `LobbyChatMsg_t` callback.
+    ///
+    /// # Parameters
+    /// - `lobby`: The Steam ID of the lobby to get the chat message from.
+    /// - `chat_id`: The index of the chat entry in the lobby.
+    /// - `buffer`: Return the message data by copying it into this buffer. The buffer should be up
+    /// to 4 Kilobytes.
+    ///
+    /// # Returns
+    /// Returns `usize` The number of bytes copied into buffer
     pub fn get_lobby_chat_entry(&self, lobby: LobbyId, chat_id: i32, buffer: &mut [u8]) -> usize {
         let steam_user = sys::CSteamID_SteamID_t { m_unAll64Bits: 0 };
         let mut steam_user = sys::CSteamID {
