@@ -361,6 +361,26 @@ impl Server {
         }
     }
 
+    /// Sets a string defining the "gametags" for this server, this is optional, but if set it
+    /// allows users to filter in the matchmaking/server-browser interfaces based on the value.
+    ///
+    /// This is usually formatted as a comma or semicolon separated list.
+    ///
+    /// Don't set this unless it actually changes, its only uploaded to the master once;
+    /// when acknowledged.
+    ///
+    /// The new "gametags" value to set. Must not be an empty string ("").
+    /// This can not be longer than 127.
+    pub fn set_game_tags(&self, tags: &str) {
+        assert!(tags.len() != 0, "tags must not be an empty string (\"\").");
+        assert!(tags.len() < 128, "tags can not be longer than 127.");
+
+        let tags = CString::new(tags).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetGameTags(self.server, tags.as_ptr());
+        }
+    }
+
     /// Add/update a rules key/value pair.
     pub fn set_key_value(&self, key: &str, value: &str) {
         let key = CString::new(key).unwrap();
