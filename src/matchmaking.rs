@@ -989,8 +989,6 @@ unsafe impl Callback for LobbyChatMsg {
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
 
-        println!("Raw: {:?}", val);
-
         LobbyChatMsg {
             lobby: LobbyId(val.m_ulSteamIDLobby),
             user: SteamId(val.m_ulSteamIDUser),
