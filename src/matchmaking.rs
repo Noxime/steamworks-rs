@@ -888,6 +888,31 @@ unsafe impl Callback for LobbyDataUpdate {
     }
 }
 
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyChatMsg {
+    pub lobby: LobbyId,
+    pub user: SteamId,
+    pub chat_entry_type: u8,
+    pub chat_id: u32,
+}
+
+unsafe impl Callback for LobbyChatMsg {
+    const ID: i32 = 507;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatMsg_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+
+        LobbyChatMsg {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            user: SteamId(val.m_ulSteamIDUser),
+            chat_entry_type: val.m_eChatEntryType,
+            chat_id: val.m_iChatID,
+        }
+    }
+}
+
 #[test]
 #[serial]
 fn test_lobby() {
