@@ -8,8 +8,7 @@ fn main() {
     let matchmaking = client.matchmaking();
 
     let (sender_create_lobby, receiver_create_lobby) = mpsc::channel();
-
-    // let mut lobby_id_state: Option<LobbyId> = None;
+    let (sender_lobby_chat_msg, receiver_lobby_chat_msg) = mpsc::channel();
 
     matchmaking.create_lobby(LobbyType::Private, 4, move |result| match result {
         Ok(lobby_id) => {
@@ -21,18 +20,27 @@ fn main() {
 
     client.register_callback(move |message: LobbyChatMsg| {
         println!("Lobby chat message received: {:?}", message);
+        sender_lobby_chat_msg.send(message).unwrap();
     });
 
     loop {
         single.run_callbacks();
 
         if let Ok(lobby_id) = receiver_create_lobby.try_recv() {
-            // lobby_id_state = Some(lobby_id);
-
             println!("Sending message to lobby chat...");
             matchmaking
-                .send_lobby_chat_message(lobby_id, &[0, 1, 2, 3, 4])
+                .send_lobby_chat_message(lobby_id, &[0, 1, 2, 3, 4, 100])
                 .expect("Failed to send chat message to lobby");
+        }
+
+        if let Ok(message) = receiver_lobby_chat_msg.try_recv() {
+            let mut buffer = vec![0; 256];
+            matchmaking.get_lobby_chat_entry(
+                message.lobby,
+                message.chat_id,
+                &mut buffer.as_mut_slice(),
+            );
+            println!("Message buffer: [{:?}]", buffer);
         }
     }
 }

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, mem, slice::from_raw_parts};
 
 use super::*;
 #[cfg(test)]
@@ -309,6 +309,28 @@ impl<Manager> Matchmaking<Manager> {
         } {
             true => Ok(()),
             false => Err(SteamError::IOFailure),
+        }
+    }
+
+    pub fn get_lobby_chat_entry(&self, lobby: LobbyId, chat_id: i32, buffer: &mut [u8]) -> usize {
+        let steam_user = sys::CSteamID_SteamID_t { m_unAll64Bits: 0 };
+        let mut steam_user = sys::CSteamID {
+            m_steamid: steam_user,
+        };
+        // let message: *mut c_void = 0 as *mut c_void;
+        // let buffer: &mut [u8] = vec![0; message_size].as_mut_slice();
+        let mut chat_type = steamworks_sys::EChatEntryType::k_EChatEntryTypeInvalid;
+        unsafe {
+            let elements = sys::SteamAPI_ISteamMatchmaking_GetLobbyChatEntry(
+                self.mm,
+                lobby.0,
+                chat_id,
+                &mut steam_user,
+                buffer.as_mut_ptr() as *mut _,
+                buffer.len() as _,
+                &mut chat_type,
+            );
+            return elements as usize;
         }
     }
     /// Adds a string comparison filter to the lobby list request.
@@ -894,7 +916,7 @@ pub struct LobbyChatMsg {
     pub lobby: LobbyId,
     pub user: SteamId,
     pub chat_entry_type: u8,
-    pub chat_id: u32,
+    pub chat_id: i32,
 }
 
 unsafe impl Callback for LobbyChatMsg {
@@ -904,11 +926,13 @@ unsafe impl Callback for LobbyChatMsg {
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
 
+        println!("Raw: {:?}", val);
+
         LobbyChatMsg {
             lobby: LobbyId(val.m_ulSteamIDLobby),
             user: SteamId(val.m_ulSteamIDUser),
             chat_entry_type: val.m_eChatEntryType,
-            chat_id: val.m_iChatID,
+            chat_id: val.m_iChatID as i32,
         }
     }
 }
