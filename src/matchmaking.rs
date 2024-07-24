@@ -327,8 +327,6 @@ impl<Manager> Matchmaking<Manager> {
         let mut steam_user = sys::CSteamID {
             m_steamid: steam_user,
         };
-        // let message: *mut c_void = 0 as *mut c_void;
-        // let buffer: &mut [u8] = vec![0; message_size].as_mut_slice();
         let mut chat_type = steamworks_sys::EChatEntryType::k_EChatEntryTypeInvalid;
         unsafe {
             let elements = sys::SteamAPI_ISteamMatchmaking_GetLobbyChatEntry(
