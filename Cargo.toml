@@ -19,7 +19,7 @@ image = ["dep:image"]
 [workspace]
 members = [
     "./steamworks-sys",
-    "examples/chat-example",
+    "examples/chat-example", "examples/lobby",
     "examples/workshop"
 ]
 
