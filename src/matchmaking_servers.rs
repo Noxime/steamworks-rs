@@ -134,7 +134,7 @@ macro_rules! gen_server_list_fn {
                             .copy_from(value_bytes.as_ptr().cast(), value_bytes.len());
                     }
 
-                    vec.push(steamworks_sys::MatchMakingKeyValuePair_t {
+                    vec.push(sys::MatchMakingKeyValuePair_t {
                         m_szKey: key,
                         m_szValue: value,
                     });
@@ -150,7 +150,7 @@ macro_rules! gen_server_list_fn {
                 let request_arc = ServerListRequest::get(callbacks);
                 let mut request = request_arc.lock().unwrap();
 
-                let handle = steamworks_sys::$sys_method(
+                let handle = sys::$sys_method(
                     self.mms,
                     app_id,
                     &mut filters.as_mut_ptr() as *mut *mut _,
@@ -194,7 +194,7 @@ pub struct GameServerItem {
 }
 
 impl GameServerItem {
-    unsafe fn from_ptr(raw: *const steamworks_sys::gameserveritem_t) -> Self {
+    unsafe fn from_ptr(raw: *const sys::gameserveritem_t) -> Self {
         let raw = *raw;
         Self {
             appid: raw.m_nAppID,
@@ -239,7 +239,7 @@ matchmaking_servers_callback!(
     Ping;
     _self;
     ();
-    responded({}): (info: *const steamworks_sys::gameserveritem_t => GameServerItem where { GameServerItem::from_ptr(info) }),
+    responded({}): (info: *const sys::gameserveritem_t => GameServerItem where { GameServerItem::from_ptr(info) }),
     failed({ free_ping(_self) }): ()
 );
 
@@ -282,15 +282,15 @@ matchmaking_servers_callback!(
         }
     );
     responded({}): (
-        request: steamworks_sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
+        request: sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
         server: i32 => i32 where {server}
     ),
     failed({}): (
-        request: steamworks_sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
+        request: sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
         server: i32 => i32 where {server}
     ),
     refresh_complete({}): (
-        request: steamworks_sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
+        request: sys::HServerListRequest => Arc<Mutex<ServerListRequest>> where { ServerListRequest::get(_self) },
         response: ServerResponse => ServerResponse where {response}
     )
 );
@@ -304,7 +304,7 @@ pub enum ServerResponse {
 }
 
 pub struct ServerListRequest {
-    pub(self) h_req: steamworks_sys::HServerListRequest,
+    pub(self) h_req: sys::HServerListRequest,
     pub(self) released: bool,
     pub(self) mms: *mut sys::ISteamMatchmakingServers,
     pub(self) real: *mut ServerListCallbacksReal,
@@ -332,7 +332,7 @@ impl ServerListRequest {
             }
 
             self.released = true;
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(self.mms, self.h_req);
+            sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(self.mms, self.h_req);
 
             free_serverlist(self.real);
         }
@@ -353,11 +353,9 @@ impl ServerListRequest {
         unsafe {
             self.released()?;
 
-            Some(
-                steamworks_sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
-                    self.mms, self.h_req,
-                ),
-            )
+            Some(sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
+                self.mms, self.h_req,
+            ))
         }
     }
 
@@ -369,7 +367,7 @@ impl ServerListRequest {
             self.released()?;
 
             // Should we then free this pointer?
-            let server_item = steamworks_sys::SteamAPI_ISteamMatchmakingServers_GetServerDetails(
+            let server_item = sys::SteamAPI_ISteamMatchmakingServers_GetServerDetails(
                 self.mms, self.h_req, server,
             );
 
@@ -384,7 +382,7 @@ impl ServerListRequest {
         unsafe {
             self.released()?;
 
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(self.mms, self.h_req);
+            sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(self.mms, self.h_req);
 
             Some(())
         }
@@ -397,9 +395,7 @@ impl ServerListRequest {
         unsafe {
             self.released()?;
 
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(
-                self.mms, self.h_req, server,
-            );
+            sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(self.mms, self.h_req, server);
 
             Some(())
         }
@@ -412,11 +408,9 @@ impl ServerListRequest {
         unsafe {
             self.released()?;
 
-            Some(
-                steamworks_sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
-                    self.mms, self.h_req,
-                ),
-            )
+            Some(sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
+                self.mms, self.h_req,
+            ))
         }
     }
 }
@@ -432,7 +426,7 @@ impl<Manager> MatchmakingServers<Manager> {
         unsafe {
             let callbacks = create_ping(callbacks);
 
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_PingServer(
+            sys::SteamAPI_ISteamMatchmakingServers_PingServer(
                 self.mms,
                 ip.into(),
                 port,
@@ -450,7 +444,7 @@ impl<Manager> MatchmakingServers<Manager> {
         unsafe {
             let callbacks = create_playerdetails(callbacks);
 
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_PlayerDetails(
+            sys::SteamAPI_ISteamMatchmakingServers_PlayerDetails(
                 self.mms,
                 ip.into(),
                 port,
@@ -463,7 +457,7 @@ impl<Manager> MatchmakingServers<Manager> {
         unsafe {
             let callbacks = create_serverrules(callbacks);
 
-            steamworks_sys::SteamAPI_ISteamMatchmakingServers_ServerRules(
+            sys::SteamAPI_ISteamMatchmakingServers_ServerRules(
                 self.mms,
                 ip.into(),
                 port,
@@ -492,7 +486,7 @@ impl<Manager> MatchmakingServers<Manager> {
             let arc = Arc::clone(&(*(*callbacks).rust_callbacks).req);
             let mut req = arc.lock().unwrap();
 
-            let handle = steamworks_sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
+            let handle = sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
                 self.mms,
                 app_id,
                 callbacks.cast(),
