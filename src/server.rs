@@ -1,4 +1,5 @@
 use super::*;
+use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
 use std::net::Ipv4Addr;
@@ -17,6 +18,7 @@ unsafe impl Send for Server {}
 unsafe impl Sync for Server {}
 
 /// Used to set the mode that a gameserver will run in
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ServerMode {
     /// Don't authenticate user logins.
     ///
@@ -35,6 +37,44 @@ pub enum ServerMode {
 }
 
 impl Server {
+    fn steam_game_server_init_ex(
+        un_ip: std::ffi::c_uint,
+        us_game_port: std::ffi::c_ushort,
+        us_query_port: std::ffi::c_ushort,
+        e_server_mode: EServerMode,
+        pch_version_string: *const c_char,
+        p_out_err_msg: *mut SteamErrMsg,
+    ) -> ESteamAPIInitResult {
+        let versions: Vec<&[u8]> = vec![
+            sys::STEAMUTILS_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGUTILS_INTERFACE_VERSION,
+            sys::STEAMGAMESERVER_INTERFACE_VERSION,
+            sys::STEAMGAMESERVERSTATS_INTERFACE_VERSION,
+            sys::STEAMHTTP_INTERFACE_VERSION,
+            sys::STEAMINVENTORY_INTERFACE_VERSION,
+            sys::STEAMNETWORKING_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGMESSAGES_INTERFACE_VERSION,
+            sys::STEAMNETWORKINGSOCKETS_INTERFACE_VERSION,
+            sys::STEAMUGC_INTERFACE_VERSION,
+            b"\0",
+        ];
+
+        let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
+        let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
+
+        return unsafe {
+            sys::SteamInternal_GameServer_Init_V2(
+                un_ip,
+                us_game_port,
+                us_query_port,
+                e_server_mode,
+                pch_version_string,
+                merged_versions_ptr,
+                p_out_err_msg,
+            )
+        };
+    }
+
     /// Attempts to initialize the steamworks api and returns
     /// a server to access the rest of the api.
     ///
@@ -56,14 +96,16 @@ impl Server {
     /// * The app ID isn't completely set up.
     pub fn init(
         ip: Ipv4Addr,
-        steam_port: u16,
         game_port: u16,
         query_port: u16,
         server_mode: ServerMode,
         version: &str,
-    ) -> SResult<(Server, SingleClient<ServerManager>)> {
+    ) -> SIResult<(Server, SingleClient<ServerManager>)> {
         unsafe {
             let version = CString::new(version).unwrap();
+
+            // let internal_check_interface_versions =
+
             let raw_ip: u32 = ip.into();
             let server_mode = match server_mode {
                 ServerMode::NoAuthentication => sys::EServerMode::eServerModeNoAuthentication,
@@ -72,18 +114,23 @@ impl Server {
                     sys::EServerMode::eServerModeAuthenticationAndSecure
                 }
             };
-            if !sys::SteamInternal_GameServer_Init(
+
+            let mut err_msg: sys::SteamErrMsg = [0; 1024];
+            let result = Self::steam_game_server_init_ex(
                 raw_ip,
-                steam_port,
                 game_port,
                 query_port,
                 server_mode,
                 version.as_ptr(),
-            ) {
-                return Err(SteamError::InitFailed);
+                &mut err_msg,
+            );
+
+            if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
+                return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
             }
+
             sys::SteamAPI_ManualDispatch_Init();
-            let server_raw = sys::SteamAPI_SteamGameServer_v014();
+            let server_raw = sys::SteamAPI_SteamGameServer_v015();
             let server = Arc::new(Inner {
                 _manager: ServerManager { _priv: () },
                 callbacks: Mutex::new(Callbacks {
@@ -138,7 +185,16 @@ impl Server {
     ///
     /// When the multiplayer session terminates you must call
     /// `cancel_authentication_ticket`
-    pub fn authentication_session_ticket(&self) -> (AuthTicket, Vec<u8>) {
+    pub fn authentication_session_ticket_with_steam_id(
+        &self,
+        steam_id: SteamId,
+    ) -> (AuthTicket, Vec<u8>) {
+        self.authentication_session_ticket(NetworkingIdentity::new_steam_id(steam_id))
+    }
+    pub fn authentication_session_ticket(
+        &self,
+        network_identity: NetworkingIdentity,
+    ) -> (AuthTicket, Vec<u8>) {
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
@@ -147,6 +203,7 @@ impl Server {
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
+                network_identity.as_ptr(),
             );
             ticket.truncate(ticket_len as usize);
             (AuthTicket(auth_ticket), ticket)
@@ -254,6 +311,14 @@ impl Server {
         }
     }
 
+    /// Login to a generic account by token
+    pub fn log_on(&self, token: &str) {
+        let token = CString::new(token).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_LogOn(self.server, token.as_ptr());
+        }
+    }
+
     /// If active, updates the master server with this server's presence so players can find it via
     /// the steam matchmaking/server browser interfaces.
     pub fn enable_heartbeats(&self, active: bool) {
@@ -283,7 +348,7 @@ impl Server {
     pub fn set_server_name(&self, server_name: &str) {
         let server_name = CString::new(server_name).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, server_name.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetServerName(self.server, server_name.as_ptr());
         }
     }
 
@@ -296,12 +361,49 @@ impl Server {
         }
     }
 
+    /// Sets a string defining the "gametags" for this server, this is optional, but if set it
+    /// allows users to filter in the matchmaking/server-browser interfaces based on the value.
+    ///
+    /// This is usually formatted as a comma or semicolon separated list.
+    ///
+    /// Don't set this unless it actually changes, its only uploaded to the master once;
+    /// when acknowledged.
+    ///
+    /// The new "gametags" value to set. Must not be an empty string ("").
+    /// This can not be longer than 127.
+    pub fn set_game_tags(&self, tags: &str) {
+        assert!(tags.len() != 0, "tags must not be an empty string (\"\").");
+        assert!(tags.len() < 128, "tags can not be longer than 127.");
+
+        let tags = CString::new(tags).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetGameTags(self.server, tags.as_ptr());
+        }
+    }
+
+    /// Add/update a rules key/value pair.
+    pub fn set_key_value(&self, key: &str, value: &str) {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetKeyValue(self.server, key.as_ptr(), value.as_ptr());
+        }
+    }
+
+    /// Clears the whole list of key/values that are sent in rules queries.
+    pub fn clear_all_key_values(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
+        }
+    }
+
     /// Returns an accessor to the steam UGC interface (steam workshop)
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamGameServerUGC_v016();
+            let ugc = sys::SteamAPI_SteamGameServerUGC_v020();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
@@ -330,7 +432,6 @@ impl Server {
 fn test() {
     let (server, single) = Server::init(
         [127, 0, 0, 1].into(),
-        23333,
         23334,
         23335,
         ServerMode::Authentication,
@@ -347,12 +448,15 @@ fn test() {
 
     println!("{:?}", server.steam_id());
 
-    let _cb = server
-        .register_callback(|v: AuthSessionTicketResponse| println!("Got response: {:?}", v.result));
-    let _cb = server.register_callback(|v: ValidateAuthTicketResponse| println!("{:?}", v));
+    let _cb = server.register_callback(|v: AuthSessionTicketResponse| {
+        println!("Got auth ticket response: {:?}", v.result)
+    });
+    let _cb = server.register_callback(|v: ValidateAuthTicketResponse| {
+        println!("Got validate auth ticket response: {:?}", v)
+    });
 
     let id = server.steam_id();
-    let (auth, ticket) = server.authentication_session_ticket();
+    let (auth, ticket) = server.authentication_session_ticket_with_steam_id(id);
 
     println!("{:?}", server.begin_authentication_session(id, &ticket));
 

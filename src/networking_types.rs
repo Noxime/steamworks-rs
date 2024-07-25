@@ -12,6 +12,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 use std::panic::catch_unwind;
 use std::sync::Arc;
 use steamworks_sys as sys;
+use steamworks_sys::ESteamNetConnectionEnd;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -541,7 +542,7 @@ impl From<NetworkingConfigValue> for sys::ESteamNetworkingConfigValue {
             NetworkingConfigValue::SDRClientMinPingsBeforePingAccurate => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_MinPingsBeforePingAccurate,
             NetworkingConfigValue::SDRClientSingleSocket => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_SingleSocket,
             NetworkingConfigValue::SDRClientForceRelayCluster => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_ForceRelayCluster,
-            NetworkingConfigValue::SDRClientDebugTicketAddress => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_DebugTicketAddress,
+            NetworkingConfigValue::SDRClientDebugTicketAddress => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_DevTicket,
             NetworkingConfigValue::SDRClientForceProxyAddr => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_ForceProxyAddr,
             NetworkingConfigValue::SDRClientFakeClusterPing => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_SDRClient_FakeClusterPing,
             NetworkingConfigValue::LogLevelAckRTT => sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_LogLevel_AckRTT,
@@ -650,12 +651,91 @@ impl TryFrom<sys::ESteamNetworkingConnectionState> for NetworkingConnectionState
 #[error("Invalid state")]
 pub struct InvalidConnectionState;
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct AppNetConnectionEnd {
+    code: i32,
+}
+
+impl AppNetConnectionEnd {
+    pub fn code(&self) -> i32 {
+        self.code
+    }
+
+    /// Create a generic normal net connection end.
+    pub fn generic_normal() -> Self {
+        Self {
+            code: ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32,
+        }
+    }
+
+    /// Create a normal net connection end.
+    ///
+    /// Indicates that the application ended the connection in a "usual" manner.
+    /// E.g.: user intentionally disconnected from the server,
+    /// gameplay ended normally, etc
+    ///
+    /// Panics if `code` is not between 1000 and 1999.
+    pub fn normal(code: i32) -> Self {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Max as i32;
+        if code < min || code > max {
+            panic!("app net connection end code {} is out of range. App normal codes must be between {} and {}", code, min, max);
+        }
+
+        Self { code }
+    }
+
+    /// Creates a generic exception net connection end code.
+    pub fn generic_exception() -> Self {
+        Self {
+            code: ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32,
+        }
+    }
+
+    /// Create a exception net connection end.
+    ///
+    /// Indicates that the application ended the connection in some sort of exceptional
+    /// or unusual manner that might indicate a bug or configuration
+    /// issue.
+    ///
+    /// Panics if `code` is not between 2000 and 2999.
+    pub fn exception(code: i32) -> Self {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Max as i32;
+        if code < min || code > max {
+            panic!("app net connection end code {} is out of range. App exceptions code must be between {} and {}", code, min, max);
+        }
+
+        Self { code }
+    }
+
+    /// Returns true if the connection ended in a "normal" way, like a user intentionally disconnecting.
+    pub fn is_normal(&self) -> bool {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Max as i32;
+
+        self.code >= min && self.code <= max
+    }
+
+    /// Returns true if the connection ended because of an error.
+    pub fn is_exception(&self) -> bool {
+        let min = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Min as i32;
+        let max = ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Max as i32;
+
+        self.code >= min && self.code <= max
+    }
+}
+
 /// Enumerate various causes of connection termination.  These are designed to work similar
 /// to HTTP error codes: the numeric range gives you a rough classification as to the source
 /// of the problem.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum NetConnectionEnd {
-    //
+    /// Invalid/sentinel value
+    ///
+    /// Int value: 0
+    Invalid,
+
     // Application codes.  These are the values you will pass to
     // ISteamNetworkingSockets::CloseConnection.  You can use these codes if
     // you want to plumb through application-specific reason codes.  If you don't
@@ -669,17 +749,10 @@ pub enum NetConnectionEnd {
     // proportion of connections terminates in an exceptional manner,
     // this can trigger an alert.
     //
-
     // 1xxx: Application ended the connection in a "usual" manner.
     //       E.g.: user intentionally disconnected from the server,
     //             gameplay ended normally, etc
-    AppGeneric,
-
-    // 2xxx: Application ended the connection in some sort of exceptional
-    //       or unusual manner that might indicate a bug or configuration
-    //       issue.
-    //
-    AppException,
+    App(AppNetConnectionEnd),
 
     //
     // System codes.  These will be returned by the system when
@@ -709,7 +782,7 @@ pub enum NetConnectionEnd {
     // on our end
     LocalHostedServerPrimaryRelay,
 
-    // We're not able to get the SDR network config.  This is
+    // We're not able to get the network config.  This is
     // *almost* always a local issue, since the network config
     // comes from the CDN, which is pretty darn reliable.
     LocalNetworkConfig,
@@ -817,98 +890,140 @@ pub enum NetConnectionEnd {
     //   reason (perhaps a bug), and believes that is it is
     //   acknowledging our closure.
     MiscPeerSentNoConnection,
-}
 
-impl From<NetConnectionEnd> for sys::ESteamNetConnectionEnd {
-    fn from(end: NetConnectionEnd) -> Self {
-        match end {
-            NetConnectionEnd::AppGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic,
-            NetConnectionEnd::AppException => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic,
-            NetConnectionEnd::LocalOfflineMode => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode,
-            NetConnectionEnd::LocalManyRelayConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity,
-            NetConnectionEnd::LocalHostedServerPrimaryRelay => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay,
-            NetConnectionEnd::LocalNetworkConfig => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig,
-            NetConnectionEnd::LocalRights => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights,
-            NetConnectionEnd::LocalP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses,
-            NetConnectionEnd::RemoteTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout,
-            NetConnectionEnd::RemoteBadEncrypt => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt,
-            NetConnectionEnd::RemoteBadCert => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert,
-            NetConnectionEnd::RemoteBadProtocolVersion => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion,
-            NetConnectionEnd::RemoteP2PICENoPublicAddresses => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses,
-            NetConnectionEnd::MiscGeneric => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic,
-            NetConnectionEnd::MiscInternalError => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError,
-            NetConnectionEnd::MiscTimeout => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout,
-            NetConnectionEnd::MiscSteamConnectivity => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity,
-            NetConnectionEnd::MiscNoRelaySessionsToClient => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient,
-            NetConnectionEnd::MiscP2PRendezvous => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous,
-            NetConnectionEnd::MiscP2PNATFirewall => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall,
-            NetConnectionEnd::MiscPeerSentNoConnection => sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection,
-        }
-    }
+    /// A code that could not be handled.
+    Other(i32),
 }
 
 impl From<NetConnectionEnd> for i32 {
     fn from(end: NetConnectionEnd) -> Self {
-        sys::ESteamNetConnectionEnd::from(end) as i32
-    }
-}
-
-impl TryFrom<i32> for NetConnectionEnd {
-    type Error = InvalidEnumValue;
-    fn try_from(end: i32) -> Result<Self, Self::Error> {
+        use ESteamNetConnectionEnd::*;
         match end {
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic as i32 => Ok(NetConnectionEnd::AppGeneric),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic as i32 => Ok(NetConnectionEnd::AppException),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => Ok(NetConnectionEnd::LocalOfflineMode),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => Ok(NetConnectionEnd::LocalManyRelayConnectivity),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => Ok(NetConnectionEnd::LocalHostedServerPrimaryRelay),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig as i32 => Ok(NetConnectionEnd::LocalNetworkConfig),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights as i32 => Ok(NetConnectionEnd::LocalRights),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::LocalP2PICENoPublicAddresses),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout as i32 => Ok(NetConnectionEnd::RemoteTimeout),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => Ok(NetConnectionEnd::RemoteBadEncrypt),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert as i32 => Ok(NetConnectionEnd::RemoteBadCert),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => Ok(NetConnectionEnd::RemoteBadProtocolVersion),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => Ok(NetConnectionEnd::RemoteP2PICENoPublicAddresses),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic as i32 => Ok(NetConnectionEnd::MiscGeneric),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError as i32 => Ok(NetConnectionEnd::MiscInternalError),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout as i32 => Ok(NetConnectionEnd::MiscTimeout),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => Ok(NetConnectionEnd::MiscSteamConnectivity),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => Ok(NetConnectionEnd::MiscNoRelaySessionsToClient),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => Ok(NetConnectionEnd::MiscP2PRendezvous),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => Ok(NetConnectionEnd::MiscP2PNATFirewall),
-            end if end == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => Ok(NetConnectionEnd::MiscPeerSentNoConnection),
-            _ => panic!("invalid connection end"),
+            NetConnectionEnd::Invalid => k_ESteamNetConnectionEnd_Invalid as i32,
+            NetConnectionEnd::App(app_net_connection_end) => app_net_connection_end.code(),
+            NetConnectionEnd::LocalOfflineMode => k_ESteamNetConnectionEnd_Local_OfflineMode as i32,
+            NetConnectionEnd::LocalManyRelayConnectivity => {
+                k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32
+            }
+            NetConnectionEnd::LocalHostedServerPrimaryRelay => {
+                k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32
+            }
+            NetConnectionEnd::LocalNetworkConfig => {
+                k_ESteamNetConnectionEnd_Local_NetworkConfig as i32
+            }
+            NetConnectionEnd::LocalRights => k_ESteamNetConnectionEnd_Local_Rights as i32,
+            NetConnectionEnd::LocalP2PICENoPublicAddresses => {
+                k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32
+            }
+            NetConnectionEnd::RemoteTimeout => k_ESteamNetConnectionEnd_Remote_Timeout as i32,
+            NetConnectionEnd::RemoteBadEncrypt => k_ESteamNetConnectionEnd_Remote_BadCrypt as i32,
+            NetConnectionEnd::RemoteBadCert => k_ESteamNetConnectionEnd_Remote_BadCert as i32,
+            NetConnectionEnd::RemoteBadProtocolVersion => {
+                k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32
+            }
+            NetConnectionEnd::RemoteP2PICENoPublicAddresses => {
+                k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32
+            }
+            NetConnectionEnd::MiscGeneric => k_ESteamNetConnectionEnd_Misc_Generic as i32,
+            NetConnectionEnd::MiscInternalError => {
+                k_ESteamNetConnectionEnd_Misc_InternalError as i32
+            }
+            NetConnectionEnd::MiscTimeout => k_ESteamNetConnectionEnd_Misc_Timeout as i32,
+            NetConnectionEnd::MiscSteamConnectivity => {
+                k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32
+            }
+            NetConnectionEnd::MiscNoRelaySessionsToClient => {
+                k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32
+            }
+            NetConnectionEnd::MiscP2PRendezvous => {
+                k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32
+            }
+            NetConnectionEnd::MiscP2PNATFirewall => {
+                k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32
+            }
+            NetConnectionEnd::MiscPeerSentNoConnection => {
+                k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32
+            }
+            NetConnectionEnd::Other(code) => code,
         }
     }
 }
 
-impl From<sys::ESteamNetConnectionEnd> for NetConnectionEnd {
-    fn from(end: steamworks_sys::ESteamNetConnectionEnd) -> Self {
+impl From<i32> for NetConnectionEnd {
+    fn from(end: i32) -> Self {
+        use ESteamNetConnectionEnd::*;
         match end {
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_App_Generic => NetConnectionEnd::AppGeneric,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_AppException_Generic => NetConnectionEnd::AppException,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_OfflineMode => NetConnectionEnd::LocalOfflineMode,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity => { NetConnectionEnd::LocalManyRelayConnectivity }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay => { NetConnectionEnd::LocalHostedServerPrimaryRelay }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_NetworkConfig => { NetConnectionEnd::LocalNetworkConfig }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_Rights => NetConnectionEnd::LocalRights,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::LocalP2PICENoPublicAddresses }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_Timeout => NetConnectionEnd::RemoteTimeout,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCrypt => NetConnectionEnd::RemoteBadEncrypt,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadCert => NetConnectionEnd::RemoteBadCert,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_BadProtocolVersion => { NetConnectionEnd::RemoteBadProtocolVersion }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses => { NetConnectionEnd::RemoteP2PICENoPublicAddresses }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Generic => NetConnectionEnd::MiscGeneric,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_InternalError => NetConnectionEnd::MiscInternalError,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_Timeout => NetConnectionEnd::MiscTimeout,
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_SteamConnectivity => { NetConnectionEnd::MiscSteamConnectivity }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient => { NetConnectionEnd::MiscNoRelaySessionsToClient }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous => { NetConnectionEnd::MiscP2PRendezvous }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall => { NetConnectionEnd::MiscP2PNATFirewall }
-            sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection => { NetConnectionEnd::MiscPeerSentNoConnection }
-            _ => panic!("invalid connection end"),
+            end if end == k_ESteamNetConnectionEnd_Invalid as i32 => NetConnectionEnd::Invalid,
+            end if end >= k_ESteamNetConnectionEnd_App_Min as i32
+                && end <= k_ESteamNetConnectionEnd_AppException_Max as i32 =>
+            {
+                NetConnectionEnd::App(AppNetConnectionEnd { code: end })
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_OfflineMode as i32 => {
+                NetConnectionEnd::LocalOfflineMode
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_ManyRelayConnectivity as i32 => {
+                NetConnectionEnd::LocalManyRelayConnectivity
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_HostedServerPrimaryRelay as i32 => {
+                NetConnectionEnd::LocalHostedServerPrimaryRelay
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_NetworkConfig as i32 => {
+                NetConnectionEnd::LocalNetworkConfig
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_Rights as i32 => {
+                NetConnectionEnd::LocalRights
+            }
+            end if end == k_ESteamNetConnectionEnd_Local_P2P_ICE_NoPublicAddresses as i32 => {
+                NetConnectionEnd::LocalP2PICENoPublicAddresses
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_Timeout as i32 => {
+                NetConnectionEnd::RemoteTimeout
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadCrypt as i32 => {
+                NetConnectionEnd::RemoteBadEncrypt
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadCert as i32 => {
+                NetConnectionEnd::RemoteBadCert
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_BadProtocolVersion as i32 => {
+                NetConnectionEnd::RemoteBadProtocolVersion
+            }
+            end if end == k_ESteamNetConnectionEnd_Remote_P2P_ICE_NoPublicAddresses as i32 => {
+                NetConnectionEnd::RemoteP2PICENoPublicAddresses
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_Generic as i32 => {
+                NetConnectionEnd::MiscGeneric
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_InternalError as i32 => {
+                NetConnectionEnd::MiscInternalError
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_Timeout as i32 => {
+                NetConnectionEnd::MiscTimeout
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_SteamConnectivity as i32 => {
+                NetConnectionEnd::MiscSteamConnectivity
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_NoRelaySessionsToClient as i32 => {
+                NetConnectionEnd::MiscNoRelaySessionsToClient
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_P2P_Rendezvous as i32 => {
+                NetConnectionEnd::MiscP2PRendezvous
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_P2P_NAT_Firewall as i32 => {
+                NetConnectionEnd::MiscP2PNATFirewall
+            }
+            end if end == k_ESteamNetConnectionEnd_Misc_PeerSentNoConnection as i32 => {
+                NetConnectionEnd::MiscPeerSentNoConnection
+            }
+            end => Self::Other(end),
         }
+    }
+}
+
+impl From<ESteamNetConnectionEnd> for NetConnectionEnd {
+    fn from(end: ESteamNetConnectionEnd) -> Self {
+        (end as i32).into()
     }
 }
 
@@ -994,7 +1109,7 @@ pub struct InvalidEnumValue;
 /// Internal struct to handle network callbacks
 #[derive(Clone)]
 pub struct NetConnectionInfo {
-    inner: sys::SteamNetConnectionInfo_t,
+    pub(crate) inner: sys::SteamNetConnectionInfo_t,
 }
 
 #[allow(dead_code)]
@@ -1030,8 +1145,7 @@ impl NetConnectionInfo {
     }
 
     pub fn end_reason(&self) -> Option<NetConnectionEnd> {
-        if self.inner.m_eEndReason
-            == sys::ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Invalid as _
+        if self.inner.m_eEndReason == ESteamNetConnectionEnd::k_ESteamNetConnectionEnd_Invalid as _
         {
             None
         } else {
@@ -1063,10 +1177,192 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
     }
 }
 
-/// This in an internal callback that will be used by Steam Networking Sockets directly.
-/// It should not be created manually.
-///
-///
+/// SteamNetConnectionRealTimeStatus_t structure
+#[derive(Clone)]
+pub struct NetConnectionRealTimeInfo {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeStatus_t,
+}
+
+impl NetConnectionRealTimeInfo {
+    pub fn connection_state(&self) -> Result<NetworkingConnectionState, InvalidConnectionState> {
+        self.inner.m_eState.try_into()
+    }
+
+    // ping in ms
+    pub fn ping(&self) -> i32 {
+        self.inner.m_nPing
+    }
+
+    /// Connection quality measured locally, 0...1.  (Percentage of packets delivered)
+    pub fn connection_quality_local(&self) -> f32 {
+        self.inner.m_flConnectionQualityLocal
+    }
+
+    /// Packet delivery success rate as observed from remote host
+    pub fn connection_quality_remote(&self) -> f32 {
+        self.inner.m_flConnectionQualityRemote
+    }
+
+    /// Current data rates from recent history
+    pub fn out_packets_per_sec(&self) -> f32 {
+        self.inner.m_flOutPacketsPerSec
+    }
+
+    /// Current data rates from recent history
+    pub fn out_bytes_per_sec(&self) -> f32 {
+        self.inner.m_flOutBytesPerSec
+    }
+    /// Current data rates from recent history
+    pub fn in_packets_per_sec(&self) -> f32 {
+        self.inner.m_flInPacketsPerSec
+    }
+
+    /// Current data rates from recent history
+    pub fn in_bytes_per_sec(&self) -> f32 {
+        self.inner.m_flInBytesPerSec
+    }
+
+    /// Estimate rate that we believe that we can send data to our peer.
+    /// Note that this could be significantly higher than m_flOutBytesPerSec,
+    /// meaning the capacity of the channel is higher than you are sending data.
+    /// (That's OK!)
+    pub fn send_rate_bytes_per_sec(&self) -> i32 {
+        self.inner.m_nSendRateBytesPerSecond
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    pub fn pending_unreliable(&self) -> i32 {
+        self.inner.m_cbPendingUnreliable
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    pub fn pending_reliable(&self) -> i32 {
+        self.inner.m_cbPendingReliable
+    }
+
+    /// Number of bytes of reliable data that has been placed the wire, but
+    /// for which we have not yet received an acknowledgment, and thus we may
+    /// have to re-transmit.
+    pub fn sent_unacked_reliable(&self) -> i32 {
+        self.inner.m_cbSentUnackedReliable
+    }
+
+    /// If you asked us to send a message right now, how long would that message
+    /// sit in the queue before we actually started putting packets on the wire?
+    /// (And assuming Nagle does not cause any packets to be delayed.)
+    ///
+    /// In general, data that is sent by the application is limited by the
+    /// bandwidth of the channel.  If you send data faster than this, it must
+    /// be queued and put on the wire at a metered rate.  Even sending a small amount
+    /// of data (e.g. a few MTU, say ~3k) will require some of the data to be delayed
+    /// a bit.
+    ///
+    /// In general, the estimated delay will be approximately equal to
+    ///
+    ///		( m_cbPendingUnreliable+m_cbPendingReliable ) / m_nSendRateBytesPerSecond
+    ///
+    /// plus or minus one MTU.  It depends on how much time has elapsed since the last
+    /// packet was put on the wire.  For example, the queue might have *just* been emptied,
+    /// and the last packet placed on the wire, and we are exactly up against the send
+    /// rate limit.  In that case we might need to wait for one packet's worth of time to
+    /// elapse before we can send again.  On the other extreme, the queue might have data
+    /// in it waiting for Nagle.  (This will always be less than one packet, because as soon
+    /// as we have a complete packet we would send it.)  In that case, we might be ready
+    /// to send data now, and this value will be 0.
+    pub fn queued_send_bytes(&self) -> i64 {
+        self.inner.m_usecQueueTime
+    }
+}
+
+impl Debug for NetConnectionRealTimeInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NetQuickConnectionInfo")
+            .field("connection_state", &self.connection_state())
+            .field("ping", &self.ping())
+            .field("connection_quality_local", &self.connection_quality_local())
+            .field(
+                "connection_quality_remote",
+                &self.connection_quality_remote(),
+            )
+            .field("out_packets_per_sec", &self.out_packets_per_sec())
+            .field("out_bytes_per_sec", &self.out_bytes_per_sec())
+            .field("in_packets_per_sec", &self.in_packets_per_sec())
+            .field("in_bytes_per_sec", &self.in_bytes_per_sec())
+            .field("send_rate_bytes_per_sec", &self.send_rate_bytes_per_sec())
+            .field("pending_unreliable", &self.pending_unreliable())
+            .field("pending_reliable", &self.pending_reliable())
+            .field("sent_unacked_reliable", &self.sent_unacked_reliable())
+            .field("queued_send_bytes", &self.queued_send_bytes())
+            .finish()
+    }
+}
+
+impl From<sys::SteamNetConnectionRealTimeStatus_t> for NetConnectionRealTimeInfo {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeStatus_t) -> Self {
+        Self { inner: info }
+    }
+}
+
+/// Quick status of a particular lane
+#[derive(Clone)]
+pub struct NetConnectionRealTimeLaneStatus {
+    pub(crate) inner: sys::SteamNetConnectionRealTimeLaneStatus_t,
+}
+
+impl NetConnectionRealTimeLaneStatus {
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_unreliable(&self) -> i32 {
+        self.inner.m_cbPendingUnreliable
+    }
+    /// Number of bytes pending to be sent.  This is data that you have recently
+    /// requested to be sent but has not yet actually been put on the wire.  The
+    /// reliable number ALSO includes data that was previously placed on the wire,
+    /// but has now been scheduled for re-transmission.  Thus, it's possible to
+    /// observe m_cbPendingReliable increasing between two checks, even if no
+    /// calls were made to send reliable data between the checks.  Data that is
+    /// awaiting the Nagle delay will appear in these numbers.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn pending_reliable(&self) -> i32 {
+        self.inner.m_cbPendingReliable
+    }
+    /// Number of bytes of reliable data that has been placed the wire, but
+    /// for which we have not yet received an acknowledgment, and thus we may
+    /// have to re-transmit.
+    /// Lane-specific, for global look at NetConnectionRealTimeInfo.
+    pub fn sent_unacked_reliable(&self) -> i32 {
+        self.inner.m_cbSentUnackedReliable
+    }
+    /// Lane-specific queue time.  This value takes into consideration lane priorities
+    /// and weights, and how much data is queued in each lane, and attempts to predict
+    /// how any data currently queued will be sent out.
+    pub fn queued_send_bytes(&self) -> i64 {
+        self.inner.m_usecQueueTime
+    }
+}
+
+impl From<sys::SteamNetConnectionRealTimeLaneStatus_t> for NetConnectionRealTimeLaneStatus {
+    fn from(info: steamworks_sys::SteamNetConnectionRealTimeLaneStatus_t) -> Self {
+        Self { inner: info }
+    }
+}
+
 /// This callback is posted whenever a connection is created, destroyed, or changes state.
 /// The m_info field will contain a complete description of the connection at the time the
 /// change occurred and the callback was posted.  In particular, m_eState will have the
@@ -1103,13 +1399,17 @@ impl From<sys::SteamNetConnectionInfo_t> for NetConnectionInfo {
 ///
 /// Also note that callbacks will be posted when connections are created and destroyed by your own API calls.
 #[derive(Debug, Clone)]
-pub(crate) struct NetConnectionStatusChanged {
+pub struct NetConnectionStatusChanged {
+    /// The handle of the connection that has changed state
+    // (only important for the ListenSocketEvent, so it can stay for now in the crate visibility)
     pub(crate) connection: sys::HSteamNetConnection,
-    pub(crate) connection_info: NetConnectionInfo,
+    /// Full connection info
+    pub connection_info: NetConnectionInfo,
 
     // Debug is intentionally ignored during dead-code analysis
     #[allow(dead_code)]
-    pub(crate) old_state: NetworkingConnectionState,
+    /// Previous state.  (Current state is in m_info.m_eState)
+    pub old_state: NetworkingConnectionState,
 }
 
 unsafe impl Callback for NetConnectionStatusChanged {
@@ -1314,7 +1614,7 @@ impl NetworkingConfigEntry {
     }
 
     pub fn new_float(value_type: NetworkingConfigValue, value: f32) -> Self {
-        debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Int64);
+        debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::Float);
 
         let mut config = Self::new_uninitialized_config_value();
         unsafe {

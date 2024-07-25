@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        toolchain: [stable, nightly]
+        toolchain: [stable, nightly, "1.71.1"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2

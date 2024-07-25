@@ -1,8 +1,11 @@
-use crate::networking_sockets_callback;
-use crate::networking_types::{
-    ListenSocketEvent, MessageNumber, NetConnectionEnd, NetworkingAvailability,
-    NetworkingAvailabilityError, NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage,
-    SendFlags, SteamIpAddr,
+use crate::{networking_sockets_callback, networking_types::NetConnectionRealTimeLaneStatus};
+use crate::{
+    networking_types::{
+        ListenSocketEvent, MessageNumber, NetConnectionEnd, NetConnectionInfo,
+        NetConnectionRealTimeInfo, NetworkingAvailability, NetworkingAvailabilityError,
+        NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage, SendFlags, SteamIpAddr,
+    },
+    SteamError,
 };
 use crate::{CallbackHandle, Inner, SResult};
 #[cfg(test)]
@@ -12,7 +15,9 @@ use std::ffi::CString;
 use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
+use sys::SteamNetworkingMessage_t;
 
+use crate::networking_types::AppNetConnectionEnd;
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
@@ -263,6 +268,118 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
             handle: poll_group,
             sockets: self.sockets,
             inner: self.inner.clone(),
+            message_buffer: Vec::new(),
+        }
+    }
+
+    pub fn get_authentication_status(
+        &self,
+    ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+        let mut details: sys::SteamNetAuthenticationStatus_t = unsafe { std::mem::zeroed() };
+        let auth = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetAuthenticationStatus(
+                self.sockets,
+                &mut details,
+            )
+        };
+
+        auth.try_into()
+    }
+
+    /// Returns basic information about the high-level state of the connection.
+    ///
+    /// Returns false if the connection handle is invalid.
+    pub fn get_connection_info(
+        &self,
+        connection: &NetConnection<Manager>,
+    ) -> Result<NetConnectionInfo, bool> {
+        let mut info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
+        let was_successful = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
+                self.sockets,
+                connection.handle,
+                &mut info,
+            )
+        };
+        if was_successful {
+            Ok(NetConnectionInfo { inner: info })
+        } else {
+            Err(false)
+        }
+    }
+
+    /// Returns a small set of information about the real-time state of the connection and the queue status of each lane.
+    ///
+    /// On entry, lanes specifies the length of the lanes array. This may be 0 if you do not wish to receive any lane data. It's OK for this to be smaller than the total number of configured lanes.
+    ///
+    /// pLanes points to an array that will receive lane-specific info. It can be NULL if this is not needed.
+    pub fn get_realtime_connection_status(
+        &self,
+        connection: &NetConnection<Manager>,
+        lanes: i32,
+    ) -> Result<
+        (
+            NetConnectionRealTimeInfo,
+            Vec<NetConnectionRealTimeLaneStatus>,
+        ),
+        SteamError,
+    > {
+        let mut info: sys::SteamNetConnectionRealTimeStatus_t = unsafe { std::mem::zeroed() };
+        let mut p_lanes: Vec<sys::SteamNetConnectionRealTimeLaneStatus_t> =
+            Vec::with_capacity(lanes as usize);
+        let result = unsafe {
+            // Get a reference to the uninitialized part of our Vec's buffer
+            let uninitialized = p_lanes.spare_capacity_mut();
+            let status = sys::SteamAPI_ISteamNetworkingSockets_GetConnectionRealTimeStatus(
+                self.sockets,
+                connection.handle,
+                &mut info,
+                lanes,
+                uninitialized.as_mut_ptr().cast(),
+            );
+            // Tell the Vec that we've manually initialized some elements
+            p_lanes.set_len(lanes as usize);
+            status
+        };
+        if result == sys::EResult::k_EResultOK {
+            Ok((
+                NetConnectionRealTimeInfo { inner: info },
+                p_lanes
+                    .into_iter()
+                    .map(|x| NetConnectionRealTimeLaneStatus { inner: x })
+                    .collect(),
+            ))
+        } else {
+            Err(result.into())
+        }
+    }
+    /// Configure multiple outbound messages streams ("lanes") on a connection, and control head-of-line blocking between them. Messages within a given lane are always sent in the order they are queued, but messages from different lanes may be sent out of order. Each lane has its own message number sequence. The first message sent on each lane will be assigned the number 1.
+    ///
+    /// Each lane has a "priority". Lower priority lanes will only be processed when all higher-priority lanes are empty. The magnitudes of the priority values are not relevant, only their sort order. Higher numeric values take priority over lower numeric values.
+    ///
+    /// Each lane also is assigned a weight, which controls the approximate proportion of the bandwidth that will be consumed by the lane, relative to other lanes of the same priority. (This is assuming the lane stays busy. An idle lane does not build up "credits" to be be spent once a message is queued.) This value is only meaningful as a proportion, relative to other lanes with the same priority. For lanes with different priorities, the strict priority order will prevail, and their weights relative to each other are not relevant. Thus, if a lane has a unique priority value, the weight value for that lane is not relevant.
+    ///
+    /// Example: 3 lanes, with priorities { 0, 10, 10 } and weights { (NA), 20, 5 }. Messages sent on the first will always be sent first, before messages in the other two lanes. Its weight value is irrelevant, since there are no other lanes with priority=0. The other two lanes will share bandwidth, with the second and third lanes sharing bandwidth using a ratio of approximately 4:1. (The weights { NA, 4, 1 } would be equivalent.)
+    pub fn configure_connection_lanes(
+        &self,
+        connection: &NetConnection<Manager>,
+        num_lanes: i32,
+        lane_priorities: &[i32],
+        lane_weights: &[u16],
+    ) -> Result<(), SteamError> {
+        let result = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_ConfigureConnectionLanes(
+                self.sockets,
+                connection.handle,
+                num_lanes,
+                lane_priorities.as_ptr(),
+                lane_weights.as_ptr(),
+            )
+        };
+        if result == sys::EResult::k_EResultOK {
+            Ok(())
+        } else {
+            Err(result.into())
         }
     }
 }
@@ -423,7 +540,7 @@ pub struct NetConnection<Manager> {
     socket: Option<Arc<InnerSocket<Manager>>>,
     _callback_handle: Option<Arc<CallbackHandle<Manager>>>,
     _event_receiver: Option<Receiver<()>>,
-
+    message_buffer: Vec<*mut SteamNetworkingMessage_t>,
     is_handled: bool,
 }
 
@@ -444,6 +561,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: Some(socket),
             _callback_handle: None,
             _event_receiver: None,
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -469,6 +587,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: None,
             _callback_handle: Some(callback),
             _event_receiver: Some(receiver),
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -487,6 +606,7 @@ impl<Manager: 'static> NetConnection<Manager> {
             socket: None,
             _callback_handle: None,
             _event_receiver: None,
+            message_buffer: Vec::new(),
             is_handled: false,
         }
     }
@@ -754,26 +874,36 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// If any messages are returned, you MUST call SteamNetworkingMessage_t::Release() on each
     /// of them free up resources after you are done.  It is safe to keep the object alive for
     /// a little while (put it into some queue, etc), and you may call Release() from any thread.
-    pub fn receive_messages(&self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
-        // TODO: Optionally make it possible to reuse the same buffer to avoid allocation
-        let mut buffer = Vec::with_capacity(batch_size);
+    pub fn receive_messages(
+        &mut self,
+        batch_size: usize,
+    ) -> Result<Vec<NetworkingMessage<Manager>>, InvalidHandle> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
                 self.sockets,
                 self.handle,
-                buffer.as_mut_ptr(),
+                self.message_buffer.as_mut_ptr(),
                 batch_size as _,
             );
-            buffer.set_len(message_count as usize);
+            if message_count < 0 {
+                return Err(InvalidHandle);
+            }
+            self.message_buffer.set_len(message_count as usize);
         }
 
-        buffer
-            .into_iter()
+        Ok(self
+            .message_buffer
+            .drain(..)
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
             })
-            .collect()
+            .collect())
     }
 
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
@@ -801,6 +931,10 @@ impl<Manager: 'static> NetConnection<Manager> {
         debug_assert!(was_successful);
     }
 
+    pub fn run_callbacks(&self) {
+        unsafe { sys::SteamAPI_ISteamNetworkingSockets_RunCallbacks(self.sockets) }
+    }
+
     /// Set the connection state to be handled externally. The struct will no longer close the connection on drop.
     pub(crate) fn handle_connection(&mut self) {
         self.is_handled = true
@@ -815,7 +949,7 @@ impl<Manager> Drop for NetConnection<Manager> {
                 sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
                     self.sockets,
                     self.handle,
-                    NetConnectionEnd::AppGeneric.into(),
+                    NetConnectionEnd::App(AppNetConnectionEnd::generic_normal()).into(),
                     debug_string.as_ptr(),
                     false,
                 )
@@ -838,25 +972,31 @@ pub struct NetPollGroup<Manager> {
     handle: sys::HSteamNetPollGroup,
     sockets: *mut sys::ISteamNetworkingSockets,
     inner: Arc<Inner<Manager>>,
+    message_buffer: Vec<*mut SteamNetworkingMessage_t>,
 }
 
 unsafe impl<Manager: Send + Sync> Send for NetPollGroup<Manager> {}
 unsafe impl<Manager: Send + Sync> Sync for NetPollGroup<Manager> {}
 
 impl<Manager> NetPollGroup<Manager> {
-    pub fn receive_messages(&self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
-        let mut buffer = Vec::with_capacity(batch_size);
+    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
         unsafe {
             let count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
                 self.sockets,
                 self.handle,
-                buffer.as_mut_ptr(),
+                self.message_buffer.as_mut_ptr(),
                 batch_size as _,
             ) as usize;
-            buffer.set_len(count);
+            self.message_buffer.set_len(count);
         }
-        buffer
-            .into_iter()
+
+        self.message_buffer
+            .drain(..)
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
@@ -881,7 +1021,7 @@ pub struct InvalidHandle;
 mod tests {
     use std::net::Ipv4Addr;
 
-    use crate::Client;
+    use crate::{networking_types::NetworkingConnectionState, Client};
 
     use super::*;
     use crate::networking_types::{
@@ -919,7 +1059,7 @@ mod tests {
             .unwrap();
 
         println!("Create connection");
-        let to_server = sockets
+        let mut to_server = sockets
             .connect_by_ip_address(bound_ip, debug_config)
             .unwrap();
 
@@ -945,10 +1085,58 @@ mod tests {
         }
 
         let event = socket.try_receive_event().unwrap();
-        let to_client = match event {
+        let mut to_client = match event {
             ListenSocketEvent::Connected(connected) => connected.take_connection(),
             _ => panic!("unexpected event"),
         };
+
+        println!("Configure connection lanes");
+        let mut lane_priorities = vec![0; 2];
+        let mut lane_weights = vec![0; 2];
+        lane_priorities[0] = 1;
+        lane_weights[0] = 1;
+        lane_priorities[1] = 1;
+        lane_weights[1] = 3;
+
+        let result =
+            sockets.configure_connection_lanes(&to_server, 2, &lane_priorities, &lane_weights);
+        assert!(result.is_ok());
+
+        println!("Get connection info remote client");
+        let info = sockets.get_connection_info(&to_client).unwrap();
+        match info.state() {
+            Ok(state) => assert_eq!(state, NetworkingConnectionState::Connected),
+            _ => panic!("unexpected state"),
+        }
+
+        println!("Get connection info server");
+        let info = sockets.get_connection_info(&to_server).unwrap();
+        match info.state() {
+            Ok(state) => assert_eq!(state, NetworkingConnectionState::Connected),
+            _ => panic!("unexpected state"),
+        }
+
+        println!("Get quick connection info remote client");
+        let (info, lanes) = sockets
+            .get_realtime_connection_status(&to_client, 0)
+            .unwrap();
+        if let Ok(net_connection) = info.connection_state() {
+            assert_eq!(net_connection, NetworkingConnectionState::Connected);
+            assert_eq!(lanes.len(), 0);
+        } else {
+            panic!("unexpected state");
+        }
+
+        println!("Get quick connection info server");
+        let (info, lanes) = sockets
+            .get_realtime_connection_status(&to_server, 2)
+            .unwrap();
+        if let Ok(net_connection) = info.connection_state() {
+            assert_eq!(net_connection, NetworkingConnectionState::Connected);
+            assert_eq!(lanes.len(), 2);
+        } else {
+            panic!("unexpected state");
+        }
 
         println!("Send message to server");
         to_server
@@ -958,7 +1146,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(100));
 
         println!("Receive message");
-        let messages = to_client.receive_messages(10);
+        let messages = to_client.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[1, 1, 2, 5]);
 
@@ -970,7 +1158,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(100));
 
         println!("Receive message");
-        let messages = to_server.receive_messages(10);
+        let messages = to_server.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[3, 3, 3, 1]);
 
@@ -985,7 +1173,7 @@ mod tests {
         std::thread::sleep(::std::time::Duration::from_millis(1000));
 
         println!("Receive message");
-        let messages = to_server.receive_messages(10);
+        let messages = to_server.receive_messages(10).unwrap();
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].data(), &[1, 2, 34, 5]);
     }

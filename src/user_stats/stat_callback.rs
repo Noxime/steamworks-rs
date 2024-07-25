@@ -14,7 +14,7 @@ use super::*;
 ///     }
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserStatsReceived {
     pub steam_id: SteamId,
     pub game_id: GameId,
@@ -51,7 +51,7 @@ unsafe impl Callback for UserStatsReceived {
 ///     }
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserStatsStored {
     pub game_id: GameId,
     pub result: Result<(), SteamError>,
@@ -86,7 +86,7 @@ unsafe impl Callback for UserStatsStored {
 ///     // ...
 /// });
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserAchievementStored {
     pub game_id: GameId,
     pub achievement_name: String,
@@ -108,6 +108,40 @@ unsafe impl Callback for UserAchievementStored {
             achievement_name: name.into_string().unwrap(),
             current_progress: val.m_nCurProgress,
             max_progress: val.m_nMaxProgress,
+        }
+    }
+}
+
+/// Result of a request to retrieve the achievement icon if the icon was not available at the time of the function call.
+/// # Example
+///
+/// ```no_run
+/// # use steamworks::*;
+/// # let (client, single) = steamworks::Client::init().unwrap();
+/// let callback_handle = client.register_callback(|val: UserAchievementIconFetched| {
+///     // ...
+/// });
+/// ```
+#[derive(Clone, Debug)]
+pub struct UserAchievementIconFetched {
+    pub game_id: GameId,
+    pub achievement_name: String,
+    pub achieved: bool,
+    pub icon_handle: i32,
+}
+
+unsafe impl Callback for UserAchievementIconFetched {
+    const ID: i32 = CALLBACK_BASE_ID + 9;
+    const SIZE: i32 = std::mem::size_of::<sys::UserAchievementStored_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::UserAchievementIconFetched_t);
+        let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
+        Self {
+            game_id: GameId(val.m_nGameID.__bindgen_anon_1.m_ulGameID),
+            achievement_name: name.into_string().unwrap(),
+            achieved: val.m_bAchieved,
+            icon_handle: val.m_nIconHandle,
         }
     }
 }

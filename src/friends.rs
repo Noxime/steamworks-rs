@@ -46,6 +46,36 @@ bitflags! {
     }
 }
 
+bitflags! {
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[repr(C)]
+    /// see [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#EUserRestriction)
+    pub struct UserRestriction: u32 {
+        /// No known chat/content restriction.
+        const NONE                  = 0x0000;
+        /// We don't know yet, the user is offline.
+        const UNKNOWN               = 0x0001;
+        /// User is not allowed to (or can't) send/recv any chat.
+        const ANY_CHAT              = 0x0002;
+        /// User is not allowed to (or can't) send/recv voice chat.
+        const VOICE_CHAT            = 0x0004;
+        /// User is not allowed to (or can't) send/recv group chat.
+        const GROUP_CHAT            = 0x0008;
+        /// User is too young according to rating in current region.
+        const RESTRICTION_RATING    = 0x0010;
+        /// User cannot send or recv game invites, for example if they are on mobile.
+        const GAME_INVITES          = 0x0020;
+        /// User cannot participate in trading, for example if they are on a console or mobile.
+        const TRADING               = 0x0040;
+    }
+}
+
+pub enum OverlayToStoreFlag {
+    None = 0,
+    AddToCart = 1,
+    AddToCartAndShow = 2,
+}
+
 /// Access to the steam friends interface
 pub struct Friends<Manager> {
     pub(crate) friends: *mut sys::ISteamFriends,
@@ -75,13 +105,27 @@ impl<Manager> Friends<Manager> {
                     idx,
                     flags.bits() as _,
                 ));
-                friends.push(Friend {
-                    id: friend,
-                    friends: self.friends,
-                    _inner: self.inner.clone(),
-                });
+                friends.push(self.get_friend(friend));
             }
 
+            friends
+        }
+    }
+    /// Returns recently played with players list
+    pub fn get_coplay_friends(&self) -> Vec<Friend<Manager>> {
+        unsafe {
+            let count = sys::SteamAPI_ISteamFriends_GetCoplayFriendCount(self.friends);
+            if count == -1 {
+                return Vec::new();
+            }
+            let mut friends = Vec::with_capacity(count as usize);
+            for idx in 0..count {
+                let friend = SteamId(sys::SteamAPI_ISteamFriends_GetCoplayFriend(
+                    self.friends,
+                    idx,
+                ));
+                friends.push(self.get_friend(friend));
+            }
             friends
         }
     }
@@ -110,7 +154,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    // I don't know why this is part of friends either
+    // I don't know why these are part of friends either
     pub fn activate_game_overlay_to_web_page(&self, url: &str) {
         unsafe {
             let url = CString::new(url).unwrap();
@@ -118,6 +162,40 @@ impl<Manager> Friends<Manager> {
                 self.friends,
                 url.as_ptr() as *const _,
                 sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default,
+            );
+        }
+    }
+
+    pub fn activate_game_overlay_to_store(
+        &self,
+        app_id: AppId,
+        overlay_to_store_flag: OverlayToStoreFlag,
+    ) {
+        unsafe {
+            let overlay_to_store_flag = match overlay_to_store_flag {
+                OverlayToStoreFlag::None => sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_None,
+                OverlayToStoreFlag::AddToCart => {
+                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCart
+                }
+                OverlayToStoreFlag::AddToCartAndShow => {
+                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCartAndShow
+                }
+            };
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayToStore(
+                self.friends,
+                app_id.0,
+                overlay_to_store_flag,
+            );
+        }
+    }
+
+    pub fn activate_game_overlay_to_user(&self, dialog: &str, user: SteamId) {
+        let dialog = CString::new(dialog).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
+                self.friends,
+                dialog.as_ptr() as *const _,
+                user.0,
             );
         }
     }
@@ -141,6 +219,24 @@ impl<Manager> Friends<Manager> {
                 key.as_ptr() as *const _,
                 value.as_ptr() as *const _,
             )
+        }
+    }
+    /// Clears all of the current user's Rich Presence key/values.
+    pub fn clear_rich_presence(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ClearRichPresence(self.friends);
+        }
+    }
+
+    /// Checks if current user is chat restricted.
+    ///
+    /// If they are restricted, then they can't send or receive any text/voice chat messages, can't see custom avatars.
+    /// A chat restricted user can't add friends or join any groups.
+    /// Restricted users can still be online and send/receive game invites.
+    pub fn get_user_restrictions(&self) -> UserRestriction {
+        unsafe {
+            let restrictions = sys::SteamAPI_ISteamFriends_GetUserRestrictions(self.friends);
+            UserRestriction::from_bits_truncate(restrictions)
         }
     }
 }
@@ -178,6 +274,24 @@ unsafe impl Callback for PersonaStateChange {
         PersonaStateChange {
             steam_id: SteamId(val.m_ulSteamID),
             flags: PersonaChange::from_bits_truncate(val.m_nChangeFlags as i32),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GameOverlayActivated {
+    pub active: bool,
+}
+
+unsafe impl Callback for GameOverlayActivated {
+    const ID: i32 = CALLBACK_BASE_ID + 31;
+    const SIZE: i32 = std::mem::size_of::<sys::GameOverlayActivated_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
+        Self {
+            active: val.m_bActive == 1,
         }
     }
 }
@@ -226,6 +340,22 @@ impl<Manager> Friend<Manager> {
             name.to_string_lossy().into_owned()
         }
     }
+    /// Gets the nickname that the current user has set for the specified user.
+    pub fn nick_name(&self) -> Option<String> {
+        unsafe {
+            let name = sys::SteamAPI_ISteamFriends_GetPlayerNickname(self.friends, self.id.0);
+            if name.is_null() {
+                return None;
+            }
+
+            let name = CStr::from_ptr(name);
+            if name.is_empty() {
+                None
+            } else {
+                Some(name.to_string_lossy().into_owned())
+            }
+        }
+    }
 
     pub fn state(&self) -> FriendState {
         unsafe {
@@ -259,6 +389,18 @@ impl<Manager> Friend<Manager> {
                 None
             }
         }
+    }
+    /// Gets the app ID of the game that user played with someone on their recently-played-with list.
+    pub fn coplay_game_played(&self) -> AppId {
+        unsafe {
+            let app_id = sys::SteamAPI_ISteamFriends_GetFriendCoplayGame(self.friends, self.id.0);
+            AppId(app_id)
+        }
+    }
+
+    /// Gets the timestamp of when the user played with someone on their recently-played-with list.
+    pub fn coplay_time(&self) -> i32 {
+        unsafe { sys::SteamAPI_ISteamFriends_GetFriendCoplayTime(self.friends, self.id.0) }
     }
 
     /// Returns a small (32x32) avatar for the user in RGBA format
@@ -328,6 +470,33 @@ impl<Manager> Friend<Manager> {
                 return None;
             }
             Some(dest)
+        }
+    }
+
+    /// Checks if the user meets the specified criteria. (Friends, blocked, users on the same server, etc)
+    pub fn has_friend(&self, flags: FriendFlags) -> bool {
+        unsafe { sys::SteamAPI_ISteamFriends_HasFriend(self.friends, self.id.0, flags.bits() as _) }
+    }
+
+    /// Invites a friend or clan member to the current game using a special invite string.
+    /// If the target user accepts the invite then the ConnectString gets added to the command-line when launching the game.
+    /// If the game is already running for that user, then they will receive a GameRichPresenceJoinRequested_t callback with the connect string.
+    pub fn invite_user_to_game(&self, connect_string: &str) {
+        unsafe {
+            let connect_string = CString::new(connect_string).unwrap();
+            sys::SteamAPI_ISteamFriends_InviteUserToGame(
+                self.friends,
+                self.id.0,
+                connect_string.as_ptr() as *const _,
+            );
+        }
+    }
+
+    /// Mark a target user as 'played with'.
+    /// NOTE: The current user must be in game with the other player for the association to work.
+    pub fn set_played_with(&self) {
+        unsafe {
+            sys::SteamAPI_ISteamFriends_SetPlayedWith(self.friends, self.id.0);
         }
     }
 }

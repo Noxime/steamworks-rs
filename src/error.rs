@@ -2,7 +2,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::sys;
-use std::convert::TryFrom;
+use std::{
+    convert::TryFrom,
+    ffi::{c_char, CStr},
+};
 
 /// Covers errors that can be returned by the steamworks API
 ///
@@ -733,3 +736,41 @@ impl TryFrom<i64> for SteamError {
 #[derive(Debug, Error)]
 #[error("error code could not be converted to rust enum")]
 pub struct InvalidErrorCode;
+
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum SteamAPIInitError {
+    #[error("Some other failure")]
+    FailedGeneric(String),
+
+    #[error("We cannot connect to Steam, steam probably isn't running")]
+    NoSteamClient(String),
+
+    #[error("Steam client appears to be out of date")]
+    VersionMismatch(String),
+}
+
+impl SteamAPIInitError {
+    pub fn from_result_and_message(
+        result: sys::ESteamAPIInitResult,
+        message: sys::SteamErrMsg,
+    ) -> Self {
+        let err_string = unsafe {
+            let cstr = CStr::from_ptr(message.as_ptr() as *const c_char);
+            cstr.to_string_lossy().to_owned().into_owned()
+        };
+
+        match result {
+            sys::ESteamAPIInitResult::k_ESteamAPIInitResult_FailedGeneric => {
+                SteamAPIInitError::FailedGeneric(err_string)
+            }
+            sys::ESteamAPIInitResult::k_ESteamAPIInitResult_NoSteamClient => {
+                SteamAPIInitError::NoSteamClient(err_string)
+            }
+            sys::ESteamAPIInitResult::k_ESteamAPIInitResult_VersionMismatch => {
+                SteamAPIInitError::VersionMismatch(err_string)
+            }
+            _ => unreachable!(),
+        }
+    }
+}

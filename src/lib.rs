@@ -5,14 +5,16 @@ extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
 
+use screenshots::Screenshots;
 #[cfg(feature = "raw-bindings")]
 pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
+use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
 use std::marker::PhantomData;
 use std::sync::mpsc::Sender;
@@ -52,6 +54,7 @@ pub mod networking_types;
 pub mod networking_utils;
 mod remote_play;
 mod remote_storage;
+pub mod screenshots;
 mod server;
 mod ugc;
 mod user;
@@ -59,6 +62,8 @@ mod user_stats;
 mod utils;
 
 pub type SResult<T> = Result<T, SteamError>;
+
+pub type SIResult<T> = Result<T, SteamAPIInitError>;
 
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
@@ -136,8 +141,16 @@ where
 }
 
 impl Client<ClientManager> {
-    /// Attempts to initialize the steamworks api and returns
-    /// a client to access the rest of the api.
+    /// Call to the native SteamAPI_Init function.
+    /// should not be used directly, but through either
+    /// init_flat() or init_flat_app()
+    unsafe fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
+        unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
+    }
+
+    /// Attempts to initialize the steamworks api without full API integration
+    /// through SteamAPI_InitFlat added in SDK 1.59
+    /// and returns a client to access the rest of the api.
     ///
     /// This should only ever have one instance per a program.
     ///
@@ -154,14 +167,18 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    pub fn init() -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
         static_assert_send::<Client<ClientManager>>();
         static_assert_sync::<Client<ClientManager>>();
         static_assert_send::<SingleClient<ClientManager>>();
         unsafe {
-            if !sys::SteamAPI_Init() {
-                return Err(SteamError::InitFailed);
+            let mut err_msg: sys::SteamErrMsg = [0; 1024];
+            let result = Self::steam_api_init_flat(&mut err_msg);
+
+            if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
+                return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
             }
+
             sys::SteamAPI_ManualDispatch_Init();
             let client = Arc::new(Inner {
                 _manager: ClientManager { _priv: () },
@@ -187,7 +204,8 @@ impl Client<ClientManager> {
         }
     }
 
-    /// Attempts to initialize the steamworks api **for a specified app ID**
+    /// Attempts to initialize the steamworks api with the APP_ID
+    /// without full API integration through SteamAPI_InitFlat
     /// and returns a client to access the rest of the api.
     ///
     /// This should only ever have one instance per a program.
@@ -201,7 +219,7 @@ impl Client<ClientManager> {
     /// * The app ID isn't completely set up.
     pub fn init_app<ID: Into<AppId>>(
         app_id: ID,
-    ) -> SResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
+    ) -> SIResult<(Client<ClientManager>, SingleClient<ClientManager>)> {
         let app_id = app_id.into().0.to_string();
         std::env::set_var("SteamAppId", &app_id);
         std::env::set_var("SteamGameId", app_id);
@@ -357,7 +375,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam user interface
     pub fn user(&self) -> User<Manager> {
         unsafe {
-            let user = sys::SteamAPI_SteamUser_v021();
+            let user = sys::SteamAPI_SteamUser_v023();
             debug_assert!(!user.is_null());
             User {
                 user,
@@ -381,7 +399,7 @@ impl<Manager> Client<Manager> {
     /// Returns an accessor to the steam remote play interface
     pub fn remote_play(&self) -> RemotePlay<Manager> {
         unsafe {
-            let rp = sys::SteamAPI_SteamRemotePlay_v001();
+            let rp = sys::SteamAPI_SteamRemotePlay_v002();
             debug_assert!(!rp.is_null());
             RemotePlay {
                 rp,
@@ -405,10 +423,22 @@ impl<Manager> Client<Manager> {
         }
     }
 
+    /// Returns an accessor to the steam screenshots interface
+    pub fn screenshots(&self) -> Screenshots<Manager> {
+        unsafe {
+            let screenshots = sys::SteamAPI_SteamScreenshots_v003();
+            debug_assert!(!screenshots.is_null());
+            Screenshots {
+                screenshots,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC<Manager> {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v016();
+            let ugc = sys::SteamAPI_SteamUGC_v020();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
