@@ -483,8 +483,8 @@ impl<Manager> MatchmakingServers<Manager> {
 
             let callbacks = create_serverlist(callbacks);
 
-            let arc = Arc::clone(&(*(*callbacks).rust_callbacks).req);
-            let mut req = arc.lock().unwrap();
+            let request_arc = ServerListRequest::get(callbacks);
+            let mut request = request_arc.lock().unwrap();
 
             let handle = sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
                 self.mms,
@@ -492,13 +492,13 @@ impl<Manager> MatchmakingServers<Manager> {
                 callbacks.cast(),
             );
 
-            req.mms = self.mms;
-            req.real = callbacks;
-            req.h_req = handle;
+            request.mms = self.mms;
+            request.real = callbacks;
+            request.h_req = handle;
 
-            drop(req);
+            drop(request);
 
-            arc
+            request_arc
         }
     }
 
