@@ -310,6 +310,8 @@ pub struct ServerListRequest {
     pub(self) real: *mut ServerListCallbacksReal,
 }
 
+unsafe impl Send for ServerListRequest {}
+
 impl ServerListRequest {
     pub(self) unsafe fn get(_self: *mut ServerListCallbacksReal) -> Arc<Mutex<Self>> {
         let rust_callbacks = &*(*_self).rust_callbacks;
