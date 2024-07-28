@@ -303,6 +303,17 @@ pub enum ServerResponse {
     NoServersListedOnMasterServer = 2,
 }
 
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ReleaseError {
+    /// Further using methods on this request after `release`
+    /// called will always result in `Err(ReleseError::Released)`.
+    Released,
+    /// Due to wrapper limitations releasing request while query
+    /// is still refreshing (`is_refreshing()`) is impossible.
+    /// `Err(ReleaseError::Refreshing)` will be returned.
+    Refreshing,
+}
+
 pub struct ServerListRequest {
     pub(self) h_req: sys::HServerListRequest,
     pub(self) released: bool,
@@ -326,17 +337,26 @@ impl ServerListRequest {
     /// callback will not be posted when request is released.
     ///
     /// Further using methods on this request after `release`
-    /// called will always result in `None`
-    pub fn release(&mut self) {
+    /// called will always result in `Err(ReleseError::Released)`.
+    ///
+    /// Due to wrapper limitations releasing request while query
+    /// is still refreshing (`is_refreshing()`) is impossible.
+    /// `Err(ReleaseError::Refreshing)` will be returned.
+    pub fn release(&mut self) -> Result<(), ReleaseError> {
         unsafe {
             if self.released {
-                return;
+                return Err(ReleaseError::Released);
+            }
+            if sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(self.mms, self.h_req) {
+                return Err(ReleaseError::Refreshing);
             }
 
             self.released = true;
             sys::SteamAPI_ISteamMatchmakingServers_ReleaseRequest(self.mms, self.h_req);
 
             free_serverlist(self.real);
+
+            Ok(())
         }
     }
 
