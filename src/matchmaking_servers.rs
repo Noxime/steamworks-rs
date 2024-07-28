@@ -104,13 +104,13 @@ macro_rules! gen_server_list_fn {
         ///
         /// # Errors
         ///
-        /// Every filter's key and value must take 255 bytes or under, otherwise `None` is returned.
+        /// Every filter's key and value must take 255 bytes or under, otherwise `Err` is returned.
         pub fn $name<ID: Into<AppId>>(
             &self,
             app_id: ID,
             filters: &HashMap<&str, &str>,
             callbacks: ServerListCallbacks,
-        ) -> Option<Arc<Mutex<ServerListRequest>>> {
+        ) -> Result<Arc<Mutex<ServerListRequest>>, ()> {
             let app_id = app_id.into().0;
             let mut filters = {
                 let mut vec = Vec::with_capacity(filters.len());
@@ -120,7 +120,7 @@ macro_rules! gen_server_list_fn {
 
                     // Max length is 255, so 256th byte will always be nul-terminator
                     if key_bytes.len() >= 256 || value_bytes.len() >= 256 {
-                        return None;
+                        return Err(());
                     }
 
                     let mut key = [0i8; 256];
@@ -164,7 +164,7 @@ macro_rules! gen_server_list_fn {
 
                 drop(request);
 
-                Some(request_arc)
+                Ok(request_arc)
             }
         }
     };
@@ -360,22 +360,22 @@ impl ServerListRequest {
         }
     }
 
-    fn released(&self) -> Option<()> {
+    fn released(&self) -> Result<(), ()> {
         if self.released {
-            None
+            Err(())
         } else {
-            Some(())
+            Ok(())
         }
     }
 
     /// # Errors
     ///
-    /// None if called on the released request
-    pub fn get_server_count(&self) -> Option<i32> {
+    /// Err if called on the released request
+    pub fn get_server_count(&self) -> Result<i32, ()> {
         unsafe {
             self.released()?;
 
-            Some(sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
+            Ok(sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
                 self.mms, self.h_req,
             ))
         }
@@ -383,8 +383,8 @@ impl ServerListRequest {
 
     /// # Errors
     ///
-    /// None if called on the released request
-    pub fn get_server_details(&self, server: i32) -> Option<GameServerItem> {
+    /// Err if called on the released request
+    pub fn get_server_details(&self, server: i32) -> Result<GameServerItem, ()> {
         unsafe {
             self.released()?;
 
@@ -393,44 +393,44 @@ impl ServerListRequest {
                 self.mms, self.h_req, server,
             );
 
-            Some(GameServerItem::from_ptr(server_item))
+            Ok(GameServerItem::from_ptr(server_item))
         }
     }
 
     /// # Errors
     ///
-    /// None if called on the released request
-    pub fn refresh_query(&self) -> Option<()> {
+    /// Err if called on the released request
+    pub fn refresh_query(&self) -> Result<(), ()> {
         unsafe {
             self.released()?;
 
             sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(self.mms, self.h_req);
 
-            Some(())
+            Ok(())
         }
     }
 
     /// # Errors
     ///
-    /// None if called on the released request
-    pub fn refresh_server(&self, server: i32) -> Option<()> {
+    /// Err if called on the released request
+    pub fn refresh_server(&self, server: i32) -> Result<(), ()> {
         unsafe {
             self.released()?;
 
             sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(self.mms, self.h_req, server);
 
-            Some(())
+            Ok(())
         }
     }
 
     /// # Errors
     ///
-    /// None if called on the released request
-    pub fn is_refreshing(&self) -> Option<bool> {
+    /// Err if called on the released request
+    pub fn is_refreshing(&self) -> Result<bool, ()> {
         unsafe {
             self.released()?;
 
-            Some(sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
+            Ok(sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
                 self.mms, self.h_req,
             ))
         }
@@ -559,7 +559,7 @@ fn test_internet_servers() {
             *data2.lock().unwrap() += 1;
         }),
         Box::new(move |list, _response| {
-            list.lock().unwrap().release();
+            list.lock().unwrap().release().unwrap();
             println!("{}", data3.lock().unwrap());
         }),
     );
