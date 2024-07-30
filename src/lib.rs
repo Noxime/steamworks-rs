@@ -29,6 +29,7 @@ pub use crate::error::*;
 pub use crate::friends::*;
 pub use crate::input::*;
 pub use crate::matchmaking::*;
+pub use crate::matchmaking_servers::*;
 pub use crate::networking::*;
 pub use crate::remote_play::*;
 pub use crate::remote_storage::*;
@@ -44,6 +45,7 @@ mod error;
 mod friends;
 mod input;
 mod matchmaking;
+mod matchmaking_servers;
 mod networking;
 pub mod networking_messages;
 pub mod networking_sockets;
@@ -306,6 +308,18 @@ impl<Manager> Client<Manager> {
             Matchmaking {
                 mm: mm,
                 inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam matchmaking_servers interface
+    pub fn matchmaking_servers(&self) -> MatchmakingServers<Manager> {
+        unsafe {
+            let mm = sys::SteamAPI_SteamMatchmakingServers_v002();
+            debug_assert!(!mm.is_null());
+            MatchmakingServers {
+                mms: mm,
+                _inner: self.inner.clone(),
             }
         }
     }
