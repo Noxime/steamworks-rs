@@ -311,6 +311,40 @@ impl<Manager> Matchmaking<Manager> {
             false => Err(SteamError::IOFailure),
         }
     }
+
+    /// Gets the data from a lobby chat message after receiving a `LobbyChatMsg_t` callback.
+    ///
+    /// # Parameters
+    /// - `lobby`: The Steam ID of the lobby to get the chat message from.
+    /// - `chat_id`: The index of the chat entry in the lobby.
+    /// - `buffer`: Buffer to save retrieved message data to. The buffer should be no
+    /// more than 4 Kilobytes.
+    ///
+    /// # Returns
+    /// Returns `&[u8]` A resliced byte array of the message buffer
+    pub fn get_lobby_chat_entry<'a>(
+        &self,
+        lobby: LobbyId,
+        chat_id: i32,
+        buffer: &'a mut [u8],
+    ) -> &'a [u8] {
+        let mut steam_user = sys::CSteamID {
+            m_steamid: sys::CSteamID_SteamID_t { m_unAll64Bits: 0 },
+        };
+        let mut chat_type = steamworks_sys::EChatEntryType::k_EChatEntryTypeInvalid;
+        unsafe {
+            let len = sys::SteamAPI_ISteamMatchmaking_GetLobbyChatEntry(
+                self.mm,
+                lobby.0,
+                chat_id,
+                &mut steam_user,
+                buffer.as_mut_ptr() as *mut _,
+                buffer.len() as _,
+                &mut chat_type,
+            );
+            return &buffer[0..len as usize];
+        }
+    }
     /// Adds a string comparison filter to the lobby list request.
     ///
     /// This method adds a filter that compares a specific string attribute in lobbies
@@ -815,6 +849,57 @@ pub enum ChatMemberStateChange {
     Banned,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum ChatEntryType {
+    Invalid,
+    ChatMsg,
+    Typing,
+    InviteGame,
+    Emote,
+    LeftConversation,
+    Entered,
+    WasKicked,
+    WasBanned,
+    Disconnected,
+    HistoricalChat,
+    LinkBlocked,
+}
+
+impl From<u8> for ChatEntryType {
+    fn from(value: u8) -> Self {
+        match value {
+            x if x == sys::EChatEntryType::k_EChatEntryTypeInvalid as u8 => ChatEntryType::Invalid,
+            x if x == sys::EChatEntryType::k_EChatEntryTypeChatMsg as u8 => ChatEntryType::ChatMsg,
+            x if x == sys::EChatEntryType::k_EChatEntryTypeTyping as u8 => ChatEntryType::Typing,
+            x if x == sys::EChatEntryType::k_EChatEntryTypeInviteGame as u8 => {
+                ChatEntryType::InviteGame
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeEmote as u8 => ChatEntryType::Emote,
+            x if x == sys::EChatEntryType::k_EChatEntryTypeLeftConversation as u8 => {
+                ChatEntryType::LeftConversation
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeEntered as u8 => ChatEntryType::Entered,
+            x if x == sys::EChatEntryType::k_EChatEntryTypeWasKicked as u8 => {
+                ChatEntryType::WasKicked
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeWasBanned as u8 => {
+                ChatEntryType::WasBanned
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeDisconnected as u8 => {
+                ChatEntryType::Disconnected
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeHistoricalChat as u8 => {
+                ChatEntryType::HistoricalChat
+            }
+            x if x == sys::EChatEntryType::k_EChatEntryTypeLinkBlocked as u8 => {
+                ChatEntryType::LinkBlocked
+            }
+            _ => ChatEntryType::Invalid,
+        }
+    }
+}
+
 /// A lobby chat room state has changed, this is usually sent when a user has joined or left the lobby.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -884,6 +969,31 @@ unsafe impl Callback for LobbyDataUpdate {
             lobby: LobbyId(val.m_ulSteamIDLobby),
             member: SteamId(val.m_ulSteamIDMember),
             success: val.m_bSuccess != 0,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyChatMsg {
+    pub lobby: LobbyId,
+    pub user: SteamId,
+    pub chat_entry_type: ChatEntryType,
+    pub chat_id: i32,
+}
+
+unsafe impl Callback for LobbyChatMsg {
+    const ID: i32 = 507;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatMsg_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+
+        LobbyChatMsg {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            user: SteamId(val.m_ulSteamIDUser),
+            chat_entry_type: val.m_eChatEntryType.into(),
+            chat_id: val.m_iChatID as i32,
         }
     }
 }

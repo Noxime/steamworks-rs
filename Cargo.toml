@@ -20,7 +20,8 @@ image = ["dep:image"]
 members = [
     "./steamworks-sys",
     "examples/chat-example",
-    "examples/workshop"
+    "examples/workshop",
+    "examples/lobby",
 ]
 
 [dependencies]
