@@ -200,8 +200,9 @@ mod tests {
 
     #[test]
     fn test_get_networking_status() {
-        let (client, single) = Client::init().unwrap();
-        std::thread::spawn(move || single.run_callbacks());
+        let client = Client::init().unwrap();
+        let callback_client = client.clone();
+        std::thread::spawn(move || callback_client.run_callbacks());
 
         let utils = client.networking_utils();
         let status = utils.detailed_relay_network_status();

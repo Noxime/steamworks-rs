@@ -572,7 +572,7 @@ impl Leaderboard {
 #[ignore]
 #[serial]
 fn test() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
 
     let stats = client.user_stats();
 
@@ -612,7 +612,7 @@ fn test() {
     );
 
     for _ in 0..50 {
-        single.run_callbacks();
+        client.run_callbacks();
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
     }
 }

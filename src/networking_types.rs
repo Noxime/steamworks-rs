@@ -2232,7 +2232,7 @@ mod tests {
 
     #[test]
     fn test_allocate_and_free_message() {
-        let (client, _single) = Client::init().unwrap();
+        let client = Client::init().unwrap();
         let utils = client.networking_utils();
 
         // With C buffer

@@ -160,7 +160,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     ///
     /// Use the [`SessionRequest`](../networking_messages/struct.SessionRequest.html) to accept or reject the connection.
     ///
-    /// Requires regularly calling [`SingleClient.run_callbacks()`](../struct.SingleClient.html#method.run_callbacks).
+    /// Requires regularly calling [`Client.run_callbacks()`](../struct.Client.html#method.run_callbacks).
     /// Calling this function more than once will replace the previous callback.
     ///
     /// # Example
@@ -203,7 +203,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
 
     /// Register a callback that will be called whenever a connection fails to be established.
     ///
-    /// Requires regularly calling [`SingleClient.run_callbacks()`](../struct.SingleClient.html#method.run_callbacks).
+    /// Requires regularly calling [`Client.run_callbacks()`](../struct.Client.html#method.run_callbacks).
     /// Calling this function more than once will replace the previous callback.
     pub fn session_failed_callback(
         &self,
