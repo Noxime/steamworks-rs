@@ -242,7 +242,7 @@ impl<Manager> SessionRequestBuilder<Manager> {
     }
 }
 
-struct NetworkingMessagesSessionRequest {
+pub struct NetworkingMessagesSessionRequest {
     remote: NetworkingIdentity,
 }
 
