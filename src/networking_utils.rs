@@ -177,7 +177,7 @@ impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
 }
 
 /// The relay network status callback.
-struct RelayNetworkStatusCallback {
+pub struct RelayNetworkStatusCallback {
     status: RelayNetworkStatus,
 }
 
