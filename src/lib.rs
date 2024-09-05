@@ -11,7 +11,6 @@ pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
-use timeline::Timeline;
 
 use core::ffi::c_void;
 use std::collections::HashMap;
