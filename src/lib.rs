@@ -33,6 +33,7 @@ pub use crate::networking::*;
 pub use crate::remote_play::*;
 pub use crate::remote_storage::*;
 pub use crate::server::*;
+pub use crate::timeline::*;
 pub use crate::ugc::*;
 pub use crate::user::*;
 pub use crate::user_stats::*;
@@ -55,6 +56,7 @@ mod remote_play;
 mod remote_storage;
 pub mod screenshots;
 mod server;
+pub mod timeline;
 mod ugc;
 mod user;
 mod user_stats;
@@ -422,6 +424,19 @@ where
             UGC {
                 ugc,
                 inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam timeline interface
+    pub fn timeline(&self) -> Timeline<Manager> {
+        unsafe {
+            let timeline = sys::SteamAPI_SteamTimeline_v001();
+
+            Timeline {
+                timeline,
+                disabled: timeline.is_null(),
+                _inner: self.inner.clone(),
             }
         }
     }
