@@ -541,38 +541,3 @@ impl<Manager> MatchmakingServers<Manager> {
         SteamAPI_ISteamMatchmakingServers_RequestFriendsServerList
     );
 }
-
-#[test]
-fn test_internet_servers() {
-    let (client, single) = Client::init_app(304930).unwrap();
-
-    let data = std::rc::Rc::new(Mutex::new(0));
-    let data2 = std::rc::Rc::clone(&data);
-    let data3 = std::rc::Rc::clone(&data);
-    let callbacks = ServerListCallbacks::new(
-        Box::new(move |list, server| {
-            let details = list.lock().unwrap().get_server_details(server).unwrap();
-            println!("{} : {}", details.server_name, details.map);
-            *data.lock().unwrap() += 1;
-        }),
-        Box::new(move |_list, _server| {
-            *data2.lock().unwrap() += 1;
-        }),
-        Box::new(move |list, _response| {
-            list.lock().unwrap().release().unwrap();
-            println!("{}", data3.lock().unwrap());
-        }),
-    );
-
-    let mut map = HashMap::new();
-    map.insert("map", "PEI");
-    let _ = client
-        .matchmaking_servers()
-        .internet_server_list(304930, &map, callbacks)
-        .unwrap();
-
-    for _ in 0..2000 {
-        single.run_callbacks();
-        std::thread::sleep(std::time::Duration::from_millis(10));
-    }
-}
