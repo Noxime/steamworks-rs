@@ -1,17 +1,36 @@
 use super::*;
 use std::sync::Arc;
+use crate::sys::EResult;
 
 pub struct Inventory<Manager> {
     pub(crate) inventory: *mut sys::ISteamInventory,
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
+#[derive(Clone, Debug)]
+pub struct SteamInventoryResultReady {
+    pub handle: sys::SteamInventoryResult_t,
+    pub result: EResult,
+}
+
+unsafe impl Callback for SteamInventoryResultReady {
+    const ID: i32 = sys::SteamInventoryResultReady_t_k_iCallback as i32;
+    const SIZE: i32 = std::mem::size_of::<sys::SteamInventoryResultReady_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::SteamInventoryResultReady_t);
+        Self {
+            handle: val.m_handle,
+            result: val.m_result,
+        }
+    }
+}
+
 impl<Manager> Inventory<Manager> {
     pub fn get_all_items(&self) -> Result<InventoryResult, InventoryError> {
         let mut result_handle = sys::k_SteamInventoryResultInvalid;
         unsafe {
-            let success = sys::SteamAPI_ISteamInventory_GetAllItems(self.inventory, &mut result_handle);
-            if success {
+            if sys::SteamAPI_ISteamInventory_GetAllItems(self.inventory, &mut result_handle) {
                 Ok(InventoryResult::new(result_handle))
             } else {
                 Err(InventoryError::OperationFailed)
@@ -22,25 +41,24 @@ impl<Manager> Inventory<Manager> {
     pub fn get_result_items(&self, result_handle: InventoryResult) -> Result<Vec<InventoryItem>, InventoryError> {
         let mut items_count = 0;
         unsafe {
-            let success = sys::SteamAPI_ISteamInventory_GetResultItems(
+            if !sys::SteamAPI_ISteamInventory_GetResultItems(
                 self.inventory,
                 result_handle.0,
                 std::ptr::null_mut(),
                 &mut items_count,
-            );
-            if !success {
+            ) {
                 return Err(InventoryError::GetResultItemsFailed);
             }
         }
+
         let mut items_array: Vec<sys::SteamItemDetails_t> = Vec::with_capacity(items_count as usize);
         unsafe {
-            let success = sys::SteamAPI_ISteamInventory_GetResultItems(
+            if sys::SteamAPI_ISteamInventory_GetResultItems(
                 self.inventory,
                 result_handle.0,
                 items_array.as_mut_ptr(),
                 &mut items_count,
-            );
-            if success {
+            ) {
                 items_array.set_len(items_count as usize);
                 let items = items_array.into_iter().map(|details| InventoryItem {
                     item_id: ItemInstanceId(details.m_itemId),
@@ -91,9 +109,7 @@ pub enum InventoryError {
 mod tests {
     use super::*;
     use serial_test::serial;
-    use std::time::{Duration, Instant};
-    use std::thread::sleep;
-    use crate::sys::EResult;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     #[serial]
@@ -106,51 +122,52 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_inventory_get_result_items() {
+    fn test_inventory_get_result_items_with_callback() {
         let client = Client::init().unwrap();
-        let inventory = client.inventory();
-        let result = inventory.get_all_items();
+        let inventory = Arc::new(Mutex::new(client.inventory()));
+        let result_handle = Arc::new(Mutex::new(None));
+
+        let result_handle_clone = Arc::clone(&result_handle);
+        let _cb = client.register_callback(move |val: SteamInventoryResultReady| {
+            if val.result == EResult::k_EResultOK {
+                let mut result_handle_lock = result_handle_clone.lock().unwrap();
+                *result_handle_lock = Some(InventoryResult(val.handle));
+            } else {
+                panic!("Inventory result failed: {:?}", val.result);
+            }
+        });
+
+        let result = inventory.lock().unwrap().get_all_items();
         assert!(result.is_ok(), "Failed to get all items");
 
-        let result_handle = result.unwrap();
-        if result_handle.0 == sys::k_SteamInventoryResultInvalid {
-            return;
-        }
+        for _ in 0..50 {
+            client.run_callbacks();
+            std::thread::sleep(std::time::Duration::from_millis(100));
 
-        let timeout_duration = Duration::from_secs(10);
-        let polling_interval = Duration::from_millis(500);
-        let start_time = Instant::now();
-        let mut result_status;
-        loop {
-            result_status = unsafe {
-                sys::SteamAPI_ISteamInventory_GetResultStatus(inventory.inventory, result_handle.0)
-            };
-            if result_status == EResult::k_EResultOK {
-                break;
-            } else if start_time.elapsed() > timeout_duration {
-                panic!("Failed to retrieve inventory result within the timeout period.");
-            }
-            sleep(polling_interval);
-        }
+            let result_handle_lock = result_handle.lock().unwrap();
+            if let Some(handle) = &*result_handle_lock {
+                let items = inventory.lock().unwrap().get_result_items(handle.clone());
+                assert!(items.is_ok(), "Failed to retrieve result items");
 
-        let items = inventory.get_result_items(result_handle);
-        assert!(items.is_ok(), "Failed to retrieve result items");
-
-        let items = items.unwrap();
-        println!("Total items count: {}", items.len());
-        if items.is_empty() {
-            println!("No items found in the inventory.");
-        } else {
-            for (index, item) in items.iter().enumerate() {
-                println!(
-                    "Item {} - ID: {}, Definition: {}, Quantity: {}, Flags: {}",
-                    index + 1,
-                    item.item_id.0,
-                    item.definition.0,
-                    item.quantity,
-                    item.flags
-                );
+                let items = items.unwrap();
+                println!("Total items count: {}", items.len());
+                if items.is_empty() {
+                    println!("No items found in the inventory.");
+                } else {
+                    for (index, item) in items.iter().enumerate() {
+                        println!(
+                            "Item {} - ID: {}, Definition: {}, Quantity: {}, Flags: {}",
+                            index + 1,
+                            item.item_id.0,
+                            item.definition.0,
+                            item.quantity,
+                            item.flags
+                        );
+                    }
+                }
+                return;
             }
         }
+        panic!("Timed out waiting for inventory result");
     }
 }
