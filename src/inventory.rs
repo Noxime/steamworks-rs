@@ -81,6 +81,10 @@ impl InventoryResult {
     pub fn new(result_handle: sys::SteamInventoryResult_t) -> Self {
         InventoryResult(result_handle)
     }
+
+    pub fn handle(&self) -> i32 {
+        self.0
+    }
 }
 
 #[derive(Clone, Debug)]
