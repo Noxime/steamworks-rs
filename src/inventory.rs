@@ -31,6 +31,25 @@ unsafe impl Callback for SteamInventoryResultReady {
     }
 }
 
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SteamInventoryFullUpdate {
+    pub handle: sys::SteamInventoryResult_t,
+}
+
+unsafe impl Callback for SteamInventoryFullUpdate {
+    const ID: i32 = sys::SteamInventoryFullUpdate_t_k_iCallback as i32;
+    const SIZE: i32 = std::mem::size_of::<sys::SteamInventoryFullUpdate_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let status = &*(raw as *mut sys::SteamInventoryFullUpdate_t);
+
+        Self {
+            handle: status.m_handle,
+        }
+    }
+}
+
 impl<Manager> Inventory<Manager> {
     pub fn get_all_items(&self) -> Result<InventoryResult, InventoryError> {
         let mut result_handle = sys::k_SteamInventoryResultInvalid;
@@ -181,5 +200,52 @@ mod tests {
             }
         }
         panic!("Timed out waiting for inventory result");
+    }
+
+    #[test]
+    #[serial]
+    fn test_inventory_full_update() {
+        let client = Client::init().unwrap();
+        let inventory = Arc::new(Mutex::new(client.inventory()));
+        let result_handle = Arc::new(Mutex::new(None));
+
+        let result_handle_clone = Arc::clone(&result_handle);
+        let _cb = client.register_callback(move |val: SteamInventoryFullUpdate| {
+            let mut result_handle_lock = result_handle_clone.lock().unwrap();
+            *result_handle_lock = Some(InventoryResult(val.handle));
+        });
+
+        let result = inventory.lock().unwrap().get_all_items();
+        println!("{:?}", result);
+        assert!(result.is_ok(), "Failed to get all items");
+        for _ in 0..50 {
+            client.run_callbacks();
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            let result_handle_lock = result_handle.lock().unwrap();
+            if let Some(handle) = &*result_handle_lock {
+                let items = inventory.lock().unwrap().get_result_items(handle.clone());
+                assert!(items.is_ok(), "Failed to retrieve result items");
+
+                let items = items.unwrap();
+                println!("Total items count after full update: {}", items.len());
+                if items.is_empty() {
+                    println!("No items found in the inventory.");
+                } else {
+                    for (index, item) in items.iter().enumerate() {
+                        println!(
+                            "Item {} - ID: {}, Definition: {}, Quantity: {}, Flags: {}",
+                            index + 1,
+                            item.item_id.0,
+                            item.definition.0,
+                            item.quantity,
+                            item.flags
+                        );
+                    }
+                }
+                return;
+            }
+        }
+        panic!("Timed out waiting for full inventory update");
     }
 }
