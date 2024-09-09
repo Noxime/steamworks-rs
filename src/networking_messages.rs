@@ -292,9 +292,9 @@ impl<Manager> SessionRequest<Manager> {
     }
 
     /// Accept the connection.
-    pub fn accept(self) {
+    pub fn accept(self) -> bool {
         unsafe {
-            sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
+            return sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
                 self.messages,
                 self.remote.as_ptr(),
             );
