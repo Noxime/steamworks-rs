@@ -65,7 +65,7 @@ impl<Manager> Inventory<Manager> {
     }
 
     /// Retrieves the detailed list of items from the inventory given a result handle.
-    pub fn get_result_items(&self, result_handle: sys::SteamInventoryResult_t) -> Result<Vec<InventoryItem>, InventoryError> {
+    pub fn get_result_items(&self, result_handle: sys::SteamInventoryResult_t) -> Result<Vec<SteamItemDetails>, InventoryError> {
         let mut items_count = 0;
         unsafe {
             if !sys::SteamAPI_ISteamInventory_GetResultItems(
@@ -85,9 +85,9 @@ impl<Manager> Inventory<Manager> {
                 &mut items_count,
             ) {
                 items_array.set_len(items_count as usize);
-                let items = items_array.into_iter().map(|details| InventoryItem {
-                    item_id: ItemInstanceId(details.m_itemId),
-                    definition: ItemDefId(details.m_iDefinition),
+                let items = items_array.into_iter().map(|details| SteamItemDetails {
+                    item_id: SteamItemInstanceID(details.m_itemId),
+                    definition: SteamItemDef(details.m_iDefinition),
                     quantity: details.m_unQuantity,
                     flags: details.m_unFlags,
                 }).collect();
@@ -112,20 +112,20 @@ impl<Manager> Inventory<Manager> {
 
 /// Represents an individual inventory item with its unique details.
 #[derive(Clone, Debug)]
-pub struct InventoryItem {
-    pub item_id: ItemInstanceId,
-    pub definition: ItemDefId,
+pub struct SteamItemDetails {
+    pub item_id: SteamItemInstanceID,
+    pub definition: SteamItemDef,
     pub quantity: u16,
     pub flags: u16,
 }
 
 /// Represents a unique identifier for an inventory item instance.
 #[derive(Clone, Debug)]
-pub struct ItemInstanceId(pub u64);
+pub struct SteamItemInstanceID(pub u64);
 
 /// Represents a unique identifier for an item definition.
 #[derive(Clone, Debug)]
-pub struct ItemDefId(pub i32);
+pub struct SteamItemDef(pub i32);
 
 /// Enumerates possible errors that can occur during inventory operations.
 #[derive(Debug, Error)]
