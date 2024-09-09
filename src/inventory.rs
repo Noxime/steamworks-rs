@@ -1,6 +1,6 @@
 use super::*;
 use std::sync::Arc;
-use crate::sys::EResult;
+use crate::sys;
 
 pub struct Inventory<Manager> {
     pub(crate) inventory: *mut sys::ISteamInventory,
@@ -11,7 +11,7 @@ pub struct Inventory<Manager> {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamInventoryResultReady {
     pub handle: sys::SteamInventoryResult_t,
-    pub result: EResult,
+    pub result: Result<(), SteamError>,
 }
 
 unsafe impl Callback for SteamInventoryResultReady {
@@ -19,10 +19,14 @@ unsafe impl Callback for SteamInventoryResultReady {
     const SIZE: i32 = std::mem::size_of::<sys::SteamInventoryResultReady_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamInventoryResultReady_t);
+        let status = &*(raw as *mut sys::SteamInventoryResultReady_t);
+
         Self {
-            handle: val.m_handle,
-            result: val.m_result,
+            handle: status.m_handle,
+            result: match status.m_result {
+                sys::EResult::k_EResultOK => Ok(()),
+                _ => Err(SteamError::from(status.m_result)),
+            },
         }
     }
 }
@@ -134,11 +138,14 @@ mod tests {
 
         let result_handle_clone = Arc::clone(&result_handle);
         let _cb = client.register_callback(move |val: SteamInventoryResultReady| {
-            if val.result == EResult::k_EResultOK {
-                let mut result_handle_lock = result_handle_clone.lock().unwrap();
-                *result_handle_lock = Some(InventoryResult(val.handle));
-            } else {
-                panic!("Inventory result failed: {:?}", val.result);
+            match val.result {
+                Ok(()) => {
+                    let mut result_handle_lock = result_handle_clone.lock().unwrap();
+                    *result_handle_lock = Some(InventoryResult(val.handle));
+                },
+                Err(e) => {
+                    panic!("Inventory result failed: {:?}", e);
+                },
             }
         });
 
