@@ -91,7 +91,6 @@ impl<Manager> Inventory<Manager> {
                     quantity: details.m_unQuantity,
                     flags: details.m_unFlags,
                 }).collect();
-                self.destroy_result(result_handle);
                 Ok(items)
             } else {
                 Err(InventoryError::GetResultItemsFailed)
@@ -150,9 +149,12 @@ mod tests {
 
         client.register_callback(move |val: SteamInventoryResultReady| {
             assert!(val.result.is_ok(), "SteamInventoryResultReady Failed.");
-            let result_items = Client::init().unwrap().inventory().get_result_items(val.handle);
+            let inventory = Client::init().unwrap().inventory();
+            let result_items = inventory.get_result_items(val.handle);
             assert!(result_items.is_ok(), "Failed to get result items: {:?}", result_items.err().unwrap());
             println!("Result items: {:?}", result_items.unwrap());
+
+            inventory.destroy_result(val.handle);
 
             let mut processed = processed_clone.lock().unwrap();
             *processed = true;
