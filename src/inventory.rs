@@ -50,6 +50,32 @@ unsafe impl Callback for SteamInventoryFullUpdate {
     }
 }
 
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SteamInventoryStartPurchaseResult {
+    pub result: Result<(), SteamError>,
+    pub order_id: u64,
+    pub trans_id: u64,
+}
+
+unsafe impl Callback for SteamInventoryStartPurchaseResult {
+    const ID: i32 = sys::SteamInventoryStartPurchaseResult_t_k_iCallback as i32;
+    const SIZE: i32 = std::mem::size_of::<sys::SteamInventoryStartPurchaseResult_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let status = &*(raw as *mut sys::SteamInventoryStartPurchaseResult_t);
+
+        Self {
+            result: match status.m_result {
+                sys::EResult::k_EResultOK => Ok(()),
+                _ => Err(SteamError::from(status.m_result)),
+            },
+            order_id: status.m_ulOrderID,
+            trans_id: status.m_ulTransID,
+        }
+    }
+}
+
 impl<Manager> Inventory<Manager> {
     pub fn get_all_items(&self) -> Result<InventoryResult, InventoryError> {
         let mut result_handle = sys::k_SteamInventoryResultInvalid;
@@ -96,6 +122,32 @@ impl<Manager> Inventory<Manager> {
             }
         }
     }
+
+    pub fn start_purchase(
+        &self,
+        item_defs: &[ItemDefId],
+        quantities: &[u32],
+    ) -> Result<sys::SteamAPICall_t, InventoryError> {
+        if item_defs.len() != quantities.len() {
+            return Err(InventoryError::InvalidInput);
+        }
+
+        let item_def_ids: Vec<sys::SteamItemDef_t> = item_defs.iter().map(|id| id.0).collect();
+        let result = unsafe {
+            sys::SteamAPI_ISteamInventory_StartPurchase(
+                self.inventory,
+                item_def_ids.as_ptr(),
+                quantities.as_ptr(),
+                item_defs.len() as u32,
+            )
+        };
+
+        if result == sys::k_uAPICallInvalid {
+            Err(InventoryError::OperationFailed)
+        } else {
+            Ok(result)
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -131,6 +183,8 @@ pub enum InventoryError {
     OperationFailed,
     #[error("Failed to retrieve result items")]
     GetResultItemsFailed,
+    #[error("Invalid input")]
+    InvalidInput,
 }
 
 #[cfg(test)]
@@ -248,4 +302,51 @@ mod tests {
         }
         panic!("Timed out waiting for full inventory update");
     }
+
+    #[test]
+    #[serial]
+    fn test_inventory_start_purchase_with_callback() {
+        let client = Client::init().unwrap();
+        let inventory = Arc::new(Mutex::new(client.inventory()));
+        let purchase_result = Arc::new(Mutex::new(None));
+
+        let purchase_result_clone = Arc::clone(&purchase_result);
+        let _cb = client.register_callback(move |val: SteamInventoryStartPurchaseResult| {
+            let mut purchase_result_lock = purchase_result_clone.lock().unwrap();
+            *purchase_result_lock = Some(val);
+        });
+
+        // Example item definition IDs and quantities
+        let item_defs = vec![ItemDefId(634)];  // Replace with valid item definition IDs
+        let quantities = vec![1];  // Replace with desired quantities
+
+        let result = inventory.lock().unwrap().start_purchase(&item_defs, &quantities);
+        assert!(result.is_ok(), "Failed to start purchase");
+        let api_call = result.unwrap();
+        println!("SteamAPICall_t for purchase: {}", api_call);
+
+        // Wait for the callback to be received
+        for _ in 0..50 {
+            client.run_callbacks();
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            let purchase_result_lock = purchase_result.lock().unwrap();
+            if let Some(purchase) = &*purchase_result_lock {
+                match &purchase.result {
+                    Ok(()) => {
+                        println!(
+                            "Purchase successful! Order ID: {}, Transaction ID: {}",
+                            purchase.order_id, purchase.trans_id
+                        );
+                    }
+                    Err(e) => {
+                        println!("Purchase failed: {:?}", e);
+                    }
+                }
+                return;
+            }
+        }
+        panic!("Timed out waiting for purchase result");
+    }
+
 }
