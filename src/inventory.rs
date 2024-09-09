@@ -123,17 +123,21 @@ impl<Manager> Inventory<Manager> {
         }
     }
 
-    pub fn start_purchase(
+    pub fn start_purchase<F>(
         &self,
         item_defs: &[ItemDefId],
         quantities: &[u32],
-    ) -> Result<sys::SteamAPICall_t, InventoryError> {
+        callback: F,
+    ) where
+        F: FnOnce(Result<SteamInventoryStartPurchaseResult, InventoryError>) + 'static + Send,
+    {
         if item_defs.len() != quantities.len() {
-            return Err(InventoryError::InvalidInput);
+            callback(Err(InventoryError::InvalidInput));
+            return;
         }
 
         let item_def_ids: Vec<sys::SteamItemDef_t> = item_defs.iter().map(|id| id.0).collect();
-        let result = unsafe {
+        let api_call = unsafe {
             sys::SteamAPI_ISteamInventory_StartPurchase(
                 self.inventory,
                 item_def_ids.as_ptr(),
@@ -142,10 +146,27 @@ impl<Manager> Inventory<Manager> {
             )
         };
 
-        if result == sys::k_uAPICallInvalid {
-            Err(InventoryError::OperationFailed)
+        if api_call == sys::k_uAPICallInvalid {
+            callback(Err(InventoryError::OperationFailed));
         } else {
-            Ok(result)
+            unsafe {
+                register_call_result::<sys::SteamInventoryStartPurchaseResult_t, _, _>(
+                    &self._inner,
+                    api_call,
+                    1,  // This should be defined according to your system
+                    move |result, io_error| {
+                        if io_error || result.m_result != sys::EResult::k_EResultOK {
+                            callback(Err(InventoryError::OperationFailed));
+                        } else {
+                            callback(Ok(SteamInventoryStartPurchaseResult {
+                                result: Ok(()),
+                                order_id: result.m_ulOrderID,
+                                trans_id: result.m_ulTransID,
+                            }));
+                        }
+                    },
+                );
+            }
         }
     }
 }
@@ -191,7 +212,7 @@ pub enum InventoryError {
 mod tests {
     use super::*;
     use serial_test::serial;
-    use std::sync::{Arc, Mutex};
+    use std::sync::{Arc, Condvar, Mutex};
 
     #[test]
     #[serial]
@@ -308,45 +329,41 @@ mod tests {
     fn test_inventory_start_purchase_with_callback() {
         let client = Client::init().unwrap();
         let inventory = Arc::new(Mutex::new(client.inventory()));
-        let purchase_result = Arc::new(Mutex::new(None));
 
-        let purchase_result_clone = Arc::clone(&purchase_result);
-        let _cb = client.register_callback(move |val: SteamInventoryStartPurchaseResult| {
-            let mut purchase_result_lock = purchase_result_clone.lock().unwrap();
-            *purchase_result_lock = Some(val);
-        });
+        // Use a condition variable to wait for the callback.
+        let cond_var = Arc::new((Mutex::new(None), Condvar::new()));
 
         // Example item definition IDs and quantities
         let item_defs = vec![ItemDefId(634)];  // Replace with valid item definition IDs
         let quantities = vec![1];  // Replace with desired quantities
 
-        let result = inventory.lock().unwrap().start_purchase(&item_defs, &quantities);
-        assert!(result.is_ok(), "Failed to start purchase");
-        let api_call = result.unwrap();
-        println!("SteamAPICall_t for purchase: {}", api_call);
+        {
+            let cond_var_clone = cond_var.clone();
+            inventory.lock().unwrap().start_purchase(&item_defs, &quantities, move |result| {
+                let (lock, cvar) = &*cond_var_clone;
+                let mut res = lock.lock().unwrap();
+                *res = Some(result);
+                cvar.notify_one();
+            });
+        }
 
         // Wait for the callback to be received
-        for _ in 0..50 {
-            client.run_callbacks();
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            let purchase_result_lock = purchase_result.lock().unwrap();
-            if let Some(purchase) = &*purchase_result_lock {
-                match &purchase.result {
-                    Ok(()) => {
-                        println!(
-                            "Purchase successful! Order ID: {}, Transaction ID: {}",
-                            purchase.order_id, purchase.trans_id
-                        );
-                    }
-                    Err(e) => {
-                        println!("Purchase failed: {:?}", e);
-                    }
-                }
-                return;
-            }
+        let (lock, cvar) = &*cond_var;
+        let mut result = lock.lock().unwrap();
+        while result.is_none() {
+            result = cvar.wait(result).unwrap();
         }
-        panic!("Timed out waiting for purchase result");
+
+        match &*result {
+            Some(Ok(SteamInventoryStartPurchaseResult { order_id, trans_id, .. })) => {
+                println!("Purchase successful! Order ID: {}, Transaction ID: {}", order_id, trans_id);
+            }
+            Some(Err(e)) => {
+                println!("Purchase failed: {:?}", e);
+            }
+            None => panic!("Timed out waiting for purchase result"),
+        }
     }
+
 
 }
