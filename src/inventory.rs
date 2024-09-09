@@ -8,6 +8,7 @@ pub struct Inventory<Manager> {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamInventoryResultReady {
     pub handle: sys::SteamInventoryResult_t,
     pub result: EResult,
@@ -142,8 +143,8 @@ mod tests {
         });
 
         let result = inventory.lock().unwrap().get_all_items();
+        println!("{:?}", result);
         assert!(result.is_ok(), "Failed to get all items");
-
         for _ in 0..50 {
             client.run_callbacks();
             std::thread::sleep(std::time::Duration::from_millis(100));
