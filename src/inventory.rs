@@ -140,24 +140,18 @@ pub enum InventoryError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::mpsc;
 
     #[test]
     fn test_get_result_items() {
         let client = Client::init().unwrap();
-        let callback_processed = Arc::new(Mutex::new(false));
-        let processed_clone = callback_processed.clone();
+        let (tx, rx) = mpsc::channel::<sys::SteamInventoryResult_t>();
 
         client.register_callback(move |val: SteamInventoryResultReady| {
             assert!(val.result.is_ok(), "SteamInventoryResultReady Failed.");
-            let inventory = Client::init().unwrap().inventory();
-            let result_items = inventory.get_result_items(val.handle);
-            assert!(result_items.is_ok(), "Failed to get result items: {:?}", result_items.err().unwrap());
-            println!("Result items: {:?}", result_items.unwrap());
-
-            inventory.destroy_result(val.handle);
-
-            let mut processed = processed_clone.lock().unwrap();
-            *processed = true;
+            if let Ok(_) = val.result {
+                tx.send(val.handle).expect("Failed to send handle");
+            }
         });
 
         client.register_callback(move |val: SteamInventoryFullUpdate| {
@@ -168,9 +162,12 @@ mod tests {
 
         for _ in 0..50 {
             client.run_callbacks();
-            let processed = callback_processed.lock().unwrap();
             ::std::thread::sleep(::std::time::Duration::from_millis(100));
-            if *processed {
+            if let Ok(handle) = rx.try_recv() {
+                let result_items = client.inventory().get_result_items(handle).unwrap();
+                assert!(!result_items.is_empty(), "No items received");
+                println!("Result items: {:?}", result_items);
+                client.inventory().destroy_result(handle);
                 return;
             }
         }
