@@ -544,7 +544,7 @@ impl<Manager> MatchmakingServers<Manager> {
 
 #[test]
 fn test_internet_servers() {
-    let (client, single) = Client::init_app(304930).unwrap();
+    let client = Client::init_app(304930).unwrap();
 
     let data = std::rc::Rc::new(Mutex::new(0));
     let data2 = std::rc::Rc::clone(&data);
@@ -572,7 +572,7 @@ fn test_internet_servers() {
         .unwrap();
 
     for _ in 0..2000 {
-        single.run_callbacks();
+        client.run_callbacks();
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }
