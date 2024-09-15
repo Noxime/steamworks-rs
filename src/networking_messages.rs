@@ -237,6 +237,7 @@ impl<Manager> SessionRequestBuilder<Manager> {
         self.inner.upgrade().map(|inner| SessionRequest {
             remote,
             messages: self.message,
+            accepted: false,
             _inner: inner,
         })
     }
@@ -279,6 +280,10 @@ unsafe impl Callback for NetworkingMessagesSessionFailed {
 pub struct SessionRequest<Manager> {
     remote: NetworkingIdentity,
     messages: *mut sys::ISteamNetworkingMessages,
+    /// Keep track if connection should be rejected on drop
+    // This is used instead of `std::mem::forget` to properly clean up other 
+    // resources. Is it even wise to automatically reject the connection?
+    accepted: bool,
     _inner: Arc<Inner<Manager>>,
 }
 
@@ -292,7 +297,8 @@ impl<Manager> SessionRequest<Manager> {
     }
 
     /// Accept the connection.
-    pub fn accept(self) -> bool {
+    pub fn accept(mut self) -> bool {
+        self.accepted = true;
         unsafe {
             return sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
                 self.messages,
@@ -319,6 +325,8 @@ impl<Manager> SessionRequest<Manager> {
 
 impl<Manager> Drop for SessionRequest<Manager> {
     fn drop(&mut self) {
-        self.reject_inner();
+        if !self.accepted {
+            self.reject_inner();
+        }
     }
 }

@@ -1,0 +1,8 @@
+[package]
+name = "networking-messages"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+steamworks = { path = "../.." }
+eframe = "0.28.1"
