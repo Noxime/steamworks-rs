@@ -281,7 +281,7 @@ pub struct SessionRequest<Manager> {
     remote: NetworkingIdentity,
     messages: *mut sys::ISteamNetworkingMessages,
     /// Keep track if connection should be rejected on drop
-    // This is used instead of `std::mem::forget` to properly clean up other 
+    // This is used instead of `std::mem::forget` to properly clean up other
     // resources. Is it even wise to automatically reject the connection?
     accepted: bool,
     _inner: Arc<Inner<Manager>>,
