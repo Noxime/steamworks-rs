@@ -1,10 +1,13 @@
-use eframe::{egui::*, *};
+use std::collections::HashMap;
+
+use macroquad::prelude::*;
 use steamworks::{
     networking_types::{NetworkingIdentity, SendFlags},
     FriendFlags,
 };
 
-fn main() -> eframe::Result {
+#[macroquad::main("steamworks-rs")]
+async fn main() {
     // 480 is Spacewar!, the Steamworks SDK example app.
     let client =
         steamworks::Client::init_app(480).expect("Steam is not running or has not been detected");
@@ -25,84 +28,55 @@ fn main() -> eframe::Result {
         eprintln!("Session failed: {info:#?}");
     });
 
-    // UI state
-    let mut text_field = "Hello, world!".to_string();
-    let mut message_history = vec![];
+    // Keep track of all players
+    let mut peers = HashMap::new();
 
-    run_simple_native("steamworks-rs", Default::default(), move |ctx, _| {
-        // Run callback periodically, this is usually your main game loop or networking thread
+    loop {
+        // Poll the internal callbacks
         client.run_callbacks();
-        ctx.request_repaint();
 
-        CentralPanel::default().show(ctx, |ui| {
-            let text_height = ui.text_style_height(&TextStyle::Body);
+        clear_background(BLACK);
 
-            // Get a list of friends who are playing Spacewar!
-            let mut friend_list = friends.get_friends(FriendFlags::IMMEDIATE);
-            friend_list.retain(|f| f.game_played().map_or(false, |g| g.game.app_id().0 == 480));
+        set_camera(&Camera2D::from_display_rect(Rect::new(
+            -1.0, 1.0, 2.0, -2.0,
+        )));
 
-            // Show the friend list
-            SidePanel::left("friends").show_inside(ui, |ui| {
-                ui.heading(format!("Logged in: {}", friends.name()));
-                ui.label(format!("Online friends: {}", friend_list.len()));
+        // Draw us at our mouse position
+        let me = mouse_position_local();
+        draw_circle(me.x, me.y, 0.1, GREEN);
 
-                // Show the list of friends
-                ScrollArea::both().show_rows(ui, text_height, friend_list.len(), |ui, range| {
-                    for friend in &friend_list[range] {
-                        ui.monospace(friend.name());
-                    }
-                });
-            });
+        // Send our mouse position to all friends
+        for friend in friends.get_friends(FriendFlags::IMMEDIATE) {
+            let identity = NetworkingIdentity::new_steam_id(friend.id());
 
-            // Receive any pending messages
-            let new_messages = messages.receive_messages_on_channel(0, 10);
-            for msg in new_messages {
-                println!("Received message #{:?}", msg.message_number());
+            // Convert our position to bytes
+            let mut data = [0; 8];
+            data[0..4].copy_from_slice(&me.x.to_le_bytes());
+            data[4..8].copy_from_slice(&me.y.to_le_bytes());
 
-                let peer = msg.identity_peer();
-                let data = std::str::from_utf8(msg.data()).expect("Peer sent invalid UTF-8");
+            let _ =
+                messages.send_message_to_user(identity, SendFlags::UNRELIABLE_NO_DELAY, &data, 0);
+        }
 
-                message_history.push(format!("{peer:?}: {data}"));
-            }
+        // Receive messages from the network
+        for message in messages.receive_messages_on_channel(0, 100) {
+            let peer = message.identity_peer();
+            let data = message.data();
 
-            // Show message history
-            ui.heading(format!("Chat history ({} messages)", message_history.len()));
-            ScrollArea::both().auto_shrink([false, true]).show_rows(
-                ui,
-                text_height,
-                message_history.len(),
-                |ui, range| {
-                    for msg in &message_history[range] {
-                        ui.label(msg);
-                    }
-                },
-            );
+            // Convert peer position from bytes
+            let peer_x =
+                f32::from_le_bytes(data[0..4].try_into().expect("Someone sent bad message"));
+            let peer_y =
+                f32::from_le_bytes(data[4..8].try_into().expect("Someone sent bad message"));
 
-            // Text box for inputting a message and a button to send it
-            TopBottomPanel::bottom("textbox").show_inside(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.text_edit_singleline(&mut text_field).request_focus();
+            peers.insert(peer.debug_string(), (peer_x, peer_y));
+        }
 
-                    // Send message to all friends
-                    if ui.button("Send message").clicked() {
-                        for friend in &friend_list {
-                            println!("Sending to {:?}", friend.id());
+        // Draw all peers
+        for peer in peers.values() {
+            draw_circle(peer.0, peer.1, 0.1, RED);
+        }
 
-                            if let Err(err) = messages.send_message_to_user(
-                                NetworkingIdentity::new_steam_id(friend.id()),
-                                SendFlags::RELIABLE,
-                                text_field.as_bytes(),
-                                0,
-                            ) {
-                                eprintln!("Send error: {err:?}");
-                            }
-                        }
-
-                        // We can't send message to ourselves, so add it to chat history manually
-                        message_history.push(format!("Me: {text_field}"));
-                    }
-                });
-            });
-        });
-    })
+        next_frame().await;
+    }
 }

@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 steamworks = { path = "../.." }
-eframe = "0.28.1"
+macroquad = "0.4"
