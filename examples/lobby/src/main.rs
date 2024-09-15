@@ -3,7 +3,7 @@ use std::sync::mpsc;
 use steamworks::*;
 
 fn main() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
 
     let matchmaking = client.matchmaking();
 
@@ -24,7 +24,7 @@ fn main() {
     });
 
     loop {
-        single.run_callbacks();
+        client.run_callbacks();
 
         if let Ok(lobby_id) = receiver_create_lobby.try_recv() {
             println!("Sending message to lobby chat...");

@@ -103,7 +103,10 @@ fn delete_item(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
 
 fn main() {
     // create a client pair
-    let (client, single) = Client::init().expect("Steam is not running or has not been detected");
+    let client = Client::init().expect("Steam is not running or has not been detected");
+
+    // get a handle to Steam's UGC module (user-generated content)
+    let ugc = client.ugc();
 
     // create a channel to communicate with the upcoming callback thread
     // this is technically not *needed* but it is cleaner in order to properly exit the thread
@@ -113,7 +116,7 @@ fn main() {
     let callback_thread = std::thread::spawn(move || {
         loop {
             // run callbacks
-            single.run_callbacks();
+            client.run_callbacks();
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             // check if the channel is closed or if there is a message
@@ -125,8 +128,6 @@ fn main() {
         }
     });
 
-    // get a handle to Steam's UGC module (user-generated content)
-    let ugc = client.ugc();
     create_item(&ugc);
 
     // only do this once you received a successful callback for creating the item, else this WILL fail!

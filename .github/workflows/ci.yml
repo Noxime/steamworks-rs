@@ -45,6 +45,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
+          args: --all
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"

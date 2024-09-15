@@ -39,7 +39,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let (client, single) = Client::init().unwrap();
+    let client = Client::init().unwrap();
 
     let matchmaking = client.matchmaking();
     let networking = client.networking();
@@ -65,7 +65,7 @@ async fn main() {
     let mut messages: Vec<String> = vec![];
 
     loop {
-        single.run_callbacks();
+        client.run_callbacks();
         clear_background(BLACK);
 
         let local_sender_create_lobby = sender_create_lobby.clone();
