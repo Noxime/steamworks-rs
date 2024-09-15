@@ -24,7 +24,7 @@ jobs:
           override: true
 
       - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev libxcb-shape0-dev libxcb-xfixes0-dev
         if: runner.os == 'linux'
 
       - name: Setup cache
