@@ -5,7 +5,6 @@ pub use self::stat_callback::*;
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
-use steamworks_sys::SteamAPI_ISteamUserStats_RequestUserStats;
 
 /// Access to the steam user interface
 pub struct UserStats<Manager> {
