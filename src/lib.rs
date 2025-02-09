@@ -1,9 +1,9 @@
 #[macro_use]
-extern crate thiserror;
-#[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate thiserror;
 
 use screenshots::Screenshots;
 #[cfg(feature = "raw-bindings")]
@@ -11,16 +11,6 @@ pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
-
-use core::ffi::c_void;
-use std::collections::HashMap;
-use std::ffi::{c_char, CStr, CString};
-use std::fmt::{self, Debug, Formatter};
-use std::sync::mpsc::Sender;
-use std::sync::{Arc, Mutex, Weak};
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 pub use crate::app::*;
 pub use crate::callback::*;
@@ -38,6 +28,17 @@ pub use crate::ugc::*;
 pub use crate::user::*;
 pub use crate::user_stats::*;
 pub use crate::utils::*;
+use core::ffi::c_void;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::ffi::{c_char, CStr, CString};
+use std::fmt::{self, Debug, Formatter};
+use std::sync::mpsc::{channel, Sender};
+use std::sync::{Arc, Mutex, Weak};
+use std::thread;
+use std::time::Duration;
+use steamworks_sys::{EUGCReadAction, SteamAPI_ISteamRemoteStorage_UGCRead, UGCHandle_t};
 
 mod app;
 mod callback;
@@ -139,6 +140,41 @@ impl Client<ClientManager> {
     /// init_flat() or init_flat_app()
     unsafe fn steam_api_init_flat(p_out_err_msg: *mut SteamErrMsg) -> ESteamAPIInitResult {
         unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
+    }
+
+
+    // TODO(PRE FLIGHT CHECK): move this function to remote_storage
+    pub fn download_ugc(&self, handle: UGCHandle_t) -> String {
+        unsafe {
+            let res = self.remote_storage().download_ugc(handle);
+
+            let (mut asender,b) = channel();
+
+            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, b| {
+                let cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
+
+                let actual_str = cstr.to_str().unwrap().to_string();
+                asender.send((actual_str, a.m_nSizeInBytes)).unwrap();
+            });
+
+            let file_name = loop {
+                self.run_callbacks();
+                match b.try_recv() {
+                    Ok(handle) => {
+                        break handle;
+                    }
+                    Err(_) => {
+                        thread::sleep(Duration::from_millis(10));
+                    }
+                }
+            };
+
+            let cstr = CString::new((0..file_name.1).map(|val| 'a' as u8).collect::<Vec<_>>()).unwrap();
+
+            let _ = SteamAPI_ISteamRemoteStorage_UGCRead(self.remote_storage().rs,handle,cstr.as_ptr() as *mut c_void,file_name.1,0,EUGCReadAction::k_EUGCRead_ContinueReadingUntilFinished);
+
+            cstr.into_string().unwrap()
+        }
     }
 
     /// Attempts to initialize the steamworks api without full API integration
