@@ -1,6 +1,7 @@
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use steamworks_sys::{SteamAPICall_t, SteamAPI_ISteamRemoteStorage_UGCDownload, SteamAPI_ISteamRemoteStorage_UGCDownloadToLocation};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage<Manager> {
@@ -58,6 +59,10 @@ impl<Manager> RemoteStorage<Manager> {
         }
     }
 
+    pub fn raw(&self) -> *mut sys::ISteamRemoteStorage {
+        self.rs
+    }
+
     /// Returns whether the steam cloud is enabled for the application
     ///
     /// # Note
@@ -96,6 +101,14 @@ impl<Manager> RemoteStorage<Manager> {
             }
 
             files
+        }
+    }
+
+    pub(crate) fn download_ugc(&self, handle: UGCHandle_t) -> SteamAPICall_t {
+        unsafe {
+            // let location = CString::new("remote".as_bytes().to_vec()).unwrap();
+
+            SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs,handle,1)
         }
     }
 

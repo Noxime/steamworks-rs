@@ -22,6 +22,7 @@ members = [
     "examples/chat-example",
     "examples/workshop",
     "examples/lobby", "examples/networking-messages",
+    "examples/leaderboards"
 ]
 
 [dependencies]

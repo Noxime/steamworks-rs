@@ -5,6 +5,7 @@ pub use self::stat_callback::*;
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use steamworks_sys::SteamAPI_ISteamRemoteStorage_UGCDownload;
 
 /// Access to the steam user interface
 pub struct UserStats<Manager> {
@@ -208,11 +209,14 @@ impl<Manager> UserStats<Manager> {
                             );
                             details.set_len(entry.m_cDetails as usize);
 
+                            // SteamAPI_ISteamRemoteStorage_UGCDownload()
+
                             entries.push(LeaderboardEntry {
                                 user: SteamId(entry.m_steamIDUser.m_steamid.m_unAll64Bits),
                                 global_rank: entry.m_nGlobalRank,
                                 score: entry.m_nScore,
                                 details,
+                                ugc: entry.m_hUGC,
                             })
                         }
                         Ok(entries)
@@ -515,6 +519,7 @@ pub struct LeaderboardEntry {
     pub global_rank: i32,
     pub score: i32,
     pub details: Vec<i32>,
+    pub ugc: UGCHandle_t,
 }
 
 pub enum LeaderboardDataRequest {

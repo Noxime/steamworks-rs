@@ -552,6 +552,7 @@ impl<Manager> UGC<Manager> {
         }
     }
 
+
     /// Starts an item update process
     #[must_use]
     pub fn start_item_update(
