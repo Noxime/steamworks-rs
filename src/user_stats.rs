@@ -13,6 +13,10 @@ pub struct UserStats<Manager> {
     pub(crate) inner: Arc<Inner<Manager>>,
 }
 
+pub struct LeaderboardUGC {
+    handle: UGCHandle_t,
+}
+
 const CALLBACK_BASE_ID: i32 = 1100;
 
 impl<Manager> UserStats<Manager> {
@@ -154,6 +158,55 @@ impl<Manager> UserStats<Manager> {
         }
     }
 
+    pub fn attach_leaderboard_ugc<F>(&self,remote_storage: &RemoteStorage<ClientManager>, leaderboard: &Leaderboard, cb: F)
+    where F: FnOnce(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send
+    {
+        unsafe {
+
+            // TODO: get this data from within the function inputs
+            let str = CString::new("FILE_NAME_HERE".to_string().as_bytes().to_vec()).unwrap();
+            let str_content = CString::new("This is file data, hopefully! 123456789987654321".to_string().as_bytes().to_vec()).unwrap();
+
+
+            let res1 = sys::SteamAPI_ISteamRemoteStorage_FileWrite(remote_storage.raw(),str.as_ptr(),str_content.as_ptr() as *const c_void, str_content.as_bytes().len() as i32); // TODO: use this result boolean to early return if the file write fails
+
+
+            let res = sys::SteamAPI_ISteamRemoteStorage_FileShare(remote_storage.raw(),str.as_ptr());
+
+
+            let (mut asender,mut b) = channel();
+
+
+            register_call_result::<sys::RemoteStorageFileShareResult_t,_,_>(&self.inner,res,1100+4, move |a, b| {
+                asender.send(LeaderboardUGC{
+                    handle: a.m_hFile
+                }).unwrap();
+            });
+
+            // TODO: split this function into two functions, one that shares a file, and one that attaches a leaderboard ugc to leaderboard entries
+
+            let handle = loop {
+                self.run_callbacks();
+                match b.try_recv() {
+                    Ok(handle) => {
+                        break handle;
+                    }
+                    Err(_) => {
+                        thread::sleep(Duration::from_millis(10));
+                    }
+                }
+            };
+
+
+            let res2 = sys::SteamAPI_ISteamUserStats_AttachLeaderboardUGC(self.user_stats().user_stats,leaderboard.raw(),handle);
+
+            register_call_result::<sys::LeaderboardUGCSet_t,_,_>(&self.user_stats().inner,res2,1100+4, cb);
+
+
+            self.run_callbacks();
+        }
+    }
+
     pub fn download_leaderboard_entries<F>(
         &self,
         leaderboard: &Leaderboard,
@@ -208,8 +261,6 @@ impl<Manager> UserStats<Manager> {
                                 max_details_len as _,
                             );
                             details.set_len(entry.m_cDetails as usize);
-
-                            // SteamAPI_ISteamRemoteStorage_UGCDownload()
 
                             entries.push(LeaderboardEntry {
                                 user: SteamId(entry.m_steamIDUser.m_steamid.m_unAll64Bits),

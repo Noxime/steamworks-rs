@@ -56,7 +56,7 @@ fn main() {
 
     for entry in lbe.lock().unwrap().as_ref().unwrap().as_slice() {
         let file_content = client.download_ugc(entry.ugc);
-        println!("{:?},{}, {:?}, {}", entry.user, entry.score, entry.ugc, file_content);
+        println!("ID: {:?},Score: {},UGC_handle: {:?},File content: {}", entry.user, entry.score, entry.ugc, file_content);
     }
 
     let mut s = String::new();
@@ -73,7 +73,7 @@ fn main() {
 
     std::thread::sleep(std::time::Duration::from_millis(500));
 
-    // client.user_stats().upload_leaderboard_score(&l, UploadScoreMethod::ForceUpdate, 2, &[0;2], |r| {
+    // client.user_stats().upload_leaderboard_score(&l, UploadScoreMethod::ForceUpdate, 3, &[0;1], |r| {
     //     println!("Result: {:?}", r);
     // });
 

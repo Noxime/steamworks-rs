@@ -196,7 +196,7 @@ impl Client<ClientManager> {
 
             println!("File name: {:?}", str);
 
-            let str_content = CString::new("This is file data, hopefully!".to_string().as_bytes().to_vec()).unwrap();
+            let str_content = CString::new("This is file data, hopefully! 123456789987654321".to_string().as_bytes().to_vec()).unwrap();
 
 
             let res1 = sys::SteamAPI_ISteamRemoteStorage_FileWrite(rs.raw(),str.as_ptr(),str_content.as_ptr() as *const c_void, str_content.as_bytes().len() as i32);
@@ -230,9 +230,11 @@ impl Client<ClientManager> {
 
             println!("File handle: {:?}", handle);
 
+
+
             let res2 = sys::SteamAPI_ISteamUserStats_AttachLeaderboardUGC(self.user_stats().user_stats,lb.raw(),handle);
 
-            register_call_result::<sys::LeaderboardUGCSet_t,_,_>(&self.inner,res2,1100+4, move |a, b| {
+            register_call_result::<sys::LeaderboardUGCSet_t,_,_>(&self.user_stats().inner,res2,1100+4, move |a, b| {
                 println!("DDD: {:?}", a);
             });
 
