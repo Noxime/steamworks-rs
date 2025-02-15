@@ -1,89 +1,49 @@
-use std::{path::Path, sync::mpsc::TryRecvError};
-use std::ffi::{c_char, CString};
-use std::io::{Read, Write};
-use std::sync::{Arc, Mutex};
-use steamworks::{Client, ClientManager, LeaderboardDataRequest, LeaderboardEntry, PublishedFileId, UploadScoreMethod, UGC};
+use std::sync::mpsc::{channel, Sender};
+use steamworks::{Client, LeaderboardDataRequest, UploadScoreMethod};
 
 fn main() {
     // create a client pair
     let client = Client::init().expect("Steam is not running or has not been detected");
 
-    let lb = Arc::new(Mutex::new(None));
-    let l = Arc::clone(&lb);
-    client.user_stats().find_leaderboard("test",move |r| {
-        println!("RESULT: {:?}", r);
-
-        l.lock().unwrap().replace(r.unwrap().unwrap());
+    // Get a suitable leaderboard to use for this example
+    let leaderboard_to_use = process_client_callback(&client, |client,sender| {
+        client.user_stats().find_leaderboard("test",move |r| {
+            sender.send(r.unwrap().unwrap()).unwrap();
+        });
     });
 
-    std::thread::sleep(std::time::Duration::from_millis(500));
-    client.run_callbacks();
+    // Try changing this if statement to true and false and re-running the example to see it still be able to read the data!
+    if true {
+        let lb_clone = leaderboard_to_use.clone();
+        let l_ugc = process_client_callback(&client, move |client,sender| {
 
-    let l = lb.lock().unwrap().take().unwrap(); // SteamLeaderboard_t
+            client.user_stats().upload_leaderboard_score(&lb_clone, UploadScoreMethod::ForceUpdate, 5, &[0;1], |r| {
+                println!("Result: {:?}", r);
+            });
 
-    let rs = client.remote_storage();
+            client.remote_storage().file_share("this_is_a_new_filename", "new test data 123",move |a| {
+                sender.send(a.unwrap()).unwrap();
+            });
+        });
 
-    rs.set_cloud_enabled_for_app(true);
+        client.user_stats().attach_leaderboard_ugc(l_ugc, &leaderboard_to_use, |res| {
+            println!("Attached ugc: {:?}", res);
+        });
+    }
 
-    std::thread::sleep(std::time::Duration::from_millis(500));
-    client.run_callbacks();
-
-    println!("{}, {}", rs.is_cloud_enabled_for_account(), rs.is_cloud_enabled_for_app());
-
-
-    // let f = rs.file("FILE_NAME_HERE");
-
-    // println!("{}", f.write().write("123456789 ABC".as_bytes()).unwrap());
-
-    let mut s = String::new();
-
-
-
-    // f.read().read_to_string(&mut s).unwrap();
-
-    println!("File data: {}", s);
-
-    // client.test_new_fn(&l);
-
-    let lbe: Arc<Mutex<Option<Vec<LeaderboardEntry>>>> = Arc::new(Mutex::new(None));
-    let lbe2 = Arc::clone(&lbe);
-    client.user_stats().download_leaderboard_entries(&l,LeaderboardDataRequest::Global,0,10,10,move |cb| {
-        lbe2.lock().unwrap().replace(cb.unwrap());
+    // The data should be downloaded in "C:\Program Files (x86)\Steam\userdata\<YOUR STEAM ID>\<APP ID>\remote"
+    // Try deleting the files and running this example again!
+    let l_entries = process_client_callback(&client, move |client,sender| {
+        client.user_stats().download_leaderboard_entries(&leaderboard_to_use, LeaderboardDataRequest::Global, 0, 10, 10, move |cb| {
+            sender.send(cb.unwrap()).unwrap();
+        });
     });
 
-    std::thread::sleep(std::time::Duration::from_millis(500));
-    client.run_callbacks();
-
-    for entry in lbe.lock().unwrap().as_ref().unwrap().as_slice() {
+    // Display all the leaderboard entries and their file content if they have UGC
+    for entry in l_entries.as_slice() {
         let file_content = client.download_ugc(entry.ugc);
         println!("ID: {:?},Score: {},UGC_handle: {:?},File content: {}", entry.user, entry.score, entry.ugc, file_content);
     }
-
-    let mut s = String::new();
-    // let f = client.remote_storage().file("FILE_NAME_HERE");
-
-    // println!("CCC: {}, {}, {}", f.exists(), f.is_persisted(),f.timestamp());
-
-    // f.read().read_to_string(&mut s).unwrap();
-
-    // println!("File content: {}", s);
-
-
-
-
-    std::thread::sleep(std::time::Duration::from_millis(500));
-
-    // client.user_stats().upload_leaderboard_score(&l, UploadScoreMethod::ForceUpdate, 3, &[0;1], |r| {
-    //     println!("Result: {:?}", r);
-    // });
-
-    std::thread::sleep(std::time::Duration::from_millis(500));
-
-    client.run_callbacks();
-
-
-
-    std::thread::sleep(std::time::Duration::from_millis(500));
 
     // create a thread for callbacks
     // if you have an active loop (like in a game), you can skip this and just run the callbacks on update
@@ -93,10 +53,26 @@ fn main() {
             client.run_callbacks();
             std::thread::sleep(std::time::Duration::from_millis(5000));
 
-
-
         }
     });
+}
 
+fn process_client_callback<F,T>(client: &Client, client_function: F) -> T
+where F: FnOnce(&Client, Sender<T>) + 'static + Send, {
+    let (tx,rx) = channel::<T>();
 
+    client_function(client, tx);
+
+    loop {
+        client.run_callbacks();
+
+        match rx.try_recv() {
+            Ok(l) => {
+                break l
+            }
+            Err(_) => {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+            }
+        }
+    }
 }

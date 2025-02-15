@@ -1,7 +1,7 @@
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
-use steamworks_sys::{SteamAPICall_t, SteamAPI_ISteamRemoteStorage_UGCDownload, SteamAPI_ISteamRemoteStorage_UGCDownloadToLocation};
+use steamworks_sys::{EResult, SteamAPICall_t, SteamAPI_ISteamRemoteStorage_UGCDownload};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage<Manager> {
@@ -104,10 +104,44 @@ impl<Manager> RemoteStorage<Manager> {
         }
     }
 
+    pub fn file_share<F>(&self,file_name: impl Into<String>, file_content: impl Into<String> ,cb: F) -> bool // TODO: Into<String> might not be the best type here, not sure yet
+    where F: FnOnce(Result<LeaderboardUGC, EResult>) + 'static + Send, {
+        unsafe {
+
+            // TODO: maybe replace these with enum error types and change the function signature to output a result as well instead of a boolean?
+            let Ok(str) = CString::new(file_name.into().as_bytes().to_vec()) else {
+                return false;
+            };
+
+            let Ok(str_content) = CString::new(file_content.into()) else {
+                return false;
+            };
+
+            let file_write_successful = sys::SteamAPI_ISteamRemoteStorage_FileWrite(self.raw(), str.as_ptr(), str_content.as_ptr() as *const c_void, str_content.as_bytes().len() as i32);
+
+            if file_write_successful {
+                let file_share_result = sys::SteamAPI_ISteamRemoteStorage_FileShare(self.raw(), str.as_ptr());
+
+                register_call_result::<sys::RemoteStorageFileShareResult_t,_,_>(&self.inner, file_share_result, 1100+4, move |a, b| {
+
+                    match a.m_eResult {
+                        EResult::k_EResultOK => {
+                            cb(Ok(LeaderboardUGC{handle: a.m_hFile}));
+                        }
+                        err => {
+                            cb(Err(err))
+                        }
+                    }
+                });
+            }
+
+            file_write_successful
+        }
+
+    }
+
     pub(crate) fn download_ugc(&self, handle: UGCHandle_t) -> SteamAPICall_t {
         unsafe {
-            // let location = CString::new("remote".as_bytes().to_vec()).unwrap();
-
             SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs,handle,1)
         }
     }

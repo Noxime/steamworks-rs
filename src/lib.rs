@@ -1,9 +1,9 @@
 #[macro_use]
-extern crate thiserror;
-#[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate thiserror;
 
 use screenshots::Screenshots;
 #[cfg(feature = "raw-bindings")]
@@ -12,18 +12,6 @@ pub use steamworks_sys as sys;
 use steamworks_sys as sys;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
-use core::ffi::c_void;
-use std::cell::OnceCell;
-use std::collections::HashMap;
-use std::ffi::{c_char, CStr, CString};
-use std::fmt::{self, Debug, Formatter};
-use std::sync::mpsc::{channel, Sender};
-use std::sync::{Arc, Mutex, Weak};
-use std::thread;
-use std::time::Duration;
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-use steamworks_sys::{uint32, EUGCReadAction, SteamAPI_ISteamRemoteStorage_UGCRead, UGCHandle_t};
 pub use crate::app::*;
 pub use crate::callback::*;
 pub use crate::error::*;
@@ -40,6 +28,17 @@ pub use crate::ugc::*;
 pub use crate::user::*;
 pub use crate::user_stats::*;
 pub use crate::utils::*;
+use core::ffi::c_void;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::ffi::{c_char, CStr, CString};
+use std::fmt::{self, Debug, Formatter};
+use std::sync::mpsc::{channel, Sender};
+use std::sync::{Arc, Mutex, Weak};
+use std::thread;
+use std::time::Duration;
+use steamworks_sys::{EUGCReadAction, SteamAPI_ISteamRemoteStorage_UGCRead, UGCHandle_t};
 
 mod app;
 mod callback;
@@ -144,14 +143,14 @@ impl Client<ClientManager> {
     }
 
 
+    // TODO(PRE FLIGHT CHECK): move this function to remote_storage
     pub fn download_ugc(&self, handle: UGCHandle_t) -> String {
         unsafe {
             let res = self.remote_storage().download_ugc(handle);
 
-            let (mut asender,mut b) = channel();
+            let (mut asender,b) = channel();
 
             register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, b| {
-                println!("FFF: {:?}", a);
                 let cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
 
                 let actual_str = cstr.to_str().unwrap().to_string();
@@ -174,78 +173,8 @@ impl Client<ClientManager> {
 
             let _ = SteamAPI_ISteamRemoteStorage_UGCRead(self.remote_storage().rs,handle,cstr.as_ptr() as *mut c_void,file_name.1,0,EUGCReadAction::k_EUGCRead_ContinueReadingUntilFinished);
 
-            self.run_callbacks();
-
-            // println!("Read {} bytes", res2);
-
-            // println!("Read cstr: {:?}", cstr);
-
-
             cstr.into_string().unwrap()
         }
-    }
-
-
-    pub fn test_new_fn(&self, lb: &Leaderboard) {
-        unsafe {
-            let rs = self.remote_storage();
-
-
-
-            let str = CString::new("FILE_NAME_HERE".to_string().as_bytes().to_vec()).unwrap();
-
-            println!("File name: {:?}", str);
-
-            let str_content = CString::new("This is file data, hopefully! 123456789987654321".to_string().as_bytes().to_vec()).unwrap();
-
-
-            let res1 = sys::SteamAPI_ISteamRemoteStorage_FileWrite(rs.raw(),str.as_ptr(),str_content.as_ptr() as *const c_void, str_content.as_bytes().len() as i32);
-
-            println!("File write: {}", res1);
-
-            let res = sys::SteamAPI_ISteamRemoteStorage_FileShare(rs.raw(),str.as_ptr());
-
-            println!("1");
-
-            let (mut asender,mut b) = channel();
-
-            println!("2");
-
-            register_call_result::<sys::RemoteStorageFileShareResult_t,_,_>(&self.inner,res,1100+4, move |a, b| {
-                println!("AAA: {:?}", a);
-                asender.send(a.m_hFile).unwrap();
-            });
-
-            let handle = loop {
-                self.run_callbacks();
-                match b.try_recv() {
-                    Ok(handle) => {
-                        break handle;
-                    }
-                    Err(_) => {
-                        thread::sleep(Duration::from_millis(10));
-                    }
-                }
-            };
-
-            println!("File handle: {:?}", handle);
-
-
-
-            let res2 = sys::SteamAPI_ISteamUserStats_AttachLeaderboardUGC(self.user_stats().user_stats,lb.raw(),handle);
-
-            register_call_result::<sys::LeaderboardUGCSet_t,_,_>(&self.user_stats().inner,res2,1100+4, move |a, b| {
-                println!("DDD: {:?}", a);
-            });
-
-            thread::sleep(Duration::from_millis(500));
-
-            self.run_callbacks();
-
-
-        }
-
-
     }
 
     /// Attempts to initialize the steamworks api without full API integration
