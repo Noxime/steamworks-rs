@@ -15,6 +15,7 @@ pub struct UserStats<Manager> {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+/// A handle that references UGC that is meant to be attached to a leaderboard entry
 pub struct LeaderboardUGC {
     pub(crate) handle: UGCHandle_t,
 }

@@ -40,8 +40,17 @@ fn main() {
     });
 
     // Display all the leaderboard entries and their file content if they have UGC
-    for entry in l_entries.as_slice() {
-        let file_content = client.download_ugc(entry.ugc);
+    for entry in l_entries {
+        let entry_clone = entry.clone();
+        let file_content = {
+            let ugc_result = process_client_callback(&client, move |client, sender| {
+                client.remote_storage().download_ugc(&entry_clone, move |file_content| {
+                    sender.send(file_content).unwrap();
+                });
+            }).unwrap();
+
+            client.remote_storage().ugc_read(ugc_result)
+        };
         println!("ID: {:?},Score: {},UGC_handle: {:?},File content: {}", entry.user, entry.score, entry.ugc, file_content);
     }
 

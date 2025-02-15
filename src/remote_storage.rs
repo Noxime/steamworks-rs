@@ -30,6 +30,14 @@ impl From<sys::ERemoteStoragePublishedFileVisibility> for PublishedFileVisibilit
     }
 }
 
+#[derive(Debug)]
+/// The outcome of downloading UGC from a leaderboard, this type is exclusively used for `ugc_read`
+pub struct LeaderboardUGCDownload {
+    file_name: String,
+    file_length: steamworks_sys::int32,
+    ugc_handle: UGCHandle_t,
+}
+
 impl Into<sys::ERemoteStoragePublishedFileVisibility> for PublishedFileVisibility {
     fn into(self) -> sys::ERemoteStoragePublishedFileVisibility {
         match self {
@@ -104,6 +112,43 @@ impl<Manager> RemoteStorage<Manager> {
         }
     }
 
+    pub fn download_ugc<F>(&self, leaderboard_entry: &LeaderboardEntry, cb: F)
+    where F: FnOnce(Result<LeaderboardUGCDownload, EResult>) + 'static + Send,{
+        // TODO(PRE FLIGHT CHECK): test this function as it has now been moved.
+        unsafe {
+
+            let ugc_handle = leaderboard_entry.ugc;;
+
+            let res = SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs, ugc_handle, 1);
+
+            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, b| {
+                let filename_cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
+                let filename_owned_string = filename_cstr.to_str().unwrap().to_string();
+
+                cb(
+                    if b { Ok(LeaderboardUGCDownload {
+                        file_length: a.m_nSizeInBytes,
+                        file_name: filename_owned_string,
+                        ugc_handle,
+                    })} else { Err(a.m_eResult) }
+                );
+            });
+        }
+    }
+
+    pub fn ugc_read(&self, leaderboard_ugc_download: LeaderboardUGCDownload) -> String {
+        // TODO(PRE FLIGHT CHECK): test this function as it has now been moved.
+        unsafe {
+
+            let cstr = CString::new((0..leaderboard_ugc_download.file_name.len()).map(|val| 'a' as u8).collect::<Vec<_>>()).unwrap();
+
+            let _ = SteamAPI_ISteamRemoteStorage_UGCRead(self.rs, leaderboard_ugc_download.ugc_handle, cstr.as_ptr() as *mut c_void, leaderboard_ugc_download.file_length, 0, EUGCReadAction::k_EUGCRead_ContinueReadingUntilFinished);
+
+            cstr.into_string().unwrap()
+        }
+    }
+
+
     pub fn file_share<F>(&self,file_name: impl Into<String>, file_content: impl Into<String> ,cb: F) -> bool // TODO: Into<String> might not be the best type here, not sure yet
     where F: FnOnce(Result<LeaderboardUGC, EResult>) + 'static + Send, {
         unsafe {
@@ -140,11 +185,7 @@ impl<Manager> RemoteStorage<Manager> {
 
     }
 
-    pub(crate) fn download_ugc(&self, handle: UGCHandle_t) -> SteamAPICall_t {
-        unsafe {
-            SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs,handle,1)
-        }
-    }
+
 
     /// Returns a handle to a steam cloud file
     ///

@@ -142,41 +142,6 @@ impl Client<ClientManager> {
         unsafe { sys::SteamAPI_InitFlat(p_out_err_msg) }
     }
 
-
-    // TODO(PRE FLIGHT CHECK): move this function to remote_storage
-    pub fn download_ugc(&self, handle: UGCHandle_t) -> String {
-        unsafe {
-            let res = self.remote_storage().download_ugc(handle);
-
-            let (mut asender,b) = channel();
-
-            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, b| {
-                let cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
-
-                let actual_str = cstr.to_str().unwrap().to_string();
-                asender.send((actual_str, a.m_nSizeInBytes)).unwrap();
-            });
-
-            let file_name = loop {
-                self.run_callbacks();
-                match b.try_recv() {
-                    Ok(handle) => {
-                        break handle;
-                    }
-                    Err(_) => {
-                        thread::sleep(Duration::from_millis(10));
-                    }
-                }
-            };
-
-            let cstr = CString::new((0..file_name.1).map(|val| 'a' as u8).collect::<Vec<_>>()).unwrap();
-
-            let _ = SteamAPI_ISteamRemoteStorage_UGCRead(self.remote_storage().rs,handle,cstr.as_ptr() as *mut c_void,file_name.1,0,EUGCReadAction::k_EUGCRead_ContinueReadingUntilFinished);
-
-            cstr.into_string().unwrap()
-        }
-    }
-
     /// Attempts to initialize the steamworks api without full API integration
     /// through SteamAPI_InitFlat added in SDK 1.59
     /// and returns a client to access the rest of the api.
