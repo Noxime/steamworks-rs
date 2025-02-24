@@ -324,6 +324,19 @@ impl Server {
         }
     }
 
+    /// Indicate whether you wish to be listed on the master server list
+    /// and/or respond to server browser / LAN discovery packets.
+    /// The server starts with this value set to false.  You should set all
+    /// relevant server parameters before enabling advertisement on the server.
+    ///
+    /// (This function used to be named EnableHeartbeats, so if you are wondering
+    /// where that function went, it's right here.  It does the same thing as before,
+    /// the old name was just confusing.)
+    #[inline(always)]
+    pub fn set_advertise_server_active(&self, active: bool) {
+        self.enable_heartbeats(active);
+    }
+
     /// If your game is a "mod," pass the string that identifies it.  The default is an empty
     /// string, meaning this application is the original game, not a mod.
     pub fn set_mod_dir(&self, mod_dir: &str) {
@@ -392,6 +405,20 @@ impl Server {
     pub fn clear_all_key_values(&self) {
         unsafe {
             sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
+        }
+    }
+
+    /// Let people know if your server will require a password
+    pub fn set_password_protected(&self, b_password_protected: bool) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetPasswordProtected(self.server, b_password_protected);
+        }
+    }
+
+    /// Number of bots.  Default value is zero
+    pub fn set_bot_player_count(&self, c_bot_players: i32) {
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetBotPlayerCount(self.server, c_bot_players);
         }
     }
 
