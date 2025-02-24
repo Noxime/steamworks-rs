@@ -491,10 +491,10 @@ impl<Manager> Matchmaking<Manager> {
     ///         LobbyListFilter {
     ///             string: Some(vec![
     ///                 StringFilter(
-    ///                     LobbyKey::new("name"), "My Lobby", StringFilterKind::Include
+    ///                     LobbyKey::new("name"), "My Lobby", StringFilterKind::Equal
     ///                 ),
     ///                 StringFilter(
-    ///                     LobbyKey::new("gamemode"), "ffa", StringFilterKind::Include
+    ///                     LobbyKey::new("gamemode"), "ffa", StringFilterKind::Equal
     ///                 ),
     ///             ]),
     ///             number: Some(vec![
@@ -653,15 +653,23 @@ pub struct StringFilter<'a>(
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum StringFilterKind {
     #[default]
-    Include,
-    Exclude,
+    EqualToOrLessThan,
+    LessThan,
+    Equal,
+    GreaterThan,
+    EqualToOrGreaterThan,
+    NotEqual,
 }
 
 impl From<StringFilterKind> for sys::ELobbyComparison {
     fn from(filter: StringFilterKind) -> Self {
         match filter {
-            StringFilterKind::Include => sys::ELobbyComparison::k_ELobbyComparisonEqual,
-            StringFilterKind::Exclude => sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
+            StringFilterKind::EqualToOrLessThan=> sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan,
+            StringFilterKind::LessThan=> sys::ELobbyComparison::k_ELobbyComparisonLessThan,
+            StringFilterKind::Equal=> sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            StringFilterKind::GreaterThan=> sys::ELobbyComparison::k_ELobbyComparisonGreaterThan,
+            StringFilterKind::EqualToOrGreaterThan=> sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan,
+            StringFilterKind::NotEqual=> sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
         }
     }
 }
@@ -1015,7 +1023,7 @@ fn test_lobby() {
         string: Some(vec![StringFilter(
             LobbyKey::new("name"),
             "My Lobby",
-            StringFilterKind::Include,
+            StringFilterKind::Equal,
         )]),
         ..Default::default()
     });
