@@ -48,9 +48,20 @@ impl<Manager> Networking<Manager> {
         }
     }
 
-    /// Sends a packet to the start user starting the
+    /// Sends a packet to the user, starting the
     /// connection if it isn't started already
     pub fn send_p2p_packet(&self, remote: SteamId, send_type: SendType, data: &[u8]) -> bool {
+        self.send_p2p_packet_on_channel(remote, send_type, data, 0)
+    }
+
+    /// Sends a packet to the user on a specific channel
+    pub fn send_p2p_packet_on_channel(
+        &self,
+        remote: SteamId,
+        send_type: SendType,
+        data: &[u8],
+        channel: i32,
+    ) -> bool {
         unsafe {
             let send_type = match send_type {
                 SendType::Unreliable => sys::EP2PSend::k_EP2PSendUnreliable,
@@ -64,7 +75,7 @@ impl<Manager> Networking<Manager> {
                 data.as_ptr() as *const _,
                 data.len() as u32,
                 send_type,
-                0,
+                channel,
             )
         }
     }
@@ -73,9 +84,14 @@ impl<Manager> Networking<Manager> {
     ///
     /// Returns the size of the queued packet if any.
     pub fn is_p2p_packet_available(&self) -> Option<usize> {
+        self.is_p2p_packet_available_on_channel(0)
+    }
+
+    /// Returns whether there is a packet available on a specific channel
+    pub fn is_p2p_packet_available_on_channel(&self, channel: i32) -> Option<usize> {
         unsafe {
             let mut size = 0;
-            if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, 0) {
+            if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, channel) {
                 Some(size as usize)
             } else {
                 None
@@ -89,6 +105,16 @@ impl<Manager> Networking<Manager> {
     /// Returns the steam id of the sender and the size of the
     /// packet.
     pub fn read_p2p_packet(&self, buf: &mut [u8]) -> Option<(SteamId, usize)> {
+        self.read_p2p_packet_from_channel(buf, 0)
+    }
+
+    /// Attempts to read a queued packet into the buffer
+    /// from a specific channel
+    pub fn read_p2p_packet_from_channel(
+        &self,
+        buf: &mut [u8],
+        channel: i32,
+    ) -> Option<(SteamId, usize)> {
         unsafe {
             let mut size = 0;
             let mut remote = 0;
@@ -98,7 +124,7 @@ impl<Manager> Networking<Manager> {
                 buf.len() as _,
                 &mut size,
                 &mut remote as *mut _ as *mut _,
-                0,
+                channel,
             ) {
                 Some((SteamId(remote), size as usize))
             } else {
