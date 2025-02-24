@@ -292,6 +292,13 @@ impl<Manager> UserStats<Manager> {
         }
     }
 
+    /// Triggers a [`UserStatsReceived`](./struct.UserStatsReceived.html) callback.
+    pub fn request_user_stats(&self, steam_user_id: u64) {
+        unsafe {
+            sys::SteamAPI_ISteamUserStats_RequestUserStats(self.user_stats, steam_user_id);
+        }
+    }
+
     /// Asynchronously fetch the data for the percentage of players who have received each achievement
     /// for the current game globally.
     ///
