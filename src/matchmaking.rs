@@ -664,12 +664,16 @@ pub enum StringFilterKind {
 impl From<StringFilterKind> for sys::ELobbyComparison {
     fn from(filter: StringFilterKind) -> Self {
         match filter {
-            StringFilterKind::EqualToOrLessThan=> sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan,
-            StringFilterKind::LessThan=> sys::ELobbyComparison::k_ELobbyComparisonLessThan,
-            StringFilterKind::Equal=> sys::ELobbyComparison::k_ELobbyComparisonEqual,
-            StringFilterKind::GreaterThan=> sys::ELobbyComparison::k_ELobbyComparisonGreaterThan,
-            StringFilterKind::EqualToOrGreaterThan=> sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan,
-            StringFilterKind::NotEqual=> sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
+            StringFilterKind::EqualToOrLessThan => {
+                sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan
+            }
+            StringFilterKind::LessThan => sys::ELobbyComparison::k_ELobbyComparisonLessThan,
+            StringFilterKind::Equal => sys::ELobbyComparison::k_ELobbyComparisonEqual,
+            StringFilterKind::GreaterThan => sys::ELobbyComparison::k_ELobbyComparisonGreaterThan,
+            StringFilterKind::EqualToOrGreaterThan => {
+                sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan
+            }
+            StringFilterKind::NotEqual => sys::ELobbyComparison::k_ELobbyComparisonNotEqual,
         }
     }
 }
