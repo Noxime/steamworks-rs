@@ -143,21 +143,16 @@ impl<Manager> Matchmaking<Manager> {
 
     /// Returns the lobby metadata associated with the specified key from the
     /// specified lobby.
-    pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<&str> {
+    pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<String> {
         let key = CString::new(key).unwrap();
-        let data = unsafe {
+        unsafe {
             let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyData(self.mm, lobby.0, key.as_ptr());
-            let data = CStr::from_ptr(data);
-
-            data
-        };
-
-        let data = data.to_str().unwrap();
-
-        match data.is_empty() {
-            false => Some(data),
-            true => None,
+            CStr::from_ptr(data)
         }
+        .to_str()
+        .ok()
+        .filter(|s| !s.is_empty())
+        .map(str::to_owned)
     }
 
     /// Returns the lobby metadata associated with the specified index
