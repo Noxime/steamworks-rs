@@ -5,11 +5,19 @@ pub use self::stat_callback::*;
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use steamworks_sys::EResult;
 
 /// Access to the steam user interface
 pub struct UserStats<Manager> {
     pub(crate) user_stats: *mut sys::ISteamUserStats,
     pub(crate) inner: Arc<Inner<Manager>>,
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+/// A handle that references UGC that is meant to be attached to a leaderboard entry
+pub struct LeaderboardUGC {
+    pub(crate) handle: UGCHandle_t,
 }
 
 const CALLBACK_BASE_ID: i32 = 1100;
@@ -153,6 +161,26 @@ impl<Manager> UserStats<Manager> {
         }
     }
 
+    pub fn attach_leaderboard_ugc<F>(&self,leaderboard_ugc: LeaderboardUGC, leaderboard: &Leaderboard, cb: F)
+    where F: FnOnce(Result<(),EResult>) + 'static + Send
+    {
+        unsafe {
+            let attach_ugc_result = sys::SteamAPI_ISteamUserStats_AttachLeaderboardUGC(self.user_stats, leaderboard.raw(), leaderboard_ugc.handle);
+
+            register_call_result::<sys::LeaderboardUGCSet_t,_,_>(&self.inner, attach_ugc_result, 1100+4, |a, b | {
+                // TODO(PRE FLIGHT CHECK): probably use this bool for something meaningful
+                match a.m_eResult {
+                    EResult::k_EResultOK => {
+                        cb(Ok(()))
+                    }
+                    err => {
+                        cb(Err(err));
+                    }
+                }
+            });
+        }
+    }
+
     pub fn download_leaderboard_entries<F>(
         &self,
         leaderboard: &Leaderboard,
@@ -213,6 +241,7 @@ impl<Manager> UserStats<Manager> {
                                 global_rank: entry.m_nGlobalRank,
                                 score: entry.m_nScore,
                                 details,
+                                ugc: entry.m_hUGC,
                             })
                         }
                         Ok(entries)
@@ -522,6 +551,7 @@ pub struct LeaderboardEntry {
     pub global_rank: i32,
     pub score: i32,
     pub details: Vec<i32>,
+    pub ugc: UGCHandle_t,
 }
 
 pub enum LeaderboardDataRequest {
