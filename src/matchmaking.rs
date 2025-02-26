@@ -201,6 +201,47 @@ impl<Manager> Matchmaking<Manager> {
         unsafe { sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr()) }
     }
 
+    /// Sets per-user metadata for the local user.
+    ///
+    /// Triggers a LobbyDataUpdate callback.
+    pub fn set_lobby_member_data(&self, lobby: LobbyId, key: &str, value: &str) {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_SetLobbyMemberData(
+                self.mm,
+                lobby.0,
+                key.as_ptr(),
+                value.as_ptr(),
+            )
+        }
+    }
+
+    /// Gets per-user metadata from another player in the specified lobby.
+    ///
+    /// This can only be queried from members in lobbies that you are currently in.
+    /// Returns None if lobby is invalid, user is not in the lobby, or key is not set.
+    pub fn get_lobby_member_data(
+        &self,
+        lobby: LobbyId,
+        user: SteamId,
+        key: &str,
+    ) -> Option<String> {
+        let key = CString::new(key).unwrap();
+        unsafe {
+            let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberData(
+                self.mm,
+                lobby.0,
+                user.0,
+                key.as_ptr(),
+            );
+            CStr::from_ptr(data)
+        }
+        .to_str()
+        .map(str::to_owned)
+        .ok()
+    }
+
     /// Exits the passed lobby
     pub fn leave_lobby(&self, lobby: LobbyId) {
         unsafe {
