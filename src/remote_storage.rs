@@ -1,6 +1,7 @@
 use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use steamworks_sys::{EResult, SteamAPICall_t, SteamAPI_ISteamRemoteStorage_UGCDownload};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage<Manager> {
@@ -27,6 +28,14 @@ impl From<sys::ERemoteStoragePublishedFileVisibility> for PublishedFileVisibilit
             _ => unreachable!(),
         }
     }
+}
+
+#[derive(Debug)]
+/// The outcome of downloading UGC from a leaderboard, this type is exclusively used for `ugc_read`
+pub struct LeaderboardUGCDownload {
+    file_name: String,
+    file_length: steamworks_sys::int32,
+    ugc_handle: UGCHandle_t,
 }
 
 impl Into<sys::ERemoteStoragePublishedFileVisibility> for PublishedFileVisibility {
@@ -56,6 +65,10 @@ impl<Manager> RemoteStorage<Manager> {
         unsafe {
             sys::SteamAPI_ISteamRemoteStorage_SetCloudEnabledForApp(self.rs, enabled);
         }
+    }
+
+    pub fn raw(&self) -> *mut sys::ISteamRemoteStorage {
+        self.rs
     }
 
     /// Returns whether the steam cloud is enabled for the application
@@ -98,6 +111,88 @@ impl<Manager> RemoteStorage<Manager> {
             files
         }
     }
+
+    pub fn download_ugc<F>(&self, leaderboard_entry: &LeaderboardEntry, cb: F)
+    where F: FnOnce(Result<LeaderboardUGCDownload, EResult>) + 'static + Send,{
+        // TODO(PRE FLIGHT CHECK): test this function as it has now been moved.
+        unsafe {
+
+            let ugc_handle = leaderboard_entry.ugc;
+
+            let res = SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs, ugc_handle, 1);
+
+            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, _b| {
+                let filename_cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
+                let filename_owned_string = filename_cstr.to_str().unwrap().to_string();
+
+                cb( // TODO: for some reason, `_b` can be true or false and still a good result type is received, the only reason I can seem to find is that the inner from client makes this work but the inner from remote storage makes it say it failed
+                    match a.m_eResult {
+                        EResult::k_EResultOK => {
+                            Ok(LeaderboardUGCDownload {
+                                file_length: a.m_nSizeInBytes,
+                                file_name: filename_owned_string,
+                                ugc_handle,
+                            })
+                        }
+                        _ => {
+                            Err(a.m_eResult)
+                        }
+                    }
+                );
+            });
+        }
+    }
+
+    pub fn ugc_read(&self, leaderboard_ugc_download: LeaderboardUGCDownload) -> String {
+        // TODO(PRE FLIGHT CHECK): test this function as it has now been moved.
+        unsafe {
+
+            let cstr = CString::new((0..leaderboard_ugc_download.file_name.len()).map(|val| 'a' as u8).collect::<Vec<_>>()).unwrap();
+
+            let _ = SteamAPI_ISteamRemoteStorage_UGCRead(self.rs, leaderboard_ugc_download.ugc_handle, cstr.as_ptr() as *mut c_void, leaderboard_ugc_download.file_length, 0, EUGCReadAction::k_EUGCRead_ContinueReadingUntilFinished);
+
+            cstr.into_string().unwrap()
+        }
+    }
+
+
+    pub fn file_share<F>(&self,file_name: impl Into<String>, file_content: impl Into<String> ,cb: F) -> bool // TODO: Into<String> might not be the best type here, not sure yet
+    where F: FnOnce(Result<LeaderboardUGC, EResult>) + 'static + Send, {
+        unsafe {
+
+            // TODO: maybe replace these with enum error types and change the function signature to output a result as well instead of a boolean?
+            let Ok(str) = CString::new(file_name.into().as_bytes().to_vec()) else {
+                return false;
+            };
+
+            let Ok(str_content) = CString::new(file_content.into()) else {
+                return false;
+            };
+
+            let file_write_successful = sys::SteamAPI_ISteamRemoteStorage_FileWrite(self.raw(), str.as_ptr(), str_content.as_ptr() as *const c_void, str_content.as_bytes().len() as i32);
+
+            if file_write_successful {
+                let file_share_result = sys::SteamAPI_ISteamRemoteStorage_FileShare(self.raw(), str.as_ptr());
+
+                register_call_result::<sys::RemoteStorageFileShareResult_t,_,_>(&self.inner, file_share_result, 1100+4, move |a, b| {
+
+                    match a.m_eResult {
+                        EResult::k_EResultOK => {
+                            cb(Ok(LeaderboardUGC{handle: a.m_hFile}));
+                        }
+                        err => {
+                            cb(Err(err))
+                        }
+                    }
+                });
+            }
+
+            file_write_successful
+        }
+
+    }
+
+
 
     /// Returns a handle to a steam cloud file
     ///
