@@ -121,16 +121,23 @@ impl<Manager> RemoteStorage<Manager> {
 
             let res = SteamAPI_ISteamRemoteStorage_UGCDownload(self.rs, ugc_handle, 1);
 
-            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, b| {
+            register_call_result::<sys::RemoteStorageDownloadUGCResult_t, _, _>(&self.inner, res, 1100 + 4, move |a, _b| {
                 let filename_cstr = CStr::from_ptr(a.m_pchFileName.as_ptr());
                 let filename_owned_string = filename_cstr.to_str().unwrap().to_string();
 
-                cb(
-                    if b { Ok(LeaderboardUGCDownload {
-                        file_length: a.m_nSizeInBytes,
-                        file_name: filename_owned_string,
-                        ugc_handle,
-                    })} else { Err(a.m_eResult) }
+                cb( // TODO: for some reason, `_b` can be true or false and still a good result type is received, the only reason I can seem to find is that the inner from client makes this work but the inner from remote storage makes it say it failed
+                    match a.m_eResult {
+                        EResult::k_EResultOK => {
+                            Ok(LeaderboardUGCDownload {
+                                file_length: a.m_nSizeInBytes,
+                                file_name: filename_owned_string,
+                                ugc_handle,
+                            })
+                        }
+                        _ => {
+                            Err(a.m_eResult)
+                        }
+                    }
                 );
             });
         }

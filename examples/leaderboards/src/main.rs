@@ -44,14 +44,14 @@ fn main() {
         let entry_clone = entry.clone();
         let file_content = {
             let ugc_result = process_client_callback(&client, move |client, sender| {
-                client.remote_storage().download_ugc(&entry_clone, move |file_content| {
+                client.remote_storage().download_ugc(&entry, move |file_content| {
                     sender.send(file_content).unwrap();
                 });
             }).unwrap();
 
             client.remote_storage().ugc_read(ugc_result)
         };
-        println!("ID: {:?},Score: {},UGC_handle: {:?},File content: {}", entry.user, entry.score, entry.ugc, file_content);
+        println!("ID: {:?},Score: {},UGC_handle: {:?},File content: {}", entry_clone.user, entry_clone.score, entry_clone.ugc, file_content);
     }
 
     // create a thread for callbacks
