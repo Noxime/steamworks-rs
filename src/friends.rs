@@ -316,6 +316,32 @@ unsafe impl Callback for GameLobbyJoinRequested {
     }
 }
 
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GameRichPresenceJoinRequested {
+    /// If you are joining a friend/being invited from a friend, this `SteamId` will be of said friend.
+    /// If it's not coming from a friend, this `SteamId` will be invalid, which you can check with the `.is_invalid()`
+    /// method.
+    pub friend_steam_id: SteamId,
+    /// the connect string, holding custom data to join a game or friend
+    pub connect: String,
+}
+
+unsafe impl Callback for GameRichPresenceJoinRequested {
+    const ID: i32 = CALLBACK_BASE_ID + 37;
+    const SIZE: i32 = ::std::mem::size_of::<sys::GameRichPresenceJoinRequested_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::GameRichPresenceJoinRequested_t);
+        // transmute from &[i8] to &[u8] because c_char in C is signed.
+        let connect_bytes: &[u8] = std::mem::transmute(&val.m_rgchConnect as &[i8]);
+        GameRichPresenceJoinRequested {
+            friend_steam_id: SteamId(val.m_steamIDFriend.m_steamid.m_unAll64Bits),
+            connect: String::from_utf8_lossy(&connect_bytes).trim().to_string(),
+        }
+    }
+}
+
 pub struct Friend<Manager> {
     id: SteamId,
     friends: *mut sys::ISteamFriends,
