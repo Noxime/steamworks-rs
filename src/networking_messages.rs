@@ -24,7 +24,7 @@
 //! (See k_ESteamNetworkingConfig_SymmetricConnect.)
 // TODO: examples here
 use crate::networking_types::{
-    NetConnectionInfo, NetworkingIdentity, NetworkingMessage, SendFlags,
+    NetConnectionInfo, NetConnectionRealTimeInfo, NetworkingConnectionState, NetworkingIdentity, NetworkingMessage, SendFlags
 };
 use crate::{register_callback, Callback, Inner, SteamError};
 use std::ffi::c_void;
@@ -217,6 +217,59 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
                 },
             );
         }
+    }
+
+    /// Get information about the status of a connection to a remote host.
+    ///
+    /// This provides information about the connection, such as whether it's currently
+    /// connected, attempting to connect, etc., as well as some statistics about the
+    /// connection quality if available.
+    ///
+    /// Returns the current connection state, along with detailed connection info and
+    /// real-time status (if avaliable).
+    pub fn get_session_connection_info(
+        &self,
+        identity_remote: &NetworkingIdentity,
+    ) -> (
+        NetworkingConnectionState,
+        Option<NetConnectionInfo>,
+        Option<NetConnectionRealTimeInfo>,
+    ) {
+        let mut connection_info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
+        let mut quick_status: sys::SteamNetConnectionRealTimeStatus_t =
+            unsafe { std::mem::zeroed() };
+
+        let state = unsafe {
+            sys::SteamAPI_ISteamNetworkingMessages_GetSessionConnectionInfo(
+                self.net,
+                identity_remote.as_ptr(),
+                &mut connection_info,
+                &mut quick_status,
+            )
+        };
+
+        let state = match NetworkingConnectionState::try_from(state) {
+            Ok(state) => state,
+            Err(_) => NetworkingConnectionState::None,
+        };
+
+        let connection_info = if state != NetworkingConnectionState::None {
+            Some(NetConnectionInfo {
+                inner: connection_info,
+            })
+        } else {
+            None
+        };
+
+        let quick_status = if state != NetworkingConnectionState::None {
+            Some(NetConnectionRealTimeInfo {
+                inner: quick_status,
+            })
+        } else {
+            None
+        };
+
+        (state, connection_info, quick_status)
     }
 }
 
