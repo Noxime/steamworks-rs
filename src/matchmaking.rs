@@ -1064,6 +1064,30 @@ unsafe impl Callback for LobbyChatUpdate {
     }
 }
 
+/// Result of our request to create a Lobby. At this point, the lobby has been joined and is ready for use, a LobbyEnter_t callback will also be received (since the local user is joining their own lobby).
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyCreated {
+    /// The result of the operation (EResult). Possible values: k_EResultOK, k_EResultFail, k_EResultTimeout, k_EResultLimitExceeded, k_EResultAccessDenied, k_EResultNoConnection
+    pub result: u32,
+    /// The Steam ID of the lobby that was created, 0 if failed.
+    pub lobby: LobbyId,
+}
+
+unsafe impl Callback for LobbyCreated {
+    const ID: i32 = 513;
+    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyCreated_t>() as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyCreated_t);
+
+        LobbyCreated {
+            result: val.m_eResult as u32,
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+        }
+    }
+}
+
 /// The lobby metadata has changed.
 /// If m_ulSteamIDMember is a user in the lobby, then use GetLobbyMemberData to access per-user details; otherwise, if m_ulSteamIDMember == m_ulSteamIDLobby, use GetLobbyData to access the lobby metadata.
 #[derive(Clone, Debug)]
