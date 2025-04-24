@@ -2,8 +2,6 @@
 extern crate thiserror;
 #[macro_use]
 extern crate bitflags;
-#[macro_use]
-extern crate lazy_static;
 
 use screenshots::Screenshots;
 #[cfg(feature = "raw-bindings")]
