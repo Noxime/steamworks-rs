@@ -412,6 +412,7 @@ impl Into<sys::EItemStatistic> for UGCStatisticType {
 }
 
 bitflags! {
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct ItemState: u32 {
         const NONE = 0;
         const SUBSCRIBED = 1;
