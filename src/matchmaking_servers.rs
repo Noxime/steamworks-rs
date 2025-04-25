@@ -17,7 +17,7 @@ macro_rules! matchmaking_servers_callback {
         paste::item! {
             $(
                 #[allow(unused_variables)]
-                extern fn [<$name:lower _ $fn_name _virtual>]($self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
+                extern "C" fn [<$name:lower _ $fn_name _virtual>]($self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
                     unsafe {
                         $(
                             #[allow(unused_parens)]
@@ -59,7 +59,7 @@ macro_rules! matchmaking_servers_callback {
             #[repr(C)]
             struct [<$name CallbacksVirtual>] {
                 $(
-                    pub $fn_name: extern fn(*mut [<$name CallbacksReal>] $(, $cpp_fn_arg)*)
+                    pub $fn_name: extern "C" fn(*mut [<$name CallbacksReal>] $(, $cpp_fn_arg)*)
                 ),*
             }
 
