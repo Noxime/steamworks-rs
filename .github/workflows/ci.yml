@@ -51,7 +51,7 @@ jobs:
           RUSTFLAGS: "-C debuginfo=0"
 
       - uses: actions-rs/cargo@v1
-        if: runner.toolchain in ['stable', 'nightly']
+        if: ${{ matrix.toolchain }}== ['stable', 'nightly']
         with:
           command: build
           args: --examples
