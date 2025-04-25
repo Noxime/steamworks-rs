@@ -221,7 +221,7 @@ impl Client {
     /// Runs any currently pending callbacks.
     ///
     /// This is identical to `run_callbacks` in every way, except that
-    /// `callback_handler` is called for every callback invoked. 
+    /// `callback_handler` is called for every callback invoked.
     ///
     /// This option provides an alternative for handling callbacks that
     /// can doesn't require the handler to be `Send`, and `'static`.
@@ -286,11 +286,11 @@ impl Client {
     ///
     /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
-    /// 
+    ///
     /// If the callback handler cannot be made `Send` or `'static`
     /// the call to [`run_callbacks`] should be replaced with a call to
     /// [`process_callbacks`] instead.
-    /// 
+    ///
     /// [`run_callbacks`]: Self::run_callbacks
     /// [`process_callbacks`]: Self::proceses_callbacks
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
