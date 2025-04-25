@@ -88,6 +88,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .default_enum_style(bindgen::EnumVariation::Rust {
                 non_exhaustive: true,
             })
+            .derive_default(true)
             .generate()
             .expect("Unable to generate bindings");
 

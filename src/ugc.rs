@@ -1577,7 +1577,7 @@ impl<'a> QueryResults<'a> {
 
     /// Gets UGCContentDescriptors of the published file at the specified index.
     pub fn content_descriptor(&self, index: u32) -> Vec<UGCContentDescriptorID> {
-        let mut descriptors: [sys::EUGCContentDescriptorID; 10] = unsafe { std::mem::zeroed() };
+        let mut descriptors = [sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent; 10];
         let max_entries = descriptors.len() as std::ffi::c_uint;
 
         let num_descriptors = unsafe {
@@ -1604,8 +1604,9 @@ impl<'a> QueryResults<'a> {
             return None;
         }
 
+        let mut raw_details = sys::SteamUGCDetails_t::default();
+
         unsafe {
-            let mut raw_details: sys::SteamUGCDetails_t = mem::zeroed();
             let ok = sys::SteamAPI_ISteamUGC_GetQueryUGCResult(
                 self.ugc,
                 self.handle,

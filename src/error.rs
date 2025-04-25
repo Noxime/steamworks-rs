@@ -2,10 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{lossy_string_from_cstr, sys};
-use std::{
-    convert::TryFrom,
-    ffi::{c_char, CStr},
-};
+use std::convert::TryFrom;
 
 /// Covers errors that can be returned by the steamworks API
 ///

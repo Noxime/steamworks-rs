@@ -236,7 +236,7 @@ impl<Manager> std::io::Read for SteamFileReader<Manager> {
             if failed {
                 return Err(std::io::ErrorKind::Other.into());
             }
-            let mut callback: sys::RemoteStorageFileReadAsyncComplete_t = std::mem::zeroed();
+            let mut callback = sys::RemoteStorageFileReadAsyncComplete_t::default();
             sys::SteamAPI_ISteamUtils_GetAPICallResult(
                 self.file.util,
                 api_call,

@@ -4,6 +4,7 @@ extern crate thiserror;
 extern crate bitflags;
 
 use screenshots::Screenshots;
+use steamworks_sys::CallbackMsg_t;
 #[cfg(feature = "raw-bindings")]
 pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
@@ -219,10 +220,11 @@ where
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
+        let mut callback = CallbackMsg_t::default();
+
         unsafe {
             let pipe = Manager::get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
-            let mut callback = std::mem::zeroed();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
                 let mut callbacks = self.inner.callbacks.lock().unwrap();
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {

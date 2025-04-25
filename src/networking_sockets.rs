@@ -275,7 +275,8 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     pub fn get_authentication_status(
         &self,
     ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
-        let mut details: sys::SteamNetAuthenticationStatus_t = unsafe { std::mem::zeroed() };
+        let mut details = sys::SteamNetAuthenticationStatus_t::default();
+
         let auth = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetAuthenticationStatus(
                 self.sockets,
@@ -293,7 +294,8 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         &self,
         connection: &NetConnection<Manager>,
     ) -> Result<NetConnectionInfo, bool> {
-        let mut info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
+        let mut info = sys::SteamNetConnectionInfo_t::default();
+
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
                 self.sockets,
@@ -301,6 +303,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
                 &mut info,
             )
         };
+
         if was_successful {
             Ok(NetConnectionInfo { inner: info })
         } else {
@@ -324,7 +327,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         ),
         SteamError,
     > {
-        let mut info: sys::SteamNetConnectionRealTimeStatus_t = unsafe { std::mem::zeroed() };
+        let mut info = sys::SteamNetConnectionRealTimeStatus_t::default();
         let mut p_lanes: Vec<sys::SteamNetConnectionRealTimeLaneStatus_t> =
             Vec::with_capacity(lanes as usize);
         let result = unsafe {
