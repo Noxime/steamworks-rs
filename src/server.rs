@@ -505,15 +505,17 @@ fn test() {
 struct ServerManager;
 
 impl Manager for ServerManager {
-    unsafe fn get_pipe(&self) -> sys::HSteamPipe {
-        sys::SteamGameServer_GetHSteamPipe()
+    fn get_pipe(&self) -> sys::HSteamPipe {
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call from any thread.
+        unsafe { sys::SteamGameServer_GetHSteamPipe() }
     }
 }
 
 impl Drop for ServerManager {
     fn drop(&mut self) {
-        unsafe {
-            sys::SteamGameServer_Shutdown();
-        }
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call from any thread.
+        unsafe { sys::SteamGameServer_Shutdown() }
     }
 }

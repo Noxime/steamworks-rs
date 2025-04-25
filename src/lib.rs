@@ -110,11 +110,6 @@ struct NetworkingSocketsData {
     connection_callback: Weak<CallbackHandle>,
 }
 
-unsafe impl Send for Inner {}
-unsafe impl Sync for Inner {}
-unsafe impl Send for Client {}
-unsafe impl Sync for Client {}
-
 /// Returns true if the app wasn't launched through steam and
 /// begins relaunching it, the app should exit as soon as possible.
 ///
@@ -471,24 +466,26 @@ impl Client {
 }
 
 /// Used to separate client and game server modes
-trait Manager {
-    unsafe fn get_pipe(&self) -> sys::HSteamPipe;
+trait Manager: Send + Sync {
+    fn get_pipe(&self) -> sys::HSteamPipe;
 }
 
 /// Manages keeping the steam api active for clients
 struct ClientManager;
 
 impl Manager for ClientManager {
-    unsafe fn get_pipe(&self) -> sys::HSteamPipe {
-        sys::SteamAPI_GetHSteamPipe()
+    fn get_pipe(&self) -> sys::HSteamPipe {
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call.
+        unsafe { sys::SteamAPI_GetHSteamPipe() }
     }
 }
 
 impl Drop for ClientManager {
     fn drop(&mut self) {
-        unsafe {
-            sys::SteamAPI_Shutdown();
-        }
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call from any thread.
+        unsafe { sys::SteamAPI_Shutdown() }
     }
 }
 

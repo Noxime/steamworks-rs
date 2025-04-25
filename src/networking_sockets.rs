@@ -398,9 +398,6 @@ pub struct ListenSocket {
     receiver: Receiver<ListenSocketEvent>,
 }
 
-unsafe impl Send for ListenSocket {}
-unsafe impl Sync for ListenSocket {}
-
 impl ListenSocket {
     pub(crate) fn new(
         handle: sys::HSteamListenSocket,
@@ -511,6 +508,9 @@ pub(crate) struct InnerSocket {
     pub(crate) handle: sys::HSteamListenSocket,
     pub(crate) inner: Arc<Inner>,
 }
+
+unsafe impl Send for InnerSocket {}
+unsafe impl Sync for InnerSocket {}
 
 impl Drop for InnerSocket {
     fn drop(&mut self) {
