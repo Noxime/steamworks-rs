@@ -419,8 +419,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 32);
-            assert_eq!(height, 32);
             let mut dest = vec![0; 32 * 32 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 32 * 32 * 4) {
                 return None;
@@ -442,8 +440,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 64);
-            assert_eq!(height, 64);
             let mut dest = vec![0; 64 * 64 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
                 return None;
@@ -465,8 +461,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 184);
-            assert_eq!(height, 184);
             let mut dest = vec![0; 184 * 184 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4)
             {
