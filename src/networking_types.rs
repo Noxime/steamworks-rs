@@ -27,6 +27,7 @@ impl From<MessageNumber> for u64 {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct SendFlags: i32 {
         const UNRELIABLE = sys::k_nSteamNetworkingSend_Unreliable;
         const NO_NAGLE = sys::k_nSteamNetworkingSend_NoNagle;

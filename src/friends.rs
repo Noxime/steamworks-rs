@@ -6,6 +6,7 @@ const CALLBACK_BASE_ID: i32 = 300;
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct FriendFlags: u16 {
         const NONE                  = 0x0000;
         const BLOCKED               = 0x0001;
@@ -28,6 +29,7 @@ bitflags! {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct PersonaChange: i32 {
         const NAME                = 0x0001;
         const STATUS              = 0x0002;
@@ -49,6 +51,7 @@ bitflags! {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     /// see [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#EUserRestriction)
     pub struct UserRestriction: u32 {
         /// No known chat/content restriction.

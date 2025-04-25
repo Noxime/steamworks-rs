@@ -13,7 +13,7 @@ jobs:
         toolchain: [stable, nightly, "1.73.0"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: actions-rs/toolchain@v1
         id: toolchain
@@ -28,7 +28,7 @@ jobs:
         if: runner.os == 'linux'
 
       - name: Setup cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -45,7 +45,16 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all
+          args: --lib
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-C debuginfo=0"
+
+      - uses: actions-rs/cargo@v1
+        if: ${{ matrix.toolchain }}== ['stable', 'nightly']
+        with:
+          command: build
+          args: --examples
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"
