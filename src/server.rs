@@ -10,7 +10,7 @@ use std::net::Ipv4Addr;
 /// servers can use.
 #[derive(Clone)]
 pub struct Server {
-    inner: Arc<Inner<ServerManager>>,
+    inner: Arc<Inner>,
     server: *mut sys::ISteamGameServer,
 }
 
@@ -100,7 +100,7 @@ impl Server {
         query_port: u16,
         server_mode: ServerMode,
         version: &str,
-    ) -> SIResult<(Server, Client<ServerManager>)> {
+    ) -> SIResult<(Server, Client)> {
         unsafe {
             let version = CString::new(version).unwrap();
 
@@ -132,7 +132,7 @@ impl Server {
             sys::SteamAPI_ManualDispatch_Init();
             let server_raw = sys::SteamAPI_SteamGameServer_v015();
             let server = Arc::new(Inner {
-                _manager: ServerManager { _priv: () },
+                manager: Box::new(ServerManager),
                 callbacks: Mutex::new(Callbacks {
                     callbacks: HashMap::new(),
                     call_results: HashMap::new(),
@@ -158,7 +158,7 @@ impl Server {
     ///
     /// The callback will be run on the thread that `run_callbacks`
     /// is called when the event arrives.
-    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<ServerManager>
+    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,
         F: FnMut(C) + 'static + Send,
@@ -425,7 +425,7 @@ impl Server {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
-    pub fn ugc(&self) -> UGC<ServerManager> {
+    pub fn ugc(&self) -> UGC {
         unsafe {
             let ugc = sys::SteamAPI_SteamGameServerUGC_v020();
             debug_assert!(!ugc.is_null());
@@ -438,7 +438,7 @@ impl Server {
 
     /* TODO: Buggy currently?
     /// Returns an accessor to the steam apps interface
-    pub fn apps(&self) -> Apps<ServerManager> {
+    pub fn apps(&self) -> Apps {
         unsafe {
             let apps = sys::steam_rust_get_server_apps();
             debug_assert!(!apps.is_null());
@@ -502,12 +502,10 @@ fn test() {
 }
 
 /// Manages keeping the steam api active for servers
-pub struct ServerManager {
-    _priv: (),
-}
+struct ServerManager;
 
-unsafe impl Manager for ServerManager {
-    unsafe fn get_pipe() -> sys::HSteamPipe {
+impl Manager for ServerManager {
+    unsafe fn get_pipe(&self) -> sys::HSteamPipe {
         sys::SteamGameServer_GetHSteamPipe()
     }
 }

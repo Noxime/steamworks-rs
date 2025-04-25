@@ -438,12 +438,12 @@ impl ServerListRequest {
 }
 
 /// Access to the steam MatchmakingServers interface
-pub struct MatchmakingServers<Manager> {
+pub struct MatchmakingServers {
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> MatchmakingServers<Manager> {
+impl MatchmakingServers {
     pub fn ping_server(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: PingCallbacks) {
         unsafe {
             let callbacks = create_ping(callbacks);

@@ -13,19 +13,12 @@ pub unsafe trait Callback {
 /// at a later point.
 ///
 /// Removes the callback from the Steam API context when dropped.
-pub struct CallbackHandle<Manager = ClientManager> {
+pub struct CallbackHandle {
     id: i32,
-    inner: Weak<Inner<Manager>>,
+    inner: Weak<Inner>,
 }
 
-// SAFETY: All operations do not interact with the actual Manager type and are
-// otherwise respect Rust's aliasing rules
-unsafe impl<Manager> Send for CallbackHandle<Manager> {}
-// SAFETY: All operations do not interact with the actual Manager type and are
-// otherwise respect Rust's aliasing rules
-unsafe impl<Manager> Sync for CallbackHandle<Manager> {}
-
-impl<Manager> Drop for CallbackHandle<Manager> {
+impl Drop for CallbackHandle {
     fn drop(&mut self) {
         if let Some(inner) = self.inner.upgrade() {
             match inner.callbacks.lock() {
@@ -40,10 +33,7 @@ impl<Manager> Drop for CallbackHandle<Manager> {
     }
 }
 
-pub(crate) unsafe fn register_callback<C, F, Manager>(
-    inner: &Arc<Inner<Manager>>,
-    mut f: F,
-) -> CallbackHandle<Manager>
+pub(crate) unsafe fn register_callback<C, F>(inner: &Arc<Inner>, mut f: F) -> CallbackHandle
 where
     C: Callback,
     F: FnMut(C) + Send + 'static,
@@ -64,8 +54,8 @@ where
     }
 }
 
-pub(crate) unsafe fn register_call_result<C, F, Manager>(
-    inner: &Arc<Inner<Manager>>,
+pub(crate) unsafe fn register_call_result<C, F>(
+    inner: &Arc<Inner>,
     api_call: sys::SteamAPICall_t,
     _callback_id: i32,
     f: F,

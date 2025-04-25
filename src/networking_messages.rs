@@ -33,15 +33,15 @@ use std::sync::{Arc, Weak};
 use steamworks_sys as sys;
 
 /// Access to the steam networking messages interface
-pub struct NetworkingMessages<Manager> {
+pub struct NetworkingMessages {
     pub(crate) net: *mut sys::ISteamNetworkingMessages,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-unsafe impl<Manager> Sync for NetworkingMessages<Manager> {}
-unsafe impl<Manager> Send for NetworkingMessages<Manager> {}
+unsafe impl Sync for NetworkingMessages {}
+unsafe impl Send for NetworkingMessages {}
 
-impl<Manager: 'static> NetworkingMessages<Manager> {
+impl NetworkingMessages {
     /// Sends a message to the specified host.
     ///
     /// If we don't already have a session with that user, a session is implicitly created.
@@ -135,7 +135,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
         &self,
         channel: u32,
         batch_size: usize,
-    ) -> Vec<NetworkingMessage<Manager>> {
+    ) -> Vec<NetworkingMessage> {
         let mut buffer = Vec::with_capacity(batch_size);
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingMessages_ReceiveMessagesOnChannel(
@@ -183,7 +183,7 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
     /// ```
     pub fn session_request_callback(
         &self,
-        mut callback: impl FnMut(SessionRequest<Manager>) + Send + 'static,
+        mut callback: impl FnMut(SessionRequest) + Send + 'static,
     ) {
         let builder = SessionRequestBuilder {
             message: self.net,
@@ -223,17 +223,17 @@ impl<Manager: 'static> NetworkingMessages<Manager> {
 /// A helper for creating SessionRequests.
 ///
 /// It's Send and Sync, so it can be moved into the callback.
-struct SessionRequestBuilder<Manager> {
+struct SessionRequestBuilder {
     message: *mut sys::ISteamNetworkingMessages,
     // Once the builder is in the callback, it creates a cyclic reference, so this has to be Weak
-    inner: Weak<Inner<Manager>>,
+    inner: Weak<Inner>,
 }
 
-unsafe impl<Manager> Sync for SessionRequestBuilder<Manager> {}
-unsafe impl<Manager> Send for SessionRequestBuilder<Manager> {}
+unsafe impl Send for SessionRequestBuilder {}
+unsafe impl Sync for SessionRequestBuilder {}
 
-impl<Manager> SessionRequestBuilder<Manager> {
-    pub fn build_request(&self, remote: NetworkingIdentity) -> Option<SessionRequest<Manager>> {
+impl SessionRequestBuilder {
+    pub fn build_request(&self, remote: NetworkingIdentity) -> Option<SessionRequest> {
         self.inner.upgrade().map(|inner| SessionRequest {
             remote,
             messages: self.message,
@@ -275,20 +275,20 @@ unsafe impl Callback for NetworkingMessagesSessionFailed {
 ///
 /// Use this to accept or reject the connection.
 /// Letting this struct go out of scope will reject the connection.
-pub struct SessionRequest<Manager> {
+pub struct SessionRequest {
     remote: NetworkingIdentity,
     messages: *mut sys::ISteamNetworkingMessages,
     /// Keep track if connection should be rejected on drop
     // This is used instead of `std::mem::forget` to properly clean up other
     // resources. Is it even wise to automatically reject the connection?
     accepted: bool,
-    _inner: Arc<Inner<Manager>>,
+    _inner: Arc<Inner>,
 }
 
-unsafe impl<Manager> Sync for SessionRequest<Manager> {}
-unsafe impl<Manager> Send for SessionRequest<Manager> {}
+unsafe impl Sync for SessionRequest {}
+unsafe impl Send for SessionRequest {}
 
-impl<Manager> SessionRequest<Manager> {
+impl SessionRequest {
     /// The remote peer requesting the connection.
     pub fn remote(&self) -> &NetworkingIdentity {
         &self.remote
@@ -321,7 +321,7 @@ impl<Manager> SessionRequest<Manager> {
     }
 }
 
-impl<Manager> Drop for SessionRequest<Manager> {
+impl Drop for SessionRequest {
     fn drop(&mut self) {
         if !self.accepted {
             self.reject_inner();
