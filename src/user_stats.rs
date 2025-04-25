@@ -19,8 +19,8 @@ impl<Manager> UserStats<Manager> {
     where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
+        let name = CString::new(name).unwrap();
         unsafe {
-            let name = CString::new(name).unwrap();
             let api_call = sys::SteamAPI_ISteamUserStats_FindLeaderboard(
                 self.user_stats,
                 name.as_ptr() as *const _,
@@ -53,30 +53,29 @@ impl<Manager> UserStats<Manager> {
     ) where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
+        let name = CString::new(name).unwrap();
+
+        let sort_method = match sort_method {
+            LeaderboardSortMethod::Ascending => {
+                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending
+            }
+            LeaderboardSortMethod::Descending => {
+                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending
+            }
+        };
+
+        let display_type = match display_type {
+            LeaderboardDisplayType::Numeric => {
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric
+            }
+            LeaderboardDisplayType::TimeSeconds => {
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds
+            }
+            LeaderboardDisplayType::TimeMilliSeconds => {
+                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds
+            }
+        };
         unsafe {
-            let name = CString::new(name).unwrap();
-
-            let sort_method = match sort_method {
-                LeaderboardSortMethod::Ascending => {
-                    sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending
-                }
-                LeaderboardSortMethod::Descending => {
-                    sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending
-                }
-            };
-
-            let display_type = match display_type {
-                LeaderboardDisplayType::Numeric => {
-                    sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric
-                }
-                LeaderboardDisplayType::TimeSeconds => {
-                    sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds
-                }
-                LeaderboardDisplayType::TimeMilliSeconds => {
-                    sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds
-                }
-            };
-
             let api_call = sys::SteamAPI_ISteamUserStats_FindOrCreateLeaderboard(
                 self.user_stats,
                 name.as_ptr() as *const _,
@@ -112,15 +111,15 @@ impl<Manager> UserStats<Manager> {
     ) where
         F: FnOnce(Result<Option<LeaderboardScoreUploaded>, SteamError>) + 'static + Send,
     {
+        let method = match method {
+            UploadScoreMethod::KeepBest => {
+                sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodKeepBest
+            }
+            UploadScoreMethod::ForceUpdate => {
+                sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodForceUpdate
+            }
+        };
         unsafe {
-            let method = match method {
-                UploadScoreMethod::KeepBest => {
-                    sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodKeepBest
-                }
-                UploadScoreMethod::ForceUpdate => {
-                    sys::ELeaderboardUploadScoreMethod::k_ELeaderboardUploadScoreMethodForceUpdate
-                }
-            };
             let api_call = sys::SteamAPI_ISteamUserStats_UploadLeaderboardScore(
                 self.user_stats,
                 leaderboard.0,
@@ -164,18 +163,19 @@ impl<Manager> UserStats<Manager> {
     ) where
         F: FnOnce(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send,
     {
+        let request = match request {
+            LeaderboardDataRequest::Global => {
+                sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobal
+            }
+            LeaderboardDataRequest::GlobalAroundUser => {
+                sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobalAroundUser
+            }
+            LeaderboardDataRequest::Friends => {
+                sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestFriends
+            }
+        };
+        let user_stats = self.user_stats as isize;
         unsafe {
-            let request = match request {
-                LeaderboardDataRequest::Global => {
-                    sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobal
-                }
-                LeaderboardDataRequest::GlobalAroundUser => {
-                    sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestGlobalAroundUser
-                }
-                LeaderboardDataRequest::Friends => {
-                    sys::ELeaderboardDataRequest::k_ELeaderboardDataRequestFriends
-                }
-            };
             let api_call = sys::SteamAPI_ISteamUserStats_DownloadLeaderboardEntries(
                 self.user_stats,
                 leaderboard.0,
@@ -183,7 +183,6 @@ impl<Manager> UserStats<Manager> {
                 start as _,
                 end as _,
             );
-            let user_stats = self.user_stats as isize;
             register_call_result::<sys::LeaderboardScoresDownloaded_t, _, _>(
                 &self.inner,
                 api_call,
@@ -227,22 +226,20 @@ impl<Manager> UserStats<Manager> {
         &self,
         leaderboard: &Leaderboard,
     ) -> Option<LeaderboardDisplayType> {
-        unsafe {
-            match sys::SteamAPI_ISteamUserStats_GetLeaderboardDisplayType(
-                self.user_stats,
-                leaderboard.0,
-            ) {
-                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric => {
-                    Some(LeaderboardDisplayType::Numeric)
-                }
-                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds => {
-                    Some(LeaderboardDisplayType::TimeSeconds)
-                }
-                sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds => {
-                    Some(LeaderboardDisplayType::TimeMilliSeconds)
-                }
-                _ => None,
+        let display_type = unsafe {
+            sys::SteamAPI_ISteamUserStats_GetLeaderboardDisplayType(self.user_stats, leaderboard.0)
+        };
+        match display_type {
+            sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeNumeric => {
+                Some(LeaderboardDisplayType::Numeric)
             }
+            sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeSeconds => {
+                Some(LeaderboardDisplayType::TimeSeconds)
+            }
+            sys::ELeaderboardDisplayType::k_ELeaderboardDisplayTypeTimeMilliSeconds => {
+                Some(LeaderboardDisplayType::TimeMilliSeconds)
+            }
+            _ => None,
         }
     }
 
@@ -251,30 +248,26 @@ impl<Manager> UserStats<Manager> {
         &self,
         leaderboard: &Leaderboard,
     ) -> Option<LeaderboardSortMethod> {
-        unsafe {
-            match sys::SteamAPI_ISteamUserStats_GetLeaderboardSortMethod(
-                self.user_stats,
-                leaderboard.0,
-            ) {
-                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending => {
-                    Some(LeaderboardSortMethod::Ascending)
-                }
-                sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending => {
-                    Some(LeaderboardSortMethod::Descending)
-                }
-                _ => None,
+        let sort_method = unsafe {
+            sys::SteamAPI_ISteamUserStats_GetLeaderboardSortMethod(self.user_stats, leaderboard.0)
+        };
+        match sort_method {
+            sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodAscending => {
+                Some(LeaderboardSortMethod::Ascending)
             }
+            sys::ELeaderboardSortMethod::k_ELeaderboardSortMethodDescending => {
+                Some(LeaderboardSortMethod::Descending)
+            }
+            _ => None,
         }
     }
 
     /// Returns the name of a leaderboard handle. Returns an empty string if the leaderboard handle is invalid.
     pub fn get_leaderboard_name(&self, leaderboard: &Leaderboard) -> String {
         unsafe {
-            let name = CStr::from_ptr(sys::SteamAPI_ISteamUserStats_GetLeaderboardName(
-                self.user_stats,
-                leaderboard.0,
-            ));
-            name.to_string_lossy().into()
+            let name =
+                sys::SteamAPI_ISteamUserStats_GetLeaderboardName(self.user_stats, leaderboard.0);
+            lossy_string_from_cstr(name)
         }
     }
 

@@ -90,8 +90,7 @@ impl<Manager> Friends<Manager> {
     pub fn name(&self) -> String {
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetPersonaName(self.friends);
-            let name = CStr::from_ptr(name);
-            name.to_string_lossy().into_owned()
+            lossy_string_from_cstr(name)
         }
     }
 
@@ -174,16 +173,16 @@ impl<Manager> Friends<Manager> {
         app_id: AppId,
         overlay_to_store_flag: OverlayToStoreFlag,
     ) {
+        let overlay_to_store_flag = match overlay_to_store_flag {
+            OverlayToStoreFlag::None => sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_None,
+            OverlayToStoreFlag::AddToCart => {
+                sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCart
+            }
+            OverlayToStoreFlag::AddToCartAndShow => {
+                sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCartAndShow
+            }
+        };
         unsafe {
-            let overlay_to_store_flag = match overlay_to_store_flag {
-                OverlayToStoreFlag::None => sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_None,
-                OverlayToStoreFlag::AddToCart => {
-                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCart
-                }
-                OverlayToStoreFlag::AddToCartAndShow => {
-                    sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCartAndShow
-                }
-            };
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToStore(
                 self.friends,
                 app_id.0,
@@ -213,10 +212,10 @@ impl<Manager> Friends<Manager> {
     /// Set rich presence for the user. Unsets the rich presence if `value` is None or empty.
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
     pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
+        // Unwraps are infallible because Rust strs cannot contain null bytes
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value.unwrap_or_default()).unwrap();
         unsafe {
-            // Unwraps are infallible because Rust strs cannot contain null bytes
-            let key = CString::new(key).unwrap();
-            let value = CString::new(value.unwrap_or_default()).unwrap();
             sys::SteamAPI_ISteamFriends_SetRichPresence(
                 self.friends,
                 key.as_ptr() as *const _,
@@ -237,10 +236,8 @@ impl<Manager> Friends<Manager> {
     /// A chat restricted user can't add friends or join any groups.
     /// Restricted users can still be online and send/receive game invites.
     pub fn get_user_restrictions(&self) -> UserRestriction {
-        unsafe {
-            let restrictions = sys::SteamAPI_ISteamFriends_GetUserRestrictions(self.friends);
-            UserRestriction::from_bits_truncate(restrictions)
-        }
+        let restrictions = unsafe { sys::SteamAPI_ISteamFriends_GetUserRestrictions(self.friends) };
+        UserRestriction::from_bits_truncate(restrictions)
     }
 }
 
@@ -336,8 +333,7 @@ impl<Manager> Friend<Manager> {
     pub fn name(&self) -> String {
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetFriendPersonaName(self.friends, self.id.0);
-            let name = CStr::from_ptr(name);
-            name.to_string_lossy().into_owned()
+            lossy_string_from_cstr(name)
         }
     }
     /// Gets the nickname that the current user has set for the specified user.
@@ -358,18 +354,17 @@ impl<Manager> Friend<Manager> {
     }
 
     pub fn state(&self) -> FriendState {
-        unsafe {
-            let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0);
-            match state {
-                sys::EPersonaState::k_EPersonaStateOffline => FriendState::Offline,
-                sys::EPersonaState::k_EPersonaStateOnline => FriendState::Online,
-                sys::EPersonaState::k_EPersonaStateBusy => FriendState::Busy,
-                sys::EPersonaState::k_EPersonaStateAway => FriendState::Away,
-                sys::EPersonaState::k_EPersonaStateSnooze => FriendState::Snooze,
-                sys::EPersonaState::k_EPersonaStateLookingToPlay => FriendState::LookingToPlay,
-                sys::EPersonaState::k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
-                _ => unreachable!(),
-            }
+        let state =
+            unsafe { sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0) };
+        match state {
+            sys::EPersonaState::k_EPersonaStateOffline => FriendState::Offline,
+            sys::EPersonaState::k_EPersonaStateOnline => FriendState::Online,
+            sys::EPersonaState::k_EPersonaStateBusy => FriendState::Busy,
+            sys::EPersonaState::k_EPersonaStateAway => FriendState::Away,
+            sys::EPersonaState::k_EPersonaStateSnooze => FriendState::Snooze,
+            sys::EPersonaState::k_EPersonaStateLookingToPlay => FriendState::LookingToPlay,
+            sys::EPersonaState::k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
+            _ => unreachable!(),
         }
     }
 
@@ -377,30 +372,51 @@ impl<Manager> Friend<Manager> {
     pub fn game_played(&self) -> Option<FriendGame> {
         unsafe {
             let mut info: sys::FriendGameInfo_t = std::mem::zeroed();
-            if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, self.id.0, &mut info) {
-                Some(FriendGame {
+            sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, self.id.0, &mut info)
+                .then(|| FriendGame {
                     game: GameId(std::mem::transmute(info.m_gameID)),
                     game_address: info.m_unGameIP.into(),
                     game_port: info.m_usGamePort,
                     query_port: info.m_usQueryPort,
                     lobby: LobbyId(info.m_steamIDLobby.m_steamid.m_unAll64Bits),
                 })
-            } else {
-                None
-            }
         }
     }
+
     /// Gets the app ID of the game that user played with someone on their recently-played-with list.
     pub fn coplay_game_played(&self) -> AppId {
         unsafe {
-            let app_id = sys::SteamAPI_ISteamFriends_GetFriendCoplayGame(self.friends, self.id.0);
-            AppId(app_id)
+            AppId(sys::SteamAPI_ISteamFriends_GetFriendCoplayGame(
+                self.friends,
+                self.id.0,
+            ))
         }
     }
 
     /// Gets the timestamp of when the user played with someone on their recently-played-with list.
     pub fn coplay_time(&self) -> i32 {
         unsafe { sys::SteamAPI_ISteamFriends_GetFriendCoplayTime(self.friends, self.id.0) }
+    }
+
+    fn get_image_rgba(utils: *mut sys::ISteamUtils, img: i32) -> Option<Vec<u8>> {
+        unsafe {
+            let mut width = 0;
+            let mut height = 0;
+            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
+                return None;
+            }
+            let len = width * height * 4;
+            let mut dest = vec![0; len.try_into().unwrap()];
+            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(
+                utils,
+                img,
+                dest.as_mut_ptr(),
+                len.try_into().unwrap(),
+            ) {
+                return None;
+            }
+            Some(dest)
+        }
     }
 
     /// Returns a small (32x32) avatar for the user in RGBA format
@@ -411,16 +427,7 @@ impl<Manager> Friend<Manager> {
             if img == 0 {
                 return None;
             }
-            let mut width = 0;
-            let mut height = 0;
-            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
-                return None;
-            }
-            let mut dest = vec![0; 32 * 32 * 4];
-            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 32 * 32 * 4) {
-                return None;
-            }
-            Some(dest)
+            Self::get_image_rgba(utils, img)
         }
     }
 
@@ -432,16 +439,7 @@ impl<Manager> Friend<Manager> {
             if img == 0 {
                 return None;
             }
-            let mut width = 0;
-            let mut height = 0;
-            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
-                return None;
-            }
-            let mut dest = vec![0; 64 * 64 * 4];
-            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
-                return None;
-            }
-            Some(dest)
+            Self::get_image_rgba(utils, img)
         }
     }
 
@@ -453,17 +451,7 @@ impl<Manager> Friend<Manager> {
             if img == 0 {
                 return None;
             }
-            let mut width = 0;
-            let mut height = 0;
-            if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
-                return None;
-            }
-            let mut dest = vec![0; 184 * 184 * 4];
-            if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4)
-            {
-                return None;
-            }
-            Some(dest)
+            Self::get_image_rgba(utils, img)
         }
     }
 

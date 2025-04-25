@@ -372,9 +372,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn get_server_count(&self) -> Result<i32, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             Ok(sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
                 self.mms, self.h_req,
             ))
@@ -385,9 +384,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn get_server_details(&self, server: i32) -> Result<GameServerItem, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             // Should we then free this pointer?
             let server_item = sys::SteamAPI_ISteamMatchmakingServers_GetServerDetails(
                 self.mms, self.h_req, server,
@@ -401,11 +399,9 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn refresh_query(&self) -> Result<(), ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(self.mms, self.h_req);
-
             Ok(())
         }
     }
@@ -414,11 +410,9 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn refresh_server(&self, server: i32) -> Result<(), ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(self.mms, self.h_req, server);
-
             Ok(())
         }
     }
@@ -427,9 +421,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn is_refreshing(&self) -> Result<bool, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             Ok(sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
                 self.mms, self.h_req,
             ))

@@ -112,27 +112,27 @@ impl<Manager> RemotePlaySession<Manager> {
     /// Gets the client device form factor for this session. Returns `None` if the session has expired or if the form
     /// factor is unknown
     pub fn client_form_factor(&self) -> Option<SteamDeviceFormFactor> {
-        unsafe {
-            use SteamDeviceFormFactor::*;
-            match sys::SteamAPI_ISteamRemotePlay_GetSessionClientFormFactor(
-                self.rp,
-                self.session.raw(),
-            ) {
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorPhone => Some(Phone),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTablet => Some(Tablet),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorComputer => Some(Computer),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTV => Some(TV),
-                _ => None,
-            }
+        use SteamDeviceFormFactor::*;
+
+        let client_form_factor = unsafe {
+            sys::SteamAPI_ISteamRemotePlay_GetSessionClientFormFactor(self.rp, self.session.raw())
+        };
+
+        match client_form_factor {
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorPhone => Some(Phone),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTablet => Some(Tablet),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorComputer => Some(Computer),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTV => Some(TV),
+            _ => None,
         }
     }
 
     /// Gets the client device resolution for this session. Returns `None` if the session has expired
     pub fn client_resolution(&self) -> Option<(u32, u32)> {
-        unsafe {
-            let mut width = 0;
-            let mut height = 0;
+        let mut width = 0;
+        let mut height = 0;
 
+        unsafe {
             sys::SteamAPI_ISteamRemotePlay_BGetSessionClientResolution(
                 self.rp,
                 self.session.raw(),

@@ -73,20 +73,20 @@ impl<Manager> Screenshots<Manager> {
             None
         };
 
-        unsafe {
-            let handle = sys::SteamAPI_ISteamScreenshots_AddScreenshotToLibrary(
+        let handle = unsafe {
+            sys::SteamAPI_ISteamScreenshots_AddScreenshotToLibrary(
                 self.screenshots,
                 filename.as_ptr(),
                 thumbnail_filename.map_or(std::ptr::null(), |s| s.as_ptr()),
                 width,
                 height,
-            );
+            )
+        };
 
-            if handle != sys::INVALID_SCREENSHOT_HANDLE {
-                Ok(handle)
-            } else {
-                Err(ScreenshotLibraryAddError::SavingFailed)
-            }
+        if handle != sys::INVALID_SCREENSHOT_HANDLE {
+            Ok(handle)
+        } else {
+            Err(ScreenshotLibraryAddError::SavingFailed)
         }
     }
 }

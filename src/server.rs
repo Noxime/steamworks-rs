@@ -62,7 +62,7 @@ impl Server {
         let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
         let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
 
-        return unsafe {
+        unsafe {
             sys::SteamInternal_GameServer_Init_V2(
                 un_ip,
                 us_game_port,
@@ -72,7 +72,7 @@ impl Server {
                 merged_versions_ptr,
                 p_out_err_msg,
             )
-        };
+        }
     }
 
     /// Attempts to initialize the steamworks api and returns
@@ -101,56 +101,57 @@ impl Server {
         server_mode: ServerMode,
         version: &str,
     ) -> SIResult<(Server, Client<ServerManager>)> {
-        unsafe {
-            let version = CString::new(version).unwrap();
+        let version = CString::new(version).unwrap();
+        let raw_ip: u32 = ip.into();
 
-            // let internal_check_interface_versions =
-
-            let raw_ip: u32 = ip.into();
-            let server_mode = match server_mode {
-                ServerMode::NoAuthentication => sys::EServerMode::eServerModeNoAuthentication,
-                ServerMode::Authentication => sys::EServerMode::eServerModeAuthentication,
-                ServerMode::AuthenticationAndSecure => {
-                    sys::EServerMode::eServerModeAuthenticationAndSecure
-                }
-            };
-
-            let mut err_msg: sys::SteamErrMsg = [0; 1024];
-            let result = Self::steam_game_server_init_ex(
-                raw_ip,
-                game_port,
-                query_port,
-                server_mode,
-                version.as_ptr(),
-                &mut err_msg,
-            );
-
-            if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
-                return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
+        let server_mode = match server_mode {
+            ServerMode::NoAuthentication => sys::EServerMode::eServerModeNoAuthentication,
+            ServerMode::Authentication => sys::EServerMode::eServerModeAuthentication,
+            ServerMode::AuthenticationAndSecure => {
+                sys::EServerMode::eServerModeAuthenticationAndSecure
             }
+        };
 
-            sys::SteamAPI_ManualDispatch_Init();
-            let server_raw = sys::SteamAPI_SteamGameServer_v015();
-            let server = Arc::new(Inner {
-                _manager: ServerManager { _priv: () },
-                callbacks: Mutex::new(Callbacks {
-                    callbacks: HashMap::new(),
-                    call_results: HashMap::new(),
-                }),
-                networking_sockets_data: Mutex::new(NetworkingSocketsData {
-                    sockets: Default::default(),
-                    independent_connections: Default::default(),
-                    connection_callback: Default::default(),
-                }),
-            });
-            Ok((
-                Server {
-                    inner: server.clone(),
-                    server: server_raw,
-                },
-                Client { inner: server },
-            ))
+        let mut err_msg: sys::SteamErrMsg = [0; 1024];
+
+        let result = Self::steam_game_server_init_ex(
+            raw_ip,
+            game_port,
+            query_port,
+            server_mode,
+            version.as_ptr(),
+            &mut err_msg,
+        );
+
+        if result != sys::ESteamAPIInitResult::k_ESteamAPIInitResult_OK {
+            return Err(SteamAPIInitError::from_result_and_message(result, err_msg));
         }
+
+        let server_raw = unsafe {
+            sys::SteamAPI_ManualDispatch_Init();
+            sys::SteamAPI_SteamGameServer_v015()
+        };
+
+        let server = Arc::new(Inner {
+            _manager: ServerManager { _priv: () },
+            callbacks: Mutex::new(Callbacks {
+                callbacks: HashMap::new(),
+                call_results: HashMap::new(),
+            }),
+            networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                sockets: Default::default(),
+                independent_connections: Default::default(),
+                connection_callback: Default::default(),
+            }),
+        });
+
+        Ok((
+            Server {
+                inner: server.clone(),
+                server: server_raw,
+            },
+            Client { inner: server },
+        ))
     }
 
     /// Registers the passed function as a callback for the
@@ -192,19 +193,20 @@ impl Server {
         &self,
         network_identity: NetworkingIdentity,
     ) -> (AuthTicket, Vec<u8>) {
-        unsafe {
-            let mut ticket = vec![0; 1024];
-            let mut ticket_len = 0;
-            let auth_ticket = sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(
+        let mut ticket = vec![0; 1024];
+        let mut ticket_len = 0;
+        let auth_ticket = unsafe {
+            sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(
                 self.server,
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
-            );
-            ticket.truncate(ticket_len as usize);
-            (AuthTicket(auth_ticket), ticket)
-        }
+            )
+        };
+
+        ticket.truncate(ticket_len as usize);
+        (AuthTicket(auth_ticket), ticket)
     }
 
     /// Cancels an authentication session ticket received from
@@ -426,13 +428,11 @@ impl Server {
     ///
     /// **For this to work properly, you need to call `UGC::init_for_game_server()`!**
     pub fn ugc(&self) -> UGC<ServerManager> {
-        unsafe {
-            let ugc = sys::SteamAPI_SteamGameServerUGC_v020();
-            debug_assert!(!ugc.is_null());
-            UGC {
-                ugc,
-                inner: self.inner.clone(),
-            }
+        let ugc = unsafe { sys::SteamAPI_SteamGameServerUGC_v020() };
+        debug_assert!(!ugc.is_null());
+        UGC {
+            ugc,
+            inner: self.inner.clone(),
         }
     }
 

@@ -298,10 +298,10 @@ impl<Manager> SessionRequest<Manager> {
     pub fn accept(mut self) -> bool {
         self.accepted = true;
         unsafe {
-            return sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
+            sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
                 self.messages,
                 self.remote.as_ptr(),
-            );
+            )
         }
     }
 

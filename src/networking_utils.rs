@@ -31,13 +31,13 @@ impl<Manager> NetworkingUtils<Manager> {
     /// m_cbSize will be zero, and m_pfnFreeData will be NULL.  You will need to
     /// set each of these.
     pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage<Manager> {
-        unsafe {
-            let message =
-                sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
-            NetworkingMessage {
-                message,
-                _inner: self.inner.clone(),
-            }
+        let message = unsafe {
+            sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _)
+        };
+
+        NetworkingMessage {
+            message,
+            _inner: self.inner.clone(),
         }
     }
 
@@ -82,16 +82,17 @@ impl<Manager> NetworkingUtils<Manager> {
 
     /// Fetch current detailed status of the relay network.
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
+        let mut status = sys::SteamRelayNetworkStatus_t {
+            m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_bPingMeasurementInProgress: 0,
+            m_eAvailNetworkConfig:
+                sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_eAvailAnyRelay:
+                sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_debugMsg: [0; 256],
+        };
+
         unsafe {
-            let mut status = sys::SteamRelayNetworkStatus_t {
-                m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_bPingMeasurementInProgress: 0,
-                m_eAvailNetworkConfig:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_eAvailAnyRelay:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_debugMsg: [0; 256],
-            };
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, &mut status);
             status.into()
         }
@@ -161,17 +162,15 @@ impl RelayNetworkStatus {
 
 impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
     fn from(status: steamworks_sys::SteamRelayNetworkStatus_t) -> Self {
-        unsafe {
-            Self {
-                availability: status.m_eAvail.try_into(),
-                is_ping_measurement_in_progress: status.m_bPingMeasurementInProgress != 0,
-                network_config: status.m_eAvailNetworkConfig.try_into(),
-                any_relay: status.m_eAvailAnyRelay.try_into(),
-                debugging_message: CStr::from_ptr(status.m_debugMsg.as_ptr())
-                    .to_str()
-                    .expect("invalid debug string")
-                    .to_owned(),
-            }
+        Self {
+            availability: status.m_eAvail.try_into(),
+            is_ping_measurement_in_progress: status.m_bPingMeasurementInProgress != 0,
+            network_config: status.m_eAvailNetworkConfig.try_into(),
+            any_relay: status.m_eAvailAnyRelay.try_into(),
+            debugging_message: unsafe { CStr::from_ptr(status.m_debugMsg.as_ptr()) }
+                .to_str()
+                .expect("invalid debug string")
+                .to_owned(),
         }
     }
 }

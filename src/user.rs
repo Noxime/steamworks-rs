@@ -46,19 +46,19 @@ impl<Manager> User<Manager> {
         &self,
         network_identity: NetworkingIdentity,
     ) -> (AuthTicket, Vec<u8>) {
-        unsafe {
-            let mut ticket = vec![0; 1024];
-            let mut ticket_len = 0;
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
+        let mut ticket = vec![0; 1024];
+        let mut ticket_len = 0;
+        let auth_ticket = unsafe {
+            sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
                 self.user,
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
-            );
-            ticket.truncate(ticket_len as usize);
-            (AuthTicket(auth_ticket), ticket)
-        }
+            )
+        };
+        ticket.truncate(ticket_len as usize);
+        (AuthTicket(auth_ticket), ticket)
     }
 
     /// Cancels an authentication session ticket received from
@@ -140,14 +140,12 @@ impl<Manager> User<Manager> {
     /// use by the BeginAuthSession/ISteamGameServer::BeginAuthSession.
     /// Use the `authentication_session_ticket` API instead
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
+        let c_str = CString::new(identity).unwrap();
         unsafe {
-            let c_str = CString::new(identity).unwrap();
-            let c_world: *const ::std::os::raw::c_char =
-                c_str.as_ptr() as *const ::std::os::raw::c_char;
-
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_world);
-
-            AuthTicket(auth_ticket)
+            AuthTicket(sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(
+                self.user,
+                c_str.as_ptr(),
+            ))
         }
     }
 }

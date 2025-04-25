@@ -174,8 +174,8 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         remote_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<NetConnection<Manager>, InvalidHandle> {
+        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
-            let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectP2P(
                 self.sockets,
                 identity_remote.as_ptr(),

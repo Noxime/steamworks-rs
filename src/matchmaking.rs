@@ -88,13 +88,14 @@ impl<Manager> Matchmaking<Manager> {
         F: FnOnce(SResult<LobbyId>) + 'static + Send,
     {
         assert!(max_members <= 250); // Steam API limits
+        let ty = match ty {
+            LobbyType::Private => sys::ELobbyType::k_ELobbyTypePrivate,
+            LobbyType::FriendsOnly => sys::ELobbyType::k_ELobbyTypeFriendsOnly,
+            LobbyType::Public => sys::ELobbyType::k_ELobbyTypePublic,
+            LobbyType::Invisible => sys::ELobbyType::k_ELobbyTypeInvisible,
+        };
+
         unsafe {
-            let ty = match ty {
-                LobbyType::Private => sys::ELobbyType::k_ELobbyTypePrivate,
-                LobbyType::FriendsOnly => sys::ELobbyType::k_ELobbyTypeFriendsOnly,
-                LobbyType::Public => sys::ELobbyType::k_ELobbyTypePublic,
-                LobbyType::Invisible => sys::ELobbyType::k_ELobbyTypeInvisible,
-            };
             let api_call =
                 sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
             register_call_result::<sys::LobbyCreated_t, _, _>(

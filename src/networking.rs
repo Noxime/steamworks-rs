@@ -62,13 +62,14 @@ impl<Manager> Networking<Manager> {
         data: &[u8],
         channel: i32,
     ) -> bool {
+        let send_type = match send_type {
+            SendType::Unreliable => sys::EP2PSend::k_EP2PSendUnreliable,
+            SendType::UnreliableNoDelay => sys::EP2PSend::k_EP2PSendUnreliableNoDelay,
+            SendType::Reliable => sys::EP2PSend::k_EP2PSendReliable,
+            SendType::ReliableWithBuffering => sys::EP2PSend::k_EP2PSendReliableWithBuffering,
+        };
+
         unsafe {
-            let send_type = match send_type {
-                SendType::Unreliable => sys::EP2PSend::k_EP2PSendUnreliable,
-                SendType::UnreliableNoDelay => sys::EP2PSend::k_EP2PSendUnreliableNoDelay,
-                SendType::Reliable => sys::EP2PSend::k_EP2PSendReliable,
-                SendType::ReliableWithBuffering => sys::EP2PSend::k_EP2PSendReliableWithBuffering,
-            };
             sys::SteamAPI_ISteamNetworking_SendP2PPacket(
                 self.net,
                 remote.0,
@@ -89,13 +90,11 @@ impl<Manager> Networking<Manager> {
 
     /// Returns whether there is a packet available on a specific channel
     pub fn is_p2p_packet_available_on_channel(&self, channel: i32) -> Option<usize> {
+        let mut size = 0;
+
         unsafe {
-            let mut size = 0;
-            if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, channel) {
-                Some(size as usize)
-            } else {
-                None
-            }
+            sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, channel)
+                .then(|| size as usize)
         }
     }
 
@@ -115,21 +114,19 @@ impl<Manager> Networking<Manager> {
         buf: &mut [u8],
         channel: i32,
     ) -> Option<(SteamId, usize)> {
+        let mut size = 0;
+        let mut remote = 0;
+
         unsafe {
-            let mut size = 0;
-            let mut remote = 0;
-            if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(
+            sys::SteamAPI_ISteamNetworking_ReadP2PPacket(
                 self.net,
                 buf.as_mut_ptr() as *mut _,
                 buf.len() as _,
                 &mut size,
                 &mut remote as *mut _ as *mut _,
                 channel,
-            ) {
-                Some((SteamId(remote), size as usize))
-            } else {
-                None
-            }
+            )
+            .then(|| (SteamId(remote), size as usize))
         }
     }
 }

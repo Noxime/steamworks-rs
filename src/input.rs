@@ -123,8 +123,7 @@ impl<Manager> Input<Manager> {
         unsafe {
             let glyph_path =
                 sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
-            let glyph_path = CStr::from_ptr(glyph_path);
-            glyph_path.to_string_lossy().into_owned()
+            lossy_string_from_cstr(glyph_path)
         }
     }
 
@@ -133,8 +132,7 @@ impl<Manager> Input<Manager> {
         unsafe {
             let name_path =
                 sys::SteamAPI_ISteamInput_GetStringForActionOrigin(self.input, action_origin);
-            let name_path = CStr::from_ptr(name_path);
-            name_path.to_string_lossy().into_owned()
+            lossy_string_from_cstr(name_path)
         }
     }
 
@@ -191,8 +189,8 @@ impl<Manager> Input<Manager> {
         action_set_handle: sys::InputActionSetHandle_t,
         digital_action_handle: sys::InputDigitalActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
+        let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
         unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
             let len = sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
                 self.input,
                 input_handle,
@@ -212,8 +210,8 @@ impl<Manager> Input<Manager> {
         action_set_handle: sys::InputActionSetHandle_t,
         analog_action_handle: sys::InputAnalogActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
+        let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
         unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
             let len = sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
                 self.input,
                 input_handle,

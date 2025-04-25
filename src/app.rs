@@ -77,16 +77,15 @@ impl<Manager> Apps<Manager> {
     /// This works even if the app isn't installed, returning where it
     /// would be installed in the default location.
     pub fn app_install_dir(&self, app_id: AppId) -> String {
+        let mut buffer = [0; 2048];
         unsafe {
-            let mut buffer = vec![0; 2048];
             sys::SteamAPI_ISteamApps_GetAppInstallDir(
                 self.apps,
                 app_id.0,
                 buffer.as_mut_ptr(),
                 buffer.len() as u32,
             );
-            let path = CStr::from_ptr(buffer.as_ptr());
-            path.to_string_lossy().into_owned()
+            lossy_string_from_cstr(buffer.as_ptr())
         }
     }
 
@@ -114,8 +113,7 @@ impl<Manager> Apps<Manager> {
     pub fn current_game_language(&self) -> String {
         unsafe {
             let lang = sys::SteamAPI_ISteamApps_GetCurrentGameLanguage(self.apps);
-            let lang = CStr::from_ptr(lang);
-            lang.to_string_lossy().into_owned()
+            lossy_string_from_cstr(lang)
         }
     }
 
@@ -124,18 +122,14 @@ impl<Manager> Apps<Manager> {
     /// If the user isn't playing on a beta branch then this
     /// returns `None`
     pub fn current_beta_name(&self) -> Option<String> {
+        let mut buffer = [0; 256];
         unsafe {
-            let mut buffer = vec![0; 256];
-            if sys::SteamAPI_ISteamApps_GetCurrentBetaName(
+            sys::SteamAPI_ISteamApps_GetCurrentBetaName(
                 self.apps,
                 buffer.as_mut_ptr(),
-                buffer.len() as _,
-            ) {
-                let path = CStr::from_ptr(buffer.as_ptr());
-                Some(path.to_string_lossy().into_owned())
-            } else {
-                None
-            }
+                buffer.len() as i32,
+            )
+            .then(|| lossy_string_from_cstr(buffer.as_ptr()))
         }
     }
 
@@ -145,15 +139,14 @@ impl<Manager> Apps<Manager> {
     ///
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamApps#GetLaunchCommandLine)
     pub fn launch_command_line(&self) -> String {
+        let mut buffer = [0; 256];
         unsafe {
-            let mut buffer = vec![0; 256];
-            let _bytes = sys::SteamAPI_ISteamApps_GetLaunchCommandLine(
+            sys::SteamAPI_ISteamApps_GetLaunchCommandLine(
                 self.apps,
                 buffer.as_mut_ptr(),
                 buffer.len() as _,
             );
-            let command_line = CStr::from_ptr(buffer.as_ptr());
-            command_line.to_string_lossy().into_owned()
+            lossy_string_from_cstr(buffer.as_ptr())
         }
     }
 }
