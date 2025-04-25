@@ -494,7 +494,6 @@ pub struct DownloadItemResult {
 
 unsafe impl Callback for DownloadItemResult {
     const ID: i32 = CALLBACK_BASE_ID + 6;
-    const SIZE: i32 = ::std::mem::size_of::<sys::DownloadItemResult_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::DownloadItemResult_t);

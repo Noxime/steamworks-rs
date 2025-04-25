@@ -108,7 +108,6 @@ pub struct ScreenshotRequested;
 
 unsafe impl Callback for ScreenshotRequested {
     const ID: i32 = sys::ScreenshotRequested_t__bindgen_ty_1::k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::ScreenshotRequested_t>() as _;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         Self
@@ -134,7 +133,6 @@ pub struct ScreenshotReady {
 
 unsafe impl Callback for ScreenshotReady {
     const ID: i32 = sys::ScreenshotReady_t__bindgen_ty_1::k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::ScreenshotReady_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let status = *(raw as *mut sys::ScreenshotReady_t);

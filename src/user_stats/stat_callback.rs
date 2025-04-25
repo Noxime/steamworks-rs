@@ -23,7 +23,6 @@ pub struct UserStatsReceived {
 
 unsafe impl Callback for UserStatsReceived {
     const ID: i32 = CALLBACK_BASE_ID + 1;
-    const SIZE: i32 = std::mem::size_of::<sys::UserStatsReceived_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserStatsReceived_t);
@@ -59,7 +58,6 @@ pub struct UserStatsStored {
 
 unsafe impl Callback for UserStatsStored {
     const ID: i32 = CALLBACK_BASE_ID + 2;
-    const SIZE: i32 = std::mem::size_of::<sys::UserStatsStored_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserStatsStored_t);
@@ -98,7 +96,6 @@ pub struct UserAchievementStored {
 
 unsafe impl Callback for UserAchievementStored {
     const ID: i32 = CALLBACK_BASE_ID + 3;
-    const SIZE: i32 = std::mem::size_of::<sys::UserAchievementStored_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserAchievementStored_t);
@@ -132,7 +129,6 @@ pub struct UserAchievementIconFetched {
 
 unsafe impl Callback for UserAchievementIconFetched {
     const ID: i32 = CALLBACK_BASE_ID + 9;
-    const SIZE: i32 = std::mem::size_of::<sys::UserAchievementStored_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::UserAchievementIconFetched_t);

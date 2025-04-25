@@ -183,7 +183,6 @@ pub struct RelayNetworkStatusCallback {
 
 unsafe impl Callback for RelayNetworkStatusCallback {
     const ID: i32 = sys::SteamRelayNetworkStatus_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamRelayNetworkStatus_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let status = *(raw as *mut sys::SteamRelayNetworkStatus_t);

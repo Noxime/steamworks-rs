@@ -1415,7 +1415,6 @@ pub struct NetConnectionStatusChanged {
 
 unsafe impl Callback for NetConnectionStatusChanged {
     const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamNetConnectionStatusChangedCallback_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);

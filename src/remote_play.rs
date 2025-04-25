@@ -161,7 +161,6 @@ pub struct RemotePlayConnected {
 
 unsafe impl Callback for RemotePlayConnected {
     const ID: i32 = sys::SteamRemotePlaySessionConnected_t_k_iCallback as i32;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamRemotePlaySessionConnected_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamRemotePlaySessionConnected_t);
@@ -181,7 +180,6 @@ pub struct RemotePlayDisconnected {
 
 unsafe impl Callback for RemotePlayDisconnected {
     const ID: i32 = sys::SteamRemotePlaySessionDisconnected_t_k_iCallback as i32;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamRemotePlaySessionDisconnected_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamRemotePlaySessionDisconnected_t);

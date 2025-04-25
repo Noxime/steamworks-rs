@@ -249,7 +249,6 @@ pub struct NetworkingMessagesSessionRequest {
 
 unsafe impl Callback for NetworkingMessagesSessionRequest {
     const ID: i32 = sys::SteamNetworkingMessagesSessionRequest_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamNetworkingMessagesSessionRequest_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let remote = *(raw as *mut sys::SteamNetworkingMessagesSessionRequest_t);
@@ -264,7 +263,6 @@ struct NetworkingMessagesSessionFailed {
 
 unsafe impl Callback for NetworkingMessagesSessionFailed {
     const ID: i32 = sys::SteamNetworkingMessagesSessionFailed_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamNetworkingMessagesSessionFailed_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let remote = *(raw as *mut sys::SteamNetworkingMessagesSessionFailed_t);
