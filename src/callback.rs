@@ -1,8 +1,99 @@
 use super::*;
+use crate::networking_types::*;
 
 use crate::sys;
 
 use std::sync::{Arc, Weak};
+
+/// A sum type over all possible callback results
+pub enum CallbackResult {
+    NetConnectionStatusChanged(NetConnectionStatusChanged),
+    AuthSessionTicketResponse(AuthSessionTicketResponse),
+    DownloadItemResult(DownloadItemResult),
+    FloatingGamepadTextInputDismissed(FloatingGamepadTextInputDismissed),
+    GameLobbyJoinRequested(GameLobbyJoinRequested),
+    GameOverlayActivated(GameOverlayActivated),
+    GamepadTextInputDismissed(GamepadTextInputDismissed),
+    LobbyChatUpdate(LobbyChatUpdate),
+    LobbyDataUpdate(LobbyDataUpdate),
+    MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse),
+    P2PSessionConnectFail(P2PSessionConnectFail),
+    P2PSessionRequest(P2PSessionRequest),
+    PersonaStateChange(PersonaStateChange),
+    RemotePlayConnected(RemotePlayConnected),
+    RemotePlayDisconnected(RemotePlayDisconnected),
+    SteamServerConnectFailure(SteamServerConnectFailure),
+    SteamServersConnected(SteamServersConnected),
+    SteamServersDisconnected(SteamServersDisconnected),
+    TicketForWebApiResponse(TicketForWebApiResponse),
+    UserAchievementStored(UserAchievementStored),
+    UserStatsReceived(UserStatsReceived),
+    UserStatsStored(UserStatsStored),
+    ValidateAuthTicketResponse(ValidateAuthTicketResponse),
+}
+
+impl CallbackResult {
+    pub unsafe fn from_raw(discriminator: i32, data: *mut c_void) -> Option<Self> {
+        Some(match discriminator {
+            NetConnectionStatusChanged::ID => {
+                Self::NetConnectionStatusChanged(NetConnectionStatusChanged::from_raw(data))
+            }
+            AuthSessionTicketResponse::ID => {
+                Self::AuthSessionTicketResponse(AuthSessionTicketResponse::from_raw(data))
+            }
+            DownloadItemResult::ID => Self::DownloadItemResult(DownloadItemResult::from_raw(data)),
+            FloatingGamepadTextInputDismissed::ID => Self::FloatingGamepadTextInputDismissed(
+                FloatingGamepadTextInputDismissed::from_raw(data),
+            ),
+            GameLobbyJoinRequested::ID => {
+                Self::GameLobbyJoinRequested(GameLobbyJoinRequested::from_raw(data))
+            }
+            GameOverlayActivated::ID => {
+                Self::GameOverlayActivated(GameOverlayActivated::from_raw(data))
+            }
+            GamepadTextInputDismissed::ID => {
+                Self::GamepadTextInputDismissed(GamepadTextInputDismissed::from_raw(data))
+            }
+            LobbyChatUpdate::ID => Self::LobbyChatUpdate(LobbyChatUpdate::from_raw(data)),
+            LobbyDataUpdate::ID => Self::LobbyDataUpdate(LobbyDataUpdate::from_raw(data)),
+            MicroTxnAuthorizationResponse::ID => {
+                Self::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse::from_raw(data))
+            }
+            P2PSessionConnectFail::ID => {
+                Self::P2PSessionConnectFail(P2PSessionConnectFail::from_raw(data))
+            }
+            P2PSessionRequest::ID => Self::P2PSessionRequest(P2PSessionRequest::from_raw(data)),
+            PersonaStateChange::ID => Self::PersonaStateChange(PersonaStateChange::from_raw(data)),
+            RemotePlayConnected::ID => {
+                Self::RemotePlayConnected(RemotePlayConnected::from_raw(data))
+            }
+            RemotePlayDisconnected::ID => {
+                Self::RemotePlayDisconnected(RemotePlayDisconnected::from_raw(data))
+            }
+            SteamServerConnectFailure::ID => {
+                Self::SteamServerConnectFailure(SteamServerConnectFailure::from_raw(data))
+            }
+            SteamServersConnected::ID => {
+                Self::SteamServersConnected(SteamServersConnected::from_raw(data))
+            }
+            SteamServersDisconnected::ID => {
+                Self::SteamServersDisconnected(SteamServersDisconnected::from_raw(data))
+            }
+            TicketForWebApiResponse::ID => {
+                Self::TicketForWebApiResponse(TicketForWebApiResponse::from_raw(data))
+            }
+            UserAchievementStored::ID => {
+                Self::UserAchievementStored(UserAchievementStored::from_raw(data))
+            }
+            UserStatsReceived::ID => Self::UserStatsReceived(UserStatsReceived::from_raw(data)),
+            UserStatsStored::ID => Self::UserStatsStored(UserStatsStored::from_raw(data)),
+            ValidateAuthTicketResponse::ID => {
+                Self::ValidateAuthTicketResponse(ValidateAuthTicketResponse::from_raw(data))
+            }
+            _ => return None,
+        })
+    }
+}
 
 pub unsafe trait Callback {
     const ID: i32;
