@@ -115,7 +115,7 @@ static WARNING_CALLBACK: RwLock<Option<Box<dyn Fn(i32, &CStr) + Send + Sync>>> =
 
 /// C function to pass as the real callback, which forwards to the `WARNING_CALLBACK` if any
 unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
-    let lock = WARNING_CALLBACK. read().expect("warning func lock poisoned");
+    let lock = WARNING_CALLBACK.read().expect("warning func lock poisoned");
     let cb = match lock.as_ref() {
         Some(cb) => cb,
         None => {
