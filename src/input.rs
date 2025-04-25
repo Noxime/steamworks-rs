@@ -45,15 +45,10 @@ impl<Manager> Input<Manager> {
 
     /// Returns a list of the currently connected controllers
     pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
-        unsafe {
-            let handles = [0_u64; sys::STEAM_INPUT_MAX_COUNT as usize].as_mut_ptr();
-            let quantity = sys::SteamAPI_ISteamInput_GetConnectedControllers(self.input, handles);
-            if quantity == 0 {
-                Vec::new()
-            } else {
-                std::slice::from_raw_parts(handles as *const _, quantity as usize).to_vec()
-            }
-        }
+        let mut handles = vec![0_u64; sys::STEAM_INPUT_MAX_COUNT as usize];
+        let quantity = self.get_connected_controllers_slice(&mut handles);
+        handles.shrink_to(quantity);
+        handles
     }
 
     /// Returns a list of the currently connected controllers without allocating, and the count
