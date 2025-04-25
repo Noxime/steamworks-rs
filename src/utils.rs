@@ -19,7 +19,6 @@ pub struct GamepadTextInputDismissed {
 
 unsafe impl Callback for GamepadTextInputDismissed {
     const ID: i32 = 714;
-    const SIZE: i32 = ::std::mem::size_of::<sys::GamepadTextInputDismissed_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GamepadTextInputDismissed_t);
@@ -34,7 +33,6 @@ pub struct FloatingGamepadTextInputDismissed;
 
 unsafe impl Callback for FloatingGamepadTextInputDismissed {
     const ID: i32 = 738;
-    const SIZE: i32 = ::std::mem::size_of::<sys::FloatingGamepadTextInputDismissed_t>() as i32;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         FloatingGamepadTextInputDismissed

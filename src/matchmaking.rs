@@ -965,7 +965,6 @@ pub struct LobbyChatUpdate {
 
 unsafe impl Callback for LobbyChatUpdate {
     const ID: i32 = 506;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatUpdate_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
@@ -1008,7 +1007,6 @@ pub struct LobbyDataUpdate {
 
 unsafe impl Callback for LobbyDataUpdate {
     const ID: i32 = 505;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyDataUpdate_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
@@ -1032,7 +1030,6 @@ pub struct LobbyChatMsg {
 
 unsafe impl Callback for LobbyChatMsg {
     const ID: i32 = 507;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatMsg_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatMsg_t);

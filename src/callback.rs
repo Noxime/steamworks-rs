@@ -6,21 +6,27 @@ use std::sync::{Arc, Weak};
 
 pub unsafe trait Callback {
     const ID: i32;
-    const SIZE: i32;
     unsafe fn from_raw(raw: *mut c_void) -> Self;
 }
 
 /// A handle that can be used to remove a callback
 /// at a later point.
 ///
-/// Removes the callback when dropped
+/// Removes the callback from the Steam API context when dropped.
 pub struct CallbackHandle<Manager = ClientManager> {
     id: i32,
     inner: Weak<Inner<Manager>>,
 }
+
+// SAFETY: All operations do not interact with the actual Manager type and are
+// otherwise respect Rust's aliasing rules
 unsafe impl<Manager> Send for CallbackHandle<Manager> {}
-impl<Manager> CallbackHandle<Manager> {
-    pub fn disconnect(&self) {
+// SAFETY: All operations do not interact with the actual Manager type and are
+// otherwise respect Rust's aliasing rules
+unsafe impl<Manager> Sync for CallbackHandle<Manager> {}
+
+impl<Manager> Drop for CallbackHandle<Manager> {
+    fn drop(&mut self) {
         if let Some(inner) = self.inner.upgrade() {
             match inner.callbacks.lock() {
                 Ok(mut cb) => {
