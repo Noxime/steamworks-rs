@@ -1,4 +1,5 @@
 use super::*;
+use std::ptr::NonNull;
 
 /// An id for a steam app/game
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -12,7 +13,7 @@ impl From<u32> for AppId {
 
 /// Access to the steam apps interface
 pub struct Apps<Manager> {
-    pub(crate) apps: *mut sys::ISteamApps,
+    pub(crate) apps: NonNull<sys::ISteamApps>,
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
@@ -22,13 +23,13 @@ impl<Manager> Apps<Manager> {
     ///
     /// This does not mean the user owns the game.
     pub fn is_app_installed(&self, app_id: AppId) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsAppInstalled(self.apps, app_id.0) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsAppInstalled(self.apps.as_ptr(), app_id.0) }
     }
 
     /// Returns whether the user owns the specific dlc and has it
     /// installed.
     pub fn is_dlc_installed(&self, app_id: AppId) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsDlcInstalled(self.apps, app_id.0) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsDlcInstalled(self.apps.as_ptr(), app_id.0) }
     }
 
     /// Returns whether the user is subscribed to the app with the given
@@ -37,39 +38,39 @@ impl<Manager> Apps<Manager> {
     /// This should only be used to check ownership of a game related to
     /// yours (e.g. demo).
     pub fn is_subscribed_app(&self, app_id: AppId) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedApp(self.apps, app_id.0) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedApp(self.apps.as_ptr(), app_id.0) }
     }
 
     /// Returns whether the user is subscribed via a free weekend
     pub fn is_subscribed_from_free_weekend(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedFromFreeWeekend(self.apps) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedFromFreeWeekend(self.apps.as_ptr()) }
     }
 
     /// Returns whether the user has a VAC ban on their account.
     pub fn is_vac_banned(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsVACBanned(self.apps) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsVACBanned(self.apps.as_ptr()) }
     }
 
     /// Returns whether the license for the current app ID
     /// is for cyber cafes.
     pub fn is_cybercafe(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsCybercafe(self.apps) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsCybercafe(self.apps.as_ptr()) }
     }
 
     /// Returns whether the license for the current app ID
     /// provides low violence depots.
     pub fn is_low_violence(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsLowViolence(self.apps) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsLowViolence(self.apps.as_ptr()) }
     }
 
     /// Returns whether the user is subscribed to the current app ID
     pub fn is_subscribed(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribed(self.apps) }
+        unsafe { sys::SteamAPI_ISteamApps_BIsSubscribed(self.apps.as_ptr()) }
     }
 
     /// Returns the build id of this app.
     pub fn app_build_id(&self) -> i32 {
-        unsafe { sys::SteamAPI_ISteamApps_GetAppBuildId(self.apps) as i32 }
+        unsafe { sys::SteamAPI_ISteamApps_GetAppBuildId(self.apps.as_ptr()) as i32 }
     }
 
     /// Returns the installation folder of the app with the given ID.
@@ -80,7 +81,7 @@ impl<Manager> Apps<Manager> {
         let mut buffer = [0; 2048];
         unsafe {
             sys::SteamAPI_ISteamApps_GetAppInstallDir(
-                self.apps,
+                self.apps.as_ptr(),
                 app_id.0,
                 buffer.as_mut_ptr(),
                 buffer.len() as u32,
@@ -93,13 +94,13 @@ impl<Manager> Apps<Manager> {
     ///
     /// Differs from the current user if the app is borrowed.
     pub fn app_owner(&self) -> SteamId {
-        unsafe { SteamId(sys::SteamAPI_ISteamApps_GetAppOwner(self.apps)) }
+        unsafe { SteamId(sys::SteamAPI_ISteamApps_GetAppOwner(self.apps.as_ptr())) }
     }
 
     /// Returns a list of languages that the current app supports.
     pub fn available_game_languages(&self) -> Vec<String> {
         unsafe {
-            let langs = sys::SteamAPI_ISteamApps_GetAvailableGameLanguages(self.apps);
+            let langs = sys::SteamAPI_ISteamApps_GetAvailableGameLanguages(self.apps.as_ptr());
             let langs = CStr::from_ptr(langs);
             let langs = langs.to_string_lossy();
             langs.split(',').map(|v| v.to_owned()).collect()
@@ -112,7 +113,7 @@ impl<Manager> Apps<Manager> {
     /// used for the steam UI.
     pub fn current_game_language(&self) -> String {
         unsafe {
-            let lang = sys::SteamAPI_ISteamApps_GetCurrentGameLanguage(self.apps);
+            let lang = sys::SteamAPI_ISteamApps_GetCurrentGameLanguage(self.apps.as_ptr());
             lossy_string_from_cstr(lang)
         }
     }
@@ -125,7 +126,7 @@ impl<Manager> Apps<Manager> {
         let mut buffer = [0; 256];
         unsafe {
             sys::SteamAPI_ISteamApps_GetCurrentBetaName(
-                self.apps,
+                self.apps.as_ptr(),
                 buffer.as_mut_ptr(),
                 buffer.len() as i32,
             )
@@ -142,7 +143,7 @@ impl<Manager> Apps<Manager> {
         let mut buffer = [0; 256];
         unsafe {
             sys::SteamAPI_ISteamApps_GetLaunchCommandLine(
-                self.apps,
+                self.apps.as_ptr(),
                 buffer.as_mut_ptr(),
                 buffer.len() as _,
             );

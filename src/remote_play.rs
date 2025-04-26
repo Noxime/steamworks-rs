@@ -1,7 +1,8 @@
 use super::*;
+use std::ptr::NonNull;
 
 pub struct RemotePlay<Manager> {
-    pub(crate) rp: *mut sys::ISteamRemotePlay,
+    pub(crate) rp: NonNull<sys::ISteamRemotePlay>,
     pub(crate) inner: Arc<Inner<Manager>>,
 }
 
@@ -18,11 +19,11 @@ impl<Manager> RemotePlay<Manager> {
     /// Return a list of all active Remote Play sessions
     pub fn sessions(&self) -> Vec<RemotePlaySession<Manager>> {
         unsafe {
-            let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp);
+            let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp.as_ptr());
             let mut sessions = Vec::with_capacity(count as usize);
 
             for i in 0..count {
-                let id = sys::SteamAPI_ISteamRemotePlay_GetSessionID(self.rp, i as i32);
+                let id = sys::SteamAPI_ISteamRemotePlay_GetSessionID(self.rp.as_ptr(), i as i32);
 
                 // Session might be invalid if it ended after GetSessionCount
                 if id == 0 {
@@ -40,7 +41,7 @@ impl<Manager> RemotePlay<Manager> {
     pub fn session(&self, session: RemotePlaySessionId) -> RemotePlaySession<Manager> {
         RemotePlaySession {
             session,
-            rp: self.rp,
+            rp: self.rp.as_ptr(),
             _inner: self.inner.clone(),
         }
     }

@@ -151,14 +151,14 @@ macro_rules! gen_server_list_fn {
                 let mut request = request_arc.lock().unwrap();
 
                 let handle = sys::$sys_method(
-                    self.mms,
+                    self.mms.as_ptr(),
                     app_id,
                     &mut filters.as_mut_ptr() as *mut *mut _,
                     filters.len().try_into().unwrap(),
                     callbacks.cast(),
                 );
 
-                request.mms = self.mms;
+                request.mms = self.mms.as_ptr();
                 request.real = callbacks;
                 request.h_req = handle;
 
@@ -432,7 +432,7 @@ impl ServerListRequest {
 
 /// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers<Manager> {
-    pub(crate) mms: *mut sys::ISteamMatchmakingServers,
+    pub(crate) mms: NonNull<sys::ISteamMatchmakingServers>,
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
@@ -442,7 +442,7 @@ impl<Manager> MatchmakingServers<Manager> {
             let callbacks = create_ping(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_PingServer(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -460,7 +460,7 @@ impl<Manager> MatchmakingServers<Manager> {
             let callbacks = create_playerdetails(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_PlayerDetails(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -473,7 +473,7 @@ impl<Manager> MatchmakingServers<Manager> {
             let callbacks = create_serverrules(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_ServerRules(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -502,12 +502,12 @@ impl<Manager> MatchmakingServers<Manager> {
             let mut request = request_arc.lock().unwrap();
 
             let handle = sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
-                self.mms,
+                self.mms.as_ptr(),
                 app_id,
                 callbacks.cast(),
             );
 
-            request.mms = self.mms;
+            request.mms = self.mms.as_ptr();
             request.real = callbacks;
             request.h_req = handle;
 

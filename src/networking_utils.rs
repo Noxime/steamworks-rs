@@ -2,13 +2,14 @@ use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
 use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CStr};
+use std::ptr::NonNull;
 use std::sync::Arc;
 
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils<Manager> {
-    pub(crate) utils: *mut sys::ISteamNetworkingUtils,
+    pub(crate) utils: NonNull<sys::ISteamNetworkingUtils>,
     pub(crate) inner: Arc<Inner<Manager>>,
 }
 
@@ -32,7 +33,10 @@ impl<Manager> NetworkingUtils<Manager> {
     /// set each of these.
     pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage<Manager> {
         let message = unsafe {
-            sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _)
+            sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(
+                self.utils.as_ptr(),
+                buffer_size as _,
+            )
         };
 
         NetworkingMessage {
@@ -63,7 +67,7 @@ impl<Manager> NetworkingUtils<Manager> {
     /// a "client" and this should be called.
     pub fn init_relay_network_access(&self) {
         unsafe {
-            sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils);
+            sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils.as_ptr());
         }
     }
 
@@ -73,7 +77,7 @@ impl<Manager> NetworkingUtils<Manager> {
     pub fn relay_network_status(&self) -> NetworkingAvailabilityResult {
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
-                self.utils,
+                self.utils.as_ptr(),
                 std::ptr::null_mut(),
             )
             .try_into()
@@ -93,7 +97,10 @@ impl<Manager> NetworkingUtils<Manager> {
         };
 
         unsafe {
-            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, &mut status);
+            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
+                self.utils.as_ptr(),
+                &mut status,
+            );
             status.into()
         }
     }

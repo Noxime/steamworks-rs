@@ -3,6 +3,7 @@ use crate::networking_types::{
     AppNetConnectionEnd, NetConnectionEnd, NetConnectionStatusChanged, NetworkingConnectionState,
 };
 use crate::{register_callback, CallbackHandle, Inner};
+use std::ptr::NonNull;
 use std::sync::{Arc, Weak};
 use steamworks_sys as sys;
 use sys::ISteamNetworkingSockets;
@@ -12,7 +13,7 @@ use sys::ISteamNetworkingSockets;
 /// handler.
 pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
     inner: Arc<Inner<Manager>>,
-    sockets: *mut ISteamNetworkingSockets,
+    sockets: NonNull<ISteamNetworkingSockets>,
 ) -> Arc<CallbackHandle<Manager>> {
     let mut network_socket_data = inner.networking_sockets_data.lock().unwrap();
     if let Some(callback) = network_socket_data.connection_callback.upgrade() {
@@ -36,7 +37,7 @@ pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
 
 pub(crate) struct ConnectionCallbackHandler<Manager> {
     inner: Weak<Inner<Manager>>,
-    sockets: *mut ISteamNetworkingSockets,
+    sockets: NonNull<ISteamNetworkingSockets>,
 }
 
 unsafe impl<Manager> Send for ConnectionCallbackHandler<Manager> {}

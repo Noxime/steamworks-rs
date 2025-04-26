@@ -6,7 +6,7 @@ use super::*;
 
 /// Access to the steam screenshots interface
 pub struct Screenshots<Manager> {
-    pub(crate) screenshots: *mut sys::ISteamScreenshots,
+    pub(crate) screenshots: NonNull<sys::ISteamScreenshots>,
     pub(crate) _inner: Arc<Inner<Manager>>,
 }
 
@@ -21,7 +21,7 @@ impl<Manager> Screenshots<Manager> {
     /// You can check if hooking is enabled with [`Self::is_screenshots_hooked`].
     pub fn hook_screenshots(&self, hook: bool) {
         unsafe {
-            sys::SteamAPI_ISteamScreenshots_HookScreenshots(self.screenshots, hook);
+            sys::SteamAPI_ISteamScreenshots_HookScreenshots(self.screenshots.as_ptr(), hook);
         }
     }
 
@@ -32,7 +32,7 @@ impl<Manager> Screenshots<Manager> {
     /// Returns
     /// - `true` if the game is hooking screenshots and is expected to handle them; otherwise, `false`.
     pub fn is_screenshots_hooked(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamScreenshots_IsScreenshotsHooked(self.screenshots) }
+        unsafe { sys::SteamAPI_ISteamScreenshots_IsScreenshotsHooked(self.screenshots.as_ptr()) }
     }
 
     /// Either causes the Steam Overlay to take a screenshot, or tells your screenshot manager that a screenshot needs to be taken.
@@ -44,7 +44,7 @@ impl<Manager> Screenshots<Manager> {
     /// - Otherwise [`ScreenshotReady`] will be called when the screenshot has been saved and added to the library.
     pub fn trigger_screenshot(&self) {
         unsafe {
-            sys::SteamAPI_ISteamScreenshots_TriggerScreenshot(self.screenshots);
+            sys::SteamAPI_ISteamScreenshots_TriggerScreenshot(self.screenshots.as_ptr());
         }
     }
 
@@ -75,7 +75,7 @@ impl<Manager> Screenshots<Manager> {
 
         let handle = unsafe {
             sys::SteamAPI_ISteamScreenshots_AddScreenshotToLibrary(
-                self.screenshots,
+                self.screenshots.as_ptr(),
                 filename.as_ptr(),
                 thumbnail_filename.map_or(std::ptr::null(), |s| s.as_ptr()),
                 width,

@@ -11,7 +11,7 @@ use std::net::Ipv4Addr;
 #[derive(Clone)]
 pub struct Server {
     inner: Arc<Inner<ServerManager>>,
-    server: *mut sys::ISteamGameServer,
+    server: NonNull<sys::ISteamGameServer>,
 }
 
 unsafe impl Send for Server {}
@@ -148,7 +148,7 @@ impl Server {
         Ok((
             Server {
                 inner: server.clone(),
-                server: server_raw,
+                server: NonNull::new(server_raw).unwrap(),
             },
             Client { inner: server },
         ))
@@ -169,7 +169,11 @@ impl Server {
 
     /// Returns the steam id of the current server
     pub fn steam_id(&self) -> SteamId {
-        unsafe { SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(self.server)) }
+        unsafe {
+            SteamId(sys::SteamAPI_ISteamGameServer_GetSteamID(
+                self.server.as_ptr(),
+            ))
+        }
     }
 
     /// Retrieve an authentication session ticket that can be sent
@@ -197,7 +201,7 @@ impl Server {
         let mut ticket_len = 0;
         let auth_ticket = unsafe {
             sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(
-                self.server,
+                self.server.as_ptr(),
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
@@ -216,7 +220,7 @@ impl Server {
     /// the specified entity.
     pub fn cancel_authentication_ticket(&self, ticket: AuthTicket) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_CancelAuthTicket(self.server, ticket.0);
+            sys::SteamAPI_ISteamGameServer_CancelAuthTicket(self.server.as_ptr(), ticket.0);
         }
     }
 
@@ -235,7 +239,7 @@ impl Server {
     ) -> Result<(), AuthSessionError> {
         unsafe {
             let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
-                self.server,
+                self.server.as_ptr(),
                 ticket.as_ptr() as *const _,
                 ticket.len() as _,
                 user.0,
@@ -269,7 +273,7 @@ impl Server {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server, user.0);
+            sys::SteamAPI_ISteamGameServer_EndAuthSession(self.server.as_ptr(), user.0);
         }
     }
 
@@ -281,7 +285,10 @@ impl Server {
     pub fn set_product(&self, product: &str) {
         let product = CString::new(product).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetProduct(self.server, product.as_ptr() as *const _);
+            sys::SteamAPI_ISteamGameServer_SetProduct(
+                self.server.as_ptr(),
+                product.as_ptr() as *const _,
+            );
         }
     }
 
@@ -292,21 +299,21 @@ impl Server {
     pub fn set_game_description(&self, desc: &str) {
         let desc = CString::new(desc).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server, desc.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server.as_ptr(), desc.as_ptr());
         }
     }
 
     /// Sets whether this server is dedicated or a listen server.
     pub fn set_dedicated_server(&self, dedicated: bool) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetDedicatedServer(self.server, dedicated);
+            sys::SteamAPI_ISteamGameServer_SetDedicatedServer(self.server.as_ptr(), dedicated);
         }
     }
 
     /// Login to a generic anonymous account
     pub fn log_on_anonymous(&self) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_LogOnAnonymous(self.server);
+            sys::SteamAPI_ISteamGameServer_LogOnAnonymous(self.server.as_ptr());
         }
     }
 
@@ -314,7 +321,7 @@ impl Server {
     pub fn log_on(&self, token: &str) {
         let token = CString::new(token).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_LogOn(self.server, token.as_ptr());
+            sys::SteamAPI_ISteamGameServer_LogOn(self.server.as_ptr(), token.as_ptr());
         }
     }
 
@@ -322,7 +329,7 @@ impl Server {
     /// the steam matchmaking/server browser interfaces.
     pub fn enable_heartbeats(&self, active: bool) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetAdvertiseServerActive(self.server, active);
+            sys::SteamAPI_ISteamGameServer_SetAdvertiseServerActive(self.server.as_ptr(), active);
         }
     }
 
@@ -344,7 +351,7 @@ impl Server {
     pub fn set_mod_dir(&self, mod_dir: &str) {
         let mod_dir = CString::new(mod_dir).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetModDir(self.server, mod_dir.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetModDir(self.server.as_ptr(), mod_dir.as_ptr());
         }
     }
 
@@ -352,7 +359,7 @@ impl Server {
     pub fn set_map_name(&self, map_name: &str) {
         let map_name = CString::new(map_name).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetMapName(self.server, map_name.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetMapName(self.server.as_ptr(), map_name.as_ptr());
         }
     }
 
@@ -360,7 +367,10 @@ impl Server {
     pub fn set_server_name(&self, server_name: &str) {
         let server_name = CString::new(server_name).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetServerName(self.server, server_name.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetServerName(
+                self.server.as_ptr(),
+                server_name.as_ptr(),
+            );
         }
     }
 
@@ -369,7 +379,7 @@ impl Server {
     /// This value may be changed at any time.
     pub fn set_max_players(&self, count: i32) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetMaxPlayerCount(self.server, count);
+            sys::SteamAPI_ISteamGameServer_SetMaxPlayerCount(self.server.as_ptr(), count);
         }
     }
 
@@ -389,7 +399,7 @@ impl Server {
 
         let tags = CString::new(tags).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetGameTags(self.server, tags.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetGameTags(self.server.as_ptr(), tags.as_ptr());
         }
     }
 
@@ -399,28 +409,35 @@ impl Server {
         let value = CString::new(value).unwrap();
 
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetKeyValue(self.server, key.as_ptr(), value.as_ptr());
+            sys::SteamAPI_ISteamGameServer_SetKeyValue(
+                self.server.as_ptr(),
+                key.as_ptr(),
+                value.as_ptr(),
+            );
         }
     }
 
     /// Clears the whole list of key/values that are sent in rules queries.
     pub fn clear_all_key_values(&self) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server);
+            sys::SteamAPI_ISteamGameServer_ClearAllKeyValues(self.server.as_ptr());
         }
     }
 
     /// Let people know if your server will require a password
     pub fn set_password_protected(&self, b_password_protected: bool) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetPasswordProtected(self.server, b_password_protected);
+            sys::SteamAPI_ISteamGameServer_SetPasswordProtected(
+                self.server.as_ptr(),
+                b_password_protected,
+            );
         }
     }
 
     /// Number of bots.  Default value is zero
     pub fn set_bot_player_count(&self, c_bot_players: i32) {
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetBotPlayerCount(self.server, c_bot_players);
+            sys::SteamAPI_ISteamGameServer_SetBotPlayerCount(self.server.as_ptr(), c_bot_players);
         }
     }
 

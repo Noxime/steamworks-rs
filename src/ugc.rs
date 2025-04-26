@@ -1577,7 +1577,8 @@ impl<'a> QueryResults<'a> {
 
     /// Gets UGCContentDescriptors of the published file at the specified index.
     pub fn content_descriptor(&self, index: u32) -> Vec<UGCContentDescriptorID> {
-        let mut descriptors = [sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent; 10];
+        let mut descriptors =
+            [sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent; 10];
         let max_entries = descriptors.len() as std::ffi::c_uint;
 
         let num_descriptors = unsafe {

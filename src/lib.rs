@@ -4,17 +4,18 @@ extern crate thiserror;
 extern crate bitflags;
 
 use screenshots::Screenshots;
-use steamworks_sys::CallbackMsg_t;
 #[cfg(feature = "raw-bindings")]
 pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
+use steamworks_sys::CallbackMsg_t;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
+use std::ptr::NonNull;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, Weak};
 
@@ -282,9 +283,8 @@ where
     /// Returns an accessor to the steam matchmaking interface
     pub fn matchmaking(&self) -> Matchmaking<Manager> {
         let mm = unsafe { sys::SteamAPI_SteamMatchmaking_v009() };
-        debug_assert!(!mm.is_null());
         Matchmaking {
-            mm: mm,
+            mm: NonNull::new(mm).unwrap(),
             inner: self.inner.clone(),
         }
     }
@@ -292,9 +292,8 @@ where
     /// Returns an accessor to the steam matchmaking_servers interface
     pub fn matchmaking_servers(&self) -> MatchmakingServers<Manager> {
         let mm = unsafe { sys::SteamAPI_SteamMatchmakingServers_v002() };
-        debug_assert!(!mm.is_null());
         MatchmakingServers {
-            mms: mm,
+            mms: NonNull::new(mm).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -302,9 +301,8 @@ where
     /// Returns an accessor to the steam networking interface
     pub fn networking(&self) -> Networking<Manager> {
         let net = unsafe { sys::SteamAPI_SteamNetworking_v006() };
-        debug_assert!(!net.is_null());
         Networking {
-            net: net,
+            net: NonNull::new(net).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -312,9 +310,8 @@ where
     /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps<Manager> {
         let apps = unsafe { sys::SteamAPI_SteamApps_v008() };
-        debug_assert!(!apps.is_null());
         Apps {
-            apps: apps,
+            apps: NonNull::new(apps).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -322,9 +319,8 @@ where
     /// Returns an accessor to the steam friends interface
     pub fn friends(&self) -> Friends<Manager> {
         let friends = unsafe { sys::SteamAPI_SteamFriends_v017() };
-        debug_assert!(!friends.is_null());
         Friends {
-            friends: friends,
+            friends: NonNull::new(friends).unwrap(),
             inner: self.inner.clone(),
         }
     }
@@ -332,9 +328,8 @@ where
     /// Returns an accessor to the steam input interface
     pub fn input(&self) -> Input<Manager> {
         let input = unsafe { sys::SteamAPI_SteamInput_v006() };
-        debug_assert!(!input.is_null());
         Input {
-            input,
+            input: NonNull::new(input).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -342,9 +337,8 @@ where
     /// Returns an accessor to the steam user interface
     pub fn user(&self) -> User<Manager> {
         let user = unsafe { sys::SteamAPI_SteamUser_v023() };
-        debug_assert!(!user.is_null());
         User {
-            user,
+            user: NonNull::new(user).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -352,9 +346,8 @@ where
     /// Returns an accessor to the steam user stats interface
     pub fn user_stats(&self) -> UserStats<Manager> {
         let us = unsafe { sys::SteamAPI_SteamUserStats_v012() };
-        debug_assert!(!us.is_null());
         UserStats {
-            user_stats: us,
+            user_stats: NonNull::new(us).unwrap(),
             inner: self.inner.clone(),
         }
     }
@@ -362,9 +355,8 @@ where
     /// Returns an accessor to the steam remote play interface
     pub fn remote_play(&self) -> RemotePlay<Manager> {
         let rp = unsafe { sys::SteamAPI_SteamRemotePlay_v002() };
-        debug_assert!(!rp.is_null());
         RemotePlay {
-            rp,
+            rp: NonNull::new(rp).unwrap(),
             inner: self.inner.clone(),
         }
     }
@@ -373,11 +365,9 @@ where
     pub fn remote_storage(&self) -> RemoteStorage<Manager> {
         let rs = unsafe { sys::SteamAPI_SteamRemoteStorage_v016() };
         let util = unsafe { sys::SteamAPI_SteamUtils_v010() };
-        debug_assert!(!rs.is_null());
-        debug_assert!(!util.is_null());
         RemoteStorage {
-            rs,
-            util,
+            rs: NonNull::new(rs).unwrap(),
+            util: NonNull::new(util).unwrap(),
             inner: self.inner.clone(),
         }
     }
@@ -385,9 +375,8 @@ where
     /// Returns an accessor to the steam screenshots interface
     pub fn screenshots(&self) -> Screenshots<Manager> {
         let screenshots = unsafe { sys::SteamAPI_SteamScreenshots_v003() };
-        debug_assert!(!screenshots.is_null());
         Screenshots {
-            screenshots,
+            screenshots: NonNull::new(screenshots).unwrap(),
             _inner: self.inner.clone(),
         }
     }
@@ -407,35 +396,32 @@ where
         let timeline = unsafe { sys::SteamAPI_SteamTimeline_v001() };
 
         Timeline {
+            // If the returned pointer is null, the client's steam API is not recent enough.
             timeline,
-            disabled: timeline.is_null(),
             _inner: self.inner.clone(),
         }
     }
 
     pub fn networking_messages(&self) -> networking_messages::NetworkingMessages<Manager> {
         let net = unsafe { sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002() };
-        debug_assert!(!net.is_null());
         networking_messages::NetworkingMessages {
-            net,
+            net: NonNull::new(net).unwrap(),
             inner: self.inner.clone(),
         }
     }
 
     pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets<Manager> {
         let sockets = unsafe { sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012() };
-        debug_assert!(!sockets.is_null());
         networking_sockets::NetworkingSockets {
-            sockets,
+            sockets: NonNull::new(sockets).unwrap(),
             inner: self.inner.clone(),
         }
     }
 
     pub fn networking_utils(&self) -> networking_utils::NetworkingUtils<Manager> {
         let utils = unsafe { sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004() };
-        debug_assert!(!utils.is_null());
         networking_utils::NetworkingUtils {
-            utils,
+            utils: NonNull::new(utils).unwrap(),
             inner: self.inner.clone(),
         }
     }
