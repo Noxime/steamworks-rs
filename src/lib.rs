@@ -211,6 +211,39 @@ impl Client {
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
+        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
+            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
+                cb(data);
+            }
+        });
+    }
+
+    /// Runs any currently pending callbacks.
+    ///
+    /// This is identical to `run_callbacks` in every way, except that
+    /// `callback_handler` is called for every callback invoked.
+    ///
+    /// This option provides an alternative for handling callbacks that
+    /// can doesn't require the handler to be `Send`, and `'static`.
+    ///
+    /// This should be called frequently (e.g. once per a frame)
+    /// in order to reduce the latency between recieving events.
+    pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
+        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
+            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
+                cb(data);
+            }
+            let cb_result = unsafe { CallbackResult::from_raw(cb_discrim, data) };
+            if let Some(cb_result) = cb_result {
+                callback_handler(cb_result);
+            }
+        });
+    }
+
+    fn run_callbacks_raw(
+        &self,
+        mut callback_handler: impl FnMut(&mut Callbacks, i32, *mut c_void),
+    ) {
         unsafe {
             let pipe = self.inner.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
@@ -237,9 +270,11 @@ impl Client {
                         }
                     }
                 } else {
-                    if let Some(cb) = callbacks.callbacks.get_mut(&callback.m_iCallback) {
-                        cb(callback.m_pubParam as *mut _);
-                    }
+                    callback_handler(
+                        &mut callbacks,
+                        callback.m_iCallback,
+                        callback.m_pubParam as *mut _,
+                    );
                 }
                 sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
             }
@@ -249,8 +284,15 @@ impl Client {
     /// Registers the passed function as a callback for the
     /// given type.
     ///
-    /// The callback will be run on the thread that `run_callbacks`
+    /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
+    ///
+    /// If the callback handler cannot be made `Send` or `'static`
+    /// the call to [`run_callbacks`] should be replaced with a call to
+    /// [`process_callbacks`] instead.
+    ///
+    /// [`run_callbacks`]: Self::run_callbacks
+    /// [`process_callbacks`]: Self::proceses_callbacks
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,
