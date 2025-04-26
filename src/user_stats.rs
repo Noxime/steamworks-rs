@@ -185,7 +185,6 @@ impl UserStats {
                 start as _,
                 end as _,
             );
-            let user_stats = self.user_stats as isize;
             register_call_result::<sys::LeaderboardScoresDownloaded_t, _>(
                 &self.inner,
                 api_call,

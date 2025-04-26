@@ -418,9 +418,8 @@ impl Client {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC {
         let ugc = unsafe { sys::SteamAPI_SteamUGC_v020() };
-        debug_assert!(!ugc.is_null());
         UGC {
-            ugc,
+            ugc: NonNull::new(ugc).unwrap(),
             inner: self.inner.clone(),
         }
     }
