@@ -4,9 +4,9 @@ use sys::InputHandle_t;
 use super::*;
 
 /// Access to the steam input interface
-pub struct Input<Manager> {
+pub struct Input {
     pub(crate) input: NonNull<sys::ISteamInput>,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 pub enum InputType {
@@ -27,7 +27,7 @@ pub enum InputType {
     SteamDeckController,
 }
 
-impl<Manager> Input<Manager> {
+impl Input {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
     /// each frame, otherwise Steam Input will updated when SteamAPI_RunCallbacks() is called

@@ -1,10 +1,10 @@
 use super::*;
 use std::time::Duration;
 
-pub struct Timeline<Manager> {
-    /// If this is null, the client's steam API is not recent enough.
+pub struct Timeline {
     pub(crate) timeline: *mut sys::ISteamTimeline,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    /// Whether the client's steam API is not recent enough.
+    pub(crate) _inner: Arc<Inner>,
 }
 
 pub enum TimelineGameMode {
@@ -57,7 +57,7 @@ impl From<TimelineEventClipPriority> for sys::ETimelineEventClipPriority {
     }
 }
 
-impl<Manager> Timeline<Manager> {
+impl Timeline {
     fn is_disabled(&self) -> bool {
         self.timeline.is_null()
     }

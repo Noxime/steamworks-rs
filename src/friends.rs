@@ -81,12 +81,12 @@ pub enum OverlayToStoreFlag {
 }
 
 /// Access to the steam friends interface
-pub struct Friends<Manager> {
+pub struct Friends {
     pub(crate) friends: NonNull<sys::ISteamFriends>,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-impl<Manager> Friends<Manager> {
+impl Friends {
     /// Returns the (display) name of the current user
     pub fn name(&self) -> String {
         unsafe {
@@ -95,7 +95,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend<Manager>> {
+    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(
                 self.friends.as_ptr(),
@@ -118,7 +118,7 @@ impl<Manager> Friends<Manager> {
         }
     }
     /// Returns recently played with players list
-    pub fn get_coplay_friends(&self) -> Vec<Friend<Manager>> {
+    pub fn get_coplay_friends(&self) -> Vec<Friend> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetCoplayFriendCount(self.friends.as_ptr());
             if count == -1 {
@@ -136,7 +136,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    pub fn get_friend(&self, friend: SteamId) -> Friend<Manager> {
+    pub fn get_friend(&self, friend: SteamId) -> Friend {
         Friend {
             id: friend,
             friends: self.friends,
@@ -325,19 +325,19 @@ unsafe impl Callback for GameLobbyJoinRequested {
     }
 }
 
-pub struct Friend<Manager> {
+pub struct Friend {
     id: SteamId,
     friends: NonNull<sys::ISteamFriends>,
-    _inner: Arc<Inner<Manager>>,
+    _inner: Arc<Inner>,
 }
 
-impl<Manager> Debug for Friend<Manager> {
+impl Debug for Friend {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Friend({:?})", self.id)
     }
 }
 
-impl<Manager> Friend<Manager> {
+impl Friend {
     pub fn id(&self) -> SteamId {
         self.id
     }

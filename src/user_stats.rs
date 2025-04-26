@@ -9,14 +9,14 @@ use serial_test::serial;
 use std::ptr::NonNull;
 
 /// Access to the steam user interface
-pub struct UserStats<Manager> {
+pub struct UserStats {
     pub(crate) user_stats: NonNull<sys::ISteamUserStats>,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
 const CALLBACK_BASE_ID: i32 = 1100;
 
-impl<Manager> UserStats<Manager> {
+impl UserStats {
     pub fn find_leaderboard<F>(&self, name: &str, cb: F)
     where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
@@ -27,7 +27,7 @@ impl<Manager> UserStats<Manager> {
                 self.user_stats.as_ptr(),
                 name.as_ptr() as *const _,
             );
-            register_call_result::<sys::LeaderboardFindResult_t, _, _>(
+            register_call_result::<sys::LeaderboardFindResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 4,
@@ -84,7 +84,7 @@ impl<Manager> UserStats<Manager> {
                 sort_method,
                 display_type,
             );
-            register_call_result::<sys::LeaderboardFindResult_t, _, _>(
+            register_call_result::<sys::LeaderboardFindResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 4,
@@ -130,7 +130,7 @@ impl<Manager> UserStats<Manager> {
                 details.as_ptr(),
                 details.len() as _,
             );
-            register_call_result::<sys::LeaderboardScoreUploaded_t, _, _>(
+            register_call_result::<sys::LeaderboardScoreUploaded_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 6,
@@ -185,7 +185,8 @@ impl<Manager> UserStats<Manager> {
                 start as _,
                 end as _,
             );
-            register_call_result::<sys::LeaderboardScoresDownloaded_t, _, _>(
+            let user_stats = self.user_stats as isize;
+            register_call_result::<sys::LeaderboardScoresDownloaded_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 5,
@@ -322,7 +323,7 @@ impl<Manager> UserStats<Manager> {
             let api_call = sys::SteamAPI_ISteamUserStats_RequestGlobalAchievementPercentages(
                 self.user_stats.as_ptr(),
             );
-            register_call_result::<sys::GlobalAchievementPercentagesReady_t, _, _>(
+            register_call_result::<sys::GlobalAchievementPercentagesReady_t, _>(
                 &self.inner,
                 api_call,
                 // `CALLBACK_BASE_ID + <number>`: <number> is found in Steamworks `isteamuserstats.h` header file
@@ -474,7 +475,7 @@ impl<Manager> UserStats<Manager> {
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     #[inline]
     #[must_use]
-    pub fn achievement(&self, name: &str) -> stats::AchievementHelper<'_, Manager> {
+    pub fn achievement(&self, name: &str) -> stats::AchievementHelper<'_> {
         stats::AchievementHelper {
             name: CString::new(name).unwrap(),
             parent: self,

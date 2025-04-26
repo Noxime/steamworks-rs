@@ -2,7 +2,7 @@ use std::{path::Path, sync::mpsc::TryRecvError};
 
 use steamworks::{Client, ClientManager, PublishedFileId, UGC};
 
-fn create_item(ugc: &UGC<ClientManager>) {
+fn create_item(ugc: &UGC) {
     // creating a new workshop item
     // make sure you change the appid to the specified game
     ugc.create_item(

@@ -10,9 +10,9 @@ use std::path::Path;
 
 pub const RESULTS_PER_PAGE: u32 = sys::kNumUGCResultsPerPage as u32;
 
-pub struct UGC<Manager> {
+pub struct UGC {
     pub(crate) ugc: *mut sys::ISteamUGC,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
 const CALLBACK_BASE_ID: i32 = 3400;
@@ -520,7 +520,7 @@ pub struct InstallInfo {
     pub timestamp: u32,
 }
 
-impl<Manager> UGC<Manager> {
+impl UGC {
     /// Suspends or resumes all workshop downloads
     pub fn suspend_downloads(&self, suspend: bool) {
         unsafe {
@@ -535,7 +535,7 @@ impl<Manager> UGC<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
-            register_call_result::<sys::CreateItemResult_t, _, _>(
+            register_call_result::<sys::CreateItemResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 3,
@@ -557,11 +557,7 @@ impl<Manager> UGC<Manager> {
 
     /// Starts an item update process
     #[must_use]
-    pub fn start_item_update(
-        &self,
-        app_id: AppId,
-        file_id: PublishedFileId,
-    ) -> UpdateHandle<Manager> {
+    pub fn start_item_update(&self, app_id: AppId, file_id: PublishedFileId) -> UpdateHandle {
         let handle =
             unsafe { sys::SteamAPI_ISteamUGC_StartItemUpdate(self.ugc, app_id.0, file_id.0) };
         UpdateHandle {
@@ -578,7 +574,7 @@ impl<Manager> UGC<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _, _>(
+            register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_REMOTE_STORAGE_BASE_ID + 13,
@@ -601,7 +597,7 @@ impl<Manager> UGC<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _, _>(
+            register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_REMOTE_STORAGE_BASE_ID + 15,
@@ -684,7 +680,7 @@ impl<Manager> UGC<Manager> {
         item_type: UGCType,
         appids: AppIDs,
         page: u32,
-    ) -> Result<QueryHandle<Manager>, CreateQueryError> {
+    ) -> Result<QueryHandle, CreateQueryError> {
         // Call the external function with the correct parameters
         let handle = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryAllUGCRequestPage(
@@ -719,7 +715,7 @@ impl<Manager> UGC<Manager> {
         sort_order: UserListOrder,
         appids: AppIDs,
         page: u32,
-    ) -> Result<QueryHandle<Manager>, CreateQueryError> {
+    ) -> Result<QueryHandle, CreateQueryError> {
         let res = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
                 self.ugc,
@@ -747,7 +743,7 @@ impl<Manager> UGC<Manager> {
     pub fn query_items(
         &self,
         mut items: Vec<PublishedFileId>,
-    ) -> Result<QueryHandle<Manager>, CreateQueryError> {
+    ) -> Result<QueryHandle, CreateQueryError> {
         debug_assert!(items.len() > 0);
 
         let res = unsafe {
@@ -769,10 +765,7 @@ impl<Manager> UGC<Manager> {
         })
     }
 
-    pub fn query_item(
-        &self,
-        mut item: PublishedFileId,
-    ) -> Result<QueryHandle<Manager>, CreateQueryError> {
+    pub fn query_item(&self, mut item: PublishedFileId) -> Result<QueryHandle, CreateQueryError> {
         let item_ptr = (&mut item) as *mut PublishedFileId as *mut u64;
 
         let res = unsafe {
@@ -797,7 +790,7 @@ impl<Manager> UGC<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::DownloadItemResult_t, _, _>(
+            register_call_result::<sys::DownloadItemResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_REMOTE_STORAGE_BASE_ID + 17,
@@ -817,7 +810,7 @@ impl<Manager> UGC<Manager> {
     }
 }
 
-impl UGC<ServerManager> {
+impl UGC {
     /// Initialize this UGC interface for a Steam game server.
     ///
     /// You should pass in the Workshop depot, you can find this on SteamDB. It's usually just the app ID.
@@ -838,14 +831,14 @@ impl UGC<ServerManager> {
 }
 
 /// A handle to update a published item
-pub struct UpdateHandle<Manager> {
+pub struct UpdateHandle {
     ugc: *mut sys::ISteamUGC,
-    inner: Arc<Inner<Manager>>,
+    inner: Arc<Inner>,
 
     handle: sys::UGCUpdateHandle_t,
 }
 
-impl<Manager> UpdateHandle<Manager> {
+impl UpdateHandle {
     #[must_use]
     pub fn title(self, title: &str) -> Self {
         let title = CString::new(title).unwrap();
@@ -999,7 +992,7 @@ impl<Manager> UpdateHandle<Manager> {
         self
     }
 
-    pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle<Manager>
+    pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
@@ -1010,7 +1003,7 @@ impl<Manager> UpdateHandle<Manager> {
 
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubmitItemUpdate(self.ugc, self.handle, note);
-            register_call_result::<sys::SubmitItemUpdateResult_t, _, _>(
+            register_call_result::<sys::SubmitItemUpdateResult_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 4,
@@ -1038,17 +1031,17 @@ impl<Manager> UpdateHandle<Manager> {
 }
 
 /// A handle to watch an update of a published item
-pub struct UpdateWatchHandle<Manager> {
+pub struct UpdateWatchHandle {
     ugc: *mut sys::ISteamUGC,
-    _inner: Arc<Inner<Manager>>,
+    _inner: Arc<Inner>,
 
     handle: sys::UGCUpdateHandle_t,
 }
 
-unsafe impl<Manager> Send for UpdateWatchHandle<Manager> {}
-unsafe impl<Manager> Sync for UpdateWatchHandle<Manager> {}
+unsafe impl Send for UpdateWatchHandle {}
+unsafe impl Sync for UpdateWatchHandle {}
 
-impl<Manager> UpdateWatchHandle<Manager> {
+impl UpdateWatchHandle {
     pub fn progress(&self) -> (UpdateStatus, u64, u64) {
         let mut progress = 0;
         let mut total = 0;
@@ -1094,15 +1087,16 @@ pub enum UpdateStatus {
 }
 
 /// Query handle, to allow for more filtering.
-pub struct QueryHandle<Manager> {
+pub struct QueryHandle {
     ugc: *mut sys::ISteamUGC,
-    inner: Arc<Inner<Manager>>,
+    inner: Arc<Inner>,
 
     // Note: this is always filled except in `fetch`, where it must be taken
     // to prevent the handle from being dropped when this query is dropped.
     handle: Option<sys::UGCQueryHandle_t>,
 }
-impl<Manager> Drop for QueryHandle<Manager> {
+
+impl Drop for QueryHandle {
     fn drop(&mut self) {
         if let Some(handle) = self.handle.as_mut() {
             unsafe {
@@ -1111,7 +1105,8 @@ impl<Manager> Drop for QueryHandle<Manager> {
         }
     }
 }
-impl<Manager> QueryHandle<Manager> {
+
+impl QueryHandle {
     /// Excludes items with a specific tag.
     ///
     /// Panics if `tag` could not be converted to a `CString`.
@@ -1431,7 +1426,7 @@ impl<Manager> QueryHandle<Manager> {
 
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
-            register_call_result::<sys::SteamUGCQueryCompleted_t, _, _>(
+            register_call_result::<sys::SteamUGCQueryCompleted_t, _>(
                 &inner,
                 api_call,
                 CALLBACK_BASE_ID + 1,

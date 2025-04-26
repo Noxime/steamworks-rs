@@ -76,11 +76,11 @@ pub type SIResult<T> = Result<T, SteamAPIInitError>;
 ///
 /// This provides access to all of the steamworks api that
 /// clients can use.
-pub struct Client<Manager = ClientManager> {
-    inner: Arc<Inner<Manager>>,
+pub struct Client {
+    inner: Arc<Inner>,
 }
 
-impl<Manager> Clone for Client<Manager> {
+impl Clone for Client {
     fn clone(&self) -> Self {
         Client {
             inner: self.inner.clone(),
@@ -88,10 +88,10 @@ impl<Manager> Clone for Client<Manager> {
     }
 }
 
-struct Inner<Manager> {
-    _manager: Manager,
+struct Inner {
+    manager: Box<dyn Manager>,
     callbacks: Mutex<Callbacks>,
-    networking_sockets_data: Mutex<NetworkingSocketsData<Manager>>,
+    networking_sockets_data: Mutex<NetworkingSocketsData>,
 }
 
 struct Callbacks {
@@ -99,23 +99,18 @@ struct Callbacks {
     call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>,
 }
 
-struct NetworkingSocketsData<Manager> {
+struct NetworkingSocketsData {
     sockets: HashMap<
         sys::HSteamListenSocket,
         (
-            Weak<networking_sockets::InnerSocket<Manager>>,
-            Sender<networking_types::ListenSocketEvent<Manager>>,
+            Weak<networking_sockets::InnerSocket>,
+            Sender<networking_types::ListenSocketEvent>,
         ),
     >,
     /// Connections to a remote listening port
     independent_connections: HashMap<sys::HSteamNetConnection, Sender<()>>,
-    connection_callback: Weak<CallbackHandle<Manager>>,
+    connection_callback: Weak<CallbackHandle>,
 }
-
-unsafe impl<Manager: Send + Sync> Send for Inner<Manager> {}
-unsafe impl<Manager: Send + Sync> Sync for Inner<Manager> {}
-unsafe impl<Manager: Send + Sync> Send for Client<Manager> {}
-unsafe impl<Manager: Send + Sync> Sync for Client<Manager> {}
 
 /// Returns true if the app wasn't launched through steam and
 /// begins relaunching it, the app should exit as soon as possible.
@@ -133,7 +128,7 @@ where
 {
 }
 
-impl Client<ClientManager> {
+impl Client {
     /// Call to the native SteamAPI_Init function.
     /// should not be used directly, but through either
     /// init_flat() or init_flat_app()
@@ -160,9 +155,9 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init() -> SIResult<Client<ClientManager>> {
-        static_assert_send::<Client<ClientManager>>();
-        static_assert_sync::<Client<ClientManager>>();
+    pub fn init() -> SIResult<Client> {
+        static_assert_send::<Client>();
+        static_assert_sync::<Client>();
         unsafe {
             let mut err_msg: sys::SteamErrMsg = [0; 1024];
             let result = Self::steam_api_init_flat(&mut err_msg);
@@ -173,7 +168,7 @@ impl Client<ClientManager> {
 
             sys::SteamAPI_ManualDispatch_Init();
             let client = Arc::new(Inner {
-                _manager: ClientManager { _priv: () },
+                manager: Box::new(ClientManager),
                 callbacks: Mutex::new(Callbacks {
                     callbacks: HashMap::new(),
                     call_results: HashMap::new(),
@@ -201,7 +196,7 @@ impl Client<ClientManager> {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
-    pub fn init_app<ID: Into<AppId>>(app_id: ID) -> SIResult<Client<ClientManager>> {
+    pub fn init_app<ID: Into<AppId>>(app_id: ID) -> SIResult<Client> {
         let app_id = app_id.into().0.to_string();
         std::env::set_var("SteamAppId", &app_id);
         std::env::set_var("SteamGameId", app_id);
@@ -209,10 +204,7 @@ impl Client<ClientManager> {
     }
 }
 
-impl<Manager> Client<Manager>
-where
-    Manager: crate::Manager,
-{
+impl Client {
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -221,10 +213,43 @@ where
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
+        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
+            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
+                cb(data);
+            }
+        });
+    }
+
+    /// Runs any currently pending callbacks.
+    ///
+    /// This is identical to `run_callbacks` in every way, except that
+    /// `callback_handler` is called for every callback invoked.
+    ///
+    /// This option provides an alternative for handling callbacks that
+    /// can doesn't require the handler to be `Send`, and `'static`.
+    ///
+    /// This should be called frequently (e.g. once per a frame)
+    /// in order to reduce the latency between recieving events.
+    pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
+        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
+            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
+                cb(data);
+            }
+            let cb_result = unsafe { CallbackResult::from_raw(cb_discrim, data) };
+            if let Some(cb_result) = cb_result {
+                callback_handler(cb_result);
+            }
+        });
+    }
+
+    fn run_callbacks_raw(
+        &self,
+        mut callback_handler: impl FnMut(&mut Callbacks, i32, *mut c_void),
+    ) {
         let mut callback = CallbackMsg_t::default();
 
         unsafe {
-            let pipe = Manager::get_pipe();
+            let pipe = self.inner.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
                 let mut callbacks = self.inner.callbacks.lock().unwrap();
@@ -248,9 +273,11 @@ where
                         }
                     }
                 } else {
-                    if let Some(cb) = callbacks.callbacks.get_mut(&callback.m_iCallback) {
-                        cb(callback.m_pubParam as *mut _);
-                    }
+                    callback_handler(
+                        &mut callbacks,
+                        callback.m_iCallback,
+                        callback.m_pubParam as *mut _,
+                    );
                 }
                 sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
             }
@@ -260,9 +287,16 @@ where
     /// Registers the passed function as a callback for the
     /// given type.
     ///
-    /// The callback will be run on the thread that `run_callbacks`
+    /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
-    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle<Manager>
+    ///
+    /// If the callback handler cannot be made `Send` or `'static`
+    /// the call to [`run_callbacks`] should be replaced with a call to
+    /// [`process_callbacks`] instead.
+    ///
+    /// [`run_callbacks`]: Self::run_callbacks
+    /// [`process_callbacks`]: Self::proceses_callbacks
+    pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,
         F: FnMut(C) + 'static + Send,
@@ -271,7 +305,7 @@ where
     }
 
     /// Returns an accessor to the steam utils interface
-    pub fn utils(&self) -> Utils<Manager> {
+    pub fn utils(&self) -> Utils {
         let utils = unsafe { sys::SteamAPI_SteamUtils_v010() };
         debug_assert!(!utils.is_null());
         Utils {
@@ -281,7 +315,7 @@ where
     }
 
     /// Returns an accessor to the steam matchmaking interface
-    pub fn matchmaking(&self) -> Matchmaking<Manager> {
+    pub fn matchmaking(&self) -> Matchmaking {
         let mm = unsafe { sys::SteamAPI_SteamMatchmaking_v009() };
         Matchmaking {
             mm: NonNull::new(mm).unwrap(),
@@ -290,7 +324,7 @@ where
     }
 
     /// Returns an accessor to the steam matchmaking_servers interface
-    pub fn matchmaking_servers(&self) -> MatchmakingServers<Manager> {
+    pub fn matchmaking_servers(&self) -> MatchmakingServers {
         let mm = unsafe { sys::SteamAPI_SteamMatchmakingServers_v002() };
         MatchmakingServers {
             mms: NonNull::new(mm).unwrap(),
@@ -299,7 +333,7 @@ where
     }
 
     /// Returns an accessor to the steam networking interface
-    pub fn networking(&self) -> Networking<Manager> {
+    pub fn networking(&self) -> Networking {
         let net = unsafe { sys::SteamAPI_SteamNetworking_v006() };
         Networking {
             net: NonNull::new(net).unwrap(),
@@ -308,7 +342,7 @@ where
     }
 
     /// Returns an accessor to the steam apps interface
-    pub fn apps(&self) -> Apps<Manager> {
+    pub fn apps(&self) -> Apps {
         let apps = unsafe { sys::SteamAPI_SteamApps_v008() };
         Apps {
             apps: NonNull::new(apps).unwrap(),
@@ -317,7 +351,7 @@ where
     }
 
     /// Returns an accessor to the steam friends interface
-    pub fn friends(&self) -> Friends<Manager> {
+    pub fn friends(&self) -> Friends {
         let friends = unsafe { sys::SteamAPI_SteamFriends_v017() };
         Friends {
             friends: NonNull::new(friends).unwrap(),
@@ -326,7 +360,7 @@ where
     }
 
     /// Returns an accessor to the steam input interface
-    pub fn input(&self) -> Input<Manager> {
+    pub fn input(&self) -> Input {
         let input = unsafe { sys::SteamAPI_SteamInput_v006() };
         Input {
             input: NonNull::new(input).unwrap(),
@@ -335,7 +369,7 @@ where
     }
 
     /// Returns an accessor to the steam user interface
-    pub fn user(&self) -> User<Manager> {
+    pub fn user(&self) -> User {
         let user = unsafe { sys::SteamAPI_SteamUser_v023() };
         User {
             user: NonNull::new(user).unwrap(),
@@ -344,7 +378,7 @@ where
     }
 
     /// Returns an accessor to the steam user stats interface
-    pub fn user_stats(&self) -> UserStats<Manager> {
+    pub fn user_stats(&self) -> UserStats {
         let us = unsafe { sys::SteamAPI_SteamUserStats_v012() };
         UserStats {
             user_stats: NonNull::new(us).unwrap(),
@@ -353,7 +387,7 @@ where
     }
 
     /// Returns an accessor to the steam remote play interface
-    pub fn remote_play(&self) -> RemotePlay<Manager> {
+    pub fn remote_play(&self) -> RemotePlay {
         let rp = unsafe { sys::SteamAPI_SteamRemotePlay_v002() };
         RemotePlay {
             rp: NonNull::new(rp).unwrap(),
@@ -362,7 +396,7 @@ where
     }
 
     /// Returns an accessor to the steam remote storage interface
-    pub fn remote_storage(&self) -> RemoteStorage<Manager> {
+    pub fn remote_storage(&self) -> RemoteStorage {
         let rs = unsafe { sys::SteamAPI_SteamRemoteStorage_v016() };
         let util = unsafe { sys::SteamAPI_SteamUtils_v010() };
         RemoteStorage {
@@ -373,7 +407,7 @@ where
     }
 
     /// Returns an accessor to the steam screenshots interface
-    pub fn screenshots(&self) -> Screenshots<Manager> {
+    pub fn screenshots(&self) -> Screenshots {
         let screenshots = unsafe { sys::SteamAPI_SteamScreenshots_v003() };
         Screenshots {
             screenshots: NonNull::new(screenshots).unwrap(),
@@ -382,7 +416,7 @@ where
     }
 
     /// Returns an accessor to the steam UGC interface (steam workshop)
-    pub fn ugc(&self) -> UGC<Manager> {
+    pub fn ugc(&self) -> UGC {
         let ugc = unsafe { sys::SteamAPI_SteamUGC_v020() };
         debug_assert!(!ugc.is_null());
         UGC {
@@ -392,7 +426,7 @@ where
     }
 
     /// Returns an accessor to the steam timeline interface
-    pub fn timeline(&self) -> Timeline<Manager> {
+    pub fn timeline(&self) -> Timeline {
         let timeline = unsafe { sys::SteamAPI_SteamTimeline_v001() };
 
         Timeline {
@@ -402,7 +436,7 @@ where
         }
     }
 
-    pub fn networking_messages(&self) -> networking_messages::NetworkingMessages<Manager> {
+    pub fn networking_messages(&self) -> networking_messages::NetworkingMessages {
         let net = unsafe { sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002() };
         networking_messages::NetworkingMessages {
             net: NonNull::new(net).unwrap(),
@@ -410,7 +444,7 @@ where
         }
     }
 
-    pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets<Manager> {
+    pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets {
         let sockets = unsafe { sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012() };
         networking_sockets::NetworkingSockets {
             sockets: NonNull::new(sockets).unwrap(),
@@ -418,7 +452,7 @@ where
         }
     }
 
-    pub fn networking_utils(&self) -> networking_utils::NetworkingUtils<Manager> {
+    pub fn networking_utils(&self) -> networking_utils::NetworkingUtils {
         let utils = unsafe { sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004() };
         networking_utils::NetworkingUtils {
             utils: NonNull::new(utils).unwrap(),
@@ -428,26 +462,26 @@ where
 }
 
 /// Used to separate client and game server modes
-pub unsafe trait Manager {
-    unsafe fn get_pipe() -> sys::HSteamPipe;
+trait Manager: Send + Sync {
+    fn get_pipe(&self) -> sys::HSteamPipe;
 }
 
 /// Manages keeping the steam api active for clients
-pub struct ClientManager {
-    _priv: (),
-}
+struct ClientManager;
 
-unsafe impl Manager for ClientManager {
-    unsafe fn get_pipe() -> sys::HSteamPipe {
-        sys::SteamAPI_GetHSteamPipe()
+impl Manager for ClientManager {
+    fn get_pipe(&self) -> sys::HSteamPipe {
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call.
+        unsafe { sys::SteamAPI_GetHSteamPipe() }
     }
 }
 
 impl Drop for ClientManager {
     fn drop(&mut self) {
-        unsafe {
-            sys::SteamAPI_Shutdown();
-        }
+        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
+        // always safe to call from any thread.
+        unsafe { sys::SteamAPI_Shutdown() }
     }
 }
 

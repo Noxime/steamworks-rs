@@ -13,7 +13,6 @@ use serial_test::serial;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::net::SocketAddr;
-use std::ptr::NonNull;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use sys::SteamNetworkingMessage_t;
@@ -22,15 +21,15 @@ use crate::networking_types::AppNetConnectionEnd;
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
-pub struct NetworkingSockets<Manager> {
-    pub(crate) sockets: NonNull<sys::ISteamNetworkingSockets>,
-    pub(crate) inner: Arc<Inner<Manager>>,
+pub struct NetworkingSockets {
+    pub(crate) sockets: *mut sys::ISteamNetworkingSockets,
+    pub(crate) inner: Arc<Inner>,
 }
 
-unsafe impl<T> Send for NetworkingSockets<T> {}
-unsafe impl<T> Sync for NetworkingSockets<T> {}
+unsafe impl Send for NetworkingSockets {}
+unsafe impl Sync for NetworkingSockets {}
 
-impl<Manager: 'static> NetworkingSockets<Manager> {
+impl NetworkingSockets {
     /// Creates a "server" socket that listens for clients to connect to by calling ConnectByIPAddress, over ordinary UDP (IPv4 or IPv6)
     ///
     /// You must select a specific local port to listen on and set it as the port field of the local address.
@@ -49,12 +48,12 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         &self,
         local_address: SocketAddr,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
-    ) -> Result<ListenSocket<Manager>, InvalidHandle> {
+    ) -> Result<ListenSocket, InvalidHandle> {
         let local_address = SteamIpAddr::from(local_address);
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketIP(
-                self.sockets.as_ptr(),
+                self.sockets,
                 local_address.as_ptr(),
                 options.len() as _,
                 options.as_ptr(),
@@ -92,12 +91,12 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         &self,
         address: SocketAddr,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
-    ) -> Result<NetConnection<Manager>, InvalidHandle> {
+    ) -> Result<NetConnection, InvalidHandle> {
         let handle = unsafe {
             let address = SteamIpAddr::from(address);
             let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectByIPAddress(
-                self.sockets.as_ptr(),
+                self.sockets,
                 address.as_ptr(),
                 options.len() as _,
                 options.as_ptr(),
@@ -141,11 +140,11 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         &self,
         local_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
-    ) -> Result<ListenSocket<Manager>, InvalidHandle> {
+    ) -> Result<ListenSocket, InvalidHandle> {
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P(
-                self.sockets.as_ptr(),
+                self.sockets,
                 local_virtual_port as _,
                 options.len() as _,
                 options.as_ptr(),
@@ -174,11 +173,11 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         identity_remote: NetworkingIdentity,
         remote_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
-    ) -> Result<NetConnection<Manager>, InvalidHandle> {
+    ) -> Result<NetConnection, InvalidHandle> {
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_ConnectP2P(
-                self.sockets.as_ptr(),
+                self.sockets,
                 identity_remote.as_ptr(),
                 remote_virtual_port as _,
                 options.len() as _,
@@ -213,11 +212,11 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         &self,
         local_virtual_port: u32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
-    ) -> Result<ListenSocket<Manager>, InvalidHandle> {
+    ) -> Result<ListenSocket, InvalidHandle> {
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateHostedDedicatedServerListenSocket(
-                self.sockets.as_ptr(),
+                self.sockets,
                 local_virtual_port as _,
                 options.len() as _,
                 options.as_ptr(),
@@ -256,18 +255,15 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     pub fn init_authentication(
         &self,
     ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
-        unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_InitAuthentication(self.sockets.as_ptr())
-                .try_into()
-        }
+        unsafe { sys::SteamAPI_ISteamNetworkingSockets_InitAuthentication(self.sockets).try_into() }
     }
 
     /// Create a new poll group.
     ///
     /// You should destroy the poll group when you are done using DestroyPollGroup
-    pub fn create_poll_group(&self) -> NetPollGroup<Manager> {
+    pub fn create_poll_group(&self) -> NetPollGroup {
         let poll_group =
-            unsafe { sys::SteamAPI_ISteamNetworkingSockets_CreatePollGroup(self.sockets.as_ptr()) };
+            unsafe { sys::SteamAPI_ISteamNetworkingSockets_CreatePollGroup(self.sockets) };
         NetPollGroup {
             handle: poll_group,
             sockets: self.sockets,
@@ -279,11 +275,10 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     pub fn get_authentication_status(
         &self,
     ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
-        let mut details = sys::SteamNetAuthenticationStatus_t::default();
-
+        let mut details: sys::SteamNetAuthenticationStatus_t = unsafe { std::mem::zeroed() };
         let auth = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetAuthenticationStatus(
-                self.sockets.as_ptr(),
+                self.sockets,
                 &mut details,
             )
         };
@@ -296,18 +291,16 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     /// Returns false if the connection handle is invalid.
     pub fn get_connection_info(
         &self,
-        connection: &NetConnection<Manager>,
+        connection: &NetConnection,
     ) -> Result<NetConnectionInfo, bool> {
-        let mut info = sys::SteamNetConnectionInfo_t::default();
-
+        let mut info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
-                self.sockets.as_ptr(),
+                self.sockets,
                 connection.handle,
                 &mut info,
             )
         };
-
         if was_successful {
             Ok(NetConnectionInfo { inner: info })
         } else {
@@ -322,7 +315,7 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     /// pLanes points to an array that will receive lane-specific info. It can be NULL if this is not needed.
     pub fn get_realtime_connection_status(
         &self,
-        connection: &NetConnection<Manager>,
+        connection: &NetConnection,
         lanes: i32,
     ) -> Result<
         (
@@ -331,14 +324,14 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
         ),
         SteamError,
     > {
-        let mut info = sys::SteamNetConnectionRealTimeStatus_t::default();
+        let mut info: sys::SteamNetConnectionRealTimeStatus_t = unsafe { std::mem::zeroed() };
         let mut p_lanes: Vec<sys::SteamNetConnectionRealTimeLaneStatus_t> =
             Vec::with_capacity(lanes as usize);
         let result = unsafe {
             // Get a reference to the uninitialized part of our Vec's buffer
             let uninitialized = p_lanes.spare_capacity_mut();
             let status = sys::SteamAPI_ISteamNetworkingSockets_GetConnectionRealTimeStatus(
-                self.sockets.as_ptr(),
+                self.sockets,
                 connection.handle,
                 &mut info,
                 lanes,
@@ -369,14 +362,14 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
     /// Example: 3 lanes, with priorities { 0, 10, 10 } and weights { (NA), 20, 5 }. Messages sent on the first will always be sent first, before messages in the other two lanes. Its weight value is irrelevant, since there are no other lanes with priority=0. The other two lanes will share bandwidth, with the second and third lanes sharing bandwidth using a ratio of approximately 4:1. (The weights { NA, 4, 1 } would be equivalent.)
     pub fn configure_connection_lanes(
         &self,
-        connection: &NetConnection<Manager>,
+        connection: &NetConnection,
         num_lanes: i32,
         lane_priorities: &[i32],
         lane_weights: &[u16],
     ) -> Result<(), SteamError> {
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_ConfigureConnectionLanes(
-                self.sockets.as_ptr(),
+                self.sockets,
                 connection.handle,
                 num_lanes,
                 lane_priorities.as_ptr(),
@@ -399,20 +392,17 @@ impl<Manager: 'static> NetworkingSockets<Manager> {
 /// If a Listen Socket goes out of scope while there are still connections, but new requests will be rejected immediately.
 ///
 /// Listen Socket Events will only be available if steam callback are regularly called.
-pub struct ListenSocket<Manager> {
-    inner: Arc<InnerSocket<Manager>>,
-    _callback_handle: Arc<CallbackHandle<Manager>>,
-    receiver: Receiver<ListenSocketEvent<Manager>>,
+pub struct ListenSocket {
+    inner: Arc<InnerSocket>,
+    _callback_handle: Arc<CallbackHandle>,
+    receiver: Receiver<ListenSocketEvent>,
 }
 
-unsafe impl<Manager: Send + Sync> Send for ListenSocket<Manager> {}
-unsafe impl<Manager: Send + Sync> Sync for ListenSocket<Manager> {}
-
-impl<Manager: 'static> ListenSocket<Manager> {
+impl ListenSocket {
     pub(crate) fn new(
         handle: sys::HSteamListenSocket,
-        sockets: NonNull<sys::ISteamNetworkingSockets>,
-        inner: Arc<Inner<Manager>>,
+        sockets: *mut sys::ISteamNetworkingSockets,
+        inner: Arc<Inner>,
     ) -> Self {
         let (sender, receiver) = std::sync::mpsc::channel();
         let inner_socket = Arc::new(InnerSocket {
@@ -438,14 +428,14 @@ impl<Manager: 'static> ListenSocket<Manager> {
     /// Tries to receive a pending event. This will never block.
     ///
     /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
-    pub fn try_receive_event(&self) -> Option<ListenSocketEvent<Manager>> {
+    pub fn try_receive_event(&self) -> Option<ListenSocketEvent> {
         self.receiver.try_recv().ok()
     }
 
     /// Receive the next event. This will block until the next event is received.
     ///
     /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
-    pub fn receive_event(&self) -> ListenSocketEvent<Manager> {
+    pub fn receive_event(&self) -> ListenSocketEvent {
         self.receiver
             .recv()
             .expect("all senders were closed, even though the listen socket is still in use")
@@ -454,7 +444,7 @@ impl<Manager: 'static> ListenSocket<Manager> {
     /// Returns an iterator for ListenSocketEvents that will block until the next event is received
     ///
     /// You should answer ConnectionRequests immediately or the server will appear as unresponsive.
-    pub fn events<'a>(&'a self) -> impl Iterator<Item = ListenSocketEvent<Manager>> + 'a {
+    pub fn events<'a>(&'a self) -> impl Iterator<Item = ListenSocketEvent> + 'a {
         self.receiver.iter()
     }
 
@@ -486,13 +476,13 @@ impl<Manager: 'static> ListenSocket<Manager> {
     /// Returns the message number or Steam error for each sent message.
     pub fn send_messages(
         &self,
-        messages: impl IntoIterator<Item = NetworkingMessage<Manager>>,
+        messages: impl IntoIterator<Item = NetworkingMessage>,
     ) -> Vec<SResult<MessageNumber>> {
         let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
         let mut results = vec![0; messages.len()];
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
-                self.inner.sockets.as_ptr(),
+                self.inner.sockets,
                 messages.len() as _,
                 messages.as_ptr(),
                 results.as_mut_ptr(),
@@ -513,21 +503,21 @@ impl<Manager: 'static> ListenSocket<Manager> {
 }
 
 /// Inner struct that keeps sockets alive as long as there is still a connection alive
-pub(crate) struct InnerSocket<Manager> {
-    pub(crate) sockets: NonNull<sys::ISteamNetworkingSockets>,
+pub(crate) struct InnerSocket {
+    pub(crate) sockets: *mut sys::ISteamNetworkingSockets,
     pub(crate) handle: sys::HSteamListenSocket,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-impl<Manager> Drop for InnerSocket<Manager> {
+unsafe impl Send for InnerSocket {}
+unsafe impl Sync for InnerSocket {}
+
+impl Drop for InnerSocket {
     fn drop(&mut self) {
         // There's no documentation for this return value, so it's most likely false when hSocket is invalid
         // The handle should always be valid in our case.
         let _was_successful = unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_CloseListenSocket(
-                self.sockets.as_ptr(),
-                self.handle,
-            )
+            sys::SteamAPI_ISteamNetworkingSockets_CloseListenSocket(self.sockets, self.handle)
         };
 
         if let None = self
@@ -543,26 +533,26 @@ impl<Manager> Drop for InnerSocket<Manager> {
     }
 }
 
-pub struct NetConnection<Manager> {
+pub struct NetConnection {
     pub(crate) handle: sys::HSteamNetConnection,
-    sockets: NonNull<sys::ISteamNetworkingSockets>,
-    inner: Arc<Inner<Manager>>,
-    socket: Option<Arc<InnerSocket<Manager>>>,
-    _callback_handle: Option<Arc<CallbackHandle<Manager>>>,
+    sockets: *mut sys::ISteamNetworkingSockets,
+    inner: Arc<Inner>,
+    socket: Option<Arc<InnerSocket>>,
+    _callback_handle: Option<Arc<CallbackHandle>>,
     _event_receiver: Option<Receiver<()>>,
     message_buffer: Vec<*mut SteamNetworkingMessage_t>,
     is_handled: bool,
 }
 
-unsafe impl<Manager: Send + Sync> Send for NetConnection<Manager> {}
-unsafe impl<Manager: Send + Sync> Sync for NetConnection<Manager> {}
+unsafe impl Send for NetConnection {}
+unsafe impl Sync for NetConnection {}
 
-impl<Manager: 'static> NetConnection<Manager> {
+impl NetConnection {
     pub(crate) fn new(
         handle: sys::HSteamNetConnection,
-        sockets: NonNull<sys::ISteamNetworkingSockets>,
-        inner: Arc<Inner<Manager>>,
-        socket: Arc<InnerSocket<Manager>>,
+        sockets: *mut sys::ISteamNetworkingSockets,
+        inner: Arc<Inner>,
+        socket: Arc<InnerSocket>,
     ) -> Self {
         NetConnection {
             handle,
@@ -578,8 +568,8 @@ impl<Manager: 'static> NetConnection<Manager> {
 
     pub(crate) fn new_independent(
         handle: sys::HSteamNetConnection,
-        sockets: NonNull<sys::ISteamNetworkingSockets>,
-        inner: Arc<Inner<Manager>>,
+        sockets: *mut sys::ISteamNetworkingSockets,
+        inner: Arc<Inner>,
     ) -> Self {
         let (sender, receiver) = std::sync::mpsc::channel();
         inner
@@ -606,8 +596,8 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// Don't use this for exposed connections, it is not set up correctly.
     pub(crate) fn new_internal(
         handle: sys::HSteamNetConnection,
-        sockets: NonNull<sys::ISteamNetworkingSockets>,
-        inner: Arc<Inner<Manager>>,
+        sockets: *mut sys::ISteamNetworkingSockets,
+        inner: Arc<Inner>,
     ) -> Self {
         NetConnection {
             handle,
@@ -627,7 +617,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     pub fn clear_poll_group(&self) -> Result<(), InvalidHandle> {
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionPollGroup(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 sys::k_HSteamNetPollGroup_Invalid,
             )
@@ -683,10 +673,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     pub(crate) fn accept(mut self) -> SResult<()> {
         self.handle_connection();
         let result = unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_AcceptConnection(
-                self.sockets.as_ptr(),
-                self.handle,
-            )
+            sys::SteamAPI_ISteamNetworkingSockets_AcceptConnection(self.sockets, self.handle)
         };
         match result {
             sys::EResult::k_EResultOK => Ok(()),
@@ -729,7 +716,7 @@ impl<Manager: 'static> NetConnection<Manager> {
         self.handle_connection();
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 reason.into(),
                 debug_string_ptr,
@@ -742,10 +729,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     /// or if you haven't set any userdata on the connection.
     pub fn connection_user_data(&self) -> Result<i64, InvalidHandle> {
         let user_data = unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_GetConnectionUserData(
-                self.sockets.as_ptr(),
-                self.handle,
-            )
+            sys::SteamAPI_ISteamNetworkingSockets_GetConnectionUserData(self.sockets, self.handle)
         };
         if user_data == -1 {
             // I'm not sure if a connection can become invalid on its own, so returning a result may be unnecessary
@@ -764,7 +748,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     pub fn set_connection_user_data(&self, user_data: i64) -> Result<(), InvalidHandle> {
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionUserData(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 user_data,
             )
@@ -781,7 +765,7 @@ impl<Manager: 'static> NetConnection<Manager> {
         let name = CString::new(name).unwrap();
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionName(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 name.as_ptr(),
             )
@@ -829,7 +813,7 @@ impl<Manager: 'static> NetConnection<Manager> {
         unsafe {
             let mut out_message_number = 0i64;
             let result = sys::SteamAPI_ISteamNetworkingSockets_SendMessageToConnection(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 data.as_ptr() as _,
                 data.len() as _,
@@ -864,7 +848,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     pub fn flush_messages(&self) -> SResult<()> {
         unsafe {
             let result = sys::SteamAPI_ISteamNetworkingSockets_FlushMessagesOnConnection(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
             );
             if let sys::EResult::k_EResultOK = result {
@@ -893,7 +877,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     pub fn receive_messages(
         &mut self,
         batch_size: usize,
-    ) -> Result<Vec<NetworkingMessage<Manager>>, InvalidHandle> {
+    ) -> Result<Vec<NetworkingMessage>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -901,7 +885,7 @@ impl<Manager: 'static> NetConnection<Manager> {
 
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 self.message_buffer.as_mut_ptr(),
                 batch_size as _,
@@ -936,10 +920,10 @@ impl<Manager: 'static> NetConnection<Manager> {
     ///
     /// Returns false if the connection handle is invalid, or if the poll group handle
     /// is invalid (and not k_HSteamNetPollGroup_Invalid).
-    pub fn set_poll_group(&self, poll_group: &NetPollGroup<Manager>) {
+    pub fn set_poll_group(&self, poll_group: &NetPollGroup) {
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionPollGroup(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 poll_group.handle,
             )
@@ -948,7 +932,7 @@ impl<Manager: 'static> NetConnection<Manager> {
     }
 
     pub fn run_callbacks(&self) {
-        unsafe { sys::SteamAPI_ISteamNetworkingSockets_RunCallbacks(self.sockets.as_ptr()) }
+        unsafe { sys::SteamAPI_ISteamNetworkingSockets_RunCallbacks(self.sockets) }
     }
 
     /// Set the connection state to be handled externally. The struct will no longer close the connection on drop.
@@ -957,13 +941,13 @@ impl<Manager: 'static> NetConnection<Manager> {
     }
 }
 
-impl<Manager> Drop for NetConnection<Manager> {
+impl Drop for NetConnection {
     fn drop(&mut self) {
         if !self.is_handled {
             let debug_string = CString::new("Handle was dropped").unwrap();
             let _was_successful = unsafe {
                 sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
-                    self.sockets.as_ptr(),
+                    self.sockets,
                     self.handle,
                     NetConnectionEnd::App(AppNetConnectionEnd::generic_normal()).into(),
                     debug_string.as_ptr(),
@@ -984,18 +968,18 @@ impl<Manager> Drop for NetConnection<Manager> {
     }
 }
 
-pub struct NetPollGroup<Manager> {
+pub struct NetPollGroup {
     handle: sys::HSteamNetPollGroup,
-    sockets: NonNull<sys::ISteamNetworkingSockets>,
-    inner: Arc<Inner<Manager>>,
+    sockets: *mut sys::ISteamNetworkingSockets,
+    inner: Arc<Inner>,
     message_buffer: Vec<*mut SteamNetworkingMessage_t>,
 }
 
-unsafe impl<Manager: Send + Sync> Send for NetPollGroup<Manager> {}
-unsafe impl<Manager: Send + Sync> Sync for NetPollGroup<Manager> {}
+unsafe impl Send for NetPollGroup {}
+unsafe impl Sync for NetPollGroup {}
 
-impl<Manager> NetPollGroup<Manager> {
-    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage<Manager>> {
+impl NetPollGroup {
+    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -1003,7 +987,7 @@ impl<Manager> NetPollGroup<Manager> {
 
         unsafe {
             let count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
-                self.sockets.as_ptr(),
+                self.sockets,
                 self.handle,
                 self.message_buffer.as_mut_ptr(),
                 batch_size as _,
@@ -1021,13 +1005,10 @@ impl<Manager> NetPollGroup<Manager> {
     }
 }
 
-impl<Manager> Drop for NetPollGroup<Manager> {
+impl Drop for NetPollGroup {
     fn drop(&mut self) {
         let _was_successful = unsafe {
-            sys::SteamAPI_ISteamNetworkingSockets_DestroyPollGroup(
-                self.sockets.as_ptr(),
-                self.handle,
-            )
+            sys::SteamAPI_ISteamNetworkingSockets_DestroyPollGroup(self.sockets, self.handle)
         };
     }
 }
