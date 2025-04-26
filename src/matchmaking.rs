@@ -5,9 +5,9 @@ use super::*;
 use serial_test::serial;
 
 /// Access to the steam matchmaking interface
-pub struct Matchmaking<Manager> {
+pub struct Matchmaking {
     pub(crate) mm: *mut sys::ISteamMatchmaking,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
 const CALLBACK_BASE_ID: i32 = 500;
@@ -44,14 +44,14 @@ impl LobbyId {
     }
 }
 
-impl<Manager> Matchmaking<Manager> {
+impl Matchmaking {
     pub fn request_lobby_list<F>(&self, cb: F)
     where
         F: FnOnce(SResult<Vec<LobbyId>>) + 'static + Send,
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
-            register_call_result::<sys::LobbyMatchList_t, _, _>(
+            register_call_result::<sys::LobbyMatchList_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 10,
@@ -97,7 +97,7 @@ impl<Manager> Matchmaking<Manager> {
             };
             let api_call =
                 sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
-            register_call_result::<sys::LobbyCreated_t, _, _>(
+            register_call_result::<sys::LobbyCreated_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 13,
@@ -121,7 +121,7 @@ impl<Manager> Matchmaking<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
-            register_call_result::<sys::LobbyEnter_t, _, _>(
+            register_call_result::<sys::LobbyEnter_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 4,

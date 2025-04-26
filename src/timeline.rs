@@ -1,11 +1,11 @@
 use super::*;
 use std::time::Duration;
 
-pub struct Timeline<Manager> {
+pub struct Timeline {
     pub(crate) timeline: *mut sys::ISteamTimeline,
     /// Whether the client's steam API is not recent enough.
     pub(crate) disabled: bool,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 pub enum TimelineGameMode {
@@ -58,7 +58,7 @@ impl From<TimelineEventClipPriority> for sys::ETimelineEventClipPriority {
     }
 }
 
-impl<Manager> Timeline<Manager> {
+impl Timeline {
     /// Changes the color of the timeline bar.
     pub fn set_timeline_game_mode(&self, mode: TimelineGameMode) {
         if self.disabled {

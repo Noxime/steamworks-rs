@@ -5,12 +5,12 @@ pub use sys::ScreenshotHandle;
 use super::*;
 
 /// Access to the steam screenshots interface
-pub struct Screenshots<Manager> {
+pub struct Screenshots {
     pub(crate) screenshots: *mut sys::ISteamScreenshots,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> Screenshots<Manager> {
+impl Screenshots {
     /// Toggles whether the overlay handles screenshots when the user presses the screenshot hotkey, or if the game handles them.
     ///
     /// Hooking is disabled by default, and only ever enabled if you do so with this function.
