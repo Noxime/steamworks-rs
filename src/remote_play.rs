@@ -1,11 +1,11 @@
 use super::*;
 
-pub struct RemotePlay<Manager> {
+pub struct RemotePlay {
     pub(crate) rp: *mut sys::ISteamRemotePlay,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-impl<Manager> Clone for RemotePlay<Manager> {
+impl Clone for RemotePlay {
     fn clone(&self) -> Self {
         RemotePlay {
             inner: self.inner.clone(),
@@ -14,9 +14,9 @@ impl<Manager> Clone for RemotePlay<Manager> {
     }
 }
 
-impl<Manager> RemotePlay<Manager> {
+impl RemotePlay {
     /// Return a list of all active Remote Play sessions
-    pub fn sessions(&self) -> Vec<RemotePlaySession<Manager>> {
+    pub fn sessions(&self) -> Vec<RemotePlaySession> {
         unsafe {
             let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp);
             let mut sessions = Vec::with_capacity(count as usize);
@@ -37,7 +37,7 @@ impl<Manager> RemotePlay<Manager> {
     }
 
     /// Get a remote play session from a session ID. The session may or may not be valid or active
-    pub fn session(&self, session: RemotePlaySessionId) -> RemotePlaySession<Manager> {
+    pub fn session(&self, session: RemotePlaySessionId) -> RemotePlaySession {
         RemotePlaySession {
             session,
             rp: self.rp,
@@ -68,10 +68,10 @@ impl RemotePlaySessionId {
     }
 }
 
-pub struct RemotePlaySession<Manager> {
+pub struct RemotePlaySession {
     session: RemotePlaySessionId,
     pub(crate) rp: *mut sys::ISteamRemotePlay,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -82,7 +82,7 @@ pub enum SteamDeviceFormFactor {
     TV,
 }
 
-impl<Manager> RemotePlaySession<Manager> {
+impl RemotePlaySession {
     /// Get the user associated with this Remote Play session. This is either the logged in user or a friend when Remote
     /// Playing Together.
     pub fn user(&self) -> SteamId {
@@ -161,7 +161,6 @@ pub struct RemotePlayConnected {
 
 unsafe impl Callback for RemotePlayConnected {
     const ID: i32 = sys::SteamRemotePlaySessionConnected_t_k_iCallback as i32;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamRemotePlaySessionConnected_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamRemotePlaySessionConnected_t);
@@ -181,7 +180,6 @@ pub struct RemotePlayDisconnected {
 
 unsafe impl Callback for RemotePlayDisconnected {
     const ID: i32 = sys::SteamRemotePlaySessionDisconnected_t_k_iCallback as i32;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamRemotePlaySessionDisconnected_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamRemotePlaySessionDisconnected_t);

@@ -10,10 +10,10 @@ use sys::ISteamNetworkingSockets;
 /// All independent connections (to a remote host) and listening sockets share the same Callback for
 /// `NetConnectionStatusChangedCallback`. This function either returns the existing handle, or creates a new
 /// handler.
-pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
-    inner: Arc<Inner<Manager>>,
+pub(crate) fn get_or_create_connection_callback(
+    inner: Arc<Inner>,
     sockets: *mut ISteamNetworkingSockets,
-) -> Arc<CallbackHandle<Manager>> {
+) -> Arc<CallbackHandle> {
     let mut network_socket_data = inner.networking_sockets_data.lock().unwrap();
     if let Some(callback) = network_socket_data.connection_callback.upgrade() {
         callback
@@ -34,15 +34,15 @@ pub(crate) fn get_or_create_connection_callback<Manager: 'static>(
     }
 }
 
-pub(crate) struct ConnectionCallbackHandler<Manager> {
-    inner: Weak<Inner<Manager>>,
+pub(crate) struct ConnectionCallbackHandler {
+    inner: Weak<Inner>,
     sockets: *mut ISteamNetworkingSockets,
 }
 
-unsafe impl<Manager> Send for ConnectionCallbackHandler<Manager> {}
-unsafe impl<Manager> Sync for ConnectionCallbackHandler<Manager> {}
+unsafe impl Send for ConnectionCallbackHandler {}
+unsafe impl Sync for ConnectionCallbackHandler {}
 
-impl<Manager: 'static> ConnectionCallbackHandler<Manager> {
+impl ConnectionCallbackHandler {
     pub(crate) fn callback(&self, event: NetConnectionStatusChanged) {
         if let Some(socket) = event.connection_info.listen_socket() {
             self.listen_socket_callback(socket, event);

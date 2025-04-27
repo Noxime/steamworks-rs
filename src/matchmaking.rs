@@ -5,9 +5,9 @@ use super::*;
 use serial_test::serial;
 
 /// Access to the steam matchmaking interface
-pub struct Matchmaking<Manager> {
+pub struct Matchmaking {
     pub(crate) mm: *mut sys::ISteamMatchmaking,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
 const CALLBACK_BASE_ID: i32 = 500;
@@ -44,14 +44,14 @@ impl LobbyId {
     }
 }
 
-impl<Manager> Matchmaking<Manager> {
+impl Matchmaking {
     pub fn request_lobby_list<F>(&self, cb: F)
     where
         F: FnOnce(SResult<Vec<LobbyId>>) + 'static + Send,
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
-            register_call_result::<sys::LobbyMatchList_t, _, _>(
+            register_call_result::<sys::LobbyMatchList_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 10,
@@ -97,7 +97,7 @@ impl<Manager> Matchmaking<Manager> {
             };
             let api_call =
                 sys::SteamAPI_ISteamMatchmaking_CreateLobby(self.mm, ty, max_members as _);
-            register_call_result::<sys::LobbyCreated_t, _, _>(
+            register_call_result::<sys::LobbyCreated_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 13,
@@ -121,7 +121,7 @@ impl<Manager> Matchmaking<Manager> {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
-            register_call_result::<sys::LobbyEnter_t, _, _>(
+            register_call_result::<sys::LobbyEnter_t, _>(
                 &self.inner,
                 api_call,
                 CALLBACK_BASE_ID + 4,
@@ -1001,7 +1001,6 @@ pub struct LobbyChatMsg {
 
 unsafe impl Callback for LobbyChatMsg {
     const ID: i32 = 507;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatMsg_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
@@ -1031,7 +1030,6 @@ pub struct LobbyChatUpdate {
 
 unsafe impl Callback for LobbyChatUpdate {
     const ID: i32 = 506;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyChatUpdate_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
@@ -1076,7 +1074,6 @@ pub struct LobbyCreated {
 
 unsafe impl Callback for LobbyCreated {
     const ID: i32 = 513;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyCreated_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyCreated_t);
@@ -1103,7 +1100,6 @@ pub struct LobbyDataUpdate {
 
 unsafe impl Callback for LobbyDataUpdate {
     const ID: i32 = 505;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyDataUpdate_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
@@ -1132,7 +1128,6 @@ pub struct LobbyEnter {
 
 unsafe impl Callback for LobbyEnter {
     const ID: i32 = 504;
-    const SIZE: i32 = ::std::mem::size_of::<sys::LobbyEnter_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyEnter_t);

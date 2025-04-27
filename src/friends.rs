@@ -6,6 +6,7 @@ const CALLBACK_BASE_ID: i32 = 300;
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct FriendFlags: u16 {
         const NONE                  = 0x0000;
         const BLOCKED               = 0x0001;
@@ -28,6 +29,7 @@ bitflags! {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct PersonaChange: i32 {
         const NAME                = 0x0001;
         const STATUS              = 0x0002;
@@ -49,6 +51,7 @@ bitflags! {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     /// see [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#EUserRestriction)
     pub struct UserRestriction: u32 {
         /// No known chat/content restriction.
@@ -77,12 +80,12 @@ pub enum OverlayToStoreFlag {
 }
 
 /// Access to the steam friends interface
-pub struct Friends<Manager> {
+pub struct Friends {
     pub(crate) friends: *mut sys::ISteamFriends,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-impl<Manager> Friends<Manager> {
+impl Friends {
     /// Returns the (display) name of the current user
     pub fn name(&self) -> String {
         unsafe {
@@ -92,7 +95,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend<Manager>> {
+    pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(self.friends, flags.bits() as _);
             if count == -1 {
@@ -112,7 +115,7 @@ impl<Manager> Friends<Manager> {
         }
     }
     /// Returns recently played with players list
-    pub fn get_coplay_friends(&self) -> Vec<Friend<Manager>> {
+    pub fn get_coplay_friends(&self) -> Vec<Friend> {
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetCoplayFriendCount(self.friends);
             if count == -1 {
@@ -130,7 +133,7 @@ impl<Manager> Friends<Manager> {
         }
     }
 
-    pub fn get_friend(&self, friend: SteamId) -> Friend<Manager> {
+    pub fn get_friend(&self, friend: SteamId) -> Friend {
         Friend {
             id: friend,
             friends: self.friends,
@@ -267,7 +270,6 @@ pub struct PersonaStateChange {
 
 unsafe impl Callback for PersonaStateChange {
     const ID: i32 = CALLBACK_BASE_ID + 4;
-    const SIZE: i32 = ::std::mem::size_of::<sys::PersonaStateChange_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
@@ -286,7 +288,6 @@ pub struct GameOverlayActivated {
 
 unsafe impl Callback for GameOverlayActivated {
     const ID: i32 = CALLBACK_BASE_ID + 31;
-    const SIZE: i32 = std::mem::size_of::<sys::GameOverlayActivated_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
@@ -305,7 +306,6 @@ pub struct GameLobbyJoinRequested {
 
 unsafe impl Callback for GameLobbyJoinRequested {
     const ID: i32 = CALLBACK_BASE_ID + 33;
-    const SIZE: i32 = ::std::mem::size_of::<sys::GameLobbyJoinRequested_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
@@ -316,19 +316,19 @@ unsafe impl Callback for GameLobbyJoinRequested {
     }
 }
 
-pub struct Friend<Manager> {
+pub struct Friend {
     id: SteamId,
     friends: *mut sys::ISteamFriends,
-    _inner: Arc<Inner<Manager>>,
+    _inner: Arc<Inner>,
 }
 
-impl<Manager> Debug for Friend<Manager> {
+impl Debug for Friend {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Friend({:?})", self.id)
     }
 }
 
-impl<Manager> Friend<Manager> {
+impl Friend {
     pub fn id(&self) -> SteamId {
         self.id
     }
@@ -416,8 +416,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 32);
-            assert_eq!(height, 32);
             let mut dest = vec![0; 32 * 32 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 32 * 32 * 4) {
                 return None;
@@ -439,8 +437,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 64);
-            assert_eq!(height, 64);
             let mut dest = vec![0; 64 * 64 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 64 * 64 * 4) {
                 return None;
@@ -462,8 +458,6 @@ impl<Manager> Friend<Manager> {
             if !sys::SteamAPI_ISteamUtils_GetImageSize(utils, img, &mut width, &mut height) {
                 return None;
             }
-            assert_eq!(width, 184);
-            assert_eq!(height, 184);
             let mut dest = vec![0; 184 * 184 * 4];
             if !sys::SteamAPI_ISteamUtils_GetImageRGBA(utils, img, dest.as_mut_ptr(), 184 * 184 * 4)
             {

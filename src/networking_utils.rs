@@ -7,15 +7,15 @@ use std::sync::Arc;
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
-pub struct NetworkingUtils<Manager> {
+pub struct NetworkingUtils {
     pub(crate) utils: *mut sys::ISteamNetworkingUtils,
-    pub(crate) inner: Arc<Inner<Manager>>,
+    pub(crate) inner: Arc<Inner>,
 }
 
-unsafe impl<T> Send for NetworkingUtils<T> {}
-unsafe impl<T> Sync for NetworkingUtils<T> {}
+unsafe impl Send for NetworkingUtils {}
+unsafe impl Sync for NetworkingUtils {}
 
-impl<Manager> NetworkingUtils<Manager> {
+impl NetworkingUtils {
     /// Allocate and initialize a message object.  Usually the reason
     /// you call this is to pass it to ISteamNetworkingSockets::SendMessages.
     /// The returned object will have all of the relevant fields cleared to zero.
@@ -30,7 +30,7 @@ impl<Manager> NetworkingUtils<Manager> {
     /// If cbAllocateBuffer=0, then no buffer is allocated.  m_pData will be NULL,
     /// m_cbSize will be zero, and m_pfnFreeData will be NULL.  You will need to
     /// set each of these.
-    pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage<Manager> {
+    pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage {
         unsafe {
             let message =
                 sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
@@ -183,7 +183,6 @@ pub struct RelayNetworkStatusCallback {
 
 unsafe impl Callback for RelayNetworkStatusCallback {
     const ID: i32 = sys::SteamRelayNetworkStatus_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamRelayNetworkStatus_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let status = *(raw as *mut sys::SteamRelayNetworkStatus_t);

@@ -7,9 +7,9 @@ use std::process::abort;
 use std::sync::RwLock;
 
 /// Access to the steam utils interface
-pub struct Utils<Manager> {
+pub struct Utils {
     pub(crate) utils: *mut sys::ISteamUtils,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 #[derive(Clone, Debug)]
@@ -19,7 +19,6 @@ pub struct GamepadTextInputDismissed {
 
 unsafe impl Callback for GamepadTextInputDismissed {
     const ID: i32 = 714;
-    const SIZE: i32 = ::std::mem::size_of::<sys::GamepadTextInputDismissed_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GamepadTextInputDismissed_t);
@@ -34,7 +33,6 @@ pub struct FloatingGamepadTextInputDismissed;
 
 unsafe impl Callback for FloatingGamepadTextInputDismissed {
     const ID: i32 = 738;
-    const SIZE: i32 = ::std::mem::size_of::<sys::FloatingGamepadTextInputDismissed_t>() as i32;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         FloatingGamepadTextInputDismissed
@@ -110,10 +108,8 @@ impl From<FloatingGamepadTextInputMode> for sys::EFloatingGamepadTextInputMode {
     }
 }
 
-lazy_static! {
-    /// Global rust warning callback
-    static ref WARNING_CALLBACK: RwLock<Option<Box<dyn Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
-}
+/// Global rust warning callback
+static WARNING_CALLBACK: RwLock<Option<Box<dyn Fn(i32, &CStr) + Send + Sync>>> = RwLock::new(None);
 
 /// C function to pass as the real callback, which forwards to the `WARNING_CALLBACK` if any
 unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
@@ -140,7 +136,7 @@ unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
     }
 }
 
-impl<Manager> Utils<Manager> {
+impl Utils {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
         unsafe { AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils)) }

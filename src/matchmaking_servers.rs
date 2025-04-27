@@ -17,7 +17,7 @@ macro_rules! matchmaking_servers_callback {
         paste::item! {
             $(
                 #[allow(unused_variables)]
-                extern fn [<$name:lower _ $fn_name _virtual>]($self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
+                extern "C" fn [<$name:lower _ $fn_name _virtual>]($self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
                     unsafe {
                         $(
                             #[allow(unused_parens)]
@@ -59,7 +59,7 @@ macro_rules! matchmaking_servers_callback {
             #[repr(C)]
             struct [<$name CallbacksVirtual>] {
                 $(
-                    pub $fn_name: extern fn(*mut [<$name CallbacksReal>] $(, $cpp_fn_arg)*)
+                    pub $fn_name: extern "C" fn(*mut [<$name CallbacksReal>] $(, $cpp_fn_arg)*)
                 ),*
             }
 
@@ -438,12 +438,12 @@ impl ServerListRequest {
 }
 
 /// Access to the steam MatchmakingServers interface
-pub struct MatchmakingServers<Manager> {
+pub struct MatchmakingServers {
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> MatchmakingServers<Manager> {
+impl MatchmakingServers {
     pub fn ping_server(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: PingCallbacks) {
         unsafe {
             let callbacks = create_ping(callbacks);

@@ -6,9 +6,9 @@
 use super::*;
 
 /// Access to the steam networking interface
-pub struct Networking<Manager> {
+pub struct Networking {
     pub(crate) net: *mut sys::ISteamNetworking,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 /// The method used to send a packet
@@ -31,7 +31,7 @@ pub enum SendType {
     ReliableWithBuffering,
 }
 
-impl<Manager> Networking<Manager> {
+impl Networking {
     /// Accepts incoming packets from the given user
     ///
     /// Should only be called in response to a `P2PSessionRequest`.
@@ -145,7 +145,6 @@ pub struct P2PSessionRequest {
 
 unsafe impl Callback for P2PSessionRequest {
     const ID: i32 = 1202;
-    const SIZE: i32 = ::std::mem::size_of::<sys::P2PSessionRequest_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionRequest_t);
@@ -164,7 +163,6 @@ pub struct P2PSessionConnectFail {
 
 unsafe impl Callback for P2PSessionConnectFail {
     const ID: i32 = 1203;
-    const SIZE: i32 = ::std::mem::size_of::<sys::P2PSessionConnectFail_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);

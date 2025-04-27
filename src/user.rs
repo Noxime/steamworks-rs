@@ -4,12 +4,12 @@ use crate::networking_types::NetworkingIdentity;
 use serial_test::serial;
 
 /// Access to the steam user interface
-pub struct User<Manager> {
+pub struct User {
     pub(crate) user: *mut sys::ISteamUser,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> User<Manager> {
+impl User {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
         unsafe { SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user)) }
@@ -228,7 +228,6 @@ pub struct AuthSessionTicketResponse {
 
 unsafe impl Callback for AuthSessionTicketResponse {
     const ID: i32 = 163;
-    const SIZE: i32 = ::std::mem::size_of::<sys::GetAuthSessionTicketResponse_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
@@ -278,7 +277,6 @@ pub struct TicketForWebApiResponse {
 
 unsafe impl Callback for TicketForWebApiResponse {
     const ID: i32 = 168;
-    const SIZE: i32 = ::std::mem::size_of::<sys::GetTicketForWebApiResponse_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         println!("From raw: {:?}", raw);
@@ -312,7 +310,6 @@ pub struct ValidateAuthTicketResponse {
 
 unsafe impl Callback for ValidateAuthTicketResponse {
     const ID: i32 = 143;
-    const SIZE: i32 = ::std::mem::size_of::<sys::ValidateAuthTicketResponse_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
@@ -365,7 +362,6 @@ pub struct MicroTxnAuthorizationResponse {
 
 unsafe impl Callback for MicroTxnAuthorizationResponse {
     const ID: i32 = 152;
-    const SIZE: i32 = std::mem::size_of::<sys::MicroTxnAuthorizationResponse_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::MicroTxnAuthorizationResponse_t);
@@ -384,7 +380,6 @@ pub struct SteamServersConnected;
 
 unsafe impl Callback for SteamServersConnected {
     const ID: i32 = 101;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamServersConnected_t>() as i32;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         SteamServersConnected
@@ -401,7 +396,6 @@ pub struct SteamServersDisconnected {
 
 unsafe impl Callback for SteamServersDisconnected {
     const ID: i32 = 103;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamServersDisconnected_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamServersDisconnected_t);
@@ -423,7 +417,6 @@ pub struct SteamServerConnectFailure {
 
 unsafe impl Callback for SteamServerConnectFailure {
     const ID: i32 = 102;
-    const SIZE: i32 = ::std::mem::size_of::<sys::SteamServerConnectFailure_t>() as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamServerConnectFailure_t);

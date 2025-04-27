@@ -5,12 +5,12 @@ pub use sys::ScreenshotHandle;
 use super::*;
 
 /// Access to the steam screenshots interface
-pub struct Screenshots<Manager> {
+pub struct Screenshots {
     pub(crate) screenshots: *mut sys::ISteamScreenshots,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> Screenshots<Manager> {
+impl Screenshots {
     /// Toggles whether the overlay handles screenshots when the user presses the screenshot hotkey, or if the game handles them.
     ///
     /// Hooking is disabled by default, and only ever enabled if you do so with this function.
@@ -108,7 +108,6 @@ pub struct ScreenshotRequested;
 
 unsafe impl Callback for ScreenshotRequested {
     const ID: i32 = sys::ScreenshotRequested_t__bindgen_ty_1::k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::ScreenshotRequested_t>() as _;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         Self
@@ -134,7 +133,6 @@ pub struct ScreenshotReady {
 
 unsafe impl Callback for ScreenshotReady {
     const ID: i32 = sys::ScreenshotReady_t__bindgen_ty_1::k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::ScreenshotReady_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let status = *(raw as *mut sys::ScreenshotReady_t);

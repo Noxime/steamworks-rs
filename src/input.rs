@@ -3,9 +3,9 @@ use sys::InputHandle_t;
 use super::*;
 
 /// Access to the steam input interface
-pub struct Input<Manager> {
+pub struct Input {
     pub(crate) input: *mut sys::ISteamInput,
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
 pub enum InputType {
@@ -26,7 +26,7 @@ pub enum InputType {
     SteamDeckController,
 }
 
-impl<Manager> Input<Manager> {
+impl Input {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
     /// each frame, otherwise Steam Input will updated when SteamAPI_RunCallbacks() is called
@@ -45,15 +45,10 @@ impl<Manager> Input<Manager> {
 
     /// Returns a list of the currently connected controllers
     pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
-        unsafe {
-            let handles = [0_u64; sys::STEAM_INPUT_MAX_COUNT as usize].as_mut_ptr();
-            let quantity = sys::SteamAPI_ISteamInput_GetConnectedControllers(self.input, handles);
-            if quantity == 0 {
-                Vec::new()
-            } else {
-                std::slice::from_raw_parts(handles as *const _, quantity as usize).to_vec()
-            }
-        }
+        let mut handles = vec![0_u64; sys::STEAM_INPUT_MAX_COUNT as usize];
+        let quantity = self.get_connected_controllers_slice(&mut handles);
+        handles.shrink_to(quantity);
+        handles
     }
 
     /// Returns a list of the currently connected controllers without allocating, and the count

@@ -27,6 +27,7 @@ impl From<MessageNumber> for u64 {
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct SendFlags: i32 {
         const UNRELIABLE = sys::k_nSteamNetworkingSend_Unreliable;
         const NO_NAGLE = sys::k_nSteamNetworkingSend_NoNagle;
@@ -1414,7 +1415,6 @@ pub struct NetConnectionStatusChanged {
 
 unsafe impl Callback for NetConnectionStatusChanged {
     const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
-    const SIZE: i32 = std::mem::size_of::<sys::SteamNetConnectionStatusChangedCallback_t>() as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);
@@ -1428,10 +1428,10 @@ unsafe impl Callback for NetConnectionStatusChanged {
 }
 
 impl NetConnectionStatusChanged {
-    pub(crate) fn into_listen_socket_event<Manager: 'static>(
+    pub(crate) fn into_listen_socket_event(
         self,
-        socket: Arc<InnerSocket<Manager>>,
-    ) -> Result<ListenSocketEvent<Manager>, NetConnectionError> {
+        socket: Arc<InnerSocket>,
+    ) -> Result<ListenSocketEvent, NetConnectionError> {
         match self.connection_info.state() {
             Ok(NetworkingConnectionState::None) => {
                 Err(UnhandledType(NetworkingConnectionState::None))
@@ -1491,19 +1491,19 @@ impl NetConnectionStatusChanged {
     }
 }
 
-pub enum ListenSocketEvent<Manager> {
-    Connecting(ConnectionRequest<Manager>),
-    Connected(ConnectedEvent<Manager>),
+pub enum ListenSocketEvent {
+    Connecting(ConnectionRequest),
+    Connected(ConnectedEvent),
     Disconnected(DisconnectedEvent),
 }
 
-pub struct ConnectionRequest<Manager> {
+pub struct ConnectionRequest {
     remote: NetworkingIdentity,
     user_data: i64,
-    connection: NetConnection<Manager>,
+    connection: NetConnection,
 }
 
-impl<Manager: 'static> ConnectionRequest<Manager> {
+impl ConnectionRequest {
     pub fn remote(&self) -> NetworkingIdentity {
         self.remote.clone()
     }
@@ -1521,24 +1521,24 @@ impl<Manager: 'static> ConnectionRequest<Manager> {
     }
 }
 
-pub struct ConnectedEvent<Manager> {
+pub struct ConnectedEvent {
     remote: NetworkingIdentity,
     user_data: i64,
-    connection: NetConnection<Manager>,
+    connection: NetConnection,
 }
 
-impl<Manager> ConnectedEvent<Manager> {
+impl ConnectedEvent {
     pub fn remote(&self) -> NetworkingIdentity {
         self.remote.clone()
     }
     pub fn user_data(&self) -> i64 {
         self.user_data
     }
-    pub fn connection(&self) -> &NetConnection<Manager> {
+    pub fn connection(&self) -> &NetConnection {
         &self.connection
     }
 
-    pub fn take_connection(self) -> NetConnection<Manager> {
+    pub fn take_connection(self) -> NetConnection {
         self.connection
     }
 }
@@ -1811,14 +1811,14 @@ impl Default for NetworkingIdentity {
     }
 }
 
-pub struct NetworkingMessage<Manager> {
+pub struct NetworkingMessage {
     pub(crate) message: *mut sys::SteamNetworkingMessage_t,
 
     // Not sure if this is necessary here, we may not need a Manager to use free on messages
-    pub(crate) _inner: Arc<Inner<Manager>>,
+    pub(crate) _inner: Arc<Inner>,
 }
 
-impl<Manager> NetworkingMessage<Manager> {
+impl NetworkingMessage {
     /// For messages received on connections: what connection did this come from?
     /// For outgoing messages: what connection to send it to?
     /// Not used when using the ISteamNetworkingMessages interface
@@ -1836,7 +1836,7 @@ impl<Manager> NetworkingMessage<Manager> {
     /// Make sure you don't close or drop the `NetConnection` before sending your message.
     ///
     /// Use this with `ListenSocket::send_messages` for efficient sending.
-    pub fn set_connection(&mut self, connection: &NetConnection<Manager>) {
+    pub fn set_connection(&mut self, connection: &NetConnection) {
         unsafe { (*self.message).m_conn = connection.handle }
     }
 
@@ -1993,7 +1993,7 @@ extern "C" fn free_rust_message_buffer(message: *mut sys::SteamNetworkingMessage
     }
 }
 
-impl<Manager> Drop for NetworkingMessage<Manager> {
+impl Drop for NetworkingMessage {
     fn drop(&mut self) {
         if !self.message.is_null() {
             unsafe { sys::SteamAPI_SteamNetworkingMessage_t_Release(self.message) }
