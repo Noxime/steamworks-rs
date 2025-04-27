@@ -24,7 +24,8 @@
 //! (See k_ESteamNetworkingConfig_SymmetricConnect.)
 // TODO: examples here
 use crate::networking_types::{
-    NetConnectionInfo, NetConnectionRealTimeInfo, NetworkingConnectionState, NetworkingIdentity, NetworkingMessage, SendFlags
+    NetConnectionInfo, NetConnectionRealTimeInfo, NetworkingConnectionState, NetworkingIdentity,
+    NetworkingMessage, SendFlags,
 };
 use crate::{register_callback, Callback, Inner, SteamError};
 use std::ffi::c_void;
