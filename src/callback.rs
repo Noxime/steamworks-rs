@@ -7,15 +7,18 @@ use std::sync::{Arc, Weak};
 
 /// A sum type over all possible callback results
 pub enum CallbackResult {
-    NetConnectionStatusChanged(NetConnectionStatusChanged),
     AuthSessionTicketResponse(AuthSessionTicketResponse),
     DownloadItemResult(DownloadItemResult),
     FloatingGamepadTextInputDismissed(FloatingGamepadTextInputDismissed),
     GameLobbyJoinRequested(GameLobbyJoinRequested),
     GameOverlayActivated(GameOverlayActivated),
     GamepadTextInputDismissed(GamepadTextInputDismissed),
+    LobbyChatMsg(LobbyChatMsg),
     LobbyChatUpdate(LobbyChatUpdate),
+    LobbyCreated(LobbyCreated),
     LobbyDataUpdate(LobbyDataUpdate),
+    LobbyEnter(LobbyEnter),
+    NetConnectionStatusChanged(NetConnectionStatusChanged),
     MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse),
     P2PSessionConnectFail(P2PSessionConnectFail),
     P2PSessionRequest(P2PSessionRequest),
