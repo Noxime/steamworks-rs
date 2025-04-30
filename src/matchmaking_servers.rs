@@ -151,14 +151,14 @@ macro_rules! gen_server_list_fn {
                 let mut request = request_arc.lock().unwrap();
 
                 let handle = sys::$sys_method(
-                    self.mms,
+                    self.mms.as_ptr(),
                     app_id,
                     &mut filters.as_mut_ptr() as *mut *mut _,
                     filters.len().try_into().unwrap(),
                     callbacks.cast(),
                 );
 
-                request.mms = self.mms;
+                request.mms = self.mms.as_ptr();
                 request.real = callbacks;
                 request.h_req = handle;
 
@@ -372,9 +372,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn get_server_count(&self) -> Result<i32, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             Ok(sys::SteamAPI_ISteamMatchmakingServers_GetServerCount(
                 self.mms, self.h_req,
             ))
@@ -385,9 +384,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn get_server_details(&self, server: i32) -> Result<GameServerItem, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             // Should we then free this pointer?
             let server_item = sys::SteamAPI_ISteamMatchmakingServers_GetServerDetails(
                 self.mms, self.h_req, server,
@@ -401,11 +399,9 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn refresh_query(&self) -> Result<(), ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             sys::SteamAPI_ISteamMatchmakingServers_RefreshQuery(self.mms, self.h_req);
-
             Ok(())
         }
     }
@@ -414,11 +410,9 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn refresh_server(&self, server: i32) -> Result<(), ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             sys::SteamAPI_ISteamMatchmakingServers_RefreshServer(self.mms, self.h_req, server);
-
             Ok(())
         }
     }
@@ -427,9 +421,8 @@ impl ServerListRequest {
     ///
     /// Err if called on the released request
     pub fn is_refreshing(&self) -> Result<bool, ()> {
+        self.released()?;
         unsafe {
-            self.released()?;
-
             Ok(sys::SteamAPI_ISteamMatchmakingServers_IsRefreshing(
                 self.mms, self.h_req,
             ))
@@ -439,7 +432,7 @@ impl ServerListRequest {
 
 /// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers {
-    pub(crate) mms: *mut sys::ISteamMatchmakingServers,
+    pub(crate) mms: NonNull<sys::ISteamMatchmakingServers>,
     pub(crate) _inner: Arc<Inner>,
 }
 
@@ -449,7 +442,7 @@ impl MatchmakingServers {
             let callbacks = create_ping(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_PingServer(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -467,7 +460,7 @@ impl MatchmakingServers {
             let callbacks = create_playerdetails(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_PlayerDetails(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -480,7 +473,7 @@ impl MatchmakingServers {
             let callbacks = create_serverrules(callbacks);
 
             sys::SteamAPI_ISteamMatchmakingServers_ServerRules(
-                self.mms,
+                self.mms.as_ptr(),
                 ip.into(),
                 port,
                 callbacks.cast(),
@@ -509,12 +502,12 @@ impl MatchmakingServers {
             let mut request = request_arc.lock().unwrap();
 
             let handle = sys::SteamAPI_ISteamMatchmakingServers_RequestLANServerList(
-                self.mms,
+                self.mms.as_ptr(),
                 app_id,
                 callbacks.cast(),
             );
 
-            request.mms = self.mms;
+            request.mms = self.mms.as_ptr();
             request.real = callbacks;
             request.h_req = handle;
 

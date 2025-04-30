@@ -8,12 +8,14 @@ use screenshots::Screenshots;
 pub use steamworks_sys as sys;
 #[cfg(not(feature = "raw-bindings"))]
 use steamworks_sys as sys;
+use steamworks_sys::CallbackMsg_t;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
+use std::ptr::NonNull;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, Weak};
 
@@ -244,10 +246,11 @@ impl Client {
         &self,
         mut callback_handler: impl FnMut(&mut Callbacks, i32, *mut c_void),
     ) {
+        let mut callback = CallbackMsg_t::default();
+
         unsafe {
             let pipe = self.inner.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
-            let mut callback = std::mem::zeroed();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
                 let mut callbacks = self.inner.callbacks.lock().unwrap();
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
@@ -303,206 +306,156 @@ impl Client {
 
     /// Returns an accessor to the steam utils interface
     pub fn utils(&self) -> Utils {
-        unsafe {
-            let utils = sys::SteamAPI_SteamUtils_v010();
-            debug_assert!(!utils.is_null());
-            Utils {
-                utils: utils,
-                _inner: self.inner.clone(),
-            }
+        let utils = unsafe { sys::SteamAPI_SteamUtils_v010() };
+        debug_assert!(!utils.is_null());
+        Utils {
+            utils: utils,
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam matchmaking interface
     pub fn matchmaking(&self) -> Matchmaking {
-        unsafe {
-            let mm = sys::SteamAPI_SteamMatchmaking_v009();
-            debug_assert!(!mm.is_null());
-            Matchmaking {
-                mm: mm,
-                inner: self.inner.clone(),
-            }
+        let mm = unsafe { sys::SteamAPI_SteamMatchmaking_v009() };
+        Matchmaking {
+            mm: NonNull::new(mm).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam matchmaking_servers interface
     pub fn matchmaking_servers(&self) -> MatchmakingServers {
-        unsafe {
-            let mm = sys::SteamAPI_SteamMatchmakingServers_v002();
-            debug_assert!(!mm.is_null());
-            MatchmakingServers {
-                mms: mm,
-                _inner: self.inner.clone(),
-            }
+        let mm = unsafe { sys::SteamAPI_SteamMatchmakingServers_v002() };
+        MatchmakingServers {
+            mms: NonNull::new(mm).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam networking interface
     pub fn networking(&self) -> Networking {
-        unsafe {
-            let net = sys::SteamAPI_SteamNetworking_v006();
-            debug_assert!(!net.is_null());
-            Networking {
-                net: net,
-                _inner: self.inner.clone(),
-            }
+        let net = unsafe { sys::SteamAPI_SteamNetworking_v006() };
+        Networking {
+            net: NonNull::new(net).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps {
-        unsafe {
-            let apps = sys::SteamAPI_SteamApps_v008();
-            debug_assert!(!apps.is_null());
-            Apps {
-                apps: apps,
-                _inner: self.inner.clone(),
-            }
+        let apps = unsafe { sys::SteamAPI_SteamApps_v008() };
+        Apps {
+            apps: NonNull::new(apps).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam friends interface
     pub fn friends(&self) -> Friends {
-        unsafe {
-            let friends = sys::SteamAPI_SteamFriends_v017();
-            debug_assert!(!friends.is_null());
-            Friends {
-                friends: friends,
-                inner: self.inner.clone(),
-            }
+        let friends = unsafe { sys::SteamAPI_SteamFriends_v017() };
+        Friends {
+            friends: NonNull::new(friends).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam input interface
     pub fn input(&self) -> Input {
-        unsafe {
-            let input = sys::SteamAPI_SteamInput_v006();
-            debug_assert!(!input.is_null());
-            Input {
-                input,
-                _inner: self.inner.clone(),
-            }
+        let input = unsafe { sys::SteamAPI_SteamInput_v006() };
+        Input {
+            input: NonNull::new(input).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam user interface
     pub fn user(&self) -> User {
-        unsafe {
-            let user = sys::SteamAPI_SteamUser_v023();
-            debug_assert!(!user.is_null());
-            User {
-                user,
-                _inner: self.inner.clone(),
-            }
+        let user = unsafe { sys::SteamAPI_SteamUser_v023() };
+        User {
+            user: NonNull::new(user).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam user stats interface
     pub fn user_stats(&self) -> UserStats {
-        unsafe {
-            let us = sys::SteamAPI_SteamUserStats_v012();
-            debug_assert!(!us.is_null());
-            UserStats {
-                user_stats: us,
-                inner: self.inner.clone(),
-            }
+        let us = unsafe { sys::SteamAPI_SteamUserStats_v012() };
+        UserStats {
+            user_stats: NonNull::new(us).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam remote play interface
     pub fn remote_play(&self) -> RemotePlay {
-        unsafe {
-            let rp = sys::SteamAPI_SteamRemotePlay_v002();
-            debug_assert!(!rp.is_null());
-            RemotePlay {
-                rp,
-                inner: self.inner.clone(),
-            }
+        let rp = unsafe { sys::SteamAPI_SteamRemotePlay_v002() };
+        RemotePlay {
+            rp: NonNull::new(rp).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam remote storage interface
     pub fn remote_storage(&self) -> RemoteStorage {
-        unsafe {
-            let rs = sys::SteamAPI_SteamRemoteStorage_v016();
-            debug_assert!(!rs.is_null());
-            let util = sys::SteamAPI_SteamUtils_v010();
-            debug_assert!(!util.is_null());
-            RemoteStorage {
-                rs,
-                util,
-                inner: self.inner.clone(),
-            }
+        let rs = unsafe { sys::SteamAPI_SteamRemoteStorage_v016() };
+        let util = unsafe { sys::SteamAPI_SteamUtils_v010() };
+        RemoteStorage {
+            rs: NonNull::new(rs).unwrap(),
+            util: NonNull::new(util).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam screenshots interface
     pub fn screenshots(&self) -> Screenshots {
-        unsafe {
-            let screenshots = sys::SteamAPI_SteamScreenshots_v003();
-            debug_assert!(!screenshots.is_null());
-            Screenshots {
-                screenshots,
-                _inner: self.inner.clone(),
-            }
+        let screenshots = unsafe { sys::SteamAPI_SteamScreenshots_v003() };
+        Screenshots {
+            screenshots: NonNull::new(screenshots).unwrap(),
+            _inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC {
-        unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v020();
-            debug_assert!(!ugc.is_null());
-            UGC {
-                ugc,
-                inner: self.inner.clone(),
-            }
+        let ugc = unsafe { sys::SteamAPI_SteamUGC_v020() };
+        UGC {
+            ugc: NonNull::new(ugc).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     /// Returns an accessor to the steam timeline interface
     pub fn timeline(&self) -> Timeline {
-        unsafe {
-            let timeline = sys::SteamAPI_SteamTimeline_v001();
+        let timeline = unsafe { sys::SteamAPI_SteamTimeline_v001() };
 
-            Timeline {
-                timeline,
-                disabled: timeline.is_null(),
-                _inner: self.inner.clone(),
-            }
+        Timeline {
+            // If the returned pointer is null, the client's steam API is not recent enough.
+            timeline,
+            _inner: self.inner.clone(),
         }
     }
 
     pub fn networking_messages(&self) -> networking_messages::NetworkingMessages {
-        unsafe {
-            let net = sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002();
-            debug_assert!(!net.is_null());
-            networking_messages::NetworkingMessages {
-                net,
-                inner: self.inner.clone(),
-            }
+        let net = unsafe { sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002() };
+        networking_messages::NetworkingMessages {
+            net: NonNull::new(net).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets {
-        unsafe {
-            let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012();
-            debug_assert!(!sockets.is_null());
-            networking_sockets::NetworkingSockets {
-                sockets,
-                inner: self.inner.clone(),
-            }
+        let sockets = unsafe { sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012() };
+        networking_sockets::NetworkingSockets {
+            sockets: NonNull::new(sockets).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 
     pub fn networking_utils(&self) -> networking_utils::NetworkingUtils {
-        unsafe {
-            let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004();
-            debug_assert!(!utils.is_null());
-            networking_utils::NetworkingUtils {
-                utils,
-                inner: self.inner.clone(),
-            }
+        let utils = unsafe { sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004() };
+        networking_utils::NetworkingUtils {
+            utils: NonNull::new(utils).unwrap(),
+            inner: self.inner.clone(),
         }
     }
 }
@@ -623,6 +576,11 @@ impl GameId {
         // TODO: Relies on internal details
         AppId((self.0 & 0xFF_FF_FF) as u32)
     }
+}
+
+pub(crate) unsafe fn lossy_string_from_cstr(ptr: *const c_char) -> String {
+    let c_str = CStr::from_ptr(ptr);
+    c_str.to_string_lossy().into_owned()
 }
 
 #[cfg(test)]

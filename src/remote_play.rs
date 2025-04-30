@@ -1,7 +1,8 @@
 use super::*;
+use std::ptr::NonNull;
 
 pub struct RemotePlay {
-    pub(crate) rp: *mut sys::ISteamRemotePlay,
+    pub(crate) rp: NonNull<sys::ISteamRemotePlay>,
     pub(crate) inner: Arc<Inner>,
 }
 
@@ -18,11 +19,11 @@ impl RemotePlay {
     /// Return a list of all active Remote Play sessions
     pub fn sessions(&self) -> Vec<RemotePlaySession> {
         unsafe {
-            let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp);
+            let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp.as_ptr());
             let mut sessions = Vec::with_capacity(count as usize);
 
             for i in 0..count {
-                let id = sys::SteamAPI_ISteamRemotePlay_GetSessionID(self.rp, i as i32);
+                let id = sys::SteamAPI_ISteamRemotePlay_GetSessionID(self.rp.as_ptr(), i as i32);
 
                 // Session might be invalid if it ended after GetSessionCount
                 if id == 0 {
@@ -40,7 +41,7 @@ impl RemotePlay {
     pub fn session(&self, session: RemotePlaySessionId) -> RemotePlaySession {
         RemotePlaySession {
             session,
-            rp: self.rp,
+            rp: self.rp.as_ptr(),
             _inner: self.inner.clone(),
         }
     }
@@ -112,27 +113,27 @@ impl RemotePlaySession {
     /// Gets the client device form factor for this session. Returns `None` if the session has expired or if the form
     /// factor is unknown
     pub fn client_form_factor(&self) -> Option<SteamDeviceFormFactor> {
-        unsafe {
-            use SteamDeviceFormFactor::*;
-            match sys::SteamAPI_ISteamRemotePlay_GetSessionClientFormFactor(
-                self.rp,
-                self.session.raw(),
-            ) {
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorPhone => Some(Phone),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTablet => Some(Tablet),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorComputer => Some(Computer),
-                sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTV => Some(TV),
-                _ => None,
-            }
+        use SteamDeviceFormFactor::*;
+
+        let client_form_factor = unsafe {
+            sys::SteamAPI_ISteamRemotePlay_GetSessionClientFormFactor(self.rp, self.session.raw())
+        };
+
+        match client_form_factor {
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorPhone => Some(Phone),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTablet => Some(Tablet),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorComputer => Some(Computer),
+            sys::ESteamDeviceFormFactor::k_ESteamDeviceFormFactorTV => Some(TV),
+            _ => None,
         }
     }
 
     /// Gets the client device resolution for this session. Returns `None` if the session has expired
     pub fn client_resolution(&self) -> Option<(u32, u32)> {
-        unsafe {
-            let mut width = 0;
-            let mut height = 0;
+        let mut width = 0;
+        let mut height = 0;
 
+        unsafe {
             sys::SteamAPI_ISteamRemotePlay_BGetSessionClientResolution(
                 self.rp,
                 self.session.raw(),

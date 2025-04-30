@@ -11,7 +11,7 @@ use std::path::Path;
 pub const RESULTS_PER_PAGE: u32 = sys::kNumUGCResultsPerPage as u32;
 
 pub struct UGC {
-    pub(crate) ugc: *mut sys::ISteamUGC,
+    pub(crate) ugc: NonNull<sys::ISteamUGC>,
     pub(crate) inner: Arc<Inner>,
 }
 
@@ -23,9 +23,11 @@ const CALLBACK_REMOTE_STORAGE_BASE_ID: i32 = 1300;
 const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
 
 /// Worshop item ID
+#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PublishedFileId(pub u64);
+
 impl From<u64> for PublishedFileId {
     fn from(id: u64) -> Self {
         PublishedFileId(id)
@@ -50,6 +52,7 @@ pub enum UGCType {
     GameManagedItems,
     All,
 }
+
 impl Into<sys::EUGCMatchingUGCType> for UGCType {
     fn into(self) -> sys::EUGCMatchingUGCType {
         match self {
@@ -521,7 +524,7 @@ impl UGC {
     /// Suspends or resumes all workshop downloads
     pub fn suspend_downloads(&self, suspend: bool) {
         unsafe {
-            sys::SteamAPI_ISteamUGC_SuspendDownloads(self.ugc, suspend);
+            sys::SteamAPI_ISteamUGC_SuspendDownloads(self.ugc.as_ptr(), suspend);
         }
     }
 
@@ -531,7 +534,8 @@ impl UGC {
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
+            let api_call =
+                sys::SteamAPI_ISteamUGC_CreateItem(self.ugc.as_ptr(), app_id.0, file_type.into());
             register_call_result::<sys::CreateItemResult_t, _>(
                 &self.inner,
                 api_call,
@@ -555,14 +559,13 @@ impl UGC {
     /// Starts an item update process
     #[must_use]
     pub fn start_item_update(&self, app_id: AppId, file_id: PublishedFileId) -> UpdateHandle {
-        unsafe {
-            let handle = sys::SteamAPI_ISteamUGC_StartItemUpdate(self.ugc, app_id.0, file_id.0);
-            UpdateHandle {
-                ugc: self.ugc,
-                inner: self.inner.clone(),
-
-                handle,
-            }
+        let handle = unsafe {
+            sys::SteamAPI_ISteamUGC_StartItemUpdate(self.ugc.as_ptr(), app_id.0, file_id.0)
+        };
+        UpdateHandle {
+            ugc: self.ugc,
+            inner: self.inner.clone(),
+            handle,
         }
     }
 
@@ -572,7 +575,8 @@ impl UGC {
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
+            let api_call =
+                sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc.as_ptr(), published_file_id.0);
             register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
@@ -595,7 +599,8 @@ impl UGC {
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
+            let api_call =
+                sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc.as_ptr(), published_file_id.0);
             register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
@@ -616,67 +621,66 @@ impl UGC {
     /// Gets the publisher file IDs of all currently subscribed items.
     pub fn subscribed_items(&self) -> Vec<PublishedFileId> {
         unsafe {
-            let count = sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc);
+            let count = sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc.as_ptr());
             let mut data: Vec<sys::PublishedFileId_t> = vec![0; count as usize];
-            let gotten_count =
-                sys::SteamAPI_ISteamUGC_GetSubscribedItems(self.ugc, data.as_mut_ptr(), count);
+            let gotten_count = sys::SteamAPI_ISteamUGC_GetSubscribedItems(
+                self.ugc.as_ptr(),
+                data.as_mut_ptr(),
+                count,
+            );
             debug_assert!(count == gotten_count);
-            data.into_iter().map(|v| PublishedFileId(v)).collect()
+            data.into_iter().map(PublishedFileId).collect()
         }
     }
 
     pub fn item_state(&self, item: PublishedFileId) -> ItemState {
-        unsafe {
-            let state = sys::SteamAPI_ISteamUGC_GetItemState(self.ugc, item.0);
-            ItemState::from_bits_truncate(state)
-        }
+        let state = unsafe { sys::SteamAPI_ISteamUGC_GetItemState(self.ugc.as_ptr(), item.0) };
+        ItemState::from_bits_truncate(state)
     }
 
     pub fn item_download_info(&self, item: PublishedFileId) -> Option<(u64, u64)> {
+        let mut current = 0u64;
+        let mut total = 0u64;
         unsafe {
-            let mut current = 0u64;
-            let mut total = 0u64;
-            if sys::SteamAPI_ISteamUGC_GetItemDownloadInfo(
-                self.ugc,
+            sys::SteamAPI_ISteamUGC_GetItemDownloadInfo(
+                self.ugc.as_ptr(),
                 item.0,
                 &mut current,
                 &mut total,
-            ) {
-                Some((current, total))
-            } else {
-                None
-            }
+            )
+            .then(|| (current, total))
         }
     }
 
     pub fn item_install_info(&self, item: PublishedFileId) -> Option<InstallInfo> {
-        unsafe {
-            let mut size_on_disk = 0u64;
-            let mut folder = [0 as c_char; 4096];
-            let mut timestamp = 0u32;
-            if sys::SteamAPI_ISteamUGC_GetItemInstallInfo(
-                self.ugc,
+        let mut size_on_disk = 0u64;
+        let mut folder = [0 as c_char; 4096];
+        let mut timestamp = 0u32;
+
+        let result = unsafe {
+            sys::SteamAPI_ISteamUGC_GetItemInstallInfo(
+                self.ugc.as_ptr(),
                 item.0,
                 &mut size_on_disk,
                 folder.as_mut_ptr(),
                 folder.len() as _,
                 &mut timestamp,
-            ) {
-                Some(InstallInfo {
-                    folder: CStr::from_ptr(folder.as_ptr() as *const _)
-                        .to_string_lossy()
-                        .into_owned(),
-                    size_on_disk,
-                    timestamp,
-                })
-            } else {
-                None
-            }
+            )
+        };
+
+        unsafe {
+            result.then(|| InstallInfo {
+                folder: CStr::from_ptr(folder.as_ptr() as *const _)
+                    .to_string_lossy()
+                    .into_owned(),
+                size_on_disk,
+                timestamp,
+            })
         }
     }
 
     pub fn download_item(&self, item: PublishedFileId, high_priority: bool) -> bool {
-        unsafe { sys::SteamAPI_ISteamUGC_DownloadItem(self.ugc, item.0, high_priority) }
+        unsafe { sys::SteamAPI_ISteamUGC_DownloadItem(self.ugc.as_ptr(), item.0, high_priority) }
     }
 
     /// Queries a paged list of all workshop items.
@@ -690,7 +694,7 @@ impl UGC {
         // Call the external function with the correct parameters
         let handle = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryAllUGCRequestPage(
-                self.ugc,
+                self.ugc.as_ptr(),
                 query_type.into(),
                 item_type.into(),
                 appids.creator_app_id().unwrap_or(AppId(0)).0,
@@ -724,7 +728,7 @@ impl UGC {
     ) -> Result<QueryHandle, CreateQueryError> {
         let res = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
-                self.ugc,
+                self.ugc.as_ptr(),
                 account.0,
                 list_type.into(),
                 item_type.into(),
@@ -754,7 +758,7 @@ impl UGC {
 
         let res = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryUGCDetailsRequest(
-                self.ugc,
+                self.ugc.as_ptr(),
                 items.as_mut_ptr() as _,
                 items.len() as _,
             )
@@ -771,13 +775,13 @@ impl UGC {
         })
     }
 
-    pub fn query_item(&self, item: PublishedFileId) -> Result<QueryHandle, CreateQueryError> {
-        let mut items = vec![item];
+    pub fn query_item(&self, mut item: PublishedFileId) -> Result<QueryHandle, CreateQueryError> {
+        let item_ptr = (&mut item) as *mut PublishedFileId as *mut u64;
 
         let res = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryUGCDetailsRequest(
-                self.ugc,
-                items.as_mut_ptr() as _,
+                self.ugc.as_ptr(),
+                item_ptr,
                 1 as _,
             )
         };
@@ -799,7 +803,8 @@ impl UGC {
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
+            let api_call =
+                sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc.as_ptr(), published_file_id.0);
             register_call_result::<sys::DownloadItemResult_t, _>(
                 &self.inner,
                 api_call,
@@ -829,10 +834,10 @@ impl UGC {
     ///
     /// `true` upon success; otherwise, `false` if the calling user is not a game server or if the workshop is currently updating its content.
     pub fn init_for_game_server(&self, workshop_depot: sys::DepotId_t, folder: &str) -> bool {
+        let folder = CString::new(folder).unwrap();
         unsafe {
-            let folder = CString::new(folder).unwrap();
             sys::SteamAPI_ISteamUGC_BInitWorkshopForGameServer(
-                self.ugc,
+                self.ugc.as_ptr(),
                 workshop_depot,
                 folder.as_ptr(),
             )
@@ -842,7 +847,7 @@ impl UGC {
 
 /// A handle to update a published item
 pub struct UpdateHandle {
-    ugc: *mut sys::ISteamUGC,
+    ugc: NonNull<sys::ISteamUGC>,
     inner: Arc<Inner>,
 
     handle: sys::UGCUpdateHandle_t,
@@ -851,10 +856,10 @@ pub struct UpdateHandle {
 impl UpdateHandle {
     #[must_use]
     pub fn title(self, title: &str) -> Self {
+        let title = CString::new(title).unwrap();
         unsafe {
-            let title = CString::new(title).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemTitle(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 title.as_ptr()
             ));
@@ -864,10 +869,10 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn description(self, description: &str) -> Self {
+        let description = CString::new(description).unwrap();
         unsafe {
-            let description = CString::new(description).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemDescription(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 description.as_ptr()
             ));
@@ -877,38 +882,42 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn preview_path(self, path: &Path) -> Self {
+        let path = path.canonicalize().unwrap();
+        let preview_path = CString::new(&*path.to_string_lossy()).unwrap();
+
         unsafe {
-            let path = path.canonicalize().unwrap();
-            let preview_path = CString::new(&*path.to_string_lossy()).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemPreview(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 preview_path.as_ptr()
             ));
         }
+
         self
     }
 
     #[must_use]
     pub fn content_path(self, path: &Path) -> Self {
+        let path = path.canonicalize().unwrap();
+        let content_path = CString::new(&*path.to_string_lossy()).unwrap();
+
         unsafe {
-            let path = path.canonicalize().unwrap();
-            let content_path = CString::new(&*path.to_string_lossy()).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemContent(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 content_path.as_ptr()
             ));
         }
+
         self
     }
 
     #[must_use]
     pub fn metadata(self, metadata: &str) -> Self {
+        let metadata = CString::new(metadata).unwrap();
         unsafe {
-            let metadata = CString::new(metadata).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemMetadata(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 metadata.as_ptr()
             ));
@@ -919,7 +928,7 @@ impl UpdateHandle {
     pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 visibility.into()
             ));
@@ -928,10 +937,10 @@ impl UpdateHandle {
     }
 
     pub fn tags<S: AsRef<str>>(self, tags: Vec<S>, allow_admin_tags: bool) -> Self {
+        let mut tags = SteamParamStringArray::new(&tags);
         unsafe {
-            let mut tags = SteamParamStringArray::new(&tags);
             assert!(sys::SteamAPI_ISteamUGC_SetItemTags(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 &tags.as_raw(),
                 allow_admin_tags
@@ -941,11 +950,11 @@ impl UpdateHandle {
     }
 
     pub fn add_key_value_tag(self, key: &str, value: &str) -> Self {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
         unsafe {
-            let key = CString::new(key).unwrap();
-            let value = CString::new(value).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_AddItemKeyValueTag(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 key.as_ptr(),
                 value.as_ptr()
@@ -955,10 +964,10 @@ impl UpdateHandle {
     }
 
     pub fn remove_key_value_tag(self, key: &str) -> Self {
+        let key = CString::new(key).unwrap();
         unsafe {
-            let key = CString::new(key).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 key.as_ptr()
             ));
@@ -969,7 +978,7 @@ impl UpdateHandle {
     pub fn add_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_AddContentDescriptor(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 desc_id.into(),
             ));
@@ -980,7 +989,7 @@ impl UpdateHandle {
     pub fn remove_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_RemoveContentDescriptor(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle,
                 desc_id.into()
             ));
@@ -991,7 +1000,7 @@ impl UpdateHandle {
     pub fn remove_all_key_value_tags(self) -> Self {
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle
             ));
         }
@@ -1003,10 +1012,13 @@ impl UpdateHandle {
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
         use std::ptr;
+
+        let change_note = change_note.and_then(|v| CString::new(v).ok());
+        let note = change_note.as_ref().map_or(ptr::null(), |v| v.as_ptr());
+
         unsafe {
-            let change_note = change_note.and_then(|v| CString::new(v).ok());
-            let note = change_note.as_ref().map_or(ptr::null(), |v| v.as_ptr());
-            let api_call = sys::SteamAPI_ISteamUGC_SubmitItemUpdate(self.ugc, self.handle, note);
+            let api_call =
+                sys::SteamAPI_ISteamUGC_SubmitItemUpdate(self.ugc.as_ptr(), self.handle, note);
             register_call_result::<sys::SubmitItemUpdateResult_t, _>(
                 &self.inner,
                 api_call,
@@ -1025,6 +1037,7 @@ impl UpdateHandle {
                 },
             );
         }
+
         UpdateWatchHandle {
             ugc: self.ugc,
             _inner: self.inner,
@@ -1035,7 +1048,7 @@ impl UpdateHandle {
 
 /// A handle to watch an update of a published item
 pub struct UpdateWatchHandle {
-    ugc: *mut sys::ISteamUGC,
+    ugc: NonNull<sys::ISteamUGC>,
     _inner: Arc<Inner>,
 
     handle: sys::UGCUpdateHandle_t,
@@ -1046,36 +1059,36 @@ unsafe impl Sync for UpdateWatchHandle {}
 
 impl UpdateWatchHandle {
     pub fn progress(&self) -> (UpdateStatus, u64, u64) {
-        unsafe {
-            let mut progress = 0;
-            let mut total = 0;
-            let status = sys::SteamAPI_ISteamUGC_GetItemUpdateProgress(
-                self.ugc,
+        let mut progress = 0;
+        let mut total = 0;
+        let status = unsafe {
+            sys::SteamAPI_ISteamUGC_GetItemUpdateProgress(
+                self.ugc.as_ptr(),
                 self.handle,
                 &mut progress,
                 &mut total,
-            );
-            let status = match status {
-                sys::EItemUpdateStatus::k_EItemUpdateStatusInvalid => UpdateStatus::Invalid,
-                sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingConfig => {
-                    UpdateStatus::PreparingConfig
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingContent => {
-                    UpdateStatus::PreparingContent
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingContent => {
-                    UpdateStatus::UploadingContent
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingPreviewFile => {
-                    UpdateStatus::UploadingPreviewFile
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusCommittingChanges => {
-                    UpdateStatus::CommittingChanges
-                }
-                _ => unreachable!(),
-            };
-            (status, progress, total)
-        }
+            )
+        };
+        let status = match status {
+            sys::EItemUpdateStatus::k_EItemUpdateStatusInvalid => UpdateStatus::Invalid,
+            sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingConfig => {
+                UpdateStatus::PreparingConfig
+            }
+            sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingContent => {
+                UpdateStatus::PreparingContent
+            }
+            sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingContent => {
+                UpdateStatus::UploadingContent
+            }
+            sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingPreviewFile => {
+                UpdateStatus::UploadingPreviewFile
+            }
+            sys::EItemUpdateStatus::k_EItemUpdateStatusCommittingChanges => {
+                UpdateStatus::CommittingChanges
+            }
+            _ => unreachable!(),
+        };
+        (status, progress, total)
     }
 }
 
@@ -1091,7 +1104,7 @@ pub enum UpdateStatus {
 
 /// Query handle, to allow for more filtering.
 pub struct QueryHandle {
-    ugc: *mut sys::ISteamUGC,
+    ugc: NonNull<sys::ISteamUGC>,
     inner: Arc<Inner>,
 
     // Note: this is always filled except in `fetch`, where it must be taken
@@ -1103,7 +1116,7 @@ impl Drop for QueryHandle {
     fn drop(&mut self) {
         if let Some(handle) = self.handle.as_mut() {
             unsafe {
-                sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, *handle);
+                sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc.as_ptr(), *handle);
             }
         }
     }
@@ -1117,7 +1130,11 @@ impl QueryHandle {
         let cstr = CString::new(tag)
             .expect("String passed to exclude_tag could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddExcludedTag(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1130,7 +1147,11 @@ impl QueryHandle {
         let cstr = CString::new(tag)
             .expect("String passed to require_tag could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddRequiredTag(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1138,8 +1159,9 @@ impl QueryHandle {
 
     /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
     pub fn any_required(self, any: bool) -> Self {
-        let ok =
-            unsafe { sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), any) };
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc.as_ptr(), self.handle.unwrap(), any)
+        };
         debug_assert!(ok);
         self
     }
@@ -1151,7 +1173,11 @@ impl QueryHandle {
         let cstr = CString::new(language)
             .expect("String passed to language could not be converted to a c string");
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_SetLanguage(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1163,7 +1189,7 @@ impl QueryHandle {
     pub fn allow_cached_response(self, max_age_s: u32) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 max_age_s,
             )
@@ -1176,7 +1202,7 @@ impl QueryHandle {
     pub fn include_long_desc(self, include: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnLongDescription(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 include,
             )
@@ -1188,7 +1214,11 @@ impl QueryHandle {
     /// Include children in results
     pub fn include_children(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnChildren(self.ugc, self.handle.unwrap(), include)
+            sys::SteamAPI_ISteamUGC_SetReturnChildren(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                include,
+            )
         };
         debug_assert!(ok);
         self
@@ -1197,7 +1227,11 @@ impl QueryHandle {
     /// Include metadata in results
     pub fn include_metadata(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnMetadata(self.ugc, self.handle.unwrap(), include)
+            sys::SteamAPI_ISteamUGC_SetReturnMetadata(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                include,
+            )
         };
         debug_assert!(ok);
         self
@@ -1207,7 +1241,7 @@ impl QueryHandle {
     pub fn include_additional_previews(self, include: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 include,
             )
@@ -1219,7 +1253,11 @@ impl QueryHandle {
     /// Include key value tags in results
     pub fn include_key_value_tags(self, include: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(self.ugc, self.handle.unwrap(), include)
+            sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                include,
+            )
         };
         debug_assert!(ok);
         self
@@ -1229,7 +1267,11 @@ impl QueryHandle {
     pub fn add_required_tag(self, tag: &str) -> Self {
         let cstr = CString::new(tag).unwrap();
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddRequiredTag(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1239,7 +1281,11 @@ impl QueryHandle {
     pub fn add_excluded_tag(self, tag: &str) -> Self {
         let cstr = CString::new(tag).unwrap();
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_AddExcludedTag(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1249,7 +1295,7 @@ impl QueryHandle {
     pub fn set_return_only_ids(self, return_only_ids: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_only_ids,
             )
@@ -1262,7 +1308,7 @@ impl QueryHandle {
     pub fn set_return_key_value_tags(self, return_kv_tags: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnKeyValueTags(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_kv_tags,
             )
@@ -1275,7 +1321,7 @@ impl QueryHandle {
     pub fn set_return_long_description(self, return_long_desc: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnLongDescription(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_long_desc,
             )
@@ -1288,7 +1334,7 @@ impl QueryHandle {
     pub fn set_return_metadata(self, return_metadata: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnMetadata(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_metadata,
             )
@@ -1301,7 +1347,7 @@ impl QueryHandle {
     pub fn set_return_children(self, return_children: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnChildren(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_children,
             )
@@ -1314,7 +1360,7 @@ impl QueryHandle {
     pub fn set_return_additional_previews(self, return_additional_previews: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnAdditionalPreviews(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_additional_previews,
             )
@@ -1327,7 +1373,7 @@ impl QueryHandle {
     pub fn set_return_total_only(self, return_total_only: bool) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 return_total_only,
             )
@@ -1340,7 +1386,11 @@ impl QueryHandle {
     pub fn set_language(self, language: &str) -> Self {
         let cstr = CString::new(language).unwrap();
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_SetLanguage(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1350,7 +1400,7 @@ impl QueryHandle {
     pub fn set_allow_cached_response(self, max_age_seconds: u32) -> Self {
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetAllowCachedResponse(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 max_age_seconds,
             )
@@ -1364,7 +1414,7 @@ impl QueryHandle {
         let cstr = CString::new(file_name).unwrap();
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetCloudFileNameFilter(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 cstr.as_ptr(),
             )
@@ -1376,7 +1426,11 @@ impl QueryHandle {
     /// Sets whether any of the required tags are sufficient for an item to be returned.
     pub fn set_match_any_tag(self, match_any_tag: bool) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(self.ugc, self.handle.unwrap(), match_any_tag)
+            sys::SteamAPI_ISteamUGC_SetMatchAnyTag(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                match_any_tag,
+            )
         };
         debug_assert!(ok);
         self
@@ -1386,7 +1440,11 @@ impl QueryHandle {
     pub fn set_search_text(self, search_text: &str) -> Self {
         let cstr = CString::new(search_text).unwrap();
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetSearchText(self.ugc, self.handle.unwrap(), cstr.as_ptr())
+            sys::SteamAPI_ISteamUGC_SetSearchText(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                cstr.as_ptr(),
+            )
         };
         debug_assert!(ok);
         self
@@ -1395,7 +1453,11 @@ impl QueryHandle {
     /// Sets the number of days to consider for trending items.
     pub fn set_ranked_by_trend_days(self, days: u32) -> Self {
         let ok = unsafe {
-            sys::SteamAPI_ISteamUGC_SetRankedByTrendDays(self.ugc, self.handle.unwrap(), days)
+            sys::SteamAPI_ISteamUGC_SetRankedByTrendDays(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                days,
+            )
         };
         debug_assert!(ok);
         self
@@ -1407,7 +1469,7 @@ impl QueryHandle {
         let value_cstr = CString::new(value).unwrap();
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddRequiredKeyValueTag(
-                self.ugc,
+                self.ugc.as_ptr(),
                 self.handle.unwrap(),
                 key_cstr.as_ptr(),
                 value_cstr.as_ptr(),
@@ -1428,7 +1490,7 @@ impl QueryHandle {
         mem::drop(self);
 
         unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
+            let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc.as_ptr(), handle);
             register_call_result::<sys::SteamUGCQueryCompleted_t, _>(
                 &inner,
                 api_call,
@@ -1465,8 +1527,11 @@ impl QueryHandle {
         F: Fn(Result<u32, SteamError>) + 'static + Send,
     {
         unsafe {
-            let ok =
-                sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(self.ugc, self.handle.unwrap(), true);
+            let ok = sys::SteamAPI_ISteamUGC_SetReturnTotalOnly(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                true,
+            );
             debug_assert!(ok);
         }
 
@@ -1479,7 +1544,11 @@ impl QueryHandle {
         F: Fn(Result<Vec<PublishedFileId>, SteamError>) + 'static + Send,
     {
         unsafe {
-            let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(self.ugc, self.handle.unwrap(), true);
+            let ok = sys::SteamAPI_ISteamUGC_SetReturnOnlyIDs(
+                self.ugc.as_ptr(),
+                self.handle.unwrap(),
+                true,
+            );
             debug_assert!(ok);
         }
 
@@ -1575,7 +1644,8 @@ impl<'a> QueryResults<'a> {
 
     /// Gets UGCContentDescriptors of the published file at the specified index.
     pub fn content_descriptor(&self, index: u32) -> Vec<UGCContentDescriptorID> {
-        let mut descriptors: [sys::EUGCContentDescriptorID; 10] = unsafe { std::mem::zeroed() };
+        let mut descriptors =
+            [sys::EUGCContentDescriptorID::k_EUGCContentDescriptor_AdultOnlySexualContent; 10];
         let max_entries = descriptors.len() as std::ffi::c_uint;
 
         let num_descriptors = unsafe {
@@ -1602,8 +1672,9 @@ impl<'a> QueryResults<'a> {
             return None;
         }
 
+        let mut raw_details = sys::SteamUGCDetails_t::default();
+
         unsafe {
-            let mut raw_details: sys::SteamUGCDetails_t = mem::zeroed();
             let ok = sys::SteamAPI_ISteamUGC_GetQueryUGCResult(
                 self.ugc,
                 self.handle,

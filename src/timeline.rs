@@ -4,7 +4,6 @@ use std::time::Duration;
 pub struct Timeline {
     pub(crate) timeline: *mut sys::ISteamTimeline,
     /// Whether the client's steam API is not recent enough.
-    pub(crate) disabled: bool,
     pub(crate) _inner: Arc<Inner>,
 }
 
@@ -59,9 +58,13 @@ impl From<TimelineEventClipPriority> for sys::ETimelineEventClipPriority {
 }
 
 impl Timeline {
+    fn is_disabled(&self) -> bool {
+        self.timeline.is_null()
+    }
+
     /// Changes the color of the timeline bar.
     pub fn set_timeline_game_mode(&self, mode: TimelineGameMode) {
-        if self.disabled {
+        if self.is_disabled() {
             return;
         }
 
@@ -74,7 +77,7 @@ impl Timeline {
     /// These help the user to find specific moments in the timeline when saving clips.
     /// Setting a new state description replaces any previous description.
     pub fn set_timeline_state_description(&self, description: &str, duration: Duration) {
-        if self.disabled {
+        if self.is_disabled() {
             return;
         }
 
@@ -91,7 +94,7 @@ impl Timeline {
 
     /// Clears the previous set game state in the timeline.
     pub fn clear_timeline_state_description(&self, duration: Duration) {
-        if self.disabled {
+        if self.is_disabled() {
             return;
         }
 
@@ -116,7 +119,7 @@ impl Timeline {
         duration: Duration,
         clip_priority: TimelineEventClipPriority,
     ) {
-        if self.disabled {
+        if self.is_disabled() {
             return;
         }
 

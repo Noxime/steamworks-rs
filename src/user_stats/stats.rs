@@ -31,18 +31,19 @@ impl AchievementHelper<'_> {
     /// Fails if this achievement's 'API Name' is unknown, or unsuccessful
     /// [`UserStatsReceived`](../struct.UserStatsReceived.html).
     pub fn get(&self) -> Result<bool, ()> {
-        unsafe {
-            let mut achieved = false;
-            let success = sys::SteamAPI_ISteamUserStats_GetAchievement(
-                self.parent.user_stats,
+        let mut achieved = false;
+        let success = unsafe {
+            sys::SteamAPI_ISteamUserStats_GetAchievement(
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
                 &mut achieved as *mut _,
-            );
-            if success {
-                Ok(achieved)
-            } else {
-                Err(())
-            }
+            )
+        };
+
+        if success {
+            Ok(achieved)
+        } else {
+            Err(())
         }
     }
 
@@ -57,10 +58,11 @@ impl AchievementHelper<'_> {
     pub fn set(&self) -> Result<(), ()> {
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_SetAchievement(
-                self.parent.user_stats,
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
             )
         };
+
         if success {
             Ok(())
         } else {
@@ -79,10 +81,11 @@ impl AchievementHelper<'_> {
     pub fn clear(&self) -> Result<(), ()> {
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_ClearAchievement(
-                self.parent.user_stats,
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
             )
         };
+
         if success {
             Ok(())
         } else {
@@ -118,18 +121,19 @@ impl AchievementHelper<'_> {
     /// # Err(())
     /// ```
     pub fn get_achievement_achieved_percent(&self) -> Result<f32, ()> {
-        unsafe {
-            let mut percent = 0.0;
-            let success = sys::SteamAPI_ISteamUserStats_GetAchievementAchievedPercent(
-                self.parent.user_stats,
+        let mut percent = 0.0;
+        let success = unsafe {
+            sys::SteamAPI_ISteamUserStats_GetAchievementAchievedPercent(
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
                 &mut percent as *mut _,
-            );
-            if success {
-                Ok(percent)
-            } else {
-                Err(())
-            }
+            )
+        };
+
+        if success {
+            Ok(percent)
+        } else {
+            Err(())
         }
     }
 
@@ -171,7 +175,7 @@ impl AchievementHelper<'_> {
             let ptr = key_c_str.as_ptr() as *const i8;
 
             let str = sys::SteamAPI_ISteamUserStats_GetAchievementDisplayAttribute(
-                self.parent.user_stats,
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
                 ptr,
             );
@@ -202,7 +206,7 @@ impl AchievementHelper<'_> {
         unsafe {
             let utils: *mut sys::ISteamUtils = sys::SteamAPI_SteamUtils_v010();
             let img = sys::SteamAPI_ISteamUserStats_GetAchievementIcon(
-                self.parent.user_stats,
+                self.parent.user_stats.as_ptr(),
                 self.name.as_ptr() as *const _,
             );
             if img == 0 {

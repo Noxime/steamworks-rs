@@ -2,13 +2,14 @@ use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
 use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CStr};
+use std::ptr::NonNull;
 use std::sync::Arc;
 
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils {
-    pub(crate) utils: *mut sys::ISteamNetworkingUtils,
+    pub(crate) utils: NonNull<sys::ISteamNetworkingUtils>,
     pub(crate) inner: Arc<Inner>,
 }
 
@@ -31,13 +32,16 @@ impl NetworkingUtils {
     /// m_cbSize will be zero, and m_pfnFreeData will be NULL.  You will need to
     /// set each of these.
     pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage {
-        unsafe {
-            let message =
-                sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
-            NetworkingMessage {
-                message,
-                _inner: self.inner.clone(),
-            }
+        let message = unsafe {
+            sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(
+                self.utils.as_ptr(),
+                buffer_size as _,
+            )
+        };
+
+        NetworkingMessage {
+            message,
+            _inner: self.inner.clone(),
         }
     }
 
@@ -63,7 +67,7 @@ impl NetworkingUtils {
     /// a "client" and this should be called.
     pub fn init_relay_network_access(&self) {
         unsafe {
-            sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils);
+            sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils.as_ptr());
         }
     }
 
@@ -73,7 +77,7 @@ impl NetworkingUtils {
     pub fn relay_network_status(&self) -> NetworkingAvailabilityResult {
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
-                self.utils,
+                self.utils.as_ptr(),
                 std::ptr::null_mut(),
             )
             .try_into()
@@ -82,17 +86,21 @@ impl NetworkingUtils {
 
     /// Fetch current detailed status of the relay network.
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
+        let mut status = sys::SteamRelayNetworkStatus_t {
+            m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_bPingMeasurementInProgress: 0,
+            m_eAvailNetworkConfig:
+                sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_eAvailAnyRelay:
+                sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
+            m_debugMsg: [0; 256],
+        };
+
         unsafe {
-            let mut status = sys::SteamRelayNetworkStatus_t {
-                m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_bPingMeasurementInProgress: 0,
-                m_eAvailNetworkConfig:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_eAvailAnyRelay:
-                    sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
-                m_debugMsg: [0; 256],
-            };
-            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(self.utils, &mut status);
+            sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
+                self.utils.as_ptr(),
+                &mut status,
+            );
             status.into()
         }
     }
@@ -161,17 +169,15 @@ impl RelayNetworkStatus {
 
 impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
     fn from(status: steamworks_sys::SteamRelayNetworkStatus_t) -> Self {
-        unsafe {
-            Self {
-                availability: status.m_eAvail.try_into(),
-                is_ping_measurement_in_progress: status.m_bPingMeasurementInProgress != 0,
-                network_config: status.m_eAvailNetworkConfig.try_into(),
-                any_relay: status.m_eAvailAnyRelay.try_into(),
-                debugging_message: CStr::from_ptr(status.m_debugMsg.as_ptr())
-                    .to_str()
-                    .expect("invalid debug string")
-                    .to_owned(),
-            }
+        Self {
+            availability: status.m_eAvail.try_into(),
+            is_ping_measurement_in_progress: status.m_bPingMeasurementInProgress != 0,
+            network_config: status.m_eAvailNetworkConfig.try_into(),
+            any_relay: status.m_eAvailAnyRelay.try_into(),
+            debugging_message: unsafe { CStr::from_ptr(status.m_debugMsg.as_ptr()) }
+                .to_str()
+                .expect("invalid debug string")
+                .to_owned(),
         }
     }
 }

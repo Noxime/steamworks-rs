@@ -5,24 +5,24 @@ use serial_test::serial;
 
 /// Access to the steam user interface
 pub struct User {
-    pub(crate) user: *mut sys::ISteamUser,
+    pub(crate) user: NonNull<sys::ISteamUser>,
     pub(crate) _inner: Arc<Inner>,
 }
 
 impl User {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
-        unsafe { SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user)) }
+        unsafe { SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user.as_ptr())) }
     }
 
     /// Returns the level of the current user
     pub fn level(&self) -> u32 {
-        unsafe { sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32 }
+        unsafe { sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user.as_ptr()) as u32 }
     }
 
     /// Returns whether the current user's Steam client is connected to the Steam servers.
     pub fn logged_on(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamUser_BLoggedOn(self.user) }
+        unsafe { sys::SteamAPI_ISteamUser_BLoggedOn(self.user.as_ptr()) }
     }
 
     /// Retrieve an authentication session ticket that can be sent
@@ -46,19 +46,19 @@ impl User {
         &self,
         network_identity: NetworkingIdentity,
     ) -> (AuthTicket, Vec<u8>) {
-        unsafe {
-            let mut ticket = vec![0; 1024];
-            let mut ticket_len = 0;
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
-                self.user,
+        let mut ticket = vec![0; 1024];
+        let mut ticket_len = 0;
+        let auth_ticket = unsafe {
+            sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
+                self.user.as_ptr(),
                 ticket.as_mut_ptr() as *mut _,
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
-            );
-            ticket.truncate(ticket_len as usize);
-            (AuthTicket(auth_ticket), ticket)
-        }
+            )
+        };
+        ticket.truncate(ticket_len as usize);
+        (AuthTicket(auth_ticket), ticket)
     }
 
     /// Cancels an authentication session ticket received from
@@ -68,7 +68,7 @@ impl User {
     /// the specified entity.
     pub fn cancel_authentication_ticket(&self, ticket: AuthTicket) {
         unsafe {
-            sys::SteamAPI_ISteamUser_CancelAuthTicket(self.user, ticket.0);
+            sys::SteamAPI_ISteamUser_CancelAuthTicket(self.user.as_ptr(), ticket.0);
         }
     }
 
@@ -87,7 +87,7 @@ impl User {
     ) -> Result<(), AuthSessionError> {
         unsafe {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
-                self.user,
+                self.user.as_ptr(),
                 ticket.as_ptr() as *const _,
                 ticket.len() as _,
                 user.0,
@@ -121,7 +121,7 @@ impl User {
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
         unsafe {
-            sys::SteamAPI_ISteamUser_EndAuthSession(self.user, user.0);
+            sys::SteamAPI_ISteamUser_EndAuthSession(self.user.as_ptr(), user.0);
         }
     }
 
@@ -140,14 +140,12 @@ impl User {
     /// use by the BeginAuthSession/ISteamGameServer::BeginAuthSession.
     /// Use the `authentication_session_ticket` API instead
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
+        let c_str = CString::new(identity).unwrap();
         unsafe {
-            let c_str = CString::new(identity).unwrap();
-            let c_world: *const ::std::os::raw::c_char =
-                c_str.as_ptr() as *const ::std::os::raw::c_char;
-
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_world);
-
-            AuthTicket(auth_ticket)
+            AuthTicket(sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(
+                self.user.as_ptr(),
+                c_str.as_ptr(),
+            ))
         }
     }
 }

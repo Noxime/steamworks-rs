@@ -1,10 +1,11 @@
+use std::ptr::NonNull;
 use sys::InputHandle_t;
 
 use super::*;
 
 /// Access to the steam input interface
 pub struct Input {
-    pub(crate) input: *mut sys::ISteamInput,
+    pub(crate) input: NonNull<sys::ISteamInput>,
     pub(crate) _inner: Arc<Inner>,
 }
 
@@ -31,7 +32,7 @@ impl Input {
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
     /// each frame, otherwise Steam Input will updated when SteamAPI_RunCallbacks() is called
     pub fn init(&self, explicitly_call_run_frame: bool) -> bool {
-        unsafe { sys::SteamAPI_ISteamInput_Init(self.input, explicitly_call_run_frame) }
+        unsafe { sys::SteamAPI_ISteamInput_Init(self.input.as_ptr(), explicitly_call_run_frame) }
     }
 
     /// Synchronize API state with the latest Steam Input action data available. This
@@ -40,7 +41,7 @@ impl Input {
     /// Note: This must be called from somewhere before GetConnectedControllers will
     /// return any handles
     pub fn run_frame(&self) {
-        unsafe { sys::SteamAPI_ISteamInput_RunFrame(self.input, false) }
+        unsafe { sys::SteamAPI_ISteamInput_RunFrame(self.input.as_ptr(), false) }
     }
 
     /// Returns a list of the currently connected controllers
@@ -60,7 +61,7 @@ impl Input {
         assert!(handles.len() >= sys::STEAM_INPUT_MAX_COUNT as usize);
         unsafe {
             return sys::SteamAPI_ISteamInput_GetConnectedControllers(
-                self.input,
+                self.input.as_ptr(),
                 handles.as_mut_ptr(),
             ) as usize;
         }
@@ -70,20 +71,24 @@ impl Input {
     pub fn set_input_action_manifest_file_path(&self, path: &str) -> bool {
         let path = CString::new(path).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamInput_SetInputActionManifestFilePath(self.input, path.as_ptr())
+            sys::SteamAPI_ISteamInput_SetInputActionManifestFilePath(
+                self.input.as_ptr(),
+                path.as_ptr(),
+            )
         }
     }
 
     /// Returns the associated ControllerActionSet handle for the specified controller,
     pub fn get_action_set_handle(&self, action_set_name: &str) -> sys::InputActionSetHandle_t {
         let name = CString::new(action_set_name).unwrap();
-        unsafe { sys::SteamAPI_ISteamInput_GetActionSetHandle(self.input, name.as_ptr()) }
+        unsafe { sys::SteamAPI_ISteamInput_GetActionSetHandle(self.input.as_ptr(), name.as_ptr()) }
     }
 
     /// Returns the input type for a controler
     pub fn get_input_type_for_handle(&self, input_handle: sys::InputHandle_t) -> InputType {
-        let input_type: sys::ESteamInputType =
-            unsafe { sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input, input_handle) };
+        let input_type: sys::ESteamInputType = unsafe {
+            sys::SteamAPI_ISteamInput_GetInputTypeForHandle(self.input.as_ptr(), input_handle)
+        };
 
         match input_type {
             sys::ESteamInputType::k_ESteamInputType_SteamController => InputType::SteamController,
@@ -121,20 +126,22 @@ impl Input {
     /// Returns the glyph for an input action
     pub fn get_glyph_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
         unsafe {
-            let glyph_path =
-                sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
-            let glyph_path = CStr::from_ptr(glyph_path);
-            glyph_path.to_string_lossy().into_owned()
+            let glyph_path = sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(
+                self.input.as_ptr(),
+                action_origin,
+            );
+            lossy_string_from_cstr(glyph_path)
         }
     }
 
     /// Returns the name of an input action
     pub fn get_string_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
         unsafe {
-            let name_path =
-                sys::SteamAPI_ISteamInput_GetStringForActionOrigin(self.input, action_origin);
-            let name_path = CStr::from_ptr(name_path);
-            name_path.to_string_lossy().into_owned()
+            let name_path = sys::SteamAPI_ISteamInput_GetStringForActionOrigin(
+                self.input.as_ptr(),
+                action_origin,
+            );
+            lossy_string_from_cstr(name_path)
         }
     }
 
@@ -146,20 +153,28 @@ impl Input {
         action_set_handle: sys::InputActionSetHandle_t,
     ) {
         unsafe {
-            sys::SteamAPI_ISteamInput_ActivateActionSet(self.input, input_handle, action_set_handle)
+            sys::SteamAPI_ISteamInput_ActivateActionSet(
+                self.input.as_ptr(),
+                input_handle,
+                action_set_handle,
+            )
         }
     }
 
     /// Get the handle of the specified Digital action.
     pub fn get_digital_action_handle(&self, action_name: &str) -> sys::InputDigitalActionHandle_t {
         let name = CString::new(action_name).unwrap();
-        unsafe { sys::SteamAPI_ISteamInput_GetDigitalActionHandle(self.input, name.as_ptr()) }
+        unsafe {
+            sys::SteamAPI_ISteamInput_GetDigitalActionHandle(self.input.as_ptr(), name.as_ptr())
+        }
     }
 
     /// Get the handle of the specified Analog action.
     pub fn get_analog_action_handle(&self, action_name: &str) -> sys::InputAnalogActionHandle_t {
         let name = CString::new(action_name).unwrap();
-        unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionHandle(self.input, name.as_ptr()) }
+        unsafe {
+            sys::SteamAPI_ISteamInput_GetAnalogActionHandle(self.input.as_ptr(), name.as_ptr())
+        }
     }
 
     /// Returns the current state of the supplied digital game action.
@@ -169,7 +184,11 @@ impl Input {
         action_handle: sys::InputDigitalActionHandle_t,
     ) -> sys::InputDigitalActionData_t {
         unsafe {
-            sys::SteamAPI_ISteamInput_GetDigitalActionData(self.input, input_handle, action_handle)
+            sys::SteamAPI_ISteamInput_GetDigitalActionData(
+                self.input.as_ptr(),
+                input_handle,
+                action_handle,
+            )
         }
     }
 
@@ -180,7 +199,11 @@ impl Input {
         action_handle: sys::InputAnalogActionHandle_t,
     ) -> sys::InputAnalogActionData_t {
         unsafe {
-            sys::SteamAPI_ISteamInput_GetAnalogActionData(self.input, input_handle, action_handle)
+            sys::SteamAPI_ISteamInput_GetAnalogActionData(
+                self.input.as_ptr(),
+                input_handle,
+                action_handle,
+            )
         }
     }
 
@@ -191,10 +214,10 @@ impl Input {
         action_set_handle: sys::InputActionSetHandle_t,
         digital_action_handle: sys::InputDigitalActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
+        let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
         unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
             let len = sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
-                self.input,
+                self.input.as_ptr(),
                 input_handle,
                 action_set_handle,
                 digital_action_handle,
@@ -212,10 +235,10 @@ impl Input {
         action_set_handle: sys::InputActionSetHandle_t,
         analog_action_handle: sys::InputAnalogActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
+        let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
         unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
             let len = sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
-                self.input,
+                self.input.as_ptr(),
                 input_handle,
                 action_set_handle,
                 analog_action_handle,
@@ -227,7 +250,7 @@ impl Input {
     }
 
     pub fn get_motion_data(&self, input_handle: sys::InputHandle_t) -> sys::InputMotionData_t {
-        unsafe { sys::SteamAPI_ISteamInput_GetMotionData(self.input, input_handle) }
+        unsafe { sys::SteamAPI_ISteamInput_GetMotionData(self.input.as_ptr(), input_handle) }
     }
 
     /// Invokes the Steam overlay and brings up the binding screen.
@@ -236,13 +259,13 @@ impl Input {
     /// the overlay. In desktop mode a popup window version of Big Picture will
     /// be created and open the configuration.
     pub fn show_binding_panel(&self, input_handle: sys::InputHandle_t) -> bool {
-        unsafe { sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input, input_handle) }
+        unsafe { sys::SteamAPI_ISteamInput_ShowBindingPanel(self.input.as_ptr(), input_handle) }
     }
 
     /// Shutdown must be called when ending use of this interface.
     pub fn shutdown(&self) {
         unsafe {
-            sys::SteamAPI_ISteamInput_Shutdown(self.input);
+            sys::SteamAPI_ISteamInput_Shutdown(self.input.as_ptr());
         }
     }
 }

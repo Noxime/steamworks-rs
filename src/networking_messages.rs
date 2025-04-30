@@ -29,13 +29,14 @@ use crate::networking_types::{
 };
 use crate::{register_callback, Callback, Inner, SteamError};
 use std::ffi::c_void;
+use std::ptr::NonNull;
 use std::sync::{Arc, Weak};
 
 use steamworks_sys as sys;
 
 /// Access to the steam networking messages interface
 pub struct NetworkingMessages {
-    pub(crate) net: *mut sys::ISteamNetworkingMessages,
+    pub(crate) net: NonNull<sys::ISteamNetworkingMessages>,
     pub(crate) inner: Arc<Inner>,
 }
 
@@ -94,7 +95,7 @@ impl NetworkingMessages {
     ) -> Result<(), SteamError> {
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingMessages_SendMessageToUser(
-                self.net,
+                self.net.as_ptr(),
                 user.as_ptr(),
                 data.as_ptr() as *const c_void,
                 data.len() as u32,
@@ -140,7 +141,7 @@ impl NetworkingMessages {
         let mut buffer = Vec::with_capacity(batch_size);
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingMessages_ReceiveMessagesOnChannel(
-                self.net,
+                self.net.as_ptr(),
                 channel as i32,
                 buffer.as_mut_ptr(),
                 batch_size as _,
@@ -187,7 +188,7 @@ impl NetworkingMessages {
         mut callback: impl FnMut(SessionRequest) + Send + 'static,
     ) {
         let builder = SessionRequestBuilder {
-            message: self.net,
+            message: self.net.as_ptr(),
             inner: Arc::downgrade(&self.inner),
         };
         unsafe {
@@ -352,10 +353,10 @@ impl SessionRequest {
     pub fn accept(mut self) -> bool {
         self.accepted = true;
         unsafe {
-            return sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
+            sys::SteamAPI_ISteamNetworkingMessages_AcceptSessionWithUser(
                 self.messages,
                 self.remote.as_ptr(),
-            );
+            )
         }
     }
 
