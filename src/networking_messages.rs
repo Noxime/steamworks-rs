@@ -311,7 +311,7 @@ unsafe impl Callback for NetworkingMessagesSessionRequest {
     }
 }
 
-struct NetworkingMessagesSessionFailed {
+pub struct NetworkingMessagesSessionFailed {
     pub info: NetConnectionInfo,
 }
 
