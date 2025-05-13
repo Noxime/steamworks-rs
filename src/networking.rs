@@ -35,16 +35,16 @@ impl Networking {
     /// Accepts incoming packets from the given user
     ///
     /// Should only be called in response to a `P2PSessionRequest`.
-    pub fn accept_p2p_session(&self, user: SteamId) {
+    pub fn accept_p2p_session(&self, user: SteamId) -> bool {
         unsafe {
-            sys::SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(self.net, user.0);
+            sys::SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(self.net, user.0)
         }
     }
 
     /// Closes the p2p connection between the given user
-    pub fn close_p2p_session(&self, user: SteamId) {
+    pub fn close_p2p_session(&self, user: SteamId) -> bool {
         unsafe {
-            sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, user.0);
+            sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, user.0)
         }
     }
 
