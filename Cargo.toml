@@ -21,7 +21,9 @@ members = [
     "./steamworks-sys",
     "examples/chat-example",
     "examples/workshop",
-    "examples/lobby", "examples/networking-messages",
+    "examples/lobby",
+    "examples/networking-messages",
+    "examples/game-server",
 ]
 
 [dependencies]
