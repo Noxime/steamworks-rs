@@ -395,11 +395,13 @@ impl Matchmaking {
         &self,
         StringFilter(LobbyKey(key), value, kind): StringFilter,
     ) -> &Self {
+        let key = CString::new(key).unwrap();
+        let value = CString::new(value).unwrap();
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
                 self.mm,
-                key.as_ptr() as _,
-                value.as_ptr() as _,
+                key.as_ptr(),
+                value.as_ptr(),
                 kind.into(),
             );
         }
@@ -419,10 +421,11 @@ impl Matchmaking {
         &self,
         NumberFilter(LobbyKey(key), value, comparison): NumberFilter,
     ) -> &Self {
+        let key = CString::new(key).unwrap();
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
                 self.mm,
-                key.as_ptr() as _,
+                key.as_ptr(),
                 value,
                 comparison.into(),
             );
@@ -443,10 +446,11 @@ impl Matchmaking {
         &self,
         NearFilter(LobbyKey(key), value): NearFilter,
     ) -> &Self {
+        let key = CString::new(key).unwrap();
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
                 self.mm,
-                key.as_ptr() as _,
+                key.as_ptr(),
                 value,
             );
         }
