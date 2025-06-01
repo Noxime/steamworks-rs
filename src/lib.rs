@@ -508,12 +508,12 @@ impl Client {
 }
 
 /// Used to separate client and game server modes
-trait Manager: Send + Sync {
+pub trait Manager: Send + Sync {
     fn get_pipe(&self) -> sys::HSteamPipe;
 }
 
 /// Manages keeping the steam api active for clients
-struct ClientManager;
+pub struct ClientManager;
 
 impl Manager for ClientManager {
     fn get_pipe(&self) -> sys::HSteamPipe {
