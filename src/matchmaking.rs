@@ -1151,7 +1151,7 @@ fn test_lobby() {
 
 #[test]
 #[serial]
-fn test_lobby_set_lobby_game_server() {
+fn test_set_lobby_game_server() {
     let client = Client::init().unwrap();
     let mm = client.matchmaking();
 
