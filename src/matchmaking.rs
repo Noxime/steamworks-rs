@@ -952,6 +952,72 @@ impl From<u8> for ChatEntryType {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum ChatRoomEnterResponse {
+    Success,
+    DoesntExist,
+    NotAllowed,
+    Full,
+    Error,
+    Banned,
+    Limited,
+    ClanDisabled,
+    CommunityBan,
+    MemberBlockedYou,
+    YouBlockedMember,
+    RatelimitExceeded,
+}
+
+impl From<u32> for ChatRoomEnterResponse {
+    fn from(value: u32) -> Self {
+        match value {
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseSuccess as u32 => ChatRoomEnterResponse::Success,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseDoesntExist as u32 => ChatRoomEnterResponse::DoesntExist,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseNotAllowed as u32 => ChatRoomEnterResponse::NotAllowed,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseFull as u32 => ChatRoomEnterResponse::Full,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseError as u32 => ChatRoomEnterResponse::Error,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseBanned as u32 => ChatRoomEnterResponse::Banned,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseLimited as u32 => ChatRoomEnterResponse::Limited,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseClanDisabled as u32 => ChatRoomEnterResponse::ClanDisabled,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseCommunityBan as u32 => ChatRoomEnterResponse::CommunityBan,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseMemberBlockedYou as u32 => ChatRoomEnterResponse::MemberBlockedYou,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseYouBlockedMember as u32 => ChatRoomEnterResponse::YouBlockedMember,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseRatelimitExceeded as u32 => ChatRoomEnterResponse::RatelimitExceeded,
+            _ => ChatRoomEnterResponse::Error,
+        }
+    }
+}
+
+/// A chat (text or binary) message for this lobby has been received. After getting this you must use GetLobbyChatEntry to retrieve the contents of this message.
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyChatMsg {
+    /// The Steam ID of the lobby this message was sent in.
+    pub lobby: LobbyId,
+    /// Steam ID of the user who sent this message. Note that it could have been the local user.
+    pub user: SteamId,
+    /// Type of message received. This is actually a EChatEntryType.
+    pub chat_entry_type: ChatEntryType,
+    /// The index of the chat entry to use with GetLobbyChatEntry, this is not valid outside of the scope of this callback and should never be stored.
+    pub chat_id: i32,
+}
+
+unsafe impl Callback for LobbyChatMsg {
+    const ID: i32 = 507;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+
+        LobbyChatMsg {
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+            user: SteamId(val.m_ulSteamIDUser),
+            chat_entry_type: val.m_eChatEntryType.into(),
+            chat_id: val.m_iChatID as i32,
+        }
+    }
+}
+
 /// A lobby chat room state has changed, this is usually sent when a user has joined or left the lobby.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -962,7 +1028,6 @@ pub struct LobbyChatUpdate {
     pub user_changed: SteamId,
     /// Chat member who made the change. This can be different from `user_changed` if kicking, muting, etc. For example, if one user kicks another from the lobby, this will be set to the id of the user who initiated the kick.
     pub making_change: SteamId,
-
     /// "ChatMemberStateChange" values.
     pub member_state_change: ChatMemberStateChange,
 }
@@ -1001,11 +1066,39 @@ unsafe impl Callback for LobbyChatUpdate {
     }
 }
 
+/// Result of our request to create a Lobby. At this point, the lobby has been joined and is ready for use, a LobbyEnter_t callback will also be received (since the local user is joining their own lobby).
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LobbyCreated {
+    /// The result of the operation (EResult). Possible values: k_EResultOK, k_EResultFail, k_EResultTimeout, k_EResultLimitExceeded, k_EResultAccessDenied, k_EResultNoConnection
+    pub result: u32,
+    /// The Steam ID of the lobby that was created, 0 if failed.
+    pub lobby: LobbyId,
+}
+
+unsafe impl Callback for LobbyCreated {
+    const ID: i32 = 513;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = &mut *(raw as *mut sys::LobbyCreated_t);
+
+        LobbyCreated {
+            result: val.m_eResult as u32,
+            lobby: LobbyId(val.m_ulSteamIDLobby),
+        }
+    }
+}
+
+/// The lobby metadata has changed.
+/// If m_ulSteamIDMember is a user in the lobby, then use GetLobbyMemberData to access per-user details; otherwise, if m_ulSteamIDMember == m_ulSteamIDLobby, use GetLobbyData to access the lobby metadata.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LobbyDataUpdate {
+    /// The Steam ID of the Lobby.
     pub lobby: LobbyId,
+    /// Steam ID of either the member whose data changed, or the room itself.
     pub member: SteamId,
+    /// true if the lobby data was successfully changed, otherwise false.
     pub success: bool,
 }
 
@@ -1023,26 +1116,31 @@ unsafe impl Callback for LobbyDataUpdate {
     }
 }
 
+/// Recieved upon attempting to enter a lobby. Lobby metadata is available to use immediately after receiving this.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LobbyChatMsg {
+pub struct LobbyEnter {
+    /// The steam ID of the Lobby you have entered.
     pub lobby: LobbyId,
-    pub user: SteamId,
-    pub chat_entry_type: ChatEntryType,
-    pub chat_id: i32,
+    /// Unused - Always 0.
+    pub chat_permissions: u32,
+    /// If true, then only invited users may join.
+    pub blocked: bool,
+    /// This is actually a EChatRoomEnterResponse value. This will be set to k_EChatRoomEnterResponseSuccess if the lobby was successfully joined, otherwise it will be k_EChatRoomEnterResponseError.
+    pub chat_room_enter_response: ChatRoomEnterResponse
 }
 
-unsafe impl Callback for LobbyChatMsg {
-    const ID: i32 = 507;
+unsafe impl Callback for LobbyEnter {
+    const ID: i32 = 504;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+        let val = &mut *(raw as *mut sys::LobbyEnter_t);
 
-        LobbyChatMsg {
+        LobbyEnter {
             lobby: LobbyId(val.m_ulSteamIDLobby),
-            user: SteamId(val.m_ulSteamIDUser),
-            chat_entry_type: val.m_eChatEntryType.into(),
-            chat_id: val.m_iChatID as i32,
+            chat_permissions: val.m_rgfChatPermissions,
+            blocked: val.m_bLocked,
+            chat_room_enter_response: val.m_EChatRoomEnterResponse.into()
         }
     }
 }
