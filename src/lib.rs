@@ -553,6 +553,16 @@ impl SteamId {
         self.0
     }
 
+    /// Returns whether or not this Steam ID is invalid, which is when `account_type` is `k_EAccountTypeInvalid`.
+    pub fn is_invalid(&self) -> bool {
+        unsafe {
+            let bits = sys::CSteamID_SteamID_t {
+                m_unAll64Bits: self.0,
+            };
+            bits.m_comp.m_EAccountType() == sys::EAccountType::k_EAccountTypeInvalid as std::os::raw::c_uint
+        }
+    }
+
     /// Returns the account id for this steam id
     pub fn account_id(&self) -> AccountId {
         unsafe {
