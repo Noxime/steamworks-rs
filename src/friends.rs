@@ -336,7 +336,7 @@ unsafe impl Callback for GameRichPresenceJoinRequested {
         let connect_bytes: &[u8] = std::mem::transmute(&val.m_rgchConnect as &[i8]);
         GameRichPresenceJoinRequested {
             friend_steam_id: SteamId(val.m_steamIDFriend.m_steamid.m_unAll64Bits),
-            connect: String::from_utf8_lossy(&connect_bytes).trim().to_string(),
+            connect: String::from_utf8_lossy(&connect_bytes).trim_end_matches('\0').to_string(),
         }
     }
 }
