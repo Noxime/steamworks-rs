@@ -1,8 +1,8 @@
 use std::{path::Path, sync::mpsc::TryRecvError};
 
-use steamworks::{Client, ClientManager, PublishedFileId, UGC};
+use steamworks::{Client, PublishedFileId, UGC};
 
-fn create_item(ugc: &UGC<ClientManager>) {
+fn create_item(ugc: &UGC) {
     // creating a new workshop item
     // make sure you change the appid to the specified game
     ugc.create_item(
@@ -33,7 +33,7 @@ fn create_item(ugc: &UGC<ClientManager>) {
     );
 }
 
-fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
+fn upload_item_content(ugc: &UGC, published_id: PublishedFileId) {
     // uploading the content of the workshop item
     // this process uses a builder pattern to set properties of the item
     // mandatory properties are:
@@ -84,7 +84,7 @@ fn upload_item_content(ugc: &UGC<ClientManager>, published_id: PublishedFileId) 
         });
 }
 
-fn delete_item(ugc: &UGC<ClientManager>, published_id: PublishedFileId) {
+fn delete_item(ugc: &UGC, published_id: PublishedFileId) {
     // deleting an item
     ugc.delete_item(published_id, move |delete_result| {
         match delete_result {
