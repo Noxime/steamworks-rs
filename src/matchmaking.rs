@@ -632,11 +632,10 @@ impl Matchmaking {
             );
 
             let server_addr = SocketAddrV4::new(Ipv4Addr::from_bits(server_ip), server_port);
-            let server_id = if server_steam_id.m_steamid.m_unAll64Bits != 0 {
-                Some(SteamId(server_steam_id.m_steamid.m_unAll64Bits))
-            } else {
-                None
-            };
+            let server_id = SteamId::from_raw(server_steam_id.m_steamid.m_unAll64Bits);
+
+            // Return None if no game server is associated with the lobby
+            let server_id = (!server_id.is_invalid()).then_some(server_id);
 
             if success {
                 Some((server_addr, server_id))
