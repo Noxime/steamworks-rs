@@ -1,4 +1,7 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    net::{Ipv4Addr, SocketAddrV4},
+};
 
 use super::*;
 #[cfg(test)]
@@ -572,6 +575,74 @@ impl Matchmaking {
             self.set_request_lobby_list_result_count_filter(count);
         }
         self
+    }
+
+    /// Sets the game server associated with the lobby.
+    ///
+    /// This is used to tell other lobby members which game server to connect to.
+    ///
+    /// # Parameters
+    /// - `lobby`: The lobby ID
+    /// - `server_addr`: The IP address and port of the game server
+    /// - `server_steam_id`: The Steam ID of the game server (optional)
+    ///
+    /// # Returns
+    /// Returns `true` if successful, `false` otherwise
+    pub fn set_lobby_game_server(
+        &self,
+        lobby: LobbyId,
+        server_addr: SocketAddrV4,
+        server_steam_id: Option<SteamId>,
+    ) -> () {
+        unsafe {
+            sys::SteamAPI_ISteamMatchmaking_SetLobbyGameServer(
+                self.mm,
+                lobby.0,
+                server_addr.ip().to_bits(),
+                server_addr.port(),
+                server_steam_id.map(|id| id.0).unwrap_or(0),
+            )
+        }
+    }
+
+    /// Gets the game server associated with the lobby.
+    ///
+    /// # Parameters
+    /// - `lobby`: The lobby ID
+    ///
+    /// # Returns
+    /// Returns `None` if no game server is associated, otherwise returns a tuple containing:
+    /// - `server_addr`: The IP address and port of the game server
+    /// - `server_steam_id`: The Steam ID of the game server (if available)
+    pub fn get_lobby_game_server(&self, lobby: LobbyId) -> Option<(SocketAddrV4, Option<SteamId>)> {
+        unsafe {
+            let mut server_ip = 0;
+            let mut server_port = 0;
+
+            let mut server_steam_id = sys::CSteamID {
+                m_steamid: sys::CSteamID_SteamID_t { m_unAll64Bits: 0 },
+            };
+
+            let success = sys::SteamAPI_ISteamMatchmaking_GetLobbyGameServer(
+                self.mm,
+                lobby.0,
+                &mut server_ip,
+                &mut server_port,
+                &mut server_steam_id,
+            );
+
+            let server_addr = SocketAddrV4::new(Ipv4Addr::from_bits(server_ip), server_port);
+            let server_id = SteamId::from_raw(server_steam_id.m_steamid.m_unAll64Bits);
+
+            // Return None if no game server is associated with the lobby
+            let server_id = (!server_id.is_invalid()).then_some(server_id);
+
+            if success {
+                Some((server_addr, server_id))
+            } else {
+                None
+            }
+        }
     }
 }
 
@@ -1185,6 +1256,7 @@ fn test_lobby() {
     mm.request_lobby_list(|v| {
         println!("List: {:?}", v);
     });
+
     mm.create_lobby(LobbyType::Private, 4, |v| {
         println!("Create: {:?}", v);
     });
@@ -1196,6 +1268,48 @@ fn test_lobby() {
             StringFilterKind::Equal,
         )]),
         ..Default::default()
+    });
+
+    for _ in 0..100 {
+        client.run_callbacks();
+        ::std::thread::sleep(::std::time::Duration::from_millis(100));
+    }
+}
+
+#[test]
+#[serial]
+fn test_set_lobby_game_server() {
+    let client = Client::init().unwrap();
+    let mm = client.matchmaking();
+
+    let client2 = client.clone();
+    mm.create_lobby(LobbyType::Private, 4, move |v| {
+        println!("Create: {:?}", v);
+        let mm2 = client2.matchmaking();
+
+        // Test setting and getting game server information
+        let lobby_id = v.unwrap(); // Example lobby ID, in real test should use actual ID from create_lobby
+        let test_addr = SocketAddrV4::new(Ipv4Addr::new(192, 168, 1, 1), 27015); // Example IP and port
+        let test_steam_id = Some(SteamId(76561197960287930)); // Example SteamID
+
+        // Set game server information
+        mm2.set_lobby_game_server(lobby_id, test_addr, test_steam_id);
+
+        // Retrieve and verify game server information
+        if let Some((addr, steam_id)) = mm2.get_lobby_game_server(lobby_id) {
+            assert_eq!(test_addr, addr, "Server address mismatch");
+            assert_eq!(steam_id, test_steam_id, "Server SteamID mismatch");
+            println!("Game server info verified: {addr} {steam_id:?}");
+        } else {
+            panic!("Failed to retrieve lobby game server info");
+        }
+
+        // Test case for lobby with no game server set
+        let empty_lobby = LobbyId(54321);
+        assert!(
+            mm2.get_lobby_game_server(empty_lobby).is_none(),
+            "Expected None for lobby with no game server set"
+        );
     });
 
     for _ in 0..100 {

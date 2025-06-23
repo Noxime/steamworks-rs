@@ -9,7 +9,7 @@ documentation = "https://docs.rs/steamworks"
 keywords = ["steam", "gamedev"]
 categories = ["games"]
 edition = "2021"
-rust-version = "1.73.0"
+rust-version = "1.80.0"
 
 [features]
 default = []
