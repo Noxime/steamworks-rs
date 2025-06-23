@@ -972,18 +972,49 @@ pub enum ChatRoomEnterResponse {
 impl From<u32> for ChatRoomEnterResponse {
     fn from(value: u32) -> Self {
         match value {
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseSuccess as u32 => ChatRoomEnterResponse::Success,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseDoesntExist as u32 => ChatRoomEnterResponse::DoesntExist,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseNotAllowed as u32 => ChatRoomEnterResponse::NotAllowed,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseFull as u32 => ChatRoomEnterResponse::Full,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseError as u32 => ChatRoomEnterResponse::Error,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseBanned as u32 => ChatRoomEnterResponse::Banned,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseLimited as u32 => ChatRoomEnterResponse::Limited,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseClanDisabled as u32 => ChatRoomEnterResponse::ClanDisabled,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseCommunityBan as u32 => ChatRoomEnterResponse::CommunityBan,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseMemberBlockedYou as u32 => ChatRoomEnterResponse::MemberBlockedYou,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseYouBlockedMember as u32 => ChatRoomEnterResponse::YouBlockedMember,
-            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseRatelimitExceeded as u32 => ChatRoomEnterResponse::RatelimitExceeded,
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseSuccess as u32 => {
+                ChatRoomEnterResponse::Success
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseDoesntExist as u32 => {
+                ChatRoomEnterResponse::DoesntExist
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseNotAllowed as u32 => {
+                ChatRoomEnterResponse::NotAllowed
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseFull as u32 => {
+                ChatRoomEnterResponse::Full
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseError as u32 => {
+                ChatRoomEnterResponse::Error
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseBanned as u32 => {
+                ChatRoomEnterResponse::Banned
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseLimited as u32 => {
+                ChatRoomEnterResponse::Limited
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseClanDisabled as u32 => {
+                ChatRoomEnterResponse::ClanDisabled
+            }
+            x if x == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseCommunityBan as u32 => {
+                ChatRoomEnterResponse::CommunityBan
+            }
+            x if x
+                == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseMemberBlockedYou as u32 =>
+            {
+                ChatRoomEnterResponse::MemberBlockedYou
+            }
+            x if x
+                == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseYouBlockedMember as u32 =>
+            {
+                ChatRoomEnterResponse::YouBlockedMember
+            }
+            x if x
+                == sys::EChatRoomEnterResponse::k_EChatRoomEnterResponseRatelimitExceeded
+                    as u32 =>
+            {
+                ChatRoomEnterResponse::RatelimitExceeded
+            }
             _ => ChatRoomEnterResponse::Error,
         }
     }
@@ -1127,7 +1158,7 @@ pub struct LobbyEnter {
     /// If true, then only invited users may join.
     pub blocked: bool,
     /// This is actually a EChatRoomEnterResponse value. This will be set to k_EChatRoomEnterResponseSuccess if the lobby was successfully joined, otherwise it will be k_EChatRoomEnterResponseError.
-    pub chat_room_enter_response: ChatRoomEnterResponse
+    pub chat_room_enter_response: ChatRoomEnterResponse,
 }
 
 unsafe impl Callback for LobbyEnter {
@@ -1140,7 +1171,7 @@ unsafe impl Callback for LobbyEnter {
             lobby: LobbyId(val.m_ulSteamIDLobby),
             chat_permissions: val.m_rgfChatPermissions,
             blocked: val.m_bLocked,
-            chat_room_enter_response: val.m_EChatRoomEnterResponse.into()
+            chat_room_enter_response: val.m_EChatRoomEnterResponse.into(),
         }
     }
 }
