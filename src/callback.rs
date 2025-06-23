@@ -1,5 +1,8 @@
 use super::*;
 use crate::networking_types::*;
+use crate::networking_messages::*;
+use crate::networking_utils::*;
+use crate::screenshots::*;
 
 use crate::sys;
 
@@ -7,26 +10,35 @@ use std::sync::{Arc, Weak};
 
 /// A sum type over all possible callback results
 pub enum CallbackResult {
-    NetConnectionStatusChanged(NetConnectionStatusChanged),
     AuthSessionTicketResponse(AuthSessionTicketResponse),
     DownloadItemResult(DownloadItemResult),
     FloatingGamepadTextInputDismissed(FloatingGamepadTextInputDismissed),
     GameLobbyJoinRequested(GameLobbyJoinRequested),
     GameOverlayActivated(GameOverlayActivated),
     GamepadTextInputDismissed(GamepadTextInputDismissed),
+    LobbyChatMsg(LobbyChatMsg),
     LobbyChatUpdate(LobbyChatUpdate),
+    LobbyCreated(LobbyCreated),
     LobbyDataUpdate(LobbyDataUpdate),
+    LobbyEnter(LobbyEnter),
     MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse),
+    NetConnectionStatusChanged(NetConnectionStatusChanged),
+    NetworkingMessagesSessionFailed(NetworkingMessagesSessionFailed),
+    NetworkingMessagesSessionRequest(NetworkingMessagesSessionRequest),
     P2PSessionConnectFail(P2PSessionConnectFail),
     P2PSessionRequest(P2PSessionRequest),
     PersonaStateChange(PersonaStateChange),
+    RelayNetworkStatusCallback(RelayNetworkStatusCallback),
     RemotePlayConnected(RemotePlayConnected),
     RemotePlayDisconnected(RemotePlayDisconnected),
+    ScreenshotRequested(ScreenshotRequested),
+    ScreenshotReady(ScreenshotReady),
     SteamServerConnectFailure(SteamServerConnectFailure),
     SteamServersConnected(SteamServersConnected),
     SteamServersDisconnected(SteamServersDisconnected),
     TicketForWebApiResponse(TicketForWebApiResponse),
     UserAchievementStored(UserAchievementStored),
+    UserAchievementIconFetched(UserAchievementIconFetched),
     UserStatsReceived(UserStatsReceived),
     UserStatsStored(UserStatsStored),
     ValidateAuthTicketResponse(ValidateAuthTicketResponse),
