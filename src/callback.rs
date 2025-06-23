@@ -16,6 +16,7 @@ pub enum CallbackResult {
     GameLobbyJoinRequested(GameLobbyJoinRequested),
     GameOverlayActivated(GameOverlayActivated),
     GamepadTextInputDismissed(GamepadTextInputDismissed),
+    GameRichPresenceJoinRequested(GameRichPresenceJoinRequested),
     LobbyChatMsg(LobbyChatMsg),
     LobbyChatUpdate(LobbyChatUpdate),
     LobbyCreated(LobbyCreated),
@@ -66,6 +67,10 @@ impl CallbackResult {
             GamepadTextInputDismissed::ID => {
                 Self::GamepadTextInputDismissed(GamepadTextInputDismissed::from_raw(data))
             }
+            GameRichPresenceJoinRequested::ID => {
+                Self::GameRichPresenceJoinRequested(GameRichPresenceJoinRequested::from_raw(data))
+            }
+            LobbyChatMsg::ID => Self::LobbyChatMsg(LobbyChatMsg::from_raw(data)),
             LobbyChatUpdate::ID => Self::LobbyChatUpdate(LobbyChatUpdate::from_raw(data)),
             LobbyDataUpdate::ID => Self::LobbyDataUpdate(LobbyDataUpdate::from_raw(data)),
             MicroTxnAuthorizationResponse::ID => {

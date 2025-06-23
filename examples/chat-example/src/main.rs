@@ -73,7 +73,7 @@ async fn main() {
 
         // Macroquad doesn't show UI if a Group is the same exact size as the screen
         let window = vec2(screen_width() - 0.1, screen_height() - 0.1);
-        
+
         match state.state.as_mut() {
             States::Menu(menu_state) => {
                 widgets::Group::new(hash!(), window).ui(&mut *root_ui(), |ui| {
