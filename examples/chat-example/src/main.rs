@@ -71,9 +71,12 @@ async fn main() {
         let local_sender_create_lobby = sender_create_lobby.clone();
         let local_sender_join_lobby = sender_join_lobby.clone();
 
+        // Macroquad doesn't show UI if a Group is the same exact size as the screen
+        let window = vec2(screen_width() - 0.1, screen_height() - 0.1);
+
         match state.state.as_mut() {
             States::Menu(menu_state) => {
-                widgets::Group::new(hash!(), vec2(800.0, 600.)).ui(&mut *root_ui(), |ui| {
+                widgets::Group::new(hash!(), window).ui(&mut *root_ui(), |ui| {
                     //Creating lobby by button
                     if ui.button(vec2(20.0, 40.0), "Create Lobby") {
                         matchmaking.create_lobby(LobbyType::FriendsOnly, 4, move |lobby| {
@@ -109,7 +112,7 @@ async fn main() {
                 });
             }
             States::Chat(lobby_state) => {
-                widgets::Group::new(hash!(), vec2(800.0, 600.)).ui(&mut *root_ui(), |ui| {
+                widgets::Group::new(hash!(), window).ui(&mut *root_ui(), |ui| {
                     draw_text_ex(
                         &format!("LobbyID: {}", lobby_state.current_lobby.raw()),
                         20.0,
