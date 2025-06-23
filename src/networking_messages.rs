@@ -118,19 +118,18 @@ impl NetworkingMessages {
     /// ```
     /// # use steamworks::Client;
     /// # use std::time::Duration;
-    /// let (client, single) = Client::init().unwrap();
-    ///
-    /// // run_callbacks must be called regularly, or no incoming connections can be received
-    /// let callback_loop = std::thread::spawn(move || loop {
-    ///     single.run_callbacks();
-    ///     std::thread::sleep(Duration::from_millis(10));
-    /// });
+    /// let client = Client::init().unwrap();
     /// let networking_messages = client.networking_messages();
     ///
     /// // Accept all new connections
-    /// networking_messages.session_request_callback(|request| request.accept());
+    /// networking_messages.session_request_callback(|request| { request.accept(); });
     ///
-    /// let _received = networking_messages.receive_messages_on_channel(0, 10);
+    /// // Run the callbacks and receive messages
+    /// for _ in 0..50 {
+    ///     client.run_callbacks();
+    ///     let _received = networking_messages.receive_messages_on_channel(0, 10);
+    ///     std::thread::sleep(Duration::from_millis(10));
+    /// }
     /// ```
     pub fn receive_messages_on_channel(
         &self,
@@ -168,19 +167,18 @@ impl NetworkingMessages {
     /// ```
     /// # use steamworks::Client;
     /// # use std::time::Duration;
-    /// let (client, single) = Client::init().unwrap();
-    ///
-    /// // run_callbacks must be called regularly, or no incoming connections can be received
-    /// let callback_loop = std::thread::spawn(move || loop {
-    ///     single.run_callbacks();
-    ///     std::thread::sleep(Duration::from_millis(10));
-    /// });
+    /// let client = Client::init().unwrap();
     /// let messages = client.networking_messages();
     ///
     /// // Accept all incoming connections
     /// messages.session_request_callback(|request| {
     ///     request.accept();
     /// });
+    ///
+    /// // run_callbacks must be called regularly, or no incoming connections can be received
+    /// for _ in 0..50 {
+    ///     client.run_callbacks();
+    /// }
     /// ```
     pub fn session_request_callback(
         &self,

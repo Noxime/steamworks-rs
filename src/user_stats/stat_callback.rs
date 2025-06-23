@@ -7,7 +7,7 @@ use super::*;
 ///
 /// ```no_run
 /// # use steamworks::*;
-/// # let (client, single) = steamworks::Client::init().unwrap();
+/// # let client = steamworks::Client::init().unwrap();
 /// let callback_handle = client.register_callback(|val: UserStatsReceived| {
 ///     if val.result.is_err() {
 ///         // ...
@@ -43,7 +43,7 @@ unsafe impl Callback for UserStatsReceived {
 ///
 /// ```no_run
 /// # use steamworks::*;
-/// # let (client, single) = steamworks::Client::init().unwrap();
+/// # let client = steamworks::Client::init().unwrap();
 /// let callback_handle = client.register_callback(|val: UserStatsStored| {
 ///     if val.result.is_err() {
 ///         // ...
@@ -79,7 +79,7 @@ unsafe impl Callback for UserStatsStored {
 ///
 /// ```no_run
 /// # use steamworks::*;
-/// # let (client, single) = steamworks::Client::init().unwrap();
+/// # let client = steamworks::Client::init().unwrap();
 /// let callback_handle = client.register_callback(|val: UserAchievementStored| {
 ///     // ...
 /// });
@@ -114,7 +114,7 @@ unsafe impl Callback for UserAchievementStored {
 ///
 /// ```no_run
 /// # use steamworks::*;
-/// # let (client, single) = steamworks::Client::init().unwrap();
+/// # let client = steamworks::Client::init().unwrap();
 /// let callback_handle = client.register_callback(|val: UserAchievementIconFetched| {
 ///     // ...
 /// });

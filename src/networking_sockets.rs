@@ -1041,6 +1041,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_socket_connection() {
         let client = Client::init().unwrap();
         let sockets = client.networking_sockets();

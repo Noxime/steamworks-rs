@@ -543,6 +543,7 @@ impl MatchmakingServers {
 }
 
 #[test]
+#[serial_test::serial]
 fn test_internet_servers() {
     let client = Client::init_app(304930).unwrap();
 

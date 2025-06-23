@@ -1270,7 +1270,7 @@ impl NetConnectionRealTimeInfo {
     ///
     /// In general, the estimated delay will be approximately equal to
     ///
-    ///		( m_cbPendingUnreliable+m_cbPendingReliable ) / m_nSendRateBytesPerSecond
+    /// `( m_cbPendingUnreliable+m_cbPendingReliable ) / m_nSendRateBytesPerSecond`
     ///
     /// plus or minus one MTU.  It depends on how much time has elapsed since the last
     /// packet was put on the wire.  For example, the queue might have *just* been emptied,
@@ -2198,6 +2198,8 @@ impl From<sys::SteamNetworkingIPAddr> for SteamIpAddr {
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
+
     use super::*;
     use crate::Client;
     use std::net::Ipv4Addr;
@@ -2231,6 +2233,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_allocate_and_free_message() {
         let client = Client::init().unwrap();
         let utils = client.networking_utils();

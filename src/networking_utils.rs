@@ -197,7 +197,10 @@ mod tests {
     use crate::Client;
     use std::time::Duration;
 
+    use serial_test::serial;
+
     #[test]
+    #[serial]
     fn test_get_networking_status() {
         let client = Client::init().unwrap();
         let callback_client = client.clone();

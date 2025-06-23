@@ -529,7 +529,7 @@ impl Matchmaking {
     /// ```no_run
     /// # use steamworks::*;
     /// fn main() {
-    ///     let (client, single) = Client::init().unwrap();
+    ///     let client = Client::init().unwrap();
     ///     client.matchmaking().set_lobby_list_filter(
     ///         LobbyListFilter {
     ///             string: Some(vec![
@@ -541,8 +541,8 @@ impl Matchmaking {
     ///                 ),
     ///             ]),
     ///             number: Some(vec![
-    ///                 NumberFilter("elo", 1500, ComparisonFilter::GreaterThan),
-    ///                 NumberFilter("elo", 2000, ComparisonFilter::LessThan)
+    ///                 NumberFilter(LobbyKey::new("elo"), 1500, ComparisonFilter::GreaterThan),
+    ///                 NumberFilter(LobbyKey::new("elo"), 2000, ComparisonFilter::LessThan)
     ///             ]),
     ///             ..Default::default()
     ///         }
@@ -800,11 +800,12 @@ impl From<StringFilterKind> for sys::ELobbyComparison {
 /// # Example
 ///
 /// ```no_run
-/// let elo_filter = NumberFilter {
-///     key: "lobby_elo",
-///     value: 1500,
-///     comparison: ComparisonFilter::GreaterThan,
-/// };
+/// # use steamworks::*;
+/// let elo_filter = NumberFilter(
+///     LobbyKey::new("lobby_elo"),
+///     1500,
+///     ComparisonFilter::GreaterThan,
+/// );
 /// ```
 ///
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
