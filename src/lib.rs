@@ -559,7 +559,8 @@ impl SteamId {
             let bits = sys::CSteamID_SteamID_t {
                 m_unAll64Bits: self.0,
             };
-            bits.m_comp.m_EAccountType() == sys::EAccountType::k_EAccountTypeInvalid as std::os::raw::c_uint
+            bits.m_comp.m_EAccountType()
+                == sys::EAccountType::k_EAccountTypeInvalid as std::os::raw::c_uint
         }
     }
 

@@ -332,11 +332,21 @@ unsafe impl Callback for GameRichPresenceJoinRequested {
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameRichPresenceJoinRequested_t);
-        // transmute from &[i8] to &[u8] because c_char in C is signed.
-        let connect_bytes: &[u8] = std::mem::transmute(&val.m_rgchConnect as &[i8]);
+        // Convert from &[i8] to &[u8] because c_char in C is signed.
+        // Technically, this C string does not have to be UTF-8, but I think for all realistic uses it will be.
+        let as_bytes = val.m_rgchConnect.map(|c| c as u8);
+        let connect = CStr::from_bytes_until_nul(&as_bytes)
+            .expect("Connect string payload was not a valid C string");
+        let connect = connect
+            .to_str()
+            .expect("Connect string payload was not valid UTF-8")
+            .to_string();
+
+        let friend_steam_id = SteamId::from_raw(val.m_steamIDFriend.m_steamid.m_unAll64Bits);
+
         GameRichPresenceJoinRequested {
-            friend_steam_id: SteamId(val.m_steamIDFriend.m_steamid.m_unAll64Bits),
-            connect: String::from_utf8_lossy(&connect_bytes).trim_end_matches('\0').to_string(),
+            friend_steam_id,
+            connect,
         }
     }
 }
