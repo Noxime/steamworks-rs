@@ -410,7 +410,7 @@ pub enum NetworkingConfigValue {
     SDRClientForceProxyAddr,
 
     /// [global string] For debugging.  Force ping times to clusters to be the specified
-    /// values.  A comma separated list of <cluster>=<ms> values.  E.g. "sto=32,iad=100"
+    /// values.  A comma separated list of &lt;cluster&gt;=&lt;ms&gt; values.  E.g. "sto=32,iad=100"
     ///
     /// This is a dev configuration value, you probably should not let users modify it
     /// in production.

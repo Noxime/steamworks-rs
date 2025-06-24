@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 #[macro_use]
 extern crate thiserror;
 #[macro_use]
@@ -292,7 +294,7 @@ impl Client {
     /// [`process_callbacks`] instead.
     ///
     /// [`run_callbacks`]: Self::run_callbacks
-    /// [`process_callbacks`]: Self::proceses_callbacks
+    /// [`process_callbacks`]: Self::process_callbacks
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,

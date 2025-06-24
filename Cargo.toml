@@ -15,13 +15,15 @@ rust-version = "1.80.0"
 default = []
 raw-bindings = []
 image = ["dep:image"]
+serde = ["dep:serde", "bitflags/serde"]
 
 [workspace]
 members = [
     "./steamworks-sys",
     "examples/chat-example",
     "examples/workshop",
-    "examples/lobby", "examples/networking-messages",
+    "examples/lobby",
+    "examples/networking-messages",
 ]
 
 [dependencies]

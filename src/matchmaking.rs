@@ -649,7 +649,7 @@ impl Matchmaking {
 /// Filters for the lobbies to be returned from `request_lobby_list`.
 ///
 /// This struct is designed to be used as part of the filtering process
-/// when calling the [`set_lobby_list_filter`] method.
+/// when calling the [`set_lobby_list_filter`](Matchmaking::set_lobby_list_filter) method.
 ///
 /// # Fields
 ///
@@ -736,7 +736,6 @@ impl<'a> LobbyKey<'a> {
     /// # Panics
     ///
     /// This function will panic if the provided key's length exceeds 255 characters.
-    /// ```
     pub fn new(key: &'a str) -> Self {
         Self::try_new(key).unwrap()
     }
