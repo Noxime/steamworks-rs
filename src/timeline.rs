@@ -81,7 +81,7 @@ impl Timeline {
         let description = CString::new(description).unwrap();
 
         unsafe {
-            sys::SteamAPI_ISteamTimeline_SetTimelineStateDescription(
+            sys::SteamAPI_ISteamTimeline_SetTimelineTooltip(
                 self.timeline,
                 description.as_ptr(),
                 duration.as_secs_f32(),
@@ -96,10 +96,7 @@ impl Timeline {
         }
 
         unsafe {
-            sys::SteamAPI_ISteamTimeline_ClearTimelineStateDescription(
-                self.timeline,
-                duration.as_secs_f32(),
-            )
+            sys::SteamAPI_ISteamTimeline_ClearTimelineTooltip(self.timeline, duration.as_secs_f32())
         }
     }
 
@@ -126,7 +123,7 @@ impl Timeline {
         let duration = duration.as_secs_f32();
 
         unsafe {
-            sys::SteamAPI_ISteamTimeline_AddTimelineEvent(
+            let _handle = sys::SteamAPI_ISteamTimeline_AddRangeTimelineEvent(
                 self.timeline,
                 icon.as_ptr(),
                 title.as_ptr(),
@@ -135,7 +132,7 @@ impl Timeline {
                 start_offset_seconds,
                 duration,
                 clip_priority.into(),
-            )
+            );
         }
     }
 }

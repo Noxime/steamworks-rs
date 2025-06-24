@@ -364,7 +364,7 @@ impl Client {
     /// Returns an accessor to the steam friends interface
     pub fn friends(&self) -> Friends {
         unsafe {
-            let friends = sys::SteamAPI_SteamFriends_v017();
+            let friends = sys::SteamAPI_SteamFriends_v018();
             debug_assert!(!friends.is_null());
             Friends {
                 friends: friends,
@@ -400,7 +400,7 @@ impl Client {
     /// Returns an accessor to the steam user stats interface
     pub fn user_stats(&self) -> UserStats {
         unsafe {
-            let us = sys::SteamAPI_SteamUserStats_v012();
+            let us = sys::SteamAPI_SteamUserStats_v013();
             debug_assert!(!us.is_null());
             UserStats {
                 user_stats: us,
@@ -412,7 +412,7 @@ impl Client {
     /// Returns an accessor to the steam remote play interface
     pub fn remote_play(&self) -> RemotePlay {
         unsafe {
-            let rp = sys::SteamAPI_SteamRemotePlay_v002();
+            let rp = sys::SteamAPI_SteamRemotePlay_v003();
             debug_assert!(!rp.is_null());
             RemotePlay {
                 rp,
@@ -451,7 +451,7 @@ impl Client {
     /// Returns an accessor to the steam UGC interface (steam workshop)
     pub fn ugc(&self) -> UGC {
         unsafe {
-            let ugc = sys::SteamAPI_SteamUGC_v020();
+            let ugc = sys::SteamAPI_SteamUGC_v021();
             debug_assert!(!ugc.is_null());
             UGC {
                 ugc,
@@ -463,7 +463,7 @@ impl Client {
     /// Returns an accessor to the steam timeline interface
     pub fn timeline(&self) -> Timeline {
         unsafe {
-            let timeline = sys::SteamAPI_SteamTimeline_v001();
+            let timeline = sys::SteamAPI_SteamTimeline_v004();
 
             Timeline {
                 timeline,

@@ -48,31 +48,6 @@ bitflags! {
     }
 }
 
-bitflags! {
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-    #[repr(C)]
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
-    /// see [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#EUserRestriction)
-    pub struct UserRestriction: u32 {
-        /// No known chat/content restriction.
-        const NONE                  = 0x0000;
-        /// We don't know yet, the user is offline.
-        const UNKNOWN               = 0x0001;
-        /// User is not allowed to (or can't) send/recv any chat.
-        const ANY_CHAT              = 0x0002;
-        /// User is not allowed to (or can't) send/recv voice chat.
-        const VOICE_CHAT            = 0x0004;
-        /// User is not allowed to (or can't) send/recv group chat.
-        const GROUP_CHAT            = 0x0008;
-        /// User is too young according to rating in current region.
-        const RESTRICTION_RATING    = 0x0010;
-        /// User cannot send or recv game invites, for example if they are on mobile.
-        const GAME_INVITES          = 0x0020;
-        /// User cannot participate in trading, for example if they are on a console or mobile.
-        const TRADING               = 0x0040;
-    }
-}
-
 pub enum OverlayToStoreFlag {
     None = 0,
     AddToCart = 1,
@@ -224,22 +199,11 @@ impl Friends {
             )
         }
     }
+
     /// Clears all of the current user's Rich Presence key/values.
     pub fn clear_rich_presence(&self) {
         unsafe {
             sys::SteamAPI_ISteamFriends_ClearRichPresence(self.friends);
-        }
-    }
-
-    /// Checks if current user is chat restricted.
-    ///
-    /// If they are restricted, then they can't send or receive any text/voice chat messages, can't see custom avatars.
-    /// A chat restricted user can't add friends or join any groups.
-    /// Restricted users can still be online and send/receive game invites.
-    pub fn get_user_restrictions(&self) -> UserRestriction {
-        unsafe {
-            let restrictions = sys::SteamAPI_ISteamFriends_GetUserRestrictions(self.friends);
-            UserRestriction::from_bits_truncate(restrictions)
         }
     }
 }
