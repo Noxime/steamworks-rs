@@ -614,12 +614,20 @@ impl UGC {
     }
 
     /// Gets the publisher file IDs of all currently subscribed items.
-    pub fn subscribed_items(&self) -> Vec<PublishedFileId> {
+    ///
+    /// Set `include_locally_disabled` to `true` to include items that are
+    /// locally disabled.
+    pub fn subscribed_items(&self, include_locally_disabled: bool) -> Vec<PublishedFileId> {
         unsafe {
-            let count = sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc);
+            let count =
+                sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc, include_locally_disabled);
             let mut data: Vec<sys::PublishedFileId_t> = vec![0; count as usize];
-            let gotten_count =
-                sys::SteamAPI_ISteamUGC_GetSubscribedItems(self.ugc, data.as_mut_ptr(), count);
+            let gotten_count = sys::SteamAPI_ISteamUGC_GetSubscribedItems(
+                self.ugc,
+                data.as_mut_ptr(),
+                count,
+                include_locally_disabled,
+            );
             debug_assert!(count == gotten_count);
             data.into_iter().map(|v| PublishedFileId(v)).collect()
         }
@@ -1434,7 +1442,7 @@ impl QueryHandle {
                 api_call,
                 CALLBACK_BASE_ID + 1,
                 move |v, io_error| {
-                    let ugc = sys::SteamAPI_SteamUGC_v020();
+                    let ugc = sys::SteamAPI_SteamUGC_v021();
                     if io_error {
                         sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
                         cb(Err(SteamError::IOFailure));
