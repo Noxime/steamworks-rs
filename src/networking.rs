@@ -147,7 +147,7 @@ unsafe impl Callback for P2PSessionRequest {
     const ID: i32 = 1202;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::P2PSessionRequest_t);
+        let val = raw.cast::<sys::P2PSessionRequest_t>().read_unaligned();
         P2PSessionRequest {
             remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
         }
@@ -165,7 +165,7 @@ unsafe impl Callback for P2PSessionConnectFail {
     const ID: i32 = 1203;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);
+        let val = raw.cast::<sys::P2PSessionConnectFail_t>().read_unaligned();
         P2PSessionConnectFail {
             remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
             error: val.m_eP2PSessionError,

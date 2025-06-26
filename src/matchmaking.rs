@@ -1109,7 +1109,7 @@ unsafe impl Callback for LobbyChatMsg {
     const ID: i32 = 507;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+        let val = raw.cast::<sys::LobbyChatMsg_t>().read_unaligned();
 
         LobbyChatMsg {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1138,7 +1138,7 @@ unsafe impl Callback for LobbyChatUpdate {
     const ID: i32 = 506;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
+        let val = raw.cast::<sys::LobbyChatUpdate_t>().read_unaligned();
 
         LobbyChatUpdate {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1182,7 +1182,7 @@ unsafe impl Callback for LobbyCreated {
     const ID: i32 = 513;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyCreated_t);
+        let val = raw.cast::<sys::LobbyCreated_t>().read_unaligned();
 
         LobbyCreated {
             result: val.m_eResult as u32,
@@ -1208,7 +1208,7 @@ unsafe impl Callback for LobbyDataUpdate {
     const ID: i32 = 505;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
+        let val = raw.cast::<sys::LobbyDataUpdate_t>().read_unaligned();
 
         LobbyDataUpdate {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1236,7 +1236,7 @@ unsafe impl Callback for LobbyEnter {
     const ID: i32 = 504;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyEnter_t);
+        let val = raw.cast::<sys::LobbyEnter_t>().read_unaligned();
 
         LobbyEnter {
             lobby: LobbyId(val.m_ulSteamIDLobby),

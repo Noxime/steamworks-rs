@@ -163,7 +163,9 @@ unsafe impl Callback for RemotePlayConnected {
     const ID: i32 = sys::SteamRemotePlaySessionConnected_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamRemotePlaySessionConnected_t);
+        let val = raw
+            .cast::<sys::SteamRemotePlaySessionConnected_t>()
+            .read_unaligned();
         RemotePlayConnected {
             session: RemotePlaySessionId::from_raw(val.m_unSessionID),
         }
@@ -182,7 +184,9 @@ unsafe impl Callback for RemotePlayDisconnected {
     const ID: i32 = sys::SteamRemotePlaySessionDisconnected_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamRemotePlaySessionDisconnected_t);
+        let val = raw
+            .cast::<sys::SteamRemotePlaySessionDisconnected_t>()
+            .read_unaligned();
         RemotePlayDisconnected {
             session: RemotePlaySessionId::from_raw(val.m_unSessionID),
         }

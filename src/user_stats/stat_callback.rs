@@ -25,7 +25,7 @@ unsafe impl Callback for UserStatsReceived {
     const ID: i32 = CALLBACK_BASE_ID + 1;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::UserStatsReceived_t);
+        let val = raw.cast::<sys::UserStatsReceived_t>().read_unaligned();
         Self {
             steam_id: SteamId(val.m_steamIDUser.m_steamid.m_unAll64Bits),
             game_id: GameId(val.m_nGameID),
@@ -60,7 +60,7 @@ unsafe impl Callback for UserStatsStored {
     const ID: i32 = CALLBACK_BASE_ID + 2;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::UserStatsStored_t);
+        let val = raw.cast::<sys::UserStatsStored_t>().read_unaligned();
         Self {
             game_id: GameId(val.m_nGameID),
             result: match val.m_eResult {
@@ -98,7 +98,7 @@ unsafe impl Callback for UserAchievementStored {
     const ID: i32 = CALLBACK_BASE_ID + 3;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::UserAchievementStored_t);
+        let val = raw.cast::<sys::UserAchievementStored_t>().read_unaligned();
         let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
         Self {
             game_id: GameId(val.m_nGameID),
@@ -131,7 +131,9 @@ unsafe impl Callback for UserAchievementIconFetched {
     const ID: i32 = CALLBACK_BASE_ID + 9;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::UserAchievementIconFetched_t);
+        let val = raw
+            .cast::<sys::UserAchievementIconFetched_t>()
+            .read_unaligned();
         let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
         Self {
             game_id: GameId(val.m_nGameID.__bindgen_anon_1.m_ulGameID),

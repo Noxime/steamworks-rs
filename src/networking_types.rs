@@ -1417,7 +1417,9 @@ unsafe impl Callback for NetConnectionStatusChanged {
     const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamNetConnectionStatusChangedCallback_t);
+        let val = raw
+            .cast::<sys::SteamNetConnectionStatusChangedCallback_t>()
+            .read_unaligned();
 
         NetConnectionStatusChanged {
             connection: val.m_hConn,

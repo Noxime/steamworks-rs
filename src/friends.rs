@@ -236,7 +236,7 @@ unsafe impl Callback for PersonaStateChange {
     const ID: i32 = CALLBACK_BASE_ID + 4;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::PersonaStateChange_t);
+        let val = raw.cast::<sys::PersonaStateChange_t>().read_unaligned();
         PersonaStateChange {
             steam_id: SteamId(val.m_ulSteamID),
             flags: PersonaChange::from_bits_truncate(val.m_nChangeFlags as i32),
@@ -254,7 +254,7 @@ unsafe impl Callback for GameOverlayActivated {
     const ID: i32 = CALLBACK_BASE_ID + 31;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
+        let val = raw.cast::<sys::GameOverlayActivated_t>().read_unaligned();
         Self {
             active: val.m_bActive == 1,
         }
@@ -272,7 +272,7 @@ unsafe impl Callback for GameLobbyJoinRequested {
     const ID: i32 = CALLBACK_BASE_ID + 33;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
+        let val = raw.cast::<sys::GameLobbyJoinRequested_t>().read_unaligned();
         GameLobbyJoinRequested {
             lobby_steam_id: LobbyId(val.m_steamIDLobby.m_steamid.m_unAll64Bits),
             friend_steam_id: SteamId(val.m_steamIDFriend.m_steamid.m_unAll64Bits),
@@ -295,7 +295,9 @@ unsafe impl Callback for GameRichPresenceJoinRequested {
     const ID: i32 = sys::GameRichPresenceJoinRequested_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameRichPresenceJoinRequested_t);
+        let val = raw
+            .cast::<sys::GameRichPresenceJoinRequested_t>()
+            .read_unaligned();
         // Convert from &[i8] to &[u8] because c_char in C is signed.
         // Technically, this C string does not have to be UTF-8, but I think for all realistic uses it will be.
         let as_bytes = val.m_rgchConnect.map(|c| c as u8);

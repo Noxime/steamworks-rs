@@ -21,7 +21,9 @@ unsafe impl Callback for GamepadTextInputDismissed {
     const ID: i32 = 714;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GamepadTextInputDismissed_t);
+        let val = raw
+            .cast::<sys::GamepadTextInputDismissed_t>()
+            .read_unaligned();
         GamepadTextInputDismissed {
             submitted_text_len: val.m_bSubmitted.then_some(val.m_unSubmittedText),
         }

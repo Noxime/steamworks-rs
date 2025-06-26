@@ -496,7 +496,7 @@ unsafe impl Callback for DownloadItemResult {
     const ID: i32 = CALLBACK_BASE_ID + 6;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::DownloadItemResult_t);
+        let val = raw.cast::<sys::DownloadItemResult_t>().read_unaligned();
         DownloadItemResult {
             app_id: AppId(val.m_unAppID),
             published_file_id: PublishedFileId(val.m_nPublishedFileId),
