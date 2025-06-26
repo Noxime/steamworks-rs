@@ -13,8 +13,6 @@ pub struct Matchmaking {
     pub(crate) inner: Arc<Inner>,
 }
 
-const CALLBACK_BASE_ID: i32 = 500;
-
 /// The visibility of a lobby
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -57,7 +55,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyMatchList_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -103,7 +100,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyCreated_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 13,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -127,7 +123,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyEnter_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error || v.m_EChatRoomEnterResponse != 1 {
                         Err(())

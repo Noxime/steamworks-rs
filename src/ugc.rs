@@ -16,7 +16,6 @@ pub struct UGC {
 }
 
 const CALLBACK_BASE_ID: i32 = 3400;
-const CALLBACK_REMOTE_STORAGE_BASE_ID: i32 = 1300;
 
 // TODO: should come from sys, but I don't think its generated.
 #[allow(non_upper_case_globals)]
@@ -535,7 +534,6 @@ impl UGC {
             register_call_result::<sys::CreateItemResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 3,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -576,7 +574,6 @@ impl UGC {
             register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_REMOTE_STORAGE_BASE_ID + 13,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -599,7 +596,6 @@ impl UGC {
             register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_REMOTE_STORAGE_BASE_ID + 15,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -811,7 +807,6 @@ impl UGC {
             register_call_result::<sys::DownloadItemResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_REMOTE_STORAGE_BASE_ID + 17,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -1018,7 +1013,6 @@ impl UpdateHandle {
             register_call_result::<sys::SubmitItemUpdateResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -1440,7 +1434,6 @@ impl QueryHandle {
             register_call_result::<sys::SteamUGCQueryCompleted_t, _>(
                 &inner,
                 api_call,
-                CALLBACK_BASE_ID + 1,
                 move |v, io_error| {
                     let ugc = sys::SteamAPI_SteamUGC_v021();
                     if io_error {

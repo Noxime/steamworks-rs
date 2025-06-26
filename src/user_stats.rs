@@ -28,7 +28,6 @@ impl UserStats {
             register_call_result::<sys::LeaderboardFindResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -86,7 +85,6 @@ impl UserStats {
             register_call_result::<sys::LeaderboardFindResult_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -132,7 +130,6 @@ impl UserStats {
             register_call_result::<sys::LeaderboardScoreUploaded_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 6,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -187,7 +184,6 @@ impl UserStats {
             register_call_result::<sys::LeaderboardScoresDownloaded_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 5,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -311,9 +307,6 @@ impl UserStats {
             register_call_result::<sys::GlobalAchievementPercentagesReady_t, _>(
                 &self.inner,
                 api_call,
-                // `CALLBACK_BASE_ID + <number>`: <number> is found in Steamworks `isteamuserstats.h` header file
-                // (Under `struct GlobalAchievementPercentagesReady_t {...};` in this case)
-                CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
