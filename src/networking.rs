@@ -72,7 +72,7 @@ impl Networking {
             sys::SteamAPI_ISteamNetworking_SendP2PPacket(
                 self.net,
                 remote.0,
-                data.as_ptr() as *const _,
+                data.as_ptr().cast(),
                 data.len() as u32,
                 send_type,
                 channel,
@@ -120,7 +120,7 @@ impl Networking {
             let mut remote = 0;
             if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(
                 self.net,
-                buf.as_mut_ptr() as *mut _,
+                buf.as_mut_ptr().cast(),
                 buf.len() as _,
                 &mut size,
                 &mut remote as *mut _ as *mut _,

@@ -671,7 +671,7 @@ impl UGC {
                 &mut timestamp,
             ) {
                 Some(InstallInfo {
-                    folder: CStr::from_ptr(folder.as_ptr() as *const _)
+                    folder: CStr::from_ptr(folder.as_ptr())
                         .to_string_lossy()
                         .into_owned(),
                     size_on_disk,
@@ -1548,11 +1548,7 @@ impl<'a> QueryResults<'a> {
         };
 
         if ok {
-            Some(unsafe {
-                CStr::from_ptr(url.as_ptr() as *const _)
-                    .to_string_lossy()
-                    .into_owned()
-            })
+            Some(unsafe { CStr::from_ptr(url.as_ptr()).to_string_lossy().into_owned() })
         } else {
             None
         }
@@ -1730,10 +1726,8 @@ impl<'a> QueryResults<'a> {
         if ok {
             Some(unsafe {
                 (
-                    CStr::from_ptr(key.as_ptr() as *const _)
-                        .to_string_lossy()
-                        .into_owned(),
-                    CStr::from_ptr(value.as_ptr() as *const _)
+                    CStr::from_ptr(key.as_ptr()).to_string_lossy().into_owned(),
+                    CStr::from_ptr(value.as_ptr())
                         .to_string_lossy()
                         .into_owned(),
                 )
@@ -1760,7 +1754,7 @@ impl<'a> QueryResults<'a> {
         };
 
         if ok {
-            let metadata = unsafe { CStr::from_ptr(metadata.as_ptr() as *const _).to_bytes() };
+            let metadata = unsafe { CStr::from_ptr(metadata.as_ptr()).to_bytes() };
             if metadata.is_empty() {
                 None
             } else {

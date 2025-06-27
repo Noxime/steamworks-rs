@@ -342,7 +342,7 @@ impl Matchmaking {
             steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
                 self.mm,
                 lobby.0,
-                msg.as_ptr() as *const c_void,
+                msg.as_ptr().cast(),
                 msg.len() as i32,
             )
         } {
@@ -377,7 +377,7 @@ impl Matchmaking {
                 lobby.0,
                 chat_id,
                 &mut steam_user,
-                buffer.as_mut_ptr() as *mut _,
+                buffer.as_mut_ptr().cast(),
                 buffer.len() as _,
                 &mut chat_type,
             );

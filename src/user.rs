@@ -51,7 +51,7 @@ impl User {
             let mut ticket_len = 0;
             let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
                 self.user,
-                ticket.as_mut_ptr() as *mut _,
+                ticket.as_mut_ptr().cast(),
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
@@ -88,7 +88,7 @@ impl User {
         unsafe {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
-                ticket.as_ptr() as *const _,
+                ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
@@ -142,10 +142,8 @@ impl User {
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
         unsafe {
             let c_str = CString::new(identity).unwrap();
-            let c_world: *const ::std::os::raw::c_char =
-                c_str.as_ptr() as *const ::std::os::raw::c_char;
-
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_world);
+            let auth_ticket =
+                sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_str.as_ptr());
 
             AuthTicket(auth_ticket)
         }

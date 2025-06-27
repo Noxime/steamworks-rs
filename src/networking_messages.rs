@@ -96,7 +96,7 @@ impl NetworkingMessages {
             sys::SteamAPI_ISteamNetworkingMessages_SendMessageToUser(
                 self.net,
                 user.as_ptr(),
-                data.as_ptr() as *const c_void,
+                data.as_ptr().cast(),
                 data.len() as u32,
                 send_type.bits(),
                 channel as i32,

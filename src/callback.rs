@@ -173,6 +173,9 @@ pub(crate) unsafe fn register_call_result<C, F>(
     let mut callbacks = inner.callbacks.lock().unwrap();
     callbacks.call_results.insert(
         api_call,
-        Box::new(move |param, failed| f(&*(param as *const C), failed)),
+        Box::new(move |param, failed| {
+            let value = param.cast::<C>().read_unaligned();
+            f(&value, failed)
+        }),
     );
 }

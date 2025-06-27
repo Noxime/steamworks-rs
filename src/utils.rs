@@ -227,7 +227,7 @@ impl Utils {
 
             sys::SteamAPI_ISteamUtils_GetEnteredGamepadTextInput(
                 self.utils,
-                buf.as_mut_ptr() as *mut i8,
+                buf.as_mut_ptr().cast(),
                 len,
             )
             .then(|| String::from_utf8(buf).expect("Steamworks returned invalid UTF-8 string"))
@@ -328,7 +328,7 @@ impl SteamParamStringArray {
     pub(crate) fn as_raw(&mut self) -> sys::SteamParamStringArray_t {
         sys::SteamParamStringArray_t {
             m_nNumStrings: self.0.len() as i32,
-            m_ppStrings: self.0.as_mut_ptr() as *mut *const i8,
+            m_ppStrings: self.0.as_mut_ptr().cast(),
         }
     }
 }

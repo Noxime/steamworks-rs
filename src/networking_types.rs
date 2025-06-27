@@ -2074,9 +2074,7 @@ impl SteamIpAddr {
     }
 
     pub fn get_ipv4(&self) -> Option<Ipv4Addr> {
-        let ip = unsafe {
-            sys::SteamAPI_SteamNetworkingIPAddr_GetIPv4(&self.inner as *const _ as *mut _)
-        };
+        let ip = unsafe { sys::SteamAPI_SteamNetworkingIPAddr_GetIPv4(self.as_ptr() as *mut _) };
         if ip == 0 {
             None
         } else {
@@ -2159,10 +2157,7 @@ impl Default for SteamIpAddr {
 impl PartialEq for SteamIpAddr {
     fn eq(&self, other: &Self) -> bool {
         unsafe {
-            sys::SteamAPI_SteamNetworkingIPAddr_IsEqualTo(
-                &self.inner as *const _ as *mut _,
-                &other.inner,
-            )
+            sys::SteamAPI_SteamNetworkingIPAddr_IsEqualTo(self.as_ptr() as *mut _, &other.inner)
         }
     }
 }

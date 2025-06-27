@@ -125,10 +125,7 @@ impl Friends {
     pub fn activate_game_overlay(&self, dialog: &str) {
         let dialog = CString::new(dialog).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamFriends_ActivateGameOverlay(
-                self.friends,
-                dialog.as_ptr() as *const _,
-            );
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlay(self.friends, dialog.as_ptr());
         }
     }
 
@@ -138,7 +135,7 @@ impl Friends {
             let url = CString::new(url).unwrap();
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(
                 self.friends,
-                url.as_ptr() as *const _,
+                url.as_ptr(),
                 sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default,
             );
         }
@@ -172,7 +169,7 @@ impl Friends {
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
                 self.friends,
-                dialog.as_ptr() as *const _,
+                dialog.as_ptr(),
                 user.0,
             );
         }
@@ -194,8 +191,8 @@ impl Friends {
             let value = CString::new(value.unwrap_or_default()).unwrap();
             sys::SteamAPI_ISteamFriends_SetRichPresence(
                 self.friends,
-                key.as_ptr() as *const _,
-                value.as_ptr() as *const _,
+                key.as_ptr(),
+                value.as_ptr(),
             )
         }
     }
@@ -482,7 +479,7 @@ impl Friend {
             sys::SteamAPI_ISteamFriends_InviteUserToGame(
                 self.friends,
                 self.id.0,
-                connect_string.as_ptr() as *const _,
+                connect_string.as_ptr(),
             );
         }
     }
