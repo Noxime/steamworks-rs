@@ -144,7 +144,7 @@ pub struct P2PSessionRequest {
 }
 
 unsafe impl Callback for P2PSessionRequest {
-    const ID: i32 = 1202;
+    const ID: i32 = sys::P2PSessionRequest_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionRequest_t);
@@ -162,7 +162,7 @@ pub struct P2PSessionConnectFail {
 }
 
 unsafe impl Callback for P2PSessionConnectFail {
-    const ID: i32 = 1203;
+    const ID: i32 = sys::P2PSessionConnectFail_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);

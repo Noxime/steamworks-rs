@@ -1,8 +1,6 @@
 use super::*;
 use std::net::Ipv4Addr;
 
-const CALLBACK_BASE_ID: i32 = 300;
-
 bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
@@ -233,7 +231,7 @@ pub struct PersonaStateChange {
 }
 
 unsafe impl Callback for PersonaStateChange {
-    const ID: i32 = CALLBACK_BASE_ID + 4;
+    const ID: i32 = sys::PersonaStateChange_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::PersonaStateChange_t);
@@ -251,7 +249,7 @@ pub struct GameOverlayActivated {
 }
 
 unsafe impl Callback for GameOverlayActivated {
-    const ID: i32 = CALLBACK_BASE_ID + 31;
+    const ID: i32 = sys::GameOverlayActivated_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
@@ -269,7 +267,7 @@ pub struct GameLobbyJoinRequested {
 }
 
 unsafe impl Callback for GameLobbyJoinRequested {
-    const ID: i32 = CALLBACK_BASE_ID + 33;
+    const ID: i32 = sys::GameLobbyJoinRequested_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);

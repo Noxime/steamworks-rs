@@ -15,8 +15,6 @@ pub struct UGC {
     pub(crate) inner: Arc<Inner>,
 }
 
-const CALLBACK_BASE_ID: i32 = 3400;
-
 // TODO: should come from sys, but I don't think its generated.
 #[allow(non_upper_case_globals)]
 const UGCQueryHandleInvalid: u64 = 0xffffffffffffffff;
@@ -492,7 +490,7 @@ pub struct DownloadItemResult {
 }
 
 unsafe impl Callback for DownloadItemResult {
-    const ID: i32 = CALLBACK_BASE_ID + 6;
+    const ID: i32 = sys::DownloadItemResult_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::DownloadItemResult_t);

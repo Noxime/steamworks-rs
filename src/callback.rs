@@ -71,7 +71,6 @@ impl CallbackResult {
                 Self::GameRichPresenceJoinRequested(GameRichPresenceJoinRequested::from_raw(data))
             }
             LobbyChatMsg::ID => Self::LobbyChatMsg(LobbyChatMsg::from_raw(data)),
-            LobbyChatUpdate::ID => Self::LobbyChatUpdate(LobbyChatUpdate::from_raw(data)),
             LobbyDataUpdate::ID => Self::LobbyDataUpdate(LobbyDataUpdate::from_raw(data)),
             MicroTxnAuthorizationResponse::ID => {
                 Self::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse::from_raw(data))

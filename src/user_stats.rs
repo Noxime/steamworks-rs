@@ -12,8 +12,6 @@ pub struct UserStats {
     pub(crate) inner: Arc<Inner>,
 }
 
-const CALLBACK_BASE_ID: i32 = 1100;
-
 impl UserStats {
     pub fn find_leaderboard<F>(&self, name: &str, cb: F)
     where
