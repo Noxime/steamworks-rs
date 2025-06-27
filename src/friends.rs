@@ -189,11 +189,7 @@ impl Friends {
             // Unwraps are infallible because Rust strs cannot contain null bytes
             let key = CString::new(key).unwrap();
             let value = CString::new(value.unwrap_or_default()).unwrap();
-            sys::SteamAPI_ISteamFriends_SetRichPresence(
-                self.friends,
-                key.as_ptr(),
-                value.as_ptr(),
-            )
+            sys::SteamAPI_ISteamFriends_SetRichPresence(self.friends, key.as_ptr(), value.as_ptr())
         }
     }
 
