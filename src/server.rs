@@ -159,7 +159,7 @@ impl Server {
             ))
         }
     }
-    
+
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -184,7 +184,7 @@ impl Server {
     pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
         self.inner.process_callbacks(&mut callback_handler)
     }
-    
+
     /// Registers the passed function as a callback for the
     /// given type.
     ///
@@ -345,7 +345,12 @@ impl Server {
     // This gets a packet that the master server updater needs to send out on UDP.
     // It returns the length of the packet it wants to send, or 0 if there are no more packets to send.
     // Call this each frame until it returns 0.
-    pub fn get_next_outgoing_packet(&self, buffer: &mut [u8], addr: &mut u32, port: &mut u16) -> i32 {
+    pub fn get_next_outgoing_packet(
+        &self,
+        buffer: &mut [u8],
+        addr: &mut u32,
+        port: &mut u16,
+    ) -> i32 {
         let cb_max_out = buffer.len();
 
         // Call the FFI function
@@ -361,7 +366,6 @@ impl Server {
 
         return result;
     }
-
 
     /// Sets the game product identifier. This is currently used by the master server for version
     /// checking purposes. Converting the games app ID to a string for this is recommended.
@@ -693,7 +697,6 @@ unsafe impl Callback for GSClientApprove {
         }
     }
 }
-
 
 /// Used to set the mode that a gameserver will run in
 #[repr(i32)]

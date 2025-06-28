@@ -109,7 +109,7 @@ impl CallbackResult {
             UserStatsStored::ID => Self::UserStatsStored(UserStatsStored::from_raw(data)),
             ValidateAuthTicketResponse::ID => {
                 Self::ValidateAuthTicketResponse(ValidateAuthTicketResponse::from_raw(data))
-            },
+            }
             GSClientApprove::ID => Self::GSClientApprove(GSClientApprove::from_raw(data)),
             GSClientDeny::ID => Self::GSClientDeny(GSClientDeny::from_raw(data)),
             GSClientKick::ID => Self::GSClientKick(GSClientKick::from_raw(data)),
