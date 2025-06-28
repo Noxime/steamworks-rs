@@ -159,7 +159,7 @@ impl Server {
             ))
         }
     }
-
+    
     /// Runs any currently pending callbacks
     ///
     /// This runs all currently pending callbacks on the current
@@ -168,11 +168,7 @@ impl Server {
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
-        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
-            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
-                cb(data);
-            }
-        });
+        self.inner.run_callbacks()
     }
 
     /// Runs any currently pending callbacks.
@@ -186,56 +182,7 @@ impl Server {
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
-        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
-            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
-                cb(data);
-            }
-            let cb_result = unsafe { CallbackResult::from_raw(cb_discrim, data) };
-            if let Some(cb_result) = cb_result {
-                callback_handler(cb_result);
-            }
-        });
-    }
-
-    fn run_callbacks_raw(
-        &self,
-        mut callback_handler: impl FnMut(&mut Callbacks, i32, *mut c_void),
-    ) {
-        unsafe {
-            let pipe = self.inner.manager.get_pipe();
-            sys::SteamAPI_ManualDispatch_RunFrame(pipe);
-            let mut callback = std::mem::zeroed();
-            while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
-                let mut callbacks = self.inner.callbacks.lock().unwrap();
-                if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
-                    let apicall =
-                        &mut *(callback.m_pubParam as *mut _ as *mut sys::SteamAPICallCompleted_t);
-                    let mut apicall_result = vec![0; apicall.m_cubParam as usize];
-                    let mut failed = false;
-                    if sys::SteamAPI_ManualDispatch_GetAPICallResult(
-                        pipe,
-                        apicall.m_hAsyncCall,
-                        apicall_result.as_mut_ptr() as *mut _,
-                        apicall.m_cubParam as _,
-                        apicall.m_iCallback,
-                        &mut failed,
-                    ) {
-                        // The &{val} pattern here is to avoid taking a reference to a packed field
-                        // Since the value here is Copy, we can just copy it and borrow the copy
-                        if let Some(cb) = callbacks.call_results.remove(&{ apicall.m_hAsyncCall }) {
-                            cb(apicall_result.as_mut_ptr() as *mut _, failed);
-                        }
-                    }
-                } else {
-                    callback_handler(
-                        &mut callbacks,
-                        callback.m_iCallback,
-                        callback.m_pubParam as *mut _,
-                    );
-                }
-                sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
-            }
-        }
+        self.inner.process_callbacks(&mut callback_handler)
     }
     
     /// Registers the passed function as a callback for the
@@ -736,7 +683,7 @@ pub struct GSClientApprove {
 }
 
 unsafe impl Callback for GSClientApprove {
-    const ID: i32 = 201;
+    const ID: i32 = steamworks_sys::GSClientApprove_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GSClientApprove_t);
@@ -806,7 +753,7 @@ pub struct GSClientDeny {
 }
 
 unsafe impl Callback for GSClientDeny {
-    const ID: i32 = 202;
+    const ID: i32 = steamworks_sys::GSClientDeny_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GSClientDeny_t);
@@ -834,7 +781,7 @@ pub struct GSClientKick {
 }
 
 unsafe impl Callback for GSClientKick {
-    const ID: i32 = 203;
+    const ID: i32 = steamworks_sys::GSClientKick_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GSClientKick_t);
@@ -858,7 +805,7 @@ pub struct GSClientGroupStatus {
 }
 
 unsafe impl Callback for GSClientGroupStatus {
-    const ID: i32 = 208;
+    const ID: i32 = steamworks_sys::GSClientGroupStatus_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::GSClientGroupStatus_t);

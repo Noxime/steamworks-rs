@@ -6,6 +6,7 @@ use steamworks::{ServerMode};
 use steamworks::CallbackResult::{P2PSessionRequest, SteamServersConnected, GSClientApprove, GSClientDeny, GSClientKick, GSClientGroupStatus};
 
 const BUFFER_SIZE: usize = 1500;
+
 fn main() {
     let bind_address = SocketAddrV4::from_str("0.0.0.0:54321")
         .expect("Could not parse bind address");
