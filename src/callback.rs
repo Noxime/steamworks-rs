@@ -71,7 +71,6 @@ impl CallbackResult {
                 Self::GameRichPresenceJoinRequested(GameRichPresenceJoinRequested::from_raw(data))
             }
             LobbyChatMsg::ID => Self::LobbyChatMsg(LobbyChatMsg::from_raw(data)),
-            LobbyChatUpdate::ID => Self::LobbyChatUpdate(LobbyChatUpdate::from_raw(data)),
             LobbyDataUpdate::ID => Self::LobbyDataUpdate(LobbyDataUpdate::from_raw(data)),
             MicroTxnAuthorizationResponse::ID => {
                 Self::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse::from_raw(data))
@@ -129,9 +128,9 @@ pub struct CallbackHandle {
 impl Drop for CallbackHandle {
     fn drop(&mut self) {
         if let Some(inner) = self.inner.upgrade() {
-            match inner.callbacks.lock() {
+            match inner.callbacks.callbacks.lock() {
                 Ok(mut cb) => {
-                    cb.callbacks.remove(&self.id);
+                    cb.remove(&self.id);
                 }
                 Err(err) => {
                     eprintln!("error while dropping callback: {:?}", err);
@@ -147,8 +146,7 @@ where
     F: FnMut(C) + Send + 'static,
 {
     {
-        let mut callbacks = inner.callbacks.lock().unwrap();
-        callbacks.callbacks.insert(
+        inner.callbacks.callbacks.lock().unwrap().insert(
             C::ID,
             Box::new(move |param| {
                 let param = C::from_raw(param);
@@ -165,13 +163,11 @@ where
 pub(crate) unsafe fn register_call_result<C, F>(
     inner: &Arc<Inner>,
     api_call: sys::SteamAPICall_t,
-    _callback_id: i32,
     f: F,
 ) where
     F: for<'a> FnOnce(&'a C, bool) + 'static + Send,
 {
-    let mut callbacks = inner.callbacks.lock().unwrap();
-    callbacks.call_results.insert(
+    inner.callbacks.call_results.lock().unwrap().insert(
         api_call,
         Box::new(move |param, failed| f(&*(param as *const C), failed)),
     );

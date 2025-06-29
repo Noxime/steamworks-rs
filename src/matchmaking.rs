@@ -13,8 +13,6 @@ pub struct Matchmaking {
     pub(crate) inner: Arc<Inner>,
 }
 
-const CALLBACK_BASE_ID: i32 = 500;
-
 /// The visibility of a lobby
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -57,7 +55,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyMatchList_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 10,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -103,7 +100,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyCreated_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 13,
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
@@ -127,7 +123,6 @@ impl Matchmaking {
             register_call_result::<sys::LobbyEnter_t, _>(
                 &self.inner,
                 api_call,
-                CALLBACK_BASE_ID + 4,
                 move |v, io_error| {
                     cb(if io_error || v.m_EChatRoomEnterResponse != 1 {
                         Err(())
@@ -1106,7 +1101,7 @@ pub struct LobbyChatMsg {
 }
 
 unsafe impl Callback for LobbyChatMsg {
-    const ID: i32 = 507;
+    const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
@@ -1135,7 +1130,7 @@ pub struct LobbyChatUpdate {
 }
 
 unsafe impl Callback for LobbyChatUpdate {
-    const ID: i32 = 506;
+    const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
@@ -1179,7 +1174,7 @@ pub struct LobbyCreated {
 }
 
 unsafe impl Callback for LobbyCreated {
-    const ID: i32 = 513;
+    const ID: i32 = sys::LobbyCreated_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyCreated_t);
@@ -1205,7 +1200,7 @@ pub struct LobbyDataUpdate {
 }
 
 unsafe impl Callback for LobbyDataUpdate {
-    const ID: i32 = 505;
+    const ID: i32 = sys::LobbyDataUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
@@ -1233,7 +1228,7 @@ pub struct LobbyEnter {
 }
 
 unsafe impl Callback for LobbyEnter {
-    const ID: i32 = 504;
+    const ID: i32 = sys::LobbyEnter_t_k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = &mut *(raw as *mut sys::LobbyEnter_t);
