@@ -72,7 +72,7 @@ impl Networking {
             sys::SteamAPI_ISteamNetworking_SendP2PPacket(
                 self.net,
                 remote.0,
-                data.as_ptr() as *const _,
+                data.as_ptr().cast(),
                 data.len() as u32,
                 send_type,
                 channel,
@@ -120,7 +120,7 @@ impl Networking {
             let mut remote = 0;
             if sys::SteamAPI_ISteamNetworking_ReadP2PPacket(
                 self.net,
-                buf.as_mut_ptr() as *mut _,
+                buf.as_mut_ptr().cast(),
                 buf.len() as _,
                 &mut size,
                 &mut remote as *mut _ as *mut _,
@@ -147,7 +147,7 @@ unsafe impl Callback for P2PSessionRequest {
     const ID: i32 = sys::P2PSessionRequest_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::P2PSessionRequest_t);
+        let val = raw.cast::<sys::P2PSessionRequest_t>().read_unaligned();
         P2PSessionRequest {
             remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
         }
@@ -165,7 +165,7 @@ unsafe impl Callback for P2PSessionConnectFail {
     const ID: i32 = sys::P2PSessionConnectFail_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::P2PSessionConnectFail_t);
+        let val = raw.cast::<sys::P2PSessionConnectFail_t>().read_unaligned();
         P2PSessionConnectFail {
             remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
             error: val.m_eP2PSessionError,

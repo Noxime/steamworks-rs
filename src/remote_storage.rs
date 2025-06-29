@@ -180,7 +180,7 @@ impl std::io::Write for SteamFileWriter {
             if sys::SteamAPI_ISteamRemoteStorage_FileWriteStreamWriteChunk(
                 self.file.rs,
                 self.handle,
-                buf.as_ptr() as *const _,
+                buf.as_ptr().cast(),
                 buf.len() as _,
             ) {
                 Ok(buf.len())
@@ -253,7 +253,7 @@ impl std::io::Read for SteamFileReader {
             sys::SteamAPI_ISteamRemoteStorage_FileReadAsyncComplete(
                 self.file.rs,
                 callback.m_hFileReadAsync,
-                buf.as_mut_ptr() as *mut _,
+                buf.as_mut_ptr().cast(),
                 callback.m_cubRead,
             );
 

@@ -35,8 +35,8 @@ impl AchievementHelper<'_> {
             let mut achieved = false;
             let success = sys::SteamAPI_ISteamUserStats_GetAchievement(
                 self.parent.user_stats,
-                self.name.as_ptr() as *const _,
-                &mut achieved as *mut _,
+                self.name.as_ptr(),
+                &mut achieved,
             );
             if success {
                 Ok(achieved)
@@ -56,10 +56,7 @@ impl AchievementHelper<'_> {
     /// [`UserStatsReceived`](../struct.UserStatsReceived.html).
     pub fn set(&self) -> Result<(), ()> {
         let success = unsafe {
-            sys::SteamAPI_ISteamUserStats_SetAchievement(
-                self.parent.user_stats,
-                self.name.as_ptr() as *const _,
-            )
+            sys::SteamAPI_ISteamUserStats_SetAchievement(self.parent.user_stats, self.name.as_ptr())
         };
         if success {
             Ok(())
@@ -80,7 +77,7 @@ impl AchievementHelper<'_> {
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_ClearAchievement(
                 self.parent.user_stats,
-                self.name.as_ptr() as *const _,
+                self.name.as_ptr(),
             )
         };
         if success {
@@ -122,8 +119,8 @@ impl AchievementHelper<'_> {
             let mut percent = 0.0;
             let success = sys::SteamAPI_ISteamUserStats_GetAchievementAchievedPercent(
                 self.parent.user_stats,
-                self.name.as_ptr() as *const _,
-                &mut percent as *mut _,
+                self.name.as_ptr(),
+                &mut percent,
             );
             if success {
                 Ok(percent)
@@ -168,12 +165,11 @@ impl AchievementHelper<'_> {
     pub fn get_achievement_display_attribute(&self, key: &str) -> Result<&str, ()> {
         unsafe {
             let key_c_str = CString::new(key).expect("Failed to create c_str from key parameter");
-            let ptr = key_c_str.as_ptr() as *const i8;
 
             let str = sys::SteamAPI_ISteamUserStats_GetAchievementDisplayAttribute(
                 self.parent.user_stats,
-                self.name.as_ptr() as *const _,
-                ptr,
+                self.name.as_ptr(),
+                key_c_str.as_ptr(),
             );
 
             let c_str = CStr::from_ptr(str);
@@ -203,7 +199,7 @@ impl AchievementHelper<'_> {
             let utils: *mut sys::ISteamUtils = sys::SteamAPI_SteamUtils_v010();
             let img = sys::SteamAPI_ISteamUserStats_GetAchievementIcon(
                 self.parent.user_stats,
-                self.name.as_ptr() as *const _,
+                self.name.as_ptr(),
             );
             if img == 0 {
                 return None;

@@ -252,16 +252,19 @@ impl Client {
             let pipe = self.inner.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
             let mut callback = std::mem::zeroed();
+            let mut apicall_result = Vec::new();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
-                    let apicall =
-                        &mut *(callback.m_pubParam as *mut _ as *mut sys::SteamAPICallCompleted_t);
-                    let mut apicall_result = vec![0; apicall.m_cubParam as usize];
+                    let apicall = callback
+                        .m_pubParam
+                        .cast::<sys::SteamAPICallCompleted_t>()
+                        .read_unaligned();
+                    apicall_result.resize(apicall.m_cubParam as usize, 0u8);
                     let mut failed = false;
                     if sys::SteamAPI_ManualDispatch_GetAPICallResult(
                         pipe,
                         apicall.m_hAsyncCall,
-                        apicall_result.as_mut_ptr() as *mut _,
+                        apicall_result.as_mut_ptr().cast(),
                         apicall.m_cubParam as _,
                         apicall.m_iCallback,
                         &mut failed,
@@ -270,11 +273,11 @@ impl Client {
                         // The &{val} pattern here is to avoid taking a reference to a packed field
                         // Since the value here is Copy, we can just copy it and borrow the copy
                         if let Some(cb) = call_results.remove(&{ apicall.m_hAsyncCall }) {
-                            cb(apicall_result.as_mut_ptr() as *mut _, failed);
+                            cb(apicall_result.as_mut_ptr().cast(), failed);
                         }
                     }
                 } else {
-                    callback_handler(callback.m_iCallback, callback.m_pubParam as *mut _);
+                    callback_handler(callback.m_iCallback, callback.m_pubParam.cast());
                 }
                 sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
             }

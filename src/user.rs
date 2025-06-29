@@ -51,7 +51,7 @@ impl User {
             let mut ticket_len = 0;
             let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthSessionTicket(
                 self.user,
-                ticket.as_mut_ptr() as *mut _,
+                ticket.as_mut_ptr().cast(),
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
@@ -88,7 +88,7 @@ impl User {
         unsafe {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
-                ticket.as_ptr() as *const _,
+                ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
@@ -142,10 +142,8 @@ impl User {
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
         unsafe {
             let c_str = CString::new(identity).unwrap();
-            let c_world: *const ::std::os::raw::c_char =
-                c_str.as_ptr() as *const ::std::os::raw::c_char;
-
-            let auth_ticket = sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_world);
+            let auth_ticket =
+                sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_str.as_ptr());
 
             AuthTicket(auth_ticket)
         }
@@ -230,7 +228,9 @@ unsafe impl Callback for AuthSessionTicketResponse {
     const ID: i32 = sys::GetAuthSessionTicketResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GetAuthSessionTicketResponse_t);
+        let val = raw
+            .cast::<sys::GetAuthSessionTicketResponse_t>()
+            .read_unaligned();
         AuthSessionTicketResponse {
             ticket: AuthTicket(val.m_hAuthTicket),
             result: if val.m_eResult == sys::EResult::k_EResultOK {
@@ -279,9 +279,9 @@ unsafe impl Callback for TicketForWebApiResponse {
     const ID: i32 = sys::GetTicketForWebApiResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        println!("From raw: {:?}", raw);
-
-        let val = &mut *(raw as *mut sys::GetTicketForWebApiResponse_t);
+        let val = raw
+            .cast::<sys::GetTicketForWebApiResponse_t>()
+            .read_unaligned();
         TicketForWebApiResponse {
             ticket_handle: AuthTicket(val.m_hAuthTicket),
             result: if val.m_eResult == sys::EResult::k_EResultOK {
@@ -312,7 +312,9 @@ unsafe impl Callback for ValidateAuthTicketResponse {
     const ID: i32 = sys::ValidateAuthTicketResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::ValidateAuthTicketResponse_t);
+        let val = raw
+            .cast::<sys::ValidateAuthTicketResponse_t>()
+            .read_unaligned();
         ValidateAuthTicketResponse {
             steam_id: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
             owner_steam_id: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
@@ -364,7 +366,9 @@ unsafe impl Callback for MicroTxnAuthorizationResponse {
     const ID: i32 = sys::MicroTxnAuthorizationResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::MicroTxnAuthorizationResponse_t);
+        let val = raw
+            .cast::<sys::MicroTxnAuthorizationResponse_t>()
+            .read_unaligned();
         MicroTxnAuthorizationResponse {
             app_id: val.m_unAppID.into(),
             order_id: val.m_ulOrderID.into(),
@@ -398,7 +402,9 @@ unsafe impl Callback for SteamServersDisconnected {
     const ID: i32 = sys::SteamServersDisconnected_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamServersDisconnected_t);
+        let val = raw
+            .cast::<sys::SteamServersDisconnected_t>()
+            .read_unaligned();
         SteamServersDisconnected {
             reason: val.m_eResult.into(),
         }
@@ -419,7 +425,9 @@ unsafe impl Callback for SteamServerConnectFailure {
     const ID: i32 = sys::SteamServerConnectFailure_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::SteamServerConnectFailure_t);
+        let val = raw
+            .cast::<sys::SteamServerConnectFailure_t>()
+            .read_unaligned();
         SteamServerConnectFailure {
             reason: val.m_eResult.into(),
             still_retrying: val.m_bStillRetrying,

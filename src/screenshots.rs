@@ -135,7 +135,7 @@ unsafe impl Callback for ScreenshotReady {
     const ID: i32 = sys::ScreenshotReady_t__bindgen_ty_1::k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let status = *(raw as *mut sys::ScreenshotReady_t);
+        let status = raw.cast::<sys::ScreenshotReady_t>().read_unaligned();
         let local_handle = match status.m_eResult {
             sys::EResult::k_EResultOK => Ok(status.m_hLocal),
             sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::Fail),

@@ -19,10 +19,8 @@ impl UserStats {
     {
         unsafe {
             let name = CString::new(name).unwrap();
-            let api_call = sys::SteamAPI_ISteamUserStats_FindLeaderboard(
-                self.user_stats,
-                name.as_ptr() as *const _,
-            );
+            let api_call =
+                sys::SteamAPI_ISteamUserStats_FindLeaderboard(self.user_stats, name.as_ptr());
             register_call_result::<sys::LeaderboardFindResult_t, _>(
                 &self.inner,
                 api_call,
@@ -76,7 +74,7 @@ impl UserStats {
 
             let api_call = sys::SteamAPI_ISteamUserStats_FindOrCreateLeaderboard(
                 self.user_stats,
-                name.as_ptr() as *const _,
+                name.as_ptr(),
                 sort_method,
                 display_type,
             );
@@ -356,11 +354,7 @@ impl UserStats {
 
         let mut value: i32 = 0;
         let success = unsafe {
-            sys::SteamAPI_ISteamUserStats_GetStatInt32(
-                self.user_stats,
-                name.as_ptr() as *const _,
-                &mut value,
-            )
+            sys::SteamAPI_ISteamUserStats_GetStatInt32(self.user_stats, name.as_ptr(), &mut value)
         };
         if success {
             Ok(value)
@@ -382,11 +376,7 @@ impl UserStats {
         let name = CString::new(name).unwrap();
 
         let success = unsafe {
-            sys::SteamAPI_ISteamUserStats_SetStatInt32(
-                self.user_stats,
-                name.as_ptr() as *const _,
-                stat,
-            )
+            sys::SteamAPI_ISteamUserStats_SetStatInt32(self.user_stats, name.as_ptr(), stat)
         };
         if success {
             Ok(())
@@ -406,11 +396,7 @@ impl UserStats {
 
         let mut value: f32 = 0.0;
         let success = unsafe {
-            sys::SteamAPI_ISteamUserStats_GetStatFloat(
-                self.user_stats,
-                name.as_ptr() as *const _,
-                &mut value,
-            )
+            sys::SteamAPI_ISteamUserStats_GetStatFloat(self.user_stats, name.as_ptr(), &mut value)
         };
         if success {
             Ok(value)
@@ -432,11 +418,7 @@ impl UserStats {
         let name = CString::new(name).unwrap();
 
         let success = unsafe {
-            sys::SteamAPI_ISteamUserStats_SetStatFloat(
-                self.user_stats,
-                name.as_ptr() as *const _,
-                stat,
-            )
+            sys::SteamAPI_ISteamUserStats_SetStatFloat(self.user_stats, name.as_ptr(), stat)
         };
         if success {
             Ok(())

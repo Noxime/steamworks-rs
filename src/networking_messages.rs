@@ -96,7 +96,7 @@ impl NetworkingMessages {
             sys::SteamAPI_ISteamNetworkingMessages_SendMessageToUser(
                 self.net,
                 user.as_ptr(),
-                data.as_ptr() as *const c_void,
+                data.as_ptr().cast(),
                 data.len() as u32,
                 send_type.bits(),
                 channel as i32,
@@ -303,7 +303,9 @@ unsafe impl Callback for NetworkingMessagesSessionRequest {
     const ID: i32 = sys::SteamNetworkingMessagesSessionRequest_t_k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let remote = *(raw as *mut sys::SteamNetworkingMessagesSessionRequest_t);
+        let remote = raw
+            .cast::<sys::SteamNetworkingMessagesSessionRequest_t>()
+            .read_unaligned();
         let remote = remote.m_identityRemote.into();
         Self { remote }
     }
@@ -317,7 +319,9 @@ unsafe impl Callback for NetworkingMessagesSessionFailed {
     const ID: i32 = sys::SteamNetworkingMessagesSessionFailed_t_k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let remote = *(raw as *mut sys::SteamNetworkingMessagesSessionFailed_t);
+        let remote = raw
+            .cast::<sys::SteamNetworkingMessagesSessionFailed_t>()
+            .read_unaligned();
         let remote = remote.m_info.into();
         Self { info: remote }
     }

@@ -337,7 +337,7 @@ impl Matchmaking {
             steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
                 self.mm,
                 lobby.0,
-                msg.as_ptr() as *const c_void,
+                msg.as_ptr().cast(),
                 msg.len() as i32,
             )
         } {
@@ -372,7 +372,7 @@ impl Matchmaking {
                 lobby.0,
                 chat_id,
                 &mut steam_user,
-                buffer.as_mut_ptr() as *mut _,
+                buffer.as_mut_ptr().cast(),
                 buffer.len() as _,
                 &mut chat_type,
             );
@@ -1104,7 +1104,7 @@ unsafe impl Callback for LobbyChatMsg {
     const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyChatMsg_t);
+        let val = raw.cast::<sys::LobbyChatMsg_t>().read_unaligned();
 
         LobbyChatMsg {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1133,7 +1133,7 @@ unsafe impl Callback for LobbyChatUpdate {
     const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyChatUpdate_t);
+        let val = raw.cast::<sys::LobbyChatUpdate_t>().read_unaligned();
 
         LobbyChatUpdate {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1177,7 +1177,7 @@ unsafe impl Callback for LobbyCreated {
     const ID: i32 = sys::LobbyCreated_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyCreated_t);
+        let val = raw.cast::<sys::LobbyCreated_t>().read_unaligned();
 
         LobbyCreated {
             result: val.m_eResult as u32,
@@ -1203,7 +1203,7 @@ unsafe impl Callback for LobbyDataUpdate {
     const ID: i32 = sys::LobbyDataUpdate_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyDataUpdate_t);
+        let val = raw.cast::<sys::LobbyDataUpdate_t>().read_unaligned();
 
         LobbyDataUpdate {
             lobby: LobbyId(val.m_ulSteamIDLobby),
@@ -1231,7 +1231,7 @@ unsafe impl Callback for LobbyEnter {
     const ID: i32 = sys::LobbyEnter_t_k_iCallback as _;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::LobbyEnter_t);
+        let val = raw.cast::<sys::LobbyEnter_t>().read_unaligned();
 
         LobbyEnter {
             lobby: LobbyId(val.m_ulSteamIDLobby),

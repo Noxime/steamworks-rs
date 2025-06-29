@@ -493,7 +493,7 @@ unsafe impl Callback for DownloadItemResult {
     const ID: i32 = sys::DownloadItemResult_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::DownloadItemResult_t);
+        let val = raw.cast::<sys::DownloadItemResult_t>().read_unaligned();
         DownloadItemResult {
             app_id: AppId(val.m_unAppID),
             published_file_id: PublishedFileId(val.m_nPublishedFileId),
@@ -665,7 +665,7 @@ impl UGC {
                 &mut timestamp,
             ) {
                 Some(InstallInfo {
-                    folder: CStr::from_ptr(folder.as_ptr() as *const _)
+                    folder: CStr::from_ptr(folder.as_ptr())
                         .to_string_lossy()
                         .into_owned(),
                     size_on_disk,
@@ -1539,11 +1539,7 @@ impl<'a> QueryResults<'a> {
         };
 
         if ok {
-            Some(unsafe {
-                CStr::from_ptr(url.as_ptr() as *const _)
-                    .to_string_lossy()
-                    .into_owned()
-            })
+            Some(unsafe { CStr::from_ptr(url.as_ptr()).to_string_lossy().into_owned() })
         } else {
             None
         }
@@ -1721,10 +1717,8 @@ impl<'a> QueryResults<'a> {
         if ok {
             Some(unsafe {
                 (
-                    CStr::from_ptr(key.as_ptr() as *const _)
-                        .to_string_lossy()
-                        .into_owned(),
-                    CStr::from_ptr(value.as_ptr() as *const _)
+                    CStr::from_ptr(key.as_ptr()).to_string_lossy().into_owned(),
+                    CStr::from_ptr(value.as_ptr())
                         .to_string_lossy()
                         .into_owned(),
                 )
@@ -1751,7 +1745,7 @@ impl<'a> QueryResults<'a> {
         };
 
         if ok {
-            let metadata = unsafe { CStr::from_ptr(metadata.as_ptr() as *const _).to_bytes() };
+            let metadata = unsafe { CStr::from_ptr(metadata.as_ptr()).to_bytes() };
             if metadata.is_empty() {
                 None
             } else {

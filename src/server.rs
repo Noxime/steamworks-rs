@@ -60,7 +60,7 @@ impl Server {
         ];
 
         let merged_versions: Vec<u8> = versions.into_iter().flatten().cloned().collect();
-        let merged_versions_ptr = merged_versions.as_ptr() as *const ::std::os::raw::c_char;
+        let merged_versions_ptr = merged_versions.as_ptr().cast::<::std::os::raw::c_char>();
 
         return unsafe {
             sys::SteamInternal_GameServer_Init_V2(
@@ -197,7 +197,7 @@ impl Server {
             let mut ticket_len = 0;
             let auth_ticket = sys::SteamAPI_ISteamGameServer_GetAuthSessionTicket(
                 self.server,
-                ticket.as_mut_ptr() as *mut _,
+                ticket.as_mut_ptr().cast(),
                 1024,
                 &mut ticket_len,
                 network_identity.as_ptr(),
@@ -234,7 +234,7 @@ impl Server {
         unsafe {
             let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
                 self.server,
-                ticket.as_ptr() as *const _,
+                ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
@@ -279,7 +279,7 @@ impl Server {
     pub fn set_product(&self, product: &str) {
         let product = CString::new(product).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamGameServer_SetProduct(self.server, product.as_ptr() as *const _);
+            sys::SteamAPI_ISteamGameServer_SetProduct(self.server, product.as_ptr());
         }
     }
 

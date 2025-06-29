@@ -153,7 +153,7 @@ macro_rules! gen_server_list_fn {
                 let handle = sys::$sys_method(
                     self.mms,
                     app_id,
-                    &mut filters.as_mut_ptr() as *mut *mut _,
+                    &mut filters.as_mut_ptr().cast(),
                     filters.len().try_into().unwrap(),
                     callbacks.cast(),
                 );

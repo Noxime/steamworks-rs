@@ -123,10 +123,7 @@ impl Friends {
     pub fn activate_game_overlay(&self, dialog: &str) {
         let dialog = CString::new(dialog).unwrap();
         unsafe {
-            sys::SteamAPI_ISteamFriends_ActivateGameOverlay(
-                self.friends,
-                dialog.as_ptr() as *const _,
-            );
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlay(self.friends, dialog.as_ptr());
         }
     }
 
@@ -136,7 +133,7 @@ impl Friends {
             let url = CString::new(url).unwrap();
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(
                 self.friends,
-                url.as_ptr() as *const _,
+                url.as_ptr(),
                 sys::EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Default,
             );
         }
@@ -170,7 +167,7 @@ impl Friends {
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
                 self.friends,
-                dialog.as_ptr() as *const _,
+                dialog.as_ptr(),
                 user.0,
             );
         }
@@ -190,11 +187,7 @@ impl Friends {
             // Unwraps are infallible because Rust strs cannot contain null bytes
             let key = CString::new(key).unwrap();
             let value = CString::new(value.unwrap_or_default()).unwrap();
-            sys::SteamAPI_ISteamFriends_SetRichPresence(
-                self.friends,
-                key.as_ptr() as *const _,
-                value.as_ptr() as *const _,
-            )
+            sys::SteamAPI_ISteamFriends_SetRichPresence(self.friends, key.as_ptr(), value.as_ptr())
         }
     }
 
@@ -234,7 +227,7 @@ unsafe impl Callback for PersonaStateChange {
     const ID: i32 = sys::PersonaStateChange_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::PersonaStateChange_t);
+        let val = raw.cast::<sys::PersonaStateChange_t>().read_unaligned();
         PersonaStateChange {
             steam_id: SteamId(val.m_ulSteamID),
             flags: PersonaChange::from_bits_truncate(val.m_nChangeFlags as i32),
@@ -252,7 +245,7 @@ unsafe impl Callback for GameOverlayActivated {
     const ID: i32 = sys::GameOverlayActivated_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameOverlayActivated_t);
+        let val = raw.cast::<sys::GameOverlayActivated_t>().read_unaligned();
         Self {
             active: val.m_bActive == 1,
         }
@@ -270,7 +263,7 @@ unsafe impl Callback for GameLobbyJoinRequested {
     const ID: i32 = sys::GameLobbyJoinRequested_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameLobbyJoinRequested_t);
+        let val = raw.cast::<sys::GameLobbyJoinRequested_t>().read_unaligned();
         GameLobbyJoinRequested {
             lobby_steam_id: LobbyId(val.m_steamIDLobby.m_steamid.m_unAll64Bits),
             friend_steam_id: SteamId(val.m_steamIDFriend.m_steamid.m_unAll64Bits),
@@ -293,7 +286,9 @@ unsafe impl Callback for GameRichPresenceJoinRequested {
     const ID: i32 = sys::GameRichPresenceJoinRequested_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GameRichPresenceJoinRequested_t);
+        let val = raw
+            .cast::<sys::GameRichPresenceJoinRequested_t>()
+            .read_unaligned();
         // Convert from &[i8] to &[u8] because c_char in C is signed.
         // Technically, this C string does not have to be UTF-8, but I think for all realistic uses it will be.
         let as_bytes = val.m_rgchConnect.map(|c| c as u8);
@@ -478,7 +473,7 @@ impl Friend {
             sys::SteamAPI_ISteamFriends_InviteUserToGame(
                 self.friends,
                 self.id.0,
-                connect_string.as_ptr() as *const _,
+                connect_string.as_ptr(),
             );
         }
     }
