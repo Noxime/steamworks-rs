@@ -90,13 +90,14 @@ impl Clone for Client {
 
 struct Inner {
     manager: Box<dyn Manager>,
-    callbacks: Mutex<Callbacks>,
+    callbacks: Callbacks,
     networking_sockets_data: Mutex<NetworkingSocketsData>,
 }
 
 struct Callbacks {
-    callbacks: HashMap<i32, Box<dyn FnMut(*mut c_void) + Send + 'static>>,
-    call_results: HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>,
+    callbacks: Mutex<HashMap<i32, Box<dyn FnMut(*mut c_void) + Send + 'static>>>,
+    call_results:
+        Mutex<HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>>,
 }
 
 struct NetworkingSocketsData {
@@ -169,10 +170,10 @@ impl Client {
             sys::SteamAPI_ManualDispatch_Init();
             let client = Arc::new(Inner {
                 manager: Box::new(ClientManager),
-                callbacks: Mutex::new(Callbacks {
-                    callbacks: HashMap::new(),
-                    call_results: HashMap::new(),
-                }),
+                callbacks: Callbacks {
+                    callbacks: Mutex::new(HashMap::new()),
+                    call_results: Mutex::new(HashMap::new()),
+                },
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
                     independent_connections: Default::default(),
@@ -213,8 +214,9 @@ impl Client {
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn run_callbacks(&self) {
-        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
-            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
+        self.run_callbacks_raw(|cb_discrim, data| {
+            let mut callbacks = self.inner.callbacks.callbacks.lock().unwrap();
+            if let Some(cb) = callbacks.get_mut(&cb_discrim) {
                 cb(data);
             }
         });
@@ -231,9 +233,12 @@ impl Client {
     /// This should be called frequently (e.g. once per a frame)
     /// in order to reduce the latency between recieving events.
     pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
-        self.run_callbacks_raw(|callbacks, cb_discrim, data| {
-            if let Some(cb) = callbacks.callbacks.get_mut(&cb_discrim) {
-                cb(data);
+        self.run_callbacks_raw(|cb_discrim, data| {
+            {
+                let mut callbacks = self.inner.callbacks.callbacks.lock().unwrap();
+                if let Some(cb) = callbacks.get_mut(&cb_discrim) {
+                    cb(data);
+                }
             }
             let cb_result = unsafe { CallbackResult::from_raw(cb_discrim, data) };
             if let Some(cb_result) = cb_result {
@@ -242,17 +247,13 @@ impl Client {
         });
     }
 
-    fn run_callbacks_raw(
-        &self,
-        mut callback_handler: impl FnMut(&mut Callbacks, i32, *mut c_void),
-    ) {
+    fn run_callbacks_raw(&self, mut callback_handler: impl FnMut(i32, *mut c_void)) {
         unsafe {
             let pipe = self.inner.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
             let mut callback = std::mem::zeroed();
             let mut apicall_result = Vec::new();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
-                let mut callbacks = self.inner.callbacks.lock().unwrap();
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
                     let apicall = callback
                         .m_pubParam
@@ -268,18 +269,15 @@ impl Client {
                         apicall.m_iCallback,
                         &mut failed,
                     ) {
+                        let mut call_results = self.inner.callbacks.call_results.lock().unwrap();
                         // The &{val} pattern here is to avoid taking a reference to a packed field
                         // Since the value here is Copy, we can just copy it and borrow the copy
-                        if let Some(cb) = callbacks.call_results.remove(&{ apicall.m_hAsyncCall }) {
+                        if let Some(cb) = call_results.remove(&{ apicall.m_hAsyncCall }) {
                             cb(apicall_result.as_mut_ptr().cast(), failed);
                         }
                     }
                 } else {
-                    callback_handler(
-                        &mut callbacks,
-                        callback.m_iCallback,
-                        callback.m_pubParam.cast(),
-                    );
+                    callback_handler(callback.m_iCallback, callback.m_pubParam.cast());
                 }
                 sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
             }

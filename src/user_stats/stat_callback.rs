@@ -22,7 +22,7 @@ pub struct UserStatsReceived {
 }
 
 unsafe impl Callback for UserStatsReceived {
-    const ID: i32 = CALLBACK_BASE_ID + 1;
+    const ID: i32 = sys::UserStatsReceived_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw.cast::<sys::UserStatsReceived_t>().read_unaligned();
@@ -57,7 +57,7 @@ pub struct UserStatsStored {
 }
 
 unsafe impl Callback for UserStatsStored {
-    const ID: i32 = CALLBACK_BASE_ID + 2;
+    const ID: i32 = sys::UserStatsStored_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw.cast::<sys::UserStatsStored_t>().read_unaligned();
@@ -95,7 +95,7 @@ pub struct UserAchievementStored {
 }
 
 unsafe impl Callback for UserAchievementStored {
-    const ID: i32 = CALLBACK_BASE_ID + 3;
+    const ID: i32 = sys::UserAchievementStored_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw.cast::<sys::UserAchievementStored_t>().read_unaligned();
@@ -128,7 +128,7 @@ pub struct UserAchievementIconFetched {
 }
 
 unsafe impl Callback for UserAchievementIconFetched {
-    const ID: i32 = CALLBACK_BASE_ID + 9;
+    const ID: i32 = sys::UserAchievementIconFetched_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw

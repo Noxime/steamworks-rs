@@ -225,7 +225,7 @@ pub struct AuthSessionTicketResponse {
 }
 
 unsafe impl Callback for AuthSessionTicketResponse {
-    const ID: i32 = 163;
+    const ID: i32 = sys::GetAuthSessionTicketResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -276,7 +276,7 @@ pub struct TicketForWebApiResponse {
 }
 
 unsafe impl Callback for TicketForWebApiResponse {
-    const ID: i32 = 168;
+    const ID: i32 = sys::GetTicketForWebApiResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -309,7 +309,7 @@ pub struct ValidateAuthTicketResponse {
 }
 
 unsafe impl Callback for ValidateAuthTicketResponse {
-    const ID: i32 = 143;
+    const ID: i32 = sys::ValidateAuthTicketResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -363,7 +363,7 @@ pub struct MicroTxnAuthorizationResponse {
 }
 
 unsafe impl Callback for MicroTxnAuthorizationResponse {
-    const ID: i32 = 152;
+    const ID: i32 = sys::MicroTxnAuthorizationResponse_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -383,7 +383,7 @@ unsafe impl Callback for MicroTxnAuthorizationResponse {
 pub struct SteamServersConnected;
 
 unsafe impl Callback for SteamServersConnected {
-    const ID: i32 = 101;
+    const ID: i32 = sys::SteamServersConnected_t_k_iCallback as i32;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         SteamServersConnected
@@ -399,7 +399,7 @@ pub struct SteamServersDisconnected {
 }
 
 unsafe impl Callback for SteamServersDisconnected {
-    const ID: i32 = 103;
+    const ID: i32 = sys::SteamServersDisconnected_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -422,7 +422,7 @@ pub struct SteamServerConnectFailure {
 }
 
 unsafe impl Callback for SteamServerConnectFailure {
-    const ID: i32 = 102;
+    const ID: i32 = sys::SteamServerConnectFailure_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw

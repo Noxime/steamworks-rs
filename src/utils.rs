@@ -18,7 +18,7 @@ pub struct GamepadTextInputDismissed {
 }
 
 unsafe impl Callback for GamepadTextInputDismissed {
-    const ID: i32 = 714;
+    const ID: i32 = sys::GamepadTextInputDismissed_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw
@@ -34,7 +34,7 @@ unsafe impl Callback for GamepadTextInputDismissed {
 pub struct FloatingGamepadTextInputDismissed;
 
 unsafe impl Callback for FloatingGamepadTextInputDismissed {
-    const ID: i32 = 738;
+    const ID: i32 = sys::FloatingGamepadTextInputDismissed_t_k_iCallback as i32;
 
     unsafe fn from_raw(_: *mut c_void) -> Self {
         FloatingGamepadTextInputDismissed
