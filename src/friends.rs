@@ -225,7 +225,6 @@ pub struct PersonaStateChange {
 
 unsafe impl Callback for PersonaStateChange {
     const ID: i32 = sys::PersonaStateChange_t_k_iCallback as i32;
-
     unsafe fn from_raw(raw: *mut c_void) -> Self {
         let val = raw.cast::<sys::PersonaStateChange_t>().read_unaligned();
         PersonaStateChange {

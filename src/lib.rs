@@ -40,6 +40,7 @@ pub use crate::user_stats::*;
 pub use crate::utils::*;
 
 mod app;
+#[macro_use]
 mod callback;
 mod error;
 mod friends;

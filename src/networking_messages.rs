@@ -295,6 +295,7 @@ impl SessionRequestBuilder {
     }
 }
 
+#[derive(Debug)]
 pub struct NetworkingMessagesSessionRequest {
     remote: NetworkingIdentity,
 }
@@ -311,6 +312,7 @@ unsafe impl Callback for NetworkingMessagesSessionRequest {
     }
 }
 
+#[derive(Debug)]
 pub struct NetworkingMessagesSessionFailed {
     pub info: NetConnectionInfo,
 }
