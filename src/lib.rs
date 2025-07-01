@@ -40,6 +40,7 @@ pub use crate::user_stats::*;
 pub use crate::utils::*;
 
 mod app;
+#[macro_use]
 mod callback;
 mod error;
 mod friends;
@@ -65,6 +66,14 @@ mod utils;
 pub type SResult<T> = Result<T, SteamError>;
 
 pub type SIResult<T> = Result<T, SteamAPIInitError>;
+
+pub(crate) fn to_steam_result(result: sys::EResult) -> SResult<()> {
+    if result == sys::EResult::k_EResultOK {
+        Ok(())
+    } else {
+        Err(result.into())
+    }
+}
 
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless

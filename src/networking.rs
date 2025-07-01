@@ -139,16 +139,11 @@ pub struct P2PSessionRequest {
     pub remote: SteamId,
 }
 
-unsafe impl Callback for P2PSessionRequest {
-    const ID: i32 = sys::P2PSessionRequest_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::P2PSessionRequest_t>().read_unaligned();
-        P2PSessionRequest {
-            remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
-        }
+impl_callback!(cb: P2PSessionRequest_t => P2PSessionRequest {
+    Self {
+        remote: SteamId(cb.m_steamIDRemote.m_steamid.m_unAll64Bits),
     }
-}
+});
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -157,14 +152,9 @@ pub struct P2PSessionConnectFail {
     pub error: u8,
 }
 
-unsafe impl Callback for P2PSessionConnectFail {
-    const ID: i32 = sys::P2PSessionConnectFail_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::P2PSessionConnectFail_t>().read_unaligned();
-        P2PSessionConnectFail {
-            remote: SteamId(val.m_steamIDRemote.m_steamid.m_unAll64Bits),
-            error: val.m_eP2PSessionError,
-        }
+impl_callback!(cb: P2PSessionConnectFail_t => P2PSessionConnectFail {
+    Self {
+        remote: SteamId(cb.m_steamIDRemote.m_steamid.m_unAll64Bits),
+        error: cb.m_eP2PSessionError,
     }
-}
+});

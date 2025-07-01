@@ -252,23 +252,12 @@ pub struct AuthSessionTicketResponse {
     pub result: SResult<()>,
 }
 
-unsafe impl Callback for AuthSessionTicketResponse {
-    const ID: i32 = sys::GetAuthSessionTicketResponse_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::GetAuthSessionTicketResponse_t>()
-            .read_unaligned();
-        AuthSessionTicketResponse {
-            ticket: AuthTicket(val.m_hAuthTicket),
-            result: if val.m_eResult == sys::EResult::k_EResultOK {
-                Ok(())
-            } else {
-                Err(val.m_eResult.into())
-            },
-        }
+impl_callback!(cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
+    Self {
+        ticket: AuthTicket(cb.m_hAuthTicket),
+        result: crate::to_steam_result(cb.m_eResult),
     }
-}
+});
 
 #[test]
 #[serial]
@@ -303,25 +292,14 @@ pub struct TicketForWebApiResponse {
     pub ticket: Vec<u8>,
 }
 
-unsafe impl Callback for TicketForWebApiResponse {
-    const ID: i32 = sys::GetTicketForWebApiResponse_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::GetTicketForWebApiResponse_t>()
-            .read_unaligned();
-        TicketForWebApiResponse {
-            ticket_handle: AuthTicket(val.m_hAuthTicket),
-            result: if val.m_eResult == sys::EResult::k_EResultOK {
-                Ok(())
-            } else {
-                Err(val.m_eResult.into())
-            },
-            ticket_len: val.m_cubTicket,
-            ticket: val.m_rgubTicket.to_vec(),
-        }
+impl_callback!(cb: GetTicketForWebApiResponse_t => TicketForWebApiResponse {
+    Self {
+        ticket_handle: AuthTicket(cb.m_hAuthTicket),
+        result: crate::to_steam_result(cb.m_eResult),
+        ticket_len: cb.m_cubTicket,
+        ticket: cb.m_rgubTicket.to_vec(),
     }
-}
+});
 
 /// Called when an authentication ticket has been
 /// validated.
@@ -336,50 +314,43 @@ pub struct ValidateAuthTicketResponse {
     pub owner_steam_id: SteamId,
 }
 
-unsafe impl Callback for ValidateAuthTicketResponse {
-    const ID: i32 = sys::ValidateAuthTicketResponse_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::ValidateAuthTicketResponse_t>()
-            .read_unaligned();
-        ValidateAuthTicketResponse {
-            steam_id: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
-            owner_steam_id: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
-            response: match val.m_eAuthSessionResponse {
-                sys::EAuthSessionResponse::k_EAuthSessionResponseOK => Ok(()),
-                sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => {
-                    Err(AuthSessionValidateError::UserNotConnectedToSteam)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => {
-                    Err(AuthSessionValidateError::NoLicenseOrExpired)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => {
-                    Err(AuthSessionValidateError::VACBanned)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => {
-                    Err(AuthSessionValidateError::LoggedInElseWhere)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => {
-                    Err(AuthSessionValidateError::VACCheckTimedOut)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => {
-                    Err(AuthSessionValidateError::AuthTicketCancelled)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => {
-                    Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => {
-                    Err(AuthSessionValidateError::AuthTicketInvalid)
-                }
-                sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => {
-                    Err(AuthSessionValidateError::PublisherIssuedBan)
-                }
-                _ => unreachable!(),
-            },
-        }
+impl_callback!(cb: ValidateAuthTicketResponse_t => ValidateAuthTicketResponse {
+    Self {
+        steam_id: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
+        owner_steam_id: SteamId(cb.m_OwnerSteamID.m_steamid.m_unAll64Bits),
+        response: match cb.m_eAuthSessionResponse {
+            sys::EAuthSessionResponse::k_EAuthSessionResponseOK => Ok(()),
+            sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => {
+                Err(AuthSessionValidateError::UserNotConnectedToSteam)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => {
+                Err(AuthSessionValidateError::NoLicenseOrExpired)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => {
+                Err(AuthSessionValidateError::VACBanned)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => {
+                Err(AuthSessionValidateError::LoggedInElseWhere)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => {
+                Err(AuthSessionValidateError::VACCheckTimedOut)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => {
+                Err(AuthSessionValidateError::AuthTicketCancelled)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => {
+                Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => {
+                Err(AuthSessionValidateError::AuthTicketInvalid)
+            }
+            sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => {
+                Err(AuthSessionValidateError::PublisherIssuedBan)
+            }
+            _ => unreachable!(),
+        },
     }
-}
+});
 
 // Called when a microtransaction authorization response is received
 #[derive(Clone, Debug)]
@@ -390,33 +361,22 @@ pub struct MicroTxnAuthorizationResponse {
     pub authorized: bool,
 }
 
-unsafe impl Callback for MicroTxnAuthorizationResponse {
-    const ID: i32 = sys::MicroTxnAuthorizationResponse_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::MicroTxnAuthorizationResponse_t>()
-            .read_unaligned();
-        MicroTxnAuthorizationResponse {
-            app_id: val.m_unAppID.into(),
-            order_id: val.m_ulOrderID.into(),
-            authorized: val.m_bAuthorized == 1,
-        }
+impl_callback!(cb: MicroTxnAuthorizationResponse_t => MicroTxnAuthorizationResponse {
+    Self {
+        app_id: cb.m_unAppID.into(),
+        order_id: cb.m_ulOrderID.into(),
+        authorized: cb.m_bAuthorized == 1,
     }
-}
+});
 
 /// Called when a connection to the Steam servers is made.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SteamServersConnected;
 
-unsafe impl Callback for SteamServersConnected {
-    const ID: i32 = sys::SteamServersConnected_t_k_iCallback as i32;
-
-    unsafe fn from_raw(_: *mut c_void) -> Self {
-        SteamServersConnected
-    }
-}
+impl_callback!(_cb: SteamServersConnected_t => SteamServersConnected {
+    Self
+});
 
 /// Called when the connection to the Steam servers is lost.
 #[derive(Clone, Debug)]
@@ -426,18 +386,11 @@ pub struct SteamServersDisconnected {
     pub reason: SteamError,
 }
 
-unsafe impl Callback for SteamServersDisconnected {
-    const ID: i32 = sys::SteamServersDisconnected_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::SteamServersDisconnected_t>()
-            .read_unaligned();
-        SteamServersDisconnected {
-            reason: val.m_eResult.into(),
-        }
+impl_callback!(cb: SteamServersDisconnected_t => SteamServersDisconnected {
+    Self {
+        reason: cb.m_eResult.into(),
     }
-}
+});
 
 /// Called when the connection to the Steam servers fails.
 #[derive(Clone, Debug)]
@@ -449,19 +402,12 @@ pub struct SteamServerConnectFailure {
     pub still_retrying: bool,
 }
 
-unsafe impl Callback for SteamServerConnectFailure {
-    const ID: i32 = sys::SteamServerConnectFailure_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::SteamServerConnectFailure_t>()
-            .read_unaligned();
-        SteamServerConnectFailure {
-            reason: val.m_eResult.into(),
-            still_retrying: val.m_bStillRetrying,
-        }
+impl_callback!(cb: SteamServerConnectFailure_t => SteamServerConnectFailure {
+    Self {
+        reason: cb.m_eResult.into(),
+        still_retrying: cb.m_bStillRetrying,
     }
-}
+});
 
 /// Errors from `ValidateAuthTicketResponse`
 #[derive(Clone, Debug, Error)]
