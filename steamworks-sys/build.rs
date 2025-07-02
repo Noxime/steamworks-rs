@@ -88,6 +88,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .default_enum_style(bindgen::EnumVariation::Rust {
                 non_exhaustive: true,
             })
+            .bitfield_enum("EMarketNotAllowedReasonFlags")
+            .bitfield_enum("EBetaBranchFlags")
+            .bitfield_enum("EFriendFlags")
+            .bitfield_enum("EPersonaChange")
+            .bitfield_enum("ERemoteStoragePlatform")
+            .bitfield_enum("EChatSteamIDInstanceFlags")
+            .bitfield_enum("ESteamItemFlags")
+            .bitfield_enum("EOverlayToStoreFlag")
+            .bitfield_enum("EChatSteamIDInstanceFlags")
             .generate()
             .expect("Unable to generate bindings");
 

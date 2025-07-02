@@ -667,15 +667,51 @@ pub enum EChatRoomEnterResponse {
 pub const k_unSteamAccountIDMask: ::std::os::raw::c_uint = 4294967295;
 pub const k_unSteamAccountInstanceMask: ::std::os::raw::c_uint = 1048575;
 pub const k_unSteamUserDefaultInstance: ::std::os::raw::c_uint = 1;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EChatSteamIDInstanceFlags {
-    k_EChatAccountInstanceMask = 4095,
-    k_EChatInstanceFlagClan = 524288,
-    k_EChatInstanceFlagLobby = 262144,
-    k_EChatInstanceFlagMMSLobby = 131072,
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatAccountInstanceMask: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(4095);
 }
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagClan: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(524288);
+}
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagLobby: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(262144);
+}
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagMMSLobby: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(131072);
+}
+impl ::std::ops::BitOr<EChatSteamIDInstanceFlags> for EChatSteamIDInstanceFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EChatSteamIDInstanceFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EChatSteamIDInstanceFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EChatSteamIDInstanceFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EChatSteamIDInstanceFlags> for EChatSteamIDInstanceFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EChatSteamIDInstanceFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EChatSteamIDInstanceFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EChatSteamIDInstanceFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EChatSteamIDInstanceFlags(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -715,28 +751,103 @@ pub enum EBroadcastUploadResult {
     k_EBroadcastUploadResultVideoInitFailed = 22,
     k_EBroadcastUploadResultAudioInitFailed = 23,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EMarketNotAllowedReasonFlags {
-    k_EMarketNotAllowedReason_None = 0,
-    k_EMarketNotAllowedReason_TemporaryFailure = 1,
-    k_EMarketNotAllowedReason_AccountDisabled = 2,
-    k_EMarketNotAllowedReason_AccountLockedDown = 4,
-    k_EMarketNotAllowedReason_AccountLimited = 8,
-    k_EMarketNotAllowedReason_TradeBanned = 16,
-    k_EMarketNotAllowedReason_AccountNotTrusted = 32,
-    k_EMarketNotAllowedReason_SteamGuardNotEnabled = 64,
-    k_EMarketNotAllowedReason_SteamGuardOnlyRecentlyEnabled = 128,
-    k_EMarketNotAllowedReason_RecentPasswordReset = 256,
-    k_EMarketNotAllowedReason_NewPaymentMethod = 512,
-    k_EMarketNotAllowedReason_InvalidCookie = 1024,
-    k_EMarketNotAllowedReason_UsingNewDevice = 2048,
-    k_EMarketNotAllowedReason_RecentSelfRefund = 4096,
-    k_EMarketNotAllowedReason_NewPaymentMethodCannotBeVerified = 8192,
-    k_EMarketNotAllowedReason_NoRecentPurchases = 16384,
-    k_EMarketNotAllowedReason_AcceptedWalletGift = 32768,
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_None: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(0);
 }
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_TemporaryFailure: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(1);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountDisabled: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(2);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountLockedDown: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(4);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountLimited: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(8);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_TradeBanned: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(16);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountNotTrusted: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(32);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_SteamGuardNotEnabled: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(64);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_SteamGuardOnlyRecentlyEnabled:
+        EMarketNotAllowedReasonFlags = EMarketNotAllowedReasonFlags(128);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_RecentPasswordReset: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(256);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NewPaymentMethod: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(512);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_InvalidCookie: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(1024);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_UsingNewDevice: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(2048);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_RecentSelfRefund: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(4096);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NewPaymentMethodCannotBeVerified:
+        EMarketNotAllowedReasonFlags = EMarketNotAllowedReasonFlags(8192);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NoRecentPurchases: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(16384);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AcceptedWalletGift: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(32768);
+}
+impl ::std::ops::BitOr<EMarketNotAllowedReasonFlags> for EMarketNotAllowedReasonFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EMarketNotAllowedReasonFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EMarketNotAllowedReasonFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EMarketNotAllowedReasonFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EMarketNotAllowedReasonFlags> for EMarketNotAllowedReasonFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EMarketNotAllowedReasonFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EMarketNotAllowedReasonFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EMarketNotAllowedReasonFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EMarketNotAllowedReasonFlags(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -770,17 +881,53 @@ pub enum EDurationControlOnlineState {
     k_EDurationControlOnlineState_Online = 2,
     k_EDurationControlOnlineState_OnlineHighPri = 3,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EBetaBranchFlags {
-    k_EBetaBranch_None = 0,
-    k_EBetaBranch_Default = 1,
-    k_EBetaBranch_Available = 2,
-    k_EBetaBranch_Private = 4,
-    k_EBetaBranch_Selected = 8,
-    k_EBetaBranch_Installed = 16,
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_None: EBetaBranchFlags = EBetaBranchFlags(0);
 }
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Default: EBetaBranchFlags = EBetaBranchFlags(1);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Available: EBetaBranchFlags = EBetaBranchFlags(2);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Private: EBetaBranchFlags = EBetaBranchFlags(4);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Selected: EBetaBranchFlags = EBetaBranchFlags(8);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Installed: EBetaBranchFlags = EBetaBranchFlags(16);
+}
+impl ::std::ops::BitOr<EBetaBranchFlags> for EBetaBranchFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EBetaBranchFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EBetaBranchFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EBetaBranchFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EBetaBranchFlags> for EBetaBranchFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EBetaBranchFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EBetaBranchFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EBetaBranchFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EBetaBranchFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct CSteamID {
@@ -3615,23 +3762,71 @@ pub enum EPersonaState {
     k_EPersonaStateInvisible = 7,
     k_EPersonaStateMax = 8,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EFriendFlags {
-    k_EFriendFlagNone = 0,
-    k_EFriendFlagBlocked = 1,
-    k_EFriendFlagFriendshipRequested = 2,
-    k_EFriendFlagImmediate = 4,
-    k_EFriendFlagClanMember = 8,
-    k_EFriendFlagOnGameServer = 16,
-    k_EFriendFlagRequestingFriendship = 128,
-    k_EFriendFlagRequestingInfo = 256,
-    k_EFriendFlagIgnored = 512,
-    k_EFriendFlagIgnoredFriend = 1024,
-    k_EFriendFlagChatMember = 4096,
-    k_EFriendFlagAll = 65535,
+impl EFriendFlags {
+    pub const k_EFriendFlagNone: EFriendFlags = EFriendFlags(0);
 }
+impl EFriendFlags {
+    pub const k_EFriendFlagBlocked: EFriendFlags = EFriendFlags(1);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagFriendshipRequested: EFriendFlags = EFriendFlags(2);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagImmediate: EFriendFlags = EFriendFlags(4);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagClanMember: EFriendFlags = EFriendFlags(8);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagOnGameServer: EFriendFlags = EFriendFlags(16);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagRequestingFriendship: EFriendFlags = EFriendFlags(128);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagRequestingInfo: EFriendFlags = EFriendFlags(256);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagIgnored: EFriendFlags = EFriendFlags(512);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagIgnoredFriend: EFriendFlags = EFriendFlags(1024);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagChatMember: EFriendFlags = EFriendFlags(4096);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagAll: EFriendFlags = EFriendFlags(65535);
+}
+impl ::std::ops::BitOr<EFriendFlags> for EFriendFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EFriendFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EFriendFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EFriendFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EFriendFlags> for EFriendFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EFriendFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EFriendFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EFriendFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EFriendFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct FriendGameInfo_t {
@@ -3741,14 +3936,44 @@ pub const k_cchMaxRichPresenceValueLength: _bindgen_ty_42 =
 pub enum _bindgen_ty_42 {
     k_cchMaxRichPresenceValueLength = 256,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EOverlayToStoreFlag {
-    k_EOverlayToStoreFlag_None = 0,
-    k_EOverlayToStoreFlag_AddToCart = 1,
-    k_EOverlayToStoreFlag_AddToCartAndShow = 2,
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_None: EOverlayToStoreFlag = EOverlayToStoreFlag(0);
 }
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_AddToCart: EOverlayToStoreFlag = EOverlayToStoreFlag(1);
+}
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_AddToCartAndShow: EOverlayToStoreFlag = EOverlayToStoreFlag(2);
+}
+impl ::std::ops::BitOr<EOverlayToStoreFlag> for EOverlayToStoreFlag {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EOverlayToStoreFlag(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EOverlayToStoreFlag {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EOverlayToStoreFlag) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EOverlayToStoreFlag> for EOverlayToStoreFlag {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EOverlayToStoreFlag(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EOverlayToStoreFlag {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EOverlayToStoreFlag) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EOverlayToStoreFlag(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -3852,26 +4077,80 @@ fn bindgen_test_layout_PersonaStateChange_t() {
         )
     );
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EPersonaChange {
-    k_EPersonaChangeName = 1,
-    k_EPersonaChangeStatus = 2,
-    k_EPersonaChangeComeOnline = 4,
-    k_EPersonaChangeGoneOffline = 8,
-    k_EPersonaChangeGamePlayed = 16,
-    k_EPersonaChangeGameServer = 32,
-    k_EPersonaChangeAvatar = 64,
-    k_EPersonaChangeJoinedSource = 128,
-    k_EPersonaChangeLeftSource = 256,
-    k_EPersonaChangeRelationshipChanged = 512,
-    k_EPersonaChangeNameFirstSet = 1024,
-    k_EPersonaChangeBroadcast = 2048,
-    k_EPersonaChangeNickname = 4096,
-    k_EPersonaChangeSteamLevel = 8192,
-    k_EPersonaChangeRichPresence = 16384,
+impl EPersonaChange {
+    pub const k_EPersonaChangeName: EPersonaChange = EPersonaChange(1);
 }
+impl EPersonaChange {
+    pub const k_EPersonaChangeStatus: EPersonaChange = EPersonaChange(2);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeComeOnline: EPersonaChange = EPersonaChange(4);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGoneOffline: EPersonaChange = EPersonaChange(8);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGamePlayed: EPersonaChange = EPersonaChange(16);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGameServer: EPersonaChange = EPersonaChange(32);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeAvatar: EPersonaChange = EPersonaChange(64);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeJoinedSource: EPersonaChange = EPersonaChange(128);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeLeftSource: EPersonaChange = EPersonaChange(256);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeRelationshipChanged: EPersonaChange = EPersonaChange(512);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeNameFirstSet: EPersonaChange = EPersonaChange(1024);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeBroadcast: EPersonaChange = EPersonaChange(2048);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeNickname: EPersonaChange = EPersonaChange(4096);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeSteamLevel: EPersonaChange = EPersonaChange(8192);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeRichPresence: EPersonaChange = EPersonaChange(16384);
+}
+impl ::std::ops::BitOr<EPersonaChange> for EPersonaChange {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EPersonaChange(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EPersonaChange {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EPersonaChange) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EPersonaChange> for EPersonaChange {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EPersonaChange(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EPersonaChange {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EPersonaChange) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EPersonaChange(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct GameOverlayActivated_t {
@@ -8351,20 +8630,62 @@ pub const k_unEnumeratePublishedFilesMaxResults: uint32 = 50;
 pub const k_cchTagListMax: uint32 = 1025;
 pub const k_cchFilenameMax: uint32 = 260;
 pub const k_cchPublishedFileURLMax: uint32 = 256;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum ERemoteStoragePlatform {
-    k_ERemoteStoragePlatformNone = 0,
-    k_ERemoteStoragePlatformWindows = 1,
-    k_ERemoteStoragePlatformOSX = 2,
-    k_ERemoteStoragePlatformPS3 = 4,
-    k_ERemoteStoragePlatformLinux = 8,
-    k_ERemoteStoragePlatformSwitch = 16,
-    k_ERemoteStoragePlatformAndroid = 32,
-    k_ERemoteStoragePlatformIOS = 64,
-    k_ERemoteStoragePlatformAll = -1,
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformNone: ERemoteStoragePlatform = ERemoteStoragePlatform(0);
 }
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformWindows: ERemoteStoragePlatform = ERemoteStoragePlatform(1);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformOSX: ERemoteStoragePlatform = ERemoteStoragePlatform(2);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformPS3: ERemoteStoragePlatform = ERemoteStoragePlatform(4);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformLinux: ERemoteStoragePlatform = ERemoteStoragePlatform(8);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformSwitch: ERemoteStoragePlatform = ERemoteStoragePlatform(16);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformAndroid: ERemoteStoragePlatform = ERemoteStoragePlatform(32);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformIOS: ERemoteStoragePlatform = ERemoteStoragePlatform(64);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformAll: ERemoteStoragePlatform = ERemoteStoragePlatform(-1);
+}
+impl ::std::ops::BitOr<ERemoteStoragePlatform> for ERemoteStoragePlatform {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        ERemoteStoragePlatform(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for ERemoteStoragePlatform {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: ERemoteStoragePlatform) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<ERemoteStoragePlatform> for ERemoteStoragePlatform {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        ERemoteStoragePlatform(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for ERemoteStoragePlatform {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: ERemoteStoragePlatform) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct ERemoteStoragePlatform(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -17874,14 +18195,44 @@ extern "C" {
     pub static k_SteamItemInstanceIDInvalid: SteamItemInstanceID_t;
 }
 pub type SteamItemDef_t = int32;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum ESteamItemFlags {
-    k_ESteamItemNoTrade = 1,
-    k_ESteamItemRemoved = 256,
-    k_ESteamItemConsumed = 512,
+impl ESteamItemFlags {
+    pub const k_ESteamItemNoTrade: ESteamItemFlags = ESteamItemFlags(1);
 }
+impl ESteamItemFlags {
+    pub const k_ESteamItemRemoved: ESteamItemFlags = ESteamItemFlags(256);
+}
+impl ESteamItemFlags {
+    pub const k_ESteamItemConsumed: ESteamItemFlags = ESteamItemFlags(512);
+}
+impl ::std::ops::BitOr<ESteamItemFlags> for ESteamItemFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        ESteamItemFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for ESteamItemFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: ESteamItemFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<ESteamItemFlags> for ESteamItemFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        ESteamItemFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for ESteamItemFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: ESteamItemFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct ESteamItemFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamItemDetails_t {

@@ -1,6 +1,10 @@
 name: Rebuild bindings
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+  push:
+    paths:
+      - "steamworks-sys"
 
 env:
   CARGO_TERM_COLOR: always
@@ -58,3 +62,29 @@ jobs:
           name: artifact-windows-bindings
           path: steamworks-sys/src/windows_bindings.rs
         if: matrix.os == 'windows-latest'
+
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download generated bindings
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*-bindings
+          path: steamworks-sys/src/
+          merge-multiple: true
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add steamworks-sys/src/*_bindings.rs
+          git commit -m "Update bindings" || echo "No changes to commit"
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}
