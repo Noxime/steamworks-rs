@@ -148,6 +148,30 @@ impl User {
             AuthTicket(auth_ticket)
         }
     }
+
+    /// Checks if the user owns a piece of DLC specified by app id.
+    ///
+    /// This can only be called after authenticating
+    /// with the user using `begin_authentication_session`.
+    pub fn user_has_license_for_app(&self, user: SteamId, app_id: AppId) -> UserHasLicense {
+        unsafe {
+            let license_response =
+                sys::SteamAPI_ISteamUser_UserHasLicenseForApp(self.user, user.0, app_id.0);
+
+            match license_response {
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultHasLicense => {
+                    UserHasLicense::HasLicense
+                }
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultDoesNotHaveLicense => {
+                    UserHasLicense::DoesNotHaveLicense
+                }
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultNoAuth => {
+                    UserHasLicense::NoAuth
+                }
+                _ => unreachable!(),
+            }
+        }
+    }
 }
 
 /// Errors from `begin_authentication_session`
@@ -180,7 +204,7 @@ fn test_auth_dll() {
         println!("Got dll auth response: {:?}", v)
     });
     let _cb = client.register_callback(|v: ValidateAuthTicketResponse| {
-        println!("Got validate auth reponse: {:?}", v)
+        println!("Got validate auth response: {:?}", v)
     });
 
     let id = user.steam_id();
@@ -190,6 +214,10 @@ fn test_auth_dll() {
     println!("{:?}", ticket);
 
     println!("{:?}", user.begin_authentication_session(id, &ticket));
+
+    // this might still return NoAuth if the validation has not completed
+    let has_space_war = user.user_has_license_for_app(id, AppId(480));
+    println!("User has license response: {has_space_war:?}");
 
     for _ in 0..20 {
         client.run_callbacks();
@@ -468,4 +496,15 @@ pub enum AuthSessionValidateError {
     /// The user is banned from the game (not VAC)
     #[error("the user is banned")]
     PublisherIssuedBan,
+}
+
+/// Results from [`User::user_has_license_for_app`]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UserHasLicense {
+    /// The user has a license for the specified app.
+    HasLicense,
+    /// The user does not have a license for the specified app.
+    DoesNotHaveLicense,
+    /// The user has not been authenticated.
+    NoAuth,
 }
