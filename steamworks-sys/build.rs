@@ -84,7 +84,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .clang_arg("-xc++")
             .clang_arg("-std=c++11")
             .clang_arg(format!("-I{}", sdk_loc.join("public").display()))
-            .rustfmt_bindings(true)
+            .allowlist_function("Steam.*")
+            .allowlist_var(".*") // TODO: Prune constants
+            .allowlist_type(".*") // TODO: Prune types
             .default_enum_style(bindgen::EnumVariation::Rust {
                 non_exhaustive: true,
             })
