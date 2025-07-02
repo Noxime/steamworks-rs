@@ -318,7 +318,7 @@ impl Server {
     /// don't have to open up more ports on their firewalls.
     ///
     /// Call this when a packet that starts with 0xFFFFFFFF comes in on the shared socket.
-    pub fn handle_incoming_packet(&self, data: &mut [u8], addr: SocketAddrV4) -> bool {
+    pub fn handle_incoming_packet(&self, data: &[u8], addr: SocketAddrV4) -> bool {
         unsafe {
             let result = sys::SteamAPI_ISteamGameServer_HandleIncomingPacket(
                 self.server,
@@ -695,7 +695,7 @@ unsafe impl Callback for GSClientApprove {
     }
 }
 
-/// Used to set the mode that a gameserver will run in
+/// Reason for when a client fails to join or is kicked from a game server.
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -737,7 +737,7 @@ impl From<sys::EDenyReason> for DenyReason {
             sys::EDenyReason::k_EDenySteamResponseTimedOut => DenyReason::SteamResponseTimedOut,
             sys::EDenyReason::k_EDenySteamValidationStalled => DenyReason::SteamValidationStalled,
             sys::EDenyReason::k_EDenySteamOwnerLeftGuestUser => DenyReason::SteamOwnerLeftGuestUser,
-            _ => unreachable!(),
+            _ => DenyReason::Invalid,
         }
     }
 }
