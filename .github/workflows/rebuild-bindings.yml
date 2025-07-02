@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "steamworks-sys/"
+      - "steamworks-sys"
 
 env:
   CARGO_TERM_COLOR: always
@@ -74,6 +74,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: artifact-*-bindings
+          path: steamworks-sys/src/
           merge-multiple: true
 
       - name: Commit changes
