@@ -2,7 +2,7 @@ use super::*;
 use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 
 /// The main entry point into the steam client for servers.
 ///
@@ -310,61 +310,57 @@ impl Server {
         }
     }
 
-    // Server browser related query packet processing for shared socket mode.  These are used
-    // when you pass STEAMGAMESERVER_QUERY_PORT_SHARED as the query port to SteamGameServer_Init.
-    // IP address and port are in host order, i.e 127.0.0.1 == 0x7f000001
-
-    // These are used when you've elected to multiplex the game server's UDP socket
-    // rather than having the master server updater use its own sockets.
-    //
-    // Source games use this to simplify the job of the server admins, so they
-    // don't have to open up more ports on their firewalls.
-
-    // Call this when a packet that starts with 0xFFFFFFFF comes in. That means
-    // it's for us.
-    pub fn handle_incoming_packet(
-        &self,
-        data: &mut [u8],
-        size: usize,
-        addr: u32,
-        port: u16,
-    ) -> bool {
+    /// Server browser related query packet processing for shared socket mode.  These are used
+    /// when you pass STEAMGAMESERVER_QUERY_PORT_SHARED as the query port to SteamGameServer_Init.
+    /// IP address and port are in host order, i.e 127.0.0.1 == 0x7f000001
+    ///
+    /// Source games use this to simplify the job of the server admins, so they
+    /// don't have to open up more ports on their firewalls.
+    ///
+    /// Call this when a packet that starts with 0xFFFFFFFF comes in on the shared socket.
+    pub fn handle_incoming_packet(&self, data: &mut [u8], addr: SocketAddrV4) -> bool {
         unsafe {
             let result = sys::SteamAPI_ISteamGameServer_HandleIncomingPacket(
                 self.server,
                 data.as_ptr() as _,
-                size as _,
-                addr,
-                port,
+                data.len() as _,
+                addr.ip().to_bits(),
+                addr.port(),
             );
             return result;
         }
     }
 
-    // AFTER calling HandleIncomingPacket for any packets that came in that frame, call this.
-    // This gets a packet that the master server updater needs to send out on UDP.
-    // It returns the length of the packet it wants to send, or 0 if there are no more packets to send.
-    // Call this each frame until it returns 0.
-    pub fn get_next_outgoing_packet(
-        &self,
-        buffer: &mut [u8],
-        addr: &mut u32,
-        port: &mut u16,
-    ) -> i32 {
-        let cb_max_out = buffer.len();
+    /// Call this function after calling handle_incoming_packet. The callback
+    /// function `cb` will be called for each outgoing packet that needs to be sent
+    /// to an address. The buffer must be at least 16384 bytes in size.
+    pub fn get_next_outgoing_packet(&self, buffer: &mut [u8], cb: impl Fn(SocketAddrV4, &[u8])) {
+        assert!(
+            buffer.len() >= 16 * 1024,
+            "Buffer size must be at least 16 KiB"
+        );
 
-        // Call the FFI function
-        let result = unsafe {
-            sys::SteamAPI_ISteamGameServer_GetNextOutgoingPacket(
-                self.server,
-                buffer.as_mut_ptr() as *mut _,
-                cb_max_out.try_into().unwrap(),
-                addr,
-                port,
-            )
-        };
+        loop {
+            let mut addr = 0u32;
+            let mut port = 0u16;
 
-        return result;
+            let len = unsafe {
+                sys::SteamAPI_ISteamGameServer_GetNextOutgoingPacket(
+                    self.server,
+                    buffer.as_mut_ptr() as *mut _,
+                    buffer.len() as _,
+                    &mut addr,
+                    &mut port,
+                )
+            };
+
+            if len == 0 {
+                break; // No more packets to process
+            }
+
+            let addr = SocketAddrV4::new(Ipv4Addr::from_bits(addr), port);
+            cb(addr, &buffer[..len as usize]);
+        }
     }
 
     /// Sets the game product identifier. This is currently used by the master server for version
@@ -690,7 +686,8 @@ unsafe impl Callback for GSClientApprove {
     const ID: i32 = steamworks_sys::GSClientApprove_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GSClientApprove_t);
+        let val = raw.cast::<sys::GSClientApprove_t>().read_unaligned();
+
         GSClientApprove {
             user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
             owner: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
@@ -759,7 +756,7 @@ unsafe impl Callback for GSClientDeny {
     const ID: i32 = steamworks_sys::GSClientDeny_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GSClientDeny_t);
+        let val = raw.cast::<sys::GSClientDeny_t>().read_unaligned();
 
         let deny_text = unsafe {
             let cstr = CStr::from_ptr(val.m_rgchOptionalText.as_ptr() as *const c_char);
@@ -787,7 +784,7 @@ unsafe impl Callback for GSClientKick {
     const ID: i32 = steamworks_sys::GSClientKick_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GSClientKick_t);
+        let val = raw.cast::<sys::GSClientKick_t>().read_unaligned();
 
         GSClientKick {
             user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
@@ -811,7 +808,8 @@ unsafe impl Callback for GSClientGroupStatus {
     const ID: i32 = steamworks_sys::GSClientGroupStatus_t_k_iCallback as i32;
 
     unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = &mut *(raw as *mut sys::GSClientGroupStatus_t);
+        let val = raw.cast::<sys::GSClientGroupStatus_t>().read_unaligned();
+
         GSClientGroupStatus {
             user: SteamId(val.m_SteamIDUser.m_steamid.m_unAll64Bits),
             group: SteamId(val.m_SteamIDGroup.m_steamid.m_unAll64Bits),
