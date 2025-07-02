@@ -154,23 +154,23 @@ impl User {
     /// This can only be called after authenticating
     /// with the user using `begin_authentication_session`.
     pub fn user_has_license_for_app(&self, user: SteamId, app_id: AppId) -> UserHasLicense {
-         unsafe {
-             let license_response =
-                 sys::SteamAPI_ISteamUser_UserHasLicenseForApp(self.user, user.0, app_id.0);
+        unsafe {
+            let license_response =
+                sys::SteamAPI_ISteamUser_UserHasLicenseForApp(self.user, user.0, app_id.0);
 
-             match license_response {
-                 sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultHasLicense => {
-                     UserHasLicense::HasLicense
-                 }
-                 sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultDoesNotHaveLicense => {
-                     UserHasLicense::DoesNotHaveLicense
-                 }
-                 sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultNoAuth => {
-                     UserHasLicense::NoAuth
-                 }
-                 _ => unreachable!(),
-             }
-         }
+            match license_response {
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultHasLicense => {
+                    UserHasLicense::HasLicense
+                }
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultDoesNotHaveLicense => {
+                    UserHasLicense::DoesNotHaveLicense
+                }
+                sys::EUserHasLicenseForAppResult::k_EUserHasLicenseResultNoAuth => {
+                    UserHasLicense::NoAuth
+                }
+                _ => unreachable!(),
+            }
+        }
     }
 }
 
@@ -498,7 +498,7 @@ pub enum AuthSessionValidateError {
     PublisherIssuedBan,
 }
 
-/// Results from `user_has_license_for_app`
+/// Results from [`User::user_has_license_for_app`]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UserHasLicense {
     /// The user has a license for the specified app.
