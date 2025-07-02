@@ -55,8 +55,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
 
-    println!("cargo:rustc-link-search={}", out_path.display());
-    println!("cargo:rustc-link-lib=dylib={}", lib);
+    // println!("cargo:rustc-link-search={}", out_path.display());
+    // println!("cargo:rustc-link-lib=dylib={}", lib);
 
     #[cfg(feature = "rebuild-bindings")]
     {
