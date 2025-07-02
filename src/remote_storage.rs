@@ -118,20 +118,20 @@ bitflags! {
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[repr(C)]
     #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
-    pub struct RemoteStoragePlatforms: i32 {
-        const WINDOWS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformWindows.0;
-        const MACOS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformOSX.0;
-        const PS3 = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformPS3.0;
-        const LINUX = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformLinux.0;
-        const SWITCH = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformSwitch.0;
-        const ANDROID = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformAndroid.0;
-        const IOS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformIOS.0;
+    pub struct RemoteStoragePlatforms: u32 {
+        const WINDOWS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformWindows.0 as _;
+        const MACOS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformOSX.0 as _;
+        const PS3 = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformPS3.0 as _;
+        const LINUX = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformLinux.0 as _;
+        const SWITCH = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformSwitch.0 as _;
+        const ANDROID = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformAndroid.0 as _;
+        const IOS = sys::ERemoteStoragePlatform::k_ERemoteStoragePlatformIOS.0 as _;
     }
 }
 
 impl From<RemoteStoragePlatforms> for sys::ERemoteStoragePlatform {
     fn from(platforms: RemoteStoragePlatforms) -> Self {
-        sys::ERemoteStoragePlatform(platforms.bits() as i32)
+        sys::ERemoteStoragePlatform(platforms.bits() as _)
     }
 }
 
@@ -188,7 +188,7 @@ impl SteamFile {
         let bits = unsafe {
             sys::SteamAPI_ISteamRemoteStorage_GetSyncPlatforms(self.rs, self.name.as_ptr())
         };
-        RemoteStoragePlatforms::from_bits_truncate(bits.0)
+        RemoteStoragePlatforms::from_bits_truncate(bits.0 as _)
     }
 
     pub fn write(self) -> SteamFileWriter {
