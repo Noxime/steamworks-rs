@@ -99,6 +99,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .bitfield_enum("ESteamItemFlags")
             .bitfield_enum("EOverlayToStoreFlag")
             .bitfield_enum("EChatSteamIDInstanceFlags")
+            .dynamic_library_name("SteamApi")
+            .dynamic_link_require_all(true)
             .generate()
             .expect("Unable to generate bindings");
 

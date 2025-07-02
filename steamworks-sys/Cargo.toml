@@ -15,6 +15,7 @@ default = []
 rebuild-bindings = ["bindgen"]
 
 [dependencies]
+libloading = "0.8.8"
 
 [build-dependencies]
 bindgen = { version = "0.69.2", optional = true }
