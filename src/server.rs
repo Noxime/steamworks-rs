@@ -2,7 +2,7 @@ use super::*;
 use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 
 /// The main entry point into the steam client for servers.
 ///
@@ -35,6 +35,13 @@ pub enum ServerMode {
     /// VAC will be run on clients.
     AuthenticationAndSecure,
 }
+
+/// Pass to SteamGameServer_Init to indicate that the same UDP port will be used for game traffic
+/// UDP queries for server browser pings and LAN discovery.  In this case, Steam will not open up a
+/// socket to handle server browser queries, and you must use ISteamGameServer::HandleIncomingPacket
+/// and ISteamGameServer::GetNextOutgoingPacket to handle packets related to server discovery on
+/// your socket.
+pub const QUERY_PORT_SHARED: u16 = sys::STEAMGAMESERVER_QUERY_PORT_SHARED;
 
 impl Server {
     fn steam_game_server_init_ex(
@@ -153,11 +160,43 @@ impl Server {
         }
     }
 
+    /// Runs any currently pending callbacks
+    ///
+    /// This runs all currently pending callbacks on the current
+    /// thread.
+    ///
+    /// This should be called frequently (e.g. once per a frame)
+    /// in order to reduce the latency between recieving events.
+    pub fn run_callbacks(&self) {
+        self.inner.run_callbacks()
+    }
+
+    /// Runs any currently pending callbacks.
+    ///
+    /// This is identical to `run_callbacks` in every way, except that
+    /// `callback_handler` is called for every callback invoked.
+    ///
+    /// This option provides an alternative for handling callbacks that
+    /// can doesn't require the handler to be `Send`, and `'static`.
+    ///
+    /// This should be called frequently (e.g. once per a frame)
+    /// in order to reduce the latency between recieving events.
+    pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
+        self.inner.process_callbacks(&mut callback_handler)
+    }
+
     /// Registers the passed function as a callback for the
     /// given type.
     ///
-    /// The callback will be run on the thread that `run_callbacks`
+    /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
+    ///
+    /// If the callback handler cannot be made `Send` or `'static`
+    /// the call to [`run_callbacks`] should be replaced with a call to
+    /// [`process_callbacks`] instead.
+    ///
+    /// [`run_callbacks`]: Self::run_callbacks
+    /// [`process_callbacks`]: Self::proceses_callbacks
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,
@@ -271,6 +310,59 @@ impl Server {
         }
     }
 
+    /// Server browser related query packet processing for shared socket mode.  These are used
+    /// when you pass STEAMGAMESERVER_QUERY_PORT_SHARED as the query port to SteamGameServer_Init.
+    /// IP address and port are in host order, i.e 127.0.0.1 == 0x7f000001
+    ///
+    /// Source games use this to simplify the job of the server admins, so they
+    /// don't have to open up more ports on their firewalls.
+    ///
+    /// Call this when a packet that starts with 0xFFFFFFFF comes in on the shared socket.
+    pub fn handle_incoming_packet(&self, data: &[u8], addr: SocketAddrV4) -> bool {
+        unsafe {
+            let result = sys::SteamAPI_ISteamGameServer_HandleIncomingPacket(
+                self.server,
+                data.as_ptr() as _,
+                data.len() as _,
+                addr.ip().to_bits(),
+                addr.port(),
+            );
+            return result;
+        }
+    }
+
+    /// Call this function after calling handle_incoming_packet. The callback
+    /// function `cb` will be called for each outgoing packet that needs to be sent
+    /// to an address. The buffer must be at least 16384 bytes in size.
+    pub fn get_next_outgoing_packet(&self, buffer: &mut [u8], cb: impl Fn(SocketAddrV4, &[u8])) {
+        assert!(
+            buffer.len() >= 16 * 1024,
+            "Buffer size must be at least 16 KiB"
+        );
+
+        loop {
+            let mut addr = 0u32;
+            let mut port = 0u16;
+
+            let len = unsafe {
+                sys::SteamAPI_ISteamGameServer_GetNextOutgoingPacket(
+                    self.server,
+                    buffer.as_mut_ptr() as *mut _,
+                    buffer.len() as _,
+                    &mut addr,
+                    &mut port,
+                )
+            };
+
+            if len == 0 {
+                break; // No more packets to process
+            }
+
+            let addr = SocketAddrV4::new(Ipv4Addr::from_bits(addr), port);
+            cb(addr, &buffer[..len as usize]);
+        }
+    }
+
     /// Sets the game product identifier. This is currently used by the master server for version
     /// checking purposes. Converting the games app ID to a string for this is recommended.
     ///
@@ -291,6 +383,20 @@ impl Server {
         let desc = CString::new(desc).unwrap();
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server, desc.as_ptr());
+        }
+    }
+
+    /// Sets a string defining the "gamedata" for this server, this is optional, but if set it
+    /// allows users to filter in the matchmaking/server-browser interfaces based on the value.
+    ///
+    /// This is usually formatted as a comma or semicolon separated list.
+    ///
+    /// Don't set this unless it actually changes, its only uploaded to the master once; when
+    /// acknowledged.
+    pub fn set_game_data(&self, data: &str) {
+        let desc = CString::new(data).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamGameServer_SetGameData(self.server, desc.as_ptr());
         }
     }
 
@@ -436,6 +542,52 @@ impl Server {
         }
     }
 
+    /// Returns an accessor to the steam utils interface
+    pub fn utils(&self) -> Utils {
+        unsafe {
+            let utils = sys::SteamAPI_SteamGameServerUtils_v010();
+            debug_assert!(!utils.is_null());
+            Utils {
+                utils: utils,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
+    /// Returns an accessor to the steam networking interface
+    pub fn networking(&self) -> Networking {
+        unsafe {
+            let net = sys::SteamAPI_SteamGameServerNetworking_v006();
+            debug_assert!(!net.is_null());
+            Networking {
+                net: net,
+                _inner: self.inner.clone(),
+            }
+        }
+    }
+
+    pub fn networking_messages(&self) -> networking_messages::NetworkingMessages {
+        unsafe {
+            let net = sys::SteamAPI_SteamGameServerNetworkingMessages_SteamAPI_v002();
+            debug_assert!(!net.is_null());
+            networking_messages::NetworkingMessages {
+                net,
+                inner: self.inner.clone(),
+            }
+        }
+    }
+
+    pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets {
+        unsafe {
+            let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v012();
+            debug_assert!(!sockets.is_null());
+            networking_sockets::NetworkingSockets {
+                sockets,
+                inner: self.inner.clone(),
+            }
+        }
+    }
+
     /* TODO: Buggy currently?
     /// Returns an accessor to the steam apps interface
     pub fn apps(&self) -> Apps {
@@ -517,5 +669,152 @@ impl Drop for ServerManager {
         // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
         // always safe to call from any thread.
         unsafe { sys::SteamGameServer_Shutdown() }
+    }
+}
+
+/// Called when a client has been approved to connect to this game server
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GSClientApprove {
+    /// The steam ID of the user requesting a p2p session
+    pub user: SteamId,
+    /// Owner of the game, may be different from user when Family Sharing is being used
+    pub owner: SteamId,
+}
+
+unsafe impl Callback for GSClientApprove {
+    const ID: i32 = steamworks_sys::GSClientApprove_t_k_iCallback as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = raw.cast::<sys::GSClientApprove_t>().read_unaligned();
+
+        GSClientApprove {
+            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
+            owner: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
+        }
+    }
+}
+
+/// Reason for when a client fails to join or is kicked from a game server.
+#[repr(i32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum DenyReason {
+    Invalid,
+    InvalidVersion,
+    Generic,
+    NotLoggedOn,
+    NoLicense,
+    Cheater,
+    LoggedInElseWhere,
+    UnknownText,
+    IncompatibleAnticheat,
+    MemoryCorruption,
+    IncompatibleSoftware,
+    SteamConnectionLost,
+    SteamConnectionError,
+    SteamResponseTimedOut,
+    SteamValidationStalled,
+    SteamOwnerLeftGuestUser,
+}
+
+impl From<sys::EDenyReason> for DenyReason {
+    fn from(r: sys::EDenyReason) -> Self {
+        match r {
+            sys::EDenyReason::k_EDenyInvalid => DenyReason::Invalid,
+            sys::EDenyReason::k_EDenyInvalidVersion => DenyReason::InvalidVersion,
+            sys::EDenyReason::k_EDenyGeneric => DenyReason::Generic,
+            sys::EDenyReason::k_EDenyNotLoggedOn => DenyReason::NotLoggedOn,
+            sys::EDenyReason::k_EDenyNoLicense => DenyReason::NoLicense,
+            sys::EDenyReason::k_EDenyCheater => DenyReason::Cheater,
+            sys::EDenyReason::k_EDenyLoggedInElseWhere => DenyReason::LoggedInElseWhere,
+            sys::EDenyReason::k_EDenyUnknownText => DenyReason::UnknownText,
+            sys::EDenyReason::k_EDenyIncompatibleAnticheat => DenyReason::IncompatibleAnticheat,
+            sys::EDenyReason::k_EDenyMemoryCorruption => DenyReason::MemoryCorruption,
+            sys::EDenyReason::k_EDenyIncompatibleSoftware => DenyReason::IncompatibleSoftware,
+            sys::EDenyReason::k_EDenySteamConnectionLost => DenyReason::SteamConnectionLost,
+            sys::EDenyReason::k_EDenySteamConnectionError => DenyReason::SteamConnectionError,
+            sys::EDenyReason::k_EDenySteamResponseTimedOut => DenyReason::SteamResponseTimedOut,
+            sys::EDenyReason::k_EDenySteamValidationStalled => DenyReason::SteamValidationStalled,
+            sys::EDenyReason::k_EDenySteamOwnerLeftGuestUser => DenyReason::SteamOwnerLeftGuestUser,
+            _ => DenyReason::Invalid,
+        }
+    }
+}
+
+/// Called when a user has been denied to connection to this game server
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GSClientDeny {
+    /// The steam ID of the user requesting a p2p session
+    pub user: SteamId,
+    pub deny_reason: DenyReason,
+    pub optional_text: String,
+}
+
+unsafe impl Callback for GSClientDeny {
+    const ID: i32 = steamworks_sys::GSClientDeny_t_k_iCallback as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = raw.cast::<sys::GSClientDeny_t>().read_unaligned();
+
+        let deny_text = unsafe {
+            let cstr = CStr::from_ptr(val.m_rgchOptionalText.as_ptr() as *const c_char);
+            cstr.to_string_lossy().to_owned().into_owned()
+        };
+
+        GSClientDeny {
+            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
+            deny_reason: DenyReason::from(val.m_eDenyReason),
+            optional_text: deny_text,
+        }
+    }
+}
+
+/// Called when a user has been denied to connection to this game server
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GSClientKick {
+    /// The steam ID of the user requesting a p2p session
+    pub user: SteamId,
+    pub deny_reason: DenyReason,
+}
+
+unsafe impl Callback for GSClientKick {
+    const ID: i32 = steamworks_sys::GSClientKick_t_k_iCallback as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = raw.cast::<sys::GSClientKick_t>().read_unaligned();
+
+        GSClientKick {
+            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
+            deny_reason: DenyReason::from(val.m_eDenyReason),
+        }
+    }
+}
+
+/// Called when we have received the group status of a user
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GSClientGroupStatus {
+    /// The steam ID of the user we queried
+    pub user: SteamId,
+    pub group: SteamId,
+    pub member: bool,
+    pub officer: bool,
+}
+
+unsafe impl Callback for GSClientGroupStatus {
+    const ID: i32 = steamworks_sys::GSClientGroupStatus_t_k_iCallback as i32;
+
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        let val = raw.cast::<sys::GSClientGroupStatus_t>().read_unaligned();
+
+        GSClientGroupStatus {
+            user: SteamId(val.m_SteamIDUser.m_steamid.m_unAll64Bits),
+            group: SteamId(val.m_SteamIDGroup.m_steamid.m_unAll64Bits),
+            member: val.m_bMember,
+            officer: val.m_bOfficer,
+        }
     }
 }

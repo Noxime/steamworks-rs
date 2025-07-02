@@ -43,6 +43,10 @@ pub enum CallbackResult {
     UserStatsReceived(UserStatsReceived),
     UserStatsStored(UserStatsStored),
     ValidateAuthTicketResponse(ValidateAuthTicketResponse),
+    GSClientApprove(GSClientApprove),
+    GSClientDeny(GSClientDeny),
+    GSClientKick(GSClientKick),
+    GSClientGroupStatus(GSClientGroupStatus),
 }
 
 impl CallbackResult {
@@ -105,6 +109,12 @@ impl CallbackResult {
             UserStatsStored::ID => Self::UserStatsStored(UserStatsStored::from_raw(data)),
             ValidateAuthTicketResponse::ID => {
                 Self::ValidateAuthTicketResponse(ValidateAuthTicketResponse::from_raw(data))
+            }
+            GSClientApprove::ID => Self::GSClientApprove(GSClientApprove::from_raw(data)),
+            GSClientDeny::ID => Self::GSClientDeny(GSClientDeny::from_raw(data)),
+            GSClientKick::ID => Self::GSClientKick(GSClientKick::from_raw(data)),
+            GSClientGroupStatus::ID => {
+                Self::GSClientGroupStatus(GSClientGroupStatus::from_raw(data))
             }
             _ => return None,
         })
