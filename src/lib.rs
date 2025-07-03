@@ -98,7 +98,7 @@ impl Clone for Client {
 }
 
 struct Inner {
-    manager: Box<dyn Manager>,
+    manager: Manager,
     callbacks: Callbacks,
     networking_sockets_data: Mutex<NetworkingSocketsData>,
 }
@@ -258,7 +258,7 @@ impl Client {
 
             sys::SteamAPI_ManualDispatch_Init();
             let client = Arc::new(Inner {
-                manager: Box::new(ClientManager),
+                manager: Manager::Client,
                 callbacks: Callbacks {
                     callbacks: Mutex::new(HashMap::new()),
                     call_results: Mutex::new(HashMap::new()),
@@ -547,26 +547,29 @@ impl Client {
 }
 
 /// Used to separate client and game server modes
-trait Manager: Send + Sync {
-    fn get_pipe(&self) -> sys::HSteamPipe;
+enum Manager {
+    Client,
+    Server,
 }
 
-/// Manages keeping the steam api active for clients
-struct ClientManager;
-
-impl Manager for ClientManager {
+impl Manager {
+    /// Returns the pipe handle for the steam api
     fn get_pipe(&self) -> sys::HSteamPipe {
-        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
-        // always safe to call.
-        unsafe { sys::SteamAPI_GetHSteamPipe() }
+        match self {
+            Manager::Client => unsafe { sys::SteamAPI_GetHSteamPipe() },
+            Manager::Server => unsafe { sys::SteamGameServer_GetHSteamPipe() },
+        }
     }
 }
 
-impl Drop for ClientManager {
+impl Drop for Manager {
     fn drop(&mut self) {
         // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
         // always safe to call from any thread.
-        unsafe { sys::SteamAPI_Shutdown() }
+        match self {
+            Manager::Client => unsafe { sys::SteamAPI_Shutdown() },
+            Manager::Server => unsafe { sys::SteamGameServer_Shutdown() },
+        }
     }
 }
 
