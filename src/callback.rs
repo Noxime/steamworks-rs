@@ -9,6 +9,7 @@ use crate::sys;
 use std::sync::{Arc, Weak};
 
 /// A sum type over all possible callback results
+#[derive(Debug)]
 pub enum CallbackResult {
     AuthSessionTicketResponse(AuthSessionTicketResponse),
     DownloadItemResult(DownloadItemResult),

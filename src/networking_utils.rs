@@ -112,6 +112,7 @@ impl NetworkingUtils {
     }
 }
 
+#[derive(Debug)]
 pub struct RelayNetworkStatus {
     availability: NetworkingAvailabilityResult,
     is_ping_measurement_in_progress: bool,
@@ -176,6 +177,7 @@ impl From<sys::SteamRelayNetworkStatus_t> for RelayNetworkStatus {
     }
 }
 
+#[derive(Debug)]
 /// The relay network status callback.
 pub struct RelayNetworkStatusCallback {
     status: RelayNetworkStatus,
