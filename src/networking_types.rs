@@ -1413,21 +1413,13 @@ pub struct NetConnectionStatusChanged {
     pub old_state: NetworkingConnectionState,
 }
 
-unsafe impl Callback for NetConnectionStatusChanged {
-    const ID: i32 = sys::SteamNetConnectionStatusChangedCallback_t_k_iCallback as _;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::SteamNetConnectionStatusChangedCallback_t>()
-            .read_unaligned();
-
-        NetConnectionStatusChanged {
-            connection: val.m_hConn,
-            connection_info: val.m_info.into(),
-            old_state: val.m_eOldState.try_into().unwrap(),
-        }
+impl_callback!(cb: SteamNetConnectionStatusChangedCallback_t => NetConnectionStatusChanged {
+    Self {
+        connection: cb.m_hConn,
+        connection_info: cb.m_info.into(),
+        old_state: cb.m_eOldState.try_into().unwrap(),
     }
-}
+});
 
 impl NetConnectionStatusChanged {
     pub(crate) fn into_listen_socket_event(

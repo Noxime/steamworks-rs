@@ -106,13 +106,9 @@ pub enum ScreenshotLibraryAddError {
 #[derive(Clone, Debug)]
 pub struct ScreenshotRequested;
 
-unsafe impl Callback for ScreenshotRequested {
-    const ID: i32 = sys::ScreenshotRequested_t__bindgen_ty_1::k_iCallback as _;
-
-    unsafe fn from_raw(_: *mut c_void) -> Self {
-        Self
-    }
-}
+impl_callback!(_cb: ScreenshotRequested_t => ScreenshotRequested {
+    Self
+});
 
 #[derive(Clone, Debug, Error)]
 pub enum ScreenshotReadyError {
@@ -131,20 +127,15 @@ pub struct ScreenshotReady {
     pub local_handle: Result<ScreenshotHandle, ScreenshotReadyError>,
 }
 
-unsafe impl Callback for ScreenshotReady {
-    const ID: i32 = sys::ScreenshotReady_t__bindgen_ty_1::k_iCallback as _;
+impl_callback!(cb: ScreenshotReady_t => ScreenshotReady {
+    let local_handle = match cb.m_eResult {
+        sys::EResult::k_EResultOK => Ok(cb.m_hLocal),
+        sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::Fail),
+        _ => Err(ScreenshotReadyError::Fail),
+    };
 
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let status = raw.cast::<sys::ScreenshotReady_t>().read_unaligned();
-        let local_handle = match status.m_eResult {
-            sys::EResult::k_EResultOK => Ok(status.m_hLocal),
-            sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::Fail),
-            _ => Err(ScreenshotReadyError::Fail),
-        };
-
-        Self { local_handle }
-    }
-}
+    Self { local_handle }
+});
 
 fn path_to_absolute_cstring(filename: &Path) -> Option<CString> {
     let filename = filename.canonicalize().ok()?;

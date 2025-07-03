@@ -682,18 +682,12 @@ pub struct GSClientApprove {
     pub owner: SteamId,
 }
 
-unsafe impl Callback for GSClientApprove {
-    const ID: i32 = steamworks_sys::GSClientApprove_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::GSClientApprove_t>().read_unaligned();
-
-        GSClientApprove {
-            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
-            owner: SteamId(val.m_OwnerSteamID.m_steamid.m_unAll64Bits),
-        }
+impl_callback!(cb: GSClientApprove_t => GSClientApprove {
+    Self {
+        user: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
+        owner: SteamId(cb.m_OwnerSteamID.m_steamid.m_unAll64Bits),
     }
-}
+});
 
 /// Reason for when a client fails to join or is kicked from a game server.
 #[repr(i32)]
@@ -752,24 +746,18 @@ pub struct GSClientDeny {
     pub optional_text: String,
 }
 
-unsafe impl Callback for GSClientDeny {
-    const ID: i32 = steamworks_sys::GSClientDeny_t_k_iCallback as i32;
+impl_callback!(cb: GSClientDeny_t => GSClientDeny {
+    let deny_text = unsafe {
+        let cstr = CStr::from_ptr(cb.m_rgchOptionalText.as_ptr() as *const c_char);
+        cstr.to_string_lossy().to_owned().into_owned()
+    };
 
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::GSClientDeny_t>().read_unaligned();
-
-        let deny_text = unsafe {
-            let cstr = CStr::from_ptr(val.m_rgchOptionalText.as_ptr() as *const c_char);
-            cstr.to_string_lossy().to_owned().into_owned()
-        };
-
-        GSClientDeny {
-            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
-            deny_reason: DenyReason::from(val.m_eDenyReason),
-            optional_text: deny_text,
-        }
+    GSClientDeny {
+        user: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
+        deny_reason: DenyReason::from(cb.m_eDenyReason),
+        optional_text: deny_text,
     }
-}
+});
 
 /// Called when a user has been denied to connection to this game server
 #[derive(Clone, Debug)]
@@ -780,18 +768,12 @@ pub struct GSClientKick {
     pub deny_reason: DenyReason,
 }
 
-unsafe impl Callback for GSClientKick {
-    const ID: i32 = steamworks_sys::GSClientKick_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::GSClientKick_t>().read_unaligned();
-
-        GSClientKick {
-            user: SteamId(val.m_SteamID.m_steamid.m_unAll64Bits),
-            deny_reason: DenyReason::from(val.m_eDenyReason),
-        }
+impl_callback!(cb: GSClientKick_t => GSClientKick {
+    Self {
+        user: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
+        deny_reason: DenyReason::from(cb.m_eDenyReason),
     }
-}
+});
 
 /// Called when we have received the group status of a user
 #[derive(Clone, Debug)]
@@ -804,17 +786,11 @@ pub struct GSClientGroupStatus {
     pub officer: bool,
 }
 
-unsafe impl Callback for GSClientGroupStatus {
-    const ID: i32 = steamworks_sys::GSClientGroupStatus_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::GSClientGroupStatus_t>().read_unaligned();
-
-        GSClientGroupStatus {
-            user: SteamId(val.m_SteamIDUser.m_steamid.m_unAll64Bits),
-            group: SteamId(val.m_SteamIDGroup.m_steamid.m_unAll64Bits),
-            member: val.m_bMember,
-            officer: val.m_bOfficer,
-        }
+impl_callback!(cb: GSClientGroupStatus_t => GSClientGroupStatus {
+    Self {
+        user: SteamId(cb.m_SteamIDUser.m_steamid.m_unAll64Bits),
+        group: SteamId(cb.m_SteamIDGroup.m_steamid.m_unAll64Bits),
+        member: cb.m_bMember,
+        officer: cb.m_bOfficer,
     }
-}
+});

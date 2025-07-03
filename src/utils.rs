@@ -17,29 +17,18 @@ pub struct GamepadTextInputDismissed {
     pub submitted_text_len: Option<u32>,
 }
 
-unsafe impl Callback for GamepadTextInputDismissed {
-    const ID: i32 = sys::GamepadTextInputDismissed_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::GamepadTextInputDismissed_t>()
-            .read_unaligned();
-        GamepadTextInputDismissed {
-            submitted_text_len: val.m_bSubmitted.then_some(val.m_unSubmittedText),
-        }
+impl_callback!(cb: GamepadTextInputDismissed_t => GamepadTextInputDismissed {
+    Self {
+        submitted_text_len: cb.m_bSubmitted.then_some(cb.m_unSubmittedText),
     }
-}
+});
 
 #[derive(Clone, Debug)]
 pub struct FloatingGamepadTextInputDismissed;
 
-unsafe impl Callback for FloatingGamepadTextInputDismissed {
-    const ID: i32 = sys::FloatingGamepadTextInputDismissed_t_k_iCallback as i32;
-
-    unsafe fn from_raw(_: *mut c_void) -> Self {
-        FloatingGamepadTextInputDismissed
-    }
-}
+impl_callback!(_cb: FloatingGamepadTextInputDismissed_t => FloatingGamepadTextInputDismissed {
+    Self
+});
 
 pub enum NotificationPosition {
     TopLeft,
