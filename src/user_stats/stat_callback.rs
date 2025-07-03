@@ -21,21 +21,13 @@ pub struct UserStatsReceived {
     pub result: Result<(), SteamError>,
 }
 
-unsafe impl Callback for UserStatsReceived {
-    const ID: i32 = sys::UserStatsReceived_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::UserStatsReceived_t>().read_unaligned();
-        Self {
-            steam_id: SteamId(val.m_steamIDUser.m_steamid.m_unAll64Bits),
-            game_id: GameId(val.m_nGameID),
-            result: match val.m_eResult {
-                sys::EResult::k_EResultOK => Ok(()),
-                err => Err(err.into()),
-            },
-        }
+impl_callback!(cb: UserStatsReceived_t => UserStatsReceived {
+    Self {
+        steam_id: SteamId(cb.m_steamIDUser.m_steamid.m_unAll64Bits),
+        game_id: GameId(cb.m_nGameID),
+        result: crate::to_steam_result(cb.m_eResult),
     }
-}
+});
 
 /// Callback triggered by [`store()`](stats/struct.StatsHelper.html#method.store).
 ///
@@ -56,20 +48,12 @@ pub struct UserStatsStored {
     pub result: Result<(), SteamError>,
 }
 
-unsafe impl Callback for UserStatsStored {
-    const ID: i32 = sys::UserStatsStored_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::UserStatsStored_t>().read_unaligned();
-        Self {
-            game_id: GameId(val.m_nGameID),
-            result: match val.m_eResult {
-                sys::EResult::k_EResultOK => Ok(()),
-                err => Err(err.into()),
-            },
-        }
+impl_callback!(cb: UserStatsStored_t => UserStatsStored {
+    Self {
+        game_id: GameId(cb.m_nGameID),
+        result: crate::to_steam_result(cb.m_eResult),
     }
-}
+});
 
 /// Result of a request to store the achievements on the server, or an "indicate progress" call.
 /// If both `current_progress` and `max_progress` are zero, that means the achievement has been
@@ -94,20 +78,15 @@ pub struct UserAchievementStored {
     pub max_progress: u32,
 }
 
-unsafe impl Callback for UserAchievementStored {
-    const ID: i32 = sys::UserAchievementStored_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::UserAchievementStored_t>().read_unaligned();
-        let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
-        Self {
-            game_id: GameId(val.m_nGameID),
-            achievement_name: name.into_string().unwrap(),
-            current_progress: val.m_nCurProgress,
-            max_progress: val.m_nMaxProgress,
-        }
+impl_callback!(cb: UserAchievementStored_t => UserAchievementStored {
+    let name = CStr::from_ptr(cb.m_rgchAchievementName.as_ptr()).to_owned();
+    Self {
+        game_id: GameId(cb.m_nGameID),
+        achievement_name: name.into_string().unwrap(),
+        current_progress: cb.m_nCurProgress,
+        max_progress: cb.m_nMaxProgress,
     }
-}
+});
 
 /// Result of a request to retrieve the achievement icon if the icon was not available at the time of the function call.
 /// # Example
@@ -127,19 +106,12 @@ pub struct UserAchievementIconFetched {
     pub icon_handle: i32,
 }
 
-unsafe impl Callback for UserAchievementIconFetched {
-    const ID: i32 = sys::UserAchievementIconFetched_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::UserAchievementIconFetched_t>()
-            .read_unaligned();
-        let name = CStr::from_ptr(val.m_rgchAchievementName.as_ptr()).to_owned();
-        Self {
-            game_id: GameId(val.m_nGameID.__bindgen_anon_1.m_ulGameID),
-            achievement_name: name.into_string().unwrap(),
-            achieved: val.m_bAchieved,
-            icon_handle: val.m_nIconHandle,
-        }
+impl_callback!(cb: UserAchievementIconFetched_t => UserAchievementIconFetched {
+    let name = CStr::from_ptr(cb.m_rgchAchievementName.as_ptr()).to_owned();
+    Self {
+        game_id: GameId(cb.m_nGameID.__bindgen_anon_1.m_ulGameID),
+        achievement_name: name.into_string().unwrap(),
+        achieved: cb.m_bAchieved,
+        icon_handle: cb.m_nIconHandle,
     }
-}
+});

@@ -103,10 +103,8 @@ impl Matchmaking {
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.m_eResult != sys::EResult::k_EResultOK {
-                        Err(v.m_eResult.into())
                     } else {
-                        Ok(LobbyId(v.m_ulSteamIDLobby))
+                        crate::to_steam_result(v.m_eResult).map(|_| LobbyId(v.m_ulSteamIDLobby))
                     })
                 },
             );
@@ -1100,20 +1098,14 @@ pub struct LobbyChatMsg {
     pub chat_id: i32,
 }
 
-unsafe impl Callback for LobbyChatMsg {
-    const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::LobbyChatMsg_t>().read_unaligned();
-
-        LobbyChatMsg {
-            lobby: LobbyId(val.m_ulSteamIDLobby),
-            user: SteamId(val.m_ulSteamIDUser),
-            chat_entry_type: val.m_eChatEntryType.into(),
-            chat_id: val.m_iChatID as i32,
-        }
+impl_callback!(cb: LobbyChatMsg_t => LobbyChatMsg {
+    Self {
+        lobby: LobbyId(cb.m_ulSteamIDLobby),
+        user: SteamId(cb.m_ulSteamIDUser),
+        chat_entry_type: cb.m_eChatEntryType.into(),
+        chat_id: cb.m_iChatID as i32,
     }
-}
+});
 
 /// A lobby chat room state has changed, this is usually sent when a user has joined or left the lobby.
 #[derive(Clone, Debug)]
@@ -1129,39 +1121,33 @@ pub struct LobbyChatUpdate {
     pub member_state_change: ChatMemberStateChange,
 }
 
-unsafe impl Callback for LobbyChatUpdate {
-    const ID: i32 = sys::LobbyChatUpdate_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::LobbyChatUpdate_t>().read_unaligned();
-
-        LobbyChatUpdate {
-            lobby: LobbyId(val.m_ulSteamIDLobby),
-            user_changed: SteamId(val.m_ulSteamIDUserChanged),
-            making_change: SteamId(val.m_ulSteamIDUserChanged),
-            member_state_change: match val.m_rgfChatMemberStateChange {
-                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32 => {
-                    ChatMemberStateChange::Entered
-                }
-                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32 => {
-                    ChatMemberStateChange::Left
-                }
-                x if x
-                    == sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32 =>
-                {
-                    ChatMemberStateChange::Disconnected
-                }
-                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32 => {
-                    ChatMemberStateChange::Kicked
-                }
-                x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32 => {
-                    ChatMemberStateChange::Banned
-                }
-                _ => unreachable!(),
-            },
-        }
+impl_callback!(cb: LobbyChatUpdate_t => LobbyChatUpdate {
+    Self {
+        lobby: LobbyId(cb.m_ulSteamIDLobby),
+        user_changed: SteamId(cb.m_ulSteamIDUserChanged),
+        making_change: SteamId(cb.m_ulSteamIDUserChanged),
+        member_state_change: match cb.m_rgfChatMemberStateChange {
+            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32 => {
+                ChatMemberStateChange::Entered
+            }
+            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32 => {
+                ChatMemberStateChange::Left
+            }
+            x if x
+                == sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32 =>
+            {
+                ChatMemberStateChange::Disconnected
+            }
+            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32 => {
+                ChatMemberStateChange::Kicked
+            }
+            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32 => {
+                ChatMemberStateChange::Banned
+            }
+            _ => unreachable!(),
+        },
     }
-}
+});
 
 /// Result of our request to create a Lobby. At this point, the lobby has been joined and is ready for use, a LobbyEnter_t callback will also be received (since the local user is joining their own lobby).
 #[derive(Clone, Debug)]
@@ -1173,18 +1159,12 @@ pub struct LobbyCreated {
     pub lobby: LobbyId,
 }
 
-unsafe impl Callback for LobbyCreated {
-    const ID: i32 = sys::LobbyCreated_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::LobbyCreated_t>().read_unaligned();
-
-        LobbyCreated {
-            result: val.m_eResult as u32,
-            lobby: LobbyId(val.m_ulSteamIDLobby),
-        }
+impl_callback!(cb: LobbyCreated_t => LobbyCreated {
+    Self {
+        result: cb.m_eResult as u32,
+        lobby: LobbyId(cb.m_ulSteamIDLobby),
     }
-}
+});
 
 /// The lobby metadata has changed.
 /// If m_ulSteamIDMember is a user in the lobby, then use GetLobbyMemberData to access per-user details; otherwise, if m_ulSteamIDMember == m_ulSteamIDLobby, use GetLobbyData to access the lobby metadata.
@@ -1199,19 +1179,13 @@ pub struct LobbyDataUpdate {
     pub success: bool,
 }
 
-unsafe impl Callback for LobbyDataUpdate {
-    const ID: i32 = sys::LobbyDataUpdate_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::LobbyDataUpdate_t>().read_unaligned();
-
-        LobbyDataUpdate {
-            lobby: LobbyId(val.m_ulSteamIDLobby),
-            member: SteamId(val.m_ulSteamIDMember),
-            success: val.m_bSuccess != 0,
-        }
+impl_callback!(cb: LobbyDataUpdate_t => LobbyDataUpdate {
+    Self {
+        lobby: LobbyId(cb.m_ulSteamIDLobby),
+        member: SteamId(cb.m_ulSteamIDMember),
+        success: cb.m_bSuccess != 0,
     }
-}
+});
 
 /// Recieved upon attempting to enter a lobby. Lobby metadata is available to use immediately after receiving this.
 #[derive(Clone, Debug)]
@@ -1227,20 +1201,14 @@ pub struct LobbyEnter {
     pub chat_room_enter_response: ChatRoomEnterResponse,
 }
 
-unsafe impl Callback for LobbyEnter {
-    const ID: i32 = sys::LobbyEnter_t_k_iCallback as _;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::LobbyEnter_t>().read_unaligned();
-
-        LobbyEnter {
-            lobby: LobbyId(val.m_ulSteamIDLobby),
-            chat_permissions: val.m_rgfChatPermissions,
-            blocked: val.m_bLocked,
-            chat_room_enter_response: val.m_EChatRoomEnterResponse.into(),
-        }
+impl_callback!(cb: LobbyEnter_t => LobbyEnter {
+    Self {
+        lobby: LobbyId(cb.m_ulSteamIDLobby),
+        chat_permissions: cb.m_rgfChatPermissions,
+        blocked: cb.m_bLocked,
+        chat_room_enter_response: cb.m_EChatRoomEnterResponse.into(),
     }
-}
+});
 
 #[test]
 #[serial]

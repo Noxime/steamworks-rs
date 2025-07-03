@@ -489,22 +489,16 @@ pub struct DownloadItemResult {
     pub error: Option<SteamError>,
 }
 
-unsafe impl Callback for DownloadItemResult {
-    const ID: i32 = sys::DownloadItemResult_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw.cast::<sys::DownloadItemResult_t>().read_unaligned();
-        DownloadItemResult {
-            app_id: AppId(val.m_unAppID),
-            published_file_id: PublishedFileId(val.m_nPublishedFileId),
-
-            error: match val.m_eResult {
-                sys::EResult::k_EResultOK => None,
-                error => Some(error.into()),
-            },
-        }
+impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
+    Self {
+        app_id: AppId(cb.m_unAppID),
+        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
+        error: match cb.m_eResult {
+            sys::EResult::k_EResultOK => None,
+            error => Some(error.into()),
+        },
     }
-}
+});
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -535,13 +529,13 @@ impl UGC {
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.m_eResult != sys::EResult::k_EResultOK {
-                        Err(v.m_eResult.into())
                     } else {
-                        Ok((
-                            PublishedFileId(v.m_nPublishedFileId),
-                            v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
-                        ))
+                        crate::to_steam_result(v.m_eResult).map(|_| {
+                            (
+                                PublishedFileId(v.m_nPublishedFileId),
+                                v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
+                            )
+                        })
                     })
                 },
             );
@@ -575,10 +569,8 @@ impl UGC {
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.m_eResult != sys::EResult::k_EResultOK {
-                        Err(v.m_eResult.into())
                     } else {
-                        Ok(())
+                        crate::to_steam_result(v.m_eResult)
                     })
                 },
             );
@@ -597,10 +589,8 @@ impl UGC {
                 move |v, io_error| {
                     cb(if io_error {
                         Err(SteamError::IOFailure)
-                    } else if v.m_eResult != sys::EResult::k_EResultOK {
-                        Err(v.m_eResult.into())
                     } else {
-                        Ok(())
+                        crate::to_steam_result(v.m_eResult)
                     })
                 },
             );

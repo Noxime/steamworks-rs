@@ -667,15 +667,51 @@ pub enum EChatRoomEnterResponse {
 pub const k_unSteamAccountIDMask: ::std::os::raw::c_uint = 4294967295;
 pub const k_unSteamAccountInstanceMask: ::std::os::raw::c_uint = 1048575;
 pub const k_unSteamUserDefaultInstance: ::std::os::raw::c_uint = 1;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EChatSteamIDInstanceFlags {
-    k_EChatAccountInstanceMask = 4095,
-    k_EChatInstanceFlagClan = 524288,
-    k_EChatInstanceFlagLobby = 262144,
-    k_EChatInstanceFlagMMSLobby = 131072,
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatAccountInstanceMask: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(4095);
 }
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagClan: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(524288);
+}
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagLobby: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(262144);
+}
+impl EChatSteamIDInstanceFlags {
+    pub const k_EChatInstanceFlagMMSLobby: EChatSteamIDInstanceFlags =
+        EChatSteamIDInstanceFlags(131072);
+}
+impl ::std::ops::BitOr<EChatSteamIDInstanceFlags> for EChatSteamIDInstanceFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EChatSteamIDInstanceFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EChatSteamIDInstanceFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EChatSteamIDInstanceFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EChatSteamIDInstanceFlags> for EChatSteamIDInstanceFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EChatSteamIDInstanceFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EChatSteamIDInstanceFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EChatSteamIDInstanceFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EChatSteamIDInstanceFlags(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -715,28 +751,103 @@ pub enum EBroadcastUploadResult {
     k_EBroadcastUploadResultVideoInitFailed = 22,
     k_EBroadcastUploadResultAudioInitFailed = 23,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EMarketNotAllowedReasonFlags {
-    k_EMarketNotAllowedReason_None = 0,
-    k_EMarketNotAllowedReason_TemporaryFailure = 1,
-    k_EMarketNotAllowedReason_AccountDisabled = 2,
-    k_EMarketNotAllowedReason_AccountLockedDown = 4,
-    k_EMarketNotAllowedReason_AccountLimited = 8,
-    k_EMarketNotAllowedReason_TradeBanned = 16,
-    k_EMarketNotAllowedReason_AccountNotTrusted = 32,
-    k_EMarketNotAllowedReason_SteamGuardNotEnabled = 64,
-    k_EMarketNotAllowedReason_SteamGuardOnlyRecentlyEnabled = 128,
-    k_EMarketNotAllowedReason_RecentPasswordReset = 256,
-    k_EMarketNotAllowedReason_NewPaymentMethod = 512,
-    k_EMarketNotAllowedReason_InvalidCookie = 1024,
-    k_EMarketNotAllowedReason_UsingNewDevice = 2048,
-    k_EMarketNotAllowedReason_RecentSelfRefund = 4096,
-    k_EMarketNotAllowedReason_NewPaymentMethodCannotBeVerified = 8192,
-    k_EMarketNotAllowedReason_NoRecentPurchases = 16384,
-    k_EMarketNotAllowedReason_AcceptedWalletGift = 32768,
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_None: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(0);
 }
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_TemporaryFailure: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(1);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountDisabled: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(2);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountLockedDown: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(4);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountLimited: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(8);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_TradeBanned: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(16);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AccountNotTrusted: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(32);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_SteamGuardNotEnabled: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(64);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_SteamGuardOnlyRecentlyEnabled:
+        EMarketNotAllowedReasonFlags = EMarketNotAllowedReasonFlags(128);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_RecentPasswordReset: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(256);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NewPaymentMethod: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(512);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_InvalidCookie: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(1024);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_UsingNewDevice: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(2048);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_RecentSelfRefund: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(4096);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NewPaymentMethodCannotBeVerified:
+        EMarketNotAllowedReasonFlags = EMarketNotAllowedReasonFlags(8192);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_NoRecentPurchases: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(16384);
+}
+impl EMarketNotAllowedReasonFlags {
+    pub const k_EMarketNotAllowedReason_AcceptedWalletGift: EMarketNotAllowedReasonFlags =
+        EMarketNotAllowedReasonFlags(32768);
+}
+impl ::std::ops::BitOr<EMarketNotAllowedReasonFlags> for EMarketNotAllowedReasonFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EMarketNotAllowedReasonFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EMarketNotAllowedReasonFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EMarketNotAllowedReasonFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EMarketNotAllowedReasonFlags> for EMarketNotAllowedReasonFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EMarketNotAllowedReasonFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EMarketNotAllowedReasonFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EMarketNotAllowedReasonFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EMarketNotAllowedReasonFlags(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -770,17 +881,53 @@ pub enum EDurationControlOnlineState {
     k_EDurationControlOnlineState_Online = 2,
     k_EDurationControlOnlineState_OnlineHighPri = 3,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EBetaBranchFlags {
-    k_EBetaBranch_None = 0,
-    k_EBetaBranch_Default = 1,
-    k_EBetaBranch_Available = 2,
-    k_EBetaBranch_Private = 4,
-    k_EBetaBranch_Selected = 8,
-    k_EBetaBranch_Installed = 16,
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_None: EBetaBranchFlags = EBetaBranchFlags(0);
 }
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Default: EBetaBranchFlags = EBetaBranchFlags(1);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Available: EBetaBranchFlags = EBetaBranchFlags(2);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Private: EBetaBranchFlags = EBetaBranchFlags(4);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Selected: EBetaBranchFlags = EBetaBranchFlags(8);
+}
+impl EBetaBranchFlags {
+    pub const k_EBetaBranch_Installed: EBetaBranchFlags = EBetaBranchFlags(16);
+}
+impl ::std::ops::BitOr<EBetaBranchFlags> for EBetaBranchFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EBetaBranchFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EBetaBranchFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EBetaBranchFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EBetaBranchFlags> for EBetaBranchFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EBetaBranchFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EBetaBranchFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EBetaBranchFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EBetaBranchFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct CSteamID {
@@ -1388,9 +1535,6 @@ pub type CCallResult_func_t<P> =
     ::std::option::Option<unsafe extern "C" fn(arg1: *mut P, arg2: bool)>;
 pub type CCallback_func_t<P> = ::std::option::Option<unsafe extern "C" fn(arg1: *mut P)>;
 pub type va_list = *mut ::std::os::raw::c_char;
-extern "C" {
-    pub fn __va_start(arg1: *mut va_list, ...);
-}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __vcrt_va_list_is_reference {
@@ -1411,33 +1555,9 @@ pub struct __vcrt_assert_va_start_is_not_reference {
 }
 pub type __vcrt_bool = bool;
 extern "C" {
-    pub fn __security_init_cookie();
-}
-extern "C" {
-    pub fn __security_check_cookie(_StackCookie: usize);
-}
-extern "C" {
-    pub fn __report_gsfailure(_StackCookie: usize) -> !;
-}
-extern "C" {
     pub static mut __security_cookie: usize;
 }
 pub type __crt_bool = bool;
-extern "C" {
-    pub fn _invalid_parameter_noinfo();
-}
-extern "C" {
-    pub fn _invalid_parameter_noinfo_noreturn() -> !;
-}
-extern "C" {
-    pub fn _invoke_watson(
-        _Expression: *const u16,
-        _FunctionName: *const u16,
-        _FileName: *const u16,
-        _LineNo: ::std::os::raw::c_uint,
-        _Reserved: usize,
-    ) -> !;
-}
 pub type errno_t = ::std::os::raw::c_int;
 pub type wint_t = ::std::os::raw::c_ushort;
 pub type wctype_t = ::std::os::raw::c_ushort;
@@ -1594,724 +1714,6 @@ fn bindgen_test_layout__Mbstatet() {
 pub type mbstate_t = _Mbstatet;
 pub type time_t = __time64_t;
 pub type rsize_t = usize;
-extern "C" {
-    pub fn _errno() -> *mut ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _set_errno(_Value: ::std::os::raw::c_int) -> errno_t;
-}
-extern "C" {
-    pub fn _get_errno(_Value: *mut ::std::os::raw::c_int) -> errno_t;
-}
-extern "C" {
-    pub fn __doserrno() -> *mut ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn _set_doserrno(_Value: ::std::os::raw::c_ulong) -> errno_t;
-}
-extern "C" {
-    pub fn _get_doserrno(_Value: *mut ::std::os::raw::c_ulong) -> errno_t;
-}
-extern "C" {
-    pub fn memchr(
-        _Buf: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _MaxCount: usize,
-    ) -> *const ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn memcmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn memcpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Size: usize,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn memmove(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Size: usize,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn memset(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _Size: usize,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn strchr(
-        _Str: *const ::std::os::raw::c_char,
-        _Val: ::std::os::raw::c_int,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strrchr(
-        _Str: *const ::std::os::raw::c_char,
-        _Ch: ::std::os::raw::c_int,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strstr(
-        _Str: *const ::std::os::raw::c_char,
-        _SubStr: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn wcschr(_Str: *const u16, _Ch: u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsrchr(_Str: *const u16, _Ch: u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsstr(_Str: *const u16, _SubStr: *const u16) -> *const u16;
-}
-extern "C" {
-    pub fn _memicmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _memicmp_l(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn memccpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _Size: usize,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn memicmp(
-        _Buf1: *const ::std::os::raw::c_void,
-        _Buf2: *const ::std::os::raw::c_void,
-        _Size: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcscat_s(_Destination: *mut u16, _SizeInWords: rsize_t, _Source: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn wcscpy_s(_Destination: *mut u16, _SizeInWords: rsize_t, _Source: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn wcsncat_s(
-        _Destination: *mut u16,
-        _SizeInWords: rsize_t,
-        _Source: *const u16,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn wcsncpy_s(
-        _Destination: *mut u16,
-        _SizeInWords: rsize_t,
-        _Source: *const u16,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn wcstok_s(_String: *mut u16, _Delimiter: *const u16, _Context: *mut *mut u16)
-        -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsdup(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscat(_Destination: *mut u16, _Source: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcscpy(_Destination: *mut u16, _Source: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcscspn(_String: *const u16, _Control: *const u16) -> usize;
-}
-extern "C" {
-    pub fn wcslen(_String: *const u16) -> usize;
-}
-extern "C" {
-    pub fn wcsnlen(_Source: *const u16, _MaxCount: usize) -> usize;
-}
-extern "C" {
-    pub fn wcsncat(_Destination: *mut u16, _Source: *const u16, _Count: usize) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsncmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsncpy(_Destination: *mut u16, _Source: *const u16, _Count: usize) -> *mut u16;
-}
-extern "C" {
-    pub fn wcspbrk(_String: *const u16, _Control: *const u16) -> *const u16;
-}
-extern "C" {
-    pub fn wcsspn(_String: *const u16, _Control: *const u16) -> usize;
-}
-extern "C" {
-    pub fn wcstok(_String: *mut u16, _Delimiter: *const u16, _Context: *mut *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcserror(_ErrorNumber: ::std::os::raw::c_int) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcserror_s(
-        _Buffer: *mut u16,
-        _SizeInWords: usize,
-        _ErrorNumber: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn __wcserror(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn __wcserror_s(
-        _Buffer: *mut u16,
-        _SizeInWords: usize,
-        _ErrorMessage: *const u16,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsicmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicmp_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicmp_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnset_s(
-        _Destination: *mut u16,
-        _SizeInWords: usize,
-        _Value: u16,
-        _MaxCount: usize,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsnset(_String: *mut u16, _Value: u16, _MaxCount: usize) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsrev(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsset_s(_Destination: *mut u16, _SizeInWords: usize, _Value: u16) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsset(_String: *mut u16, _Value: u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcslwr_s(_String: *mut u16, _SizeInWords: usize) -> errno_t;
-}
-extern "C" {
-    pub fn _wcslwr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcslwr_s_l(_String: *mut u16, _SizeInWords: usize, _Locale: _locale_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcslwr_l(_String: *mut u16, _Locale: _locale_t) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsupr_s(_String: *mut u16, _Size: usize) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsupr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wcsupr_s_l(_String: *mut u16, _Size: usize, _Locale: _locale_t) -> errno_t;
-}
-extern "C" {
-    pub fn _wcsupr_l(_String: *mut u16, _Locale: _locale_t) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsxfrm(_Destination: *mut u16, _Source: *const u16, _MaxCount: usize) -> usize;
-}
-extern "C" {
-    pub fn _wcsxfrm_l(
-        _Destination: *mut u16,
-        _Source: *const u16,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> usize;
-}
-extern "C" {
-    pub fn wcscoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcscoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsicoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsncoll(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsncoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicoll(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wcsnicoll_l(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsdup(_String: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsicmp(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsnicmp(
-        _String1: *const u16,
-        _String2: *const u16,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn wcsnset(_String: *mut u16, _Value: u16, _MaxCount: usize) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsrev(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsset(_String: *mut u16, _Value: u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcslwr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsupr(_String: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn wcsicoll(_String1: *const u16, _String2: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strcpy_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strcat_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strerror_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _SizeInBytes: usize,
-        _ErrorNumber: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strncat_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strncpy_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _SizeInBytes: rsize_t,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: rsize_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strtok_s(
-        _String: *mut ::std::os::raw::c_char,
-        _Delimiter: *const ::std::os::raw::c_char,
-        _Context: *mut *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _memccpy(
-        _Dst: *mut ::std::os::raw::c_void,
-        _Src: *const ::std::os::raw::c_void,
-        _Val: ::std::os::raw::c_int,
-        _MaxCount: usize,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn strcat(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strcmp(
-        _Str1: *const ::std::os::raw::c_char,
-        _Str2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strcmpi(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strcoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strcoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strcpy(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strcspn(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> usize;
-}
-extern "C" {
-    pub fn _strdup(_Source: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strerror(_ErrorMessage: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strerror_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _SizeInBytes: usize,
-        _ErrorMessage: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn strerror(_ErrorMessage: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _stricmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _stricmp_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strlen(_Str: *const ::std::os::raw::c_char) -> usize;
-}
-extern "C" {
-    pub fn _strlwr_s(_String: *mut ::std::os::raw::c_char, _Size: usize) -> errno_t;
-}
-extern "C" {
-    pub fn _strlwr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strlwr_s_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Size: usize,
-        _Locale: _locale_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strlwr_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strncat(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _Count: usize,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strncmp(
-        _Str1: *const ::std::os::raw::c_char,
-        _Str2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicmp_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strnicoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strncoll(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _strncoll_l(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __strncnt(_String: *const ::std::os::raw::c_char, _Count: usize) -> usize;
-}
-extern "C" {
-    pub fn strncpy(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _Count: usize,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strnlen(_String: *const ::std::os::raw::c_char, _MaxCount: usize) -> usize;
-}
-extern "C" {
-    pub fn _strnset_s(
-        _String: *mut ::std::os::raw::c_char,
-        _SizeInBytes: usize,
-        _Value: ::std::os::raw::c_int,
-        _MaxCount: usize,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strnset(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-        _Count: usize,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strpbrk(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strrev(_Str: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strset_s(
-        _Destination: *mut ::std::os::raw::c_char,
-        _DestinationSize: usize,
-        _Value: ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strset(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strspn(
-        _Str: *const ::std::os::raw::c_char,
-        _Control: *const ::std::os::raw::c_char,
-    ) -> usize;
-}
-extern "C" {
-    pub fn strtok(
-        _String: *mut ::std::os::raw::c_char,
-        _Delimiter: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strupr_s(_String: *mut ::std::os::raw::c_char, _Size: usize) -> errno_t;
-}
-extern "C" {
-    pub fn _strupr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _strupr_s_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Size: usize,
-        _Locale: _locale_t,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _strupr_l(
-        _String: *mut ::std::os::raw::c_char,
-        _Locale: _locale_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strxfrm(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> usize;
-}
-extern "C" {
-    pub fn _strxfrm_l(
-        _Destination: *mut ::std::os::raw::c_char,
-        _Source: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-        _Locale: _locale_t,
-    ) -> usize;
-}
-extern "C" {
-    pub fn strdup(_String: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strcmpi(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn stricmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strlwr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strnicmp(
-        _String1: *const ::std::os::raw::c_char,
-        _String2: *const ::std::os::raw::c_char,
-        _MaxCount: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn strnset(
-        _String: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-        _MaxCount: usize,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strrev(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strset(
-        _String: *mut ::std::os::raw::c_char,
-        _Value: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn strupr(_String: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
 extern "C" {
     pub fn SteamAPI_GetHSteamPipe() -> HSteamPipe;
 }
@@ -3615,23 +3017,71 @@ pub enum EPersonaState {
     k_EPersonaStateInvisible = 7,
     k_EPersonaStateMax = 8,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EFriendFlags {
-    k_EFriendFlagNone = 0,
-    k_EFriendFlagBlocked = 1,
-    k_EFriendFlagFriendshipRequested = 2,
-    k_EFriendFlagImmediate = 4,
-    k_EFriendFlagClanMember = 8,
-    k_EFriendFlagOnGameServer = 16,
-    k_EFriendFlagRequestingFriendship = 128,
-    k_EFriendFlagRequestingInfo = 256,
-    k_EFriendFlagIgnored = 512,
-    k_EFriendFlagIgnoredFriend = 1024,
-    k_EFriendFlagChatMember = 4096,
-    k_EFriendFlagAll = 65535,
+impl EFriendFlags {
+    pub const k_EFriendFlagNone: EFriendFlags = EFriendFlags(0);
 }
+impl EFriendFlags {
+    pub const k_EFriendFlagBlocked: EFriendFlags = EFriendFlags(1);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagFriendshipRequested: EFriendFlags = EFriendFlags(2);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagImmediate: EFriendFlags = EFriendFlags(4);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagClanMember: EFriendFlags = EFriendFlags(8);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagOnGameServer: EFriendFlags = EFriendFlags(16);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagRequestingFriendship: EFriendFlags = EFriendFlags(128);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagRequestingInfo: EFriendFlags = EFriendFlags(256);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagIgnored: EFriendFlags = EFriendFlags(512);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagIgnoredFriend: EFriendFlags = EFriendFlags(1024);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagChatMember: EFriendFlags = EFriendFlags(4096);
+}
+impl EFriendFlags {
+    pub const k_EFriendFlagAll: EFriendFlags = EFriendFlags(65535);
+}
+impl ::std::ops::BitOr<EFriendFlags> for EFriendFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EFriendFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EFriendFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EFriendFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EFriendFlags> for EFriendFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EFriendFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EFriendFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EFriendFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EFriendFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct FriendGameInfo_t {
@@ -3741,14 +3191,44 @@ pub const k_cchMaxRichPresenceValueLength: _bindgen_ty_42 =
 pub enum _bindgen_ty_42 {
     k_cchMaxRichPresenceValueLength = 256,
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EOverlayToStoreFlag {
-    k_EOverlayToStoreFlag_None = 0,
-    k_EOverlayToStoreFlag_AddToCart = 1,
-    k_EOverlayToStoreFlag_AddToCartAndShow = 2,
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_None: EOverlayToStoreFlag = EOverlayToStoreFlag(0);
 }
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_AddToCart: EOverlayToStoreFlag = EOverlayToStoreFlag(1);
+}
+impl EOverlayToStoreFlag {
+    pub const k_EOverlayToStoreFlag_AddToCartAndShow: EOverlayToStoreFlag = EOverlayToStoreFlag(2);
+}
+impl ::std::ops::BitOr<EOverlayToStoreFlag> for EOverlayToStoreFlag {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EOverlayToStoreFlag(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EOverlayToStoreFlag {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EOverlayToStoreFlag) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EOverlayToStoreFlag> for EOverlayToStoreFlag {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EOverlayToStoreFlag(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EOverlayToStoreFlag {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EOverlayToStoreFlag) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EOverlayToStoreFlag(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -3852,26 +3332,80 @@ fn bindgen_test_layout_PersonaStateChange_t() {
         )
     );
 }
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum EPersonaChange {
-    k_EPersonaChangeName = 1,
-    k_EPersonaChangeStatus = 2,
-    k_EPersonaChangeComeOnline = 4,
-    k_EPersonaChangeGoneOffline = 8,
-    k_EPersonaChangeGamePlayed = 16,
-    k_EPersonaChangeGameServer = 32,
-    k_EPersonaChangeAvatar = 64,
-    k_EPersonaChangeJoinedSource = 128,
-    k_EPersonaChangeLeftSource = 256,
-    k_EPersonaChangeRelationshipChanged = 512,
-    k_EPersonaChangeNameFirstSet = 1024,
-    k_EPersonaChangeBroadcast = 2048,
-    k_EPersonaChangeNickname = 4096,
-    k_EPersonaChangeSteamLevel = 8192,
-    k_EPersonaChangeRichPresence = 16384,
+impl EPersonaChange {
+    pub const k_EPersonaChangeName: EPersonaChange = EPersonaChange(1);
 }
+impl EPersonaChange {
+    pub const k_EPersonaChangeStatus: EPersonaChange = EPersonaChange(2);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeComeOnline: EPersonaChange = EPersonaChange(4);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGoneOffline: EPersonaChange = EPersonaChange(8);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGamePlayed: EPersonaChange = EPersonaChange(16);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeGameServer: EPersonaChange = EPersonaChange(32);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeAvatar: EPersonaChange = EPersonaChange(64);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeJoinedSource: EPersonaChange = EPersonaChange(128);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeLeftSource: EPersonaChange = EPersonaChange(256);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeRelationshipChanged: EPersonaChange = EPersonaChange(512);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeNameFirstSet: EPersonaChange = EPersonaChange(1024);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeBroadcast: EPersonaChange = EPersonaChange(2048);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeNickname: EPersonaChange = EPersonaChange(4096);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeSteamLevel: EPersonaChange = EPersonaChange(8192);
+}
+impl EPersonaChange {
+    pub const k_EPersonaChangeRichPresence: EPersonaChange = EPersonaChange(16384);
+}
+impl ::std::ops::BitOr<EPersonaChange> for EPersonaChange {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        EPersonaChange(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for EPersonaChange {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: EPersonaChange) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<EPersonaChange> for EPersonaChange {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        EPersonaChange(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for EPersonaChange {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: EPersonaChange) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct EPersonaChange(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct GameOverlayActivated_t {
@@ -5473,663 +5007,7 @@ fn bindgen_test_layout__iobuf() {
     );
 }
 pub type FILE = _iobuf;
-extern "C" {
-    pub fn __acrt_iob_func(_Ix: ::std::os::raw::c_uint) -> *mut FILE;
-}
-extern "C" {
-    pub fn fgetwc(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fgetwchar() -> wint_t;
-}
-extern "C" {
-    pub fn fputwc(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fputwchar(_Character: u16) -> wint_t;
-}
-extern "C" {
-    pub fn getwc(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn getwchar() -> wint_t;
-}
-extern "C" {
-    pub fn fgetws(
-        _Buffer: *mut u16,
-        _BufferCount: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> *mut u16;
-}
-extern "C" {
-    pub fn fputws(_Buffer: *const u16, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getws_s(_Buffer: *mut u16, _BufferCount: usize) -> *mut u16;
-}
-extern "C" {
-    pub fn putwc(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn putwchar(_Character: u16) -> wint_t;
-}
-extern "C" {
-    pub fn _putws(_Buffer: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ungetwc(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _wfdopen(_FileHandle: ::std::os::raw::c_int, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfopen(_FileName: *const u16, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfopen_s(_Stream: *mut *mut FILE, _FileName: *const u16, _Mode: *const u16) -> errno_t;
-}
-extern "C" {
-    pub fn _wfreopen(_FileName: *const u16, _Mode: *const u16, _OldStream: *mut FILE) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wfreopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const u16,
-        _Mode: *const u16,
-        _OldStream: *mut FILE,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn _wfsopen(
-        _FileName: *const u16,
-        _Mode: *const u16,
-        _ShFlag: ::std::os::raw::c_int,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wperror(_ErrorMessage: *const u16);
-}
-extern "C" {
-    pub fn _wpopen(_Command: *const u16, _Mode: *const u16) -> *mut FILE;
-}
-extern "C" {
-    pub fn _wremove(_FileName: *const u16) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _wtempnam(_Directory: *const u16, _FilePrefix: *const u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _wtmpnam_s(_Buffer: *mut u16, _BufferCount: usize) -> errno_t;
-}
-extern "C" {
-    pub fn _wtmpnam(_Buffer: *mut u16) -> *mut u16;
-}
-extern "C" {
-    pub fn _fgetwc_nolock(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _fputwc_nolock(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _getwc_nolock(_Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _putwc_nolock(_Character: u16, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn _ungetwc_nolock(_Character: wint_t, _Stream: *mut FILE) -> wint_t;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfwscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: usize,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: usize,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsnwprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: usize,
-        _MaxCount: usize,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut u16,
-        _BufferCount: usize,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vswscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *const u16,
-        _BufferCount: usize,
-        _Format: *const u16,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
 pub type fpos_t = ::std::os::raw::c_longlong;
-extern "C" {
-    pub fn _get_stream_buffer_pointers(
-        _Stream: *mut FILE,
-        _Base: *mut *mut *mut ::std::os::raw::c_char,
-        _Pointer: *mut *mut *mut ::std::os::raw::c_char,
-        _Count: *mut *mut ::std::os::raw::c_int,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn clearerr_s(_Stream: *mut FILE) -> errno_t;
-}
-extern "C" {
-    pub fn fopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn fread_s(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _BufferSize: usize,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn freopen_s(
-        _Stream: *mut *mut FILE,
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _OldStream: *mut FILE,
-    ) -> errno_t;
-}
-extern "C" {
-    pub fn gets_s(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _Size: rsize_t,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn tmpfile_s(_Stream: *mut *mut FILE) -> errno_t;
-}
-extern "C" {
-    pub fn tmpnam_s(_Buffer: *mut ::std::os::raw::c_char, _Size: rsize_t) -> errno_t;
-}
-extern "C" {
-    pub fn clearerr(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn fclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fcloseall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fdopen(
-        _FileHandle: ::std::os::raw::c_int,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn feof(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ferror(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fflush(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgetc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fgetchar() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgetpos(_Stream: *mut FILE, _Position: *mut fpos_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fgets(
-        _Buffer: *mut ::std::os::raw::c_char,
-        _MaxCount: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn _fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _flushall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn fputc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fputchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fputs(
-        _Buffer: *const ::std::os::raw::c_char,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fread(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn freopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _Stream: *mut FILE,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn _fsopen(
-        _FileName: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-        _ShFlag: ::std::os::raw::c_int,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn fsetpos(_Stream: *mut FILE, _Position: *const fpos_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fseek(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_long,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fseeki64(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_longlong,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ftell(_Stream: *mut FILE) -> ::std::os::raw::c_long;
-}
-extern "C" {
-    pub fn _ftelli64(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
-}
-extern "C" {
-    pub fn fwrite(
-        _Buffer: *const ::std::os::raw::c_void,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn getc(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn getchar() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getmaxstdio() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn perror(_ErrorMessage: *const ::std::os::raw::c_char);
-}
-extern "C" {
-    pub fn _pclose(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _popen(
-        _Command: *const ::std::os::raw::c_char,
-        _Mode: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn putc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn putchar(_Character: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn puts(_Buffer: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _putw(_Word: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn remove(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn rename(
-        _OldFileName: *const ::std::os::raw::c_char,
-        _NewFileName: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn unlink(_FileName: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn rewind(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _rmtmp() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn setbuf(_Stream: *mut FILE, _Buffer: *mut ::std::os::raw::c_char);
-}
-extern "C" {
-    pub fn _setmaxstdio(_Maximum: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn setvbuf(
-        _Stream: *mut FILE,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _Mode: ::std::os::raw::c_int,
-        _Size: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _tempnam(
-        _DirectoryName: *const ::std::os::raw::c_char,
-        _FilePrefix: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn tmpfile() -> *mut FILE;
-}
-extern "C" {
-    pub fn tmpnam(_Buffer: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn ungetc(_Character: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _lock_file(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _unlock_file(_Stream: *mut FILE);
-}
-extern "C" {
-    pub fn _fclose_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fflush_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fgetc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fputc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fread_nolock(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn _fread_nolock_s(
-        _Buffer: *mut ::std::os::raw::c_void,
-        _BufferSize: usize,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn _fseek_nolock(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_long,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _fseeki64_nolock(
-        _Stream: *mut FILE,
-        _Offset: ::std::os::raw::c_longlong,
-        _Origin: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _ftell_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_long;
-}
-extern "C" {
-    pub fn _ftelli64_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_longlong;
-}
-extern "C" {
-    pub fn _fwrite_nolock(
-        _Buffer: *const ::std::os::raw::c_void,
-        _ElementSize: usize,
-        _ElementCount: usize,
-        _Stream: *mut FILE,
-    ) -> usize;
-}
-extern "C" {
-    pub fn _getc_nolock(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _putc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _ungetc_nolock(
-        _Character: ::std::os::raw::c_int,
-        _Stream: *mut FILE,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __p__commode() -> *mut ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _set_printf_count_output(_Value: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn _get_printf_count_output() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vfscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Stream: *mut FILE,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _Arglist: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsnprintf_s(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: usize,
-        _MaxCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsprintf_p(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *mut ::std::os::raw::c_char,
-        _BufferCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __stdio_common_vsscanf(
-        _Options: ::std::os::raw::c_ulonglong,
-        _Buffer: *const ::std::os::raw::c_char,
-        _BufferCount: usize,
-        _Format: *const ::std::os::raw::c_char,
-        _Locale: _locale_t,
-        _ArgList: va_list,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn tempnam(
-        _Directory: *const ::std::os::raw::c_char,
-        _FilePrefix: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn fcloseall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fdopen(
-        _FileHandle: ::std::os::raw::c_int,
-        _Format: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
-}
-extern "C" {
-    pub fn fgetchar() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fileno(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn flushall() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn fputchar(_Ch: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn getw(_Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn putw(_Ch: ::std::os::raw::c_int, _Stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn rmtmp() -> ::std::os::raw::c_int;
-}
 pub const k_cbMaxGameServerGameDir: ::std::os::raw::c_int = 32;
 pub const k_cbMaxGameServerMapName: ::std::os::raw::c_int = 32;
 pub const k_cbMaxGameServerGameDescription: ::std::os::raw::c_int = 64;
@@ -8351,20 +7229,62 @@ pub const k_unEnumeratePublishedFilesMaxResults: uint32 = 50;
 pub const k_cchTagListMax: uint32 = 1025;
 pub const k_cchFilenameMax: uint32 = 260;
 pub const k_cchPublishedFileURLMax: uint32 = 256;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum ERemoteStoragePlatform {
-    k_ERemoteStoragePlatformNone = 0,
-    k_ERemoteStoragePlatformWindows = 1,
-    k_ERemoteStoragePlatformOSX = 2,
-    k_ERemoteStoragePlatformPS3 = 4,
-    k_ERemoteStoragePlatformLinux = 8,
-    k_ERemoteStoragePlatformSwitch = 16,
-    k_ERemoteStoragePlatformAndroid = 32,
-    k_ERemoteStoragePlatformIOS = 64,
-    k_ERemoteStoragePlatformAll = -1,
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformNone: ERemoteStoragePlatform = ERemoteStoragePlatform(0);
 }
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformWindows: ERemoteStoragePlatform = ERemoteStoragePlatform(1);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformOSX: ERemoteStoragePlatform = ERemoteStoragePlatform(2);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformPS3: ERemoteStoragePlatform = ERemoteStoragePlatform(4);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformLinux: ERemoteStoragePlatform = ERemoteStoragePlatform(8);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformSwitch: ERemoteStoragePlatform = ERemoteStoragePlatform(16);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformAndroid: ERemoteStoragePlatform = ERemoteStoragePlatform(32);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformIOS: ERemoteStoragePlatform = ERemoteStoragePlatform(64);
+}
+impl ERemoteStoragePlatform {
+    pub const k_ERemoteStoragePlatformAll: ERemoteStoragePlatform = ERemoteStoragePlatform(-1);
+}
+impl ::std::ops::BitOr<ERemoteStoragePlatform> for ERemoteStoragePlatform {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        ERemoteStoragePlatform(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for ERemoteStoragePlatform {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: ERemoteStoragePlatform) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<ERemoteStoragePlatform> for ERemoteStoragePlatform {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        ERemoteStoragePlatform(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for ERemoteStoragePlatform {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: ERemoteStoragePlatform) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct ERemoteStoragePlatform(pub ::std::os::raw::c_int);
 #[repr(i32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -17874,14 +16794,44 @@ extern "C" {
     pub static k_SteamItemInstanceIDInvalid: SteamItemInstanceID_t;
 }
 pub type SteamItemDef_t = int32;
-#[repr(i32)]
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum ESteamItemFlags {
-    k_ESteamItemNoTrade = 1,
-    k_ESteamItemRemoved = 256,
-    k_ESteamItemConsumed = 512,
+impl ESteamItemFlags {
+    pub const k_ESteamItemNoTrade: ESteamItemFlags = ESteamItemFlags(1);
 }
+impl ESteamItemFlags {
+    pub const k_ESteamItemRemoved: ESteamItemFlags = ESteamItemFlags(256);
+}
+impl ESteamItemFlags {
+    pub const k_ESteamItemConsumed: ESteamItemFlags = ESteamItemFlags(512);
+}
+impl ::std::ops::BitOr<ESteamItemFlags> for ESteamItemFlags {
+    type Output = Self;
+    #[inline]
+    fn bitor(self, other: Self) -> Self {
+        ESteamItemFlags(self.0 | other.0)
+    }
+}
+impl ::std::ops::BitOrAssign for ESteamItemFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: ESteamItemFlags) {
+        self.0 |= rhs.0;
+    }
+}
+impl ::std::ops::BitAnd<ESteamItemFlags> for ESteamItemFlags {
+    type Output = Self;
+    #[inline]
+    fn bitand(self, other: Self) -> Self {
+        ESteamItemFlags(self.0 & other.0)
+    }
+}
+impl ::std::ops::BitAndAssign for ESteamItemFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: ESteamItemFlags) {
+        self.0 &= rhs.0;
+    }
+}
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct ESteamItemFlags(pub ::std::os::raw::c_int);
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamItemDetails_t {

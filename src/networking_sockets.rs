@@ -341,17 +341,15 @@ impl NetworkingSockets {
             p_lanes.set_len(lanes as usize);
             status
         };
-        if result == sys::EResult::k_EResultOK {
-            Ok((
+        crate::to_steam_result(result).map(|_| {
+            (
                 NetConnectionRealTimeInfo { inner: info },
                 p_lanes
                     .into_iter()
                     .map(|x| NetConnectionRealTimeLaneStatus { inner: x })
                     .collect(),
-            ))
-        } else {
-            Err(result.into())
-        }
+            )
+        })
     }
     /// Configure multiple outbound messages streams ("lanes") on a connection, and control head-of-line blocking between them. Messages within a given lane are always sent in the order they are queued, but messages from different lanes may be sent out of order. Each lane has its own message number sequence. The first message sent on each lane will be assigned the number 1.
     ///
@@ -376,11 +374,7 @@ impl NetworkingSockets {
                 lane_weights.as_ptr(),
             )
         };
-        if result == sys::EResult::k_EResultOK {
-            Ok(())
-        } else {
-            Err(result.into())
-        }
+        crate::to_steam_result(result)
     }
 }
 
@@ -675,10 +669,7 @@ impl NetConnection {
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_AcceptConnection(self.sockets, self.handle)
         };
-        match result {
-            sys::EResult::k_EResultOK => Ok(()),
-            error => Err(error.into()),
-        }
+        crate::to_steam_result(result)
     }
 
     /// Disconnects from the remote host and invalidates the connection handle.
@@ -820,10 +811,7 @@ impl NetConnection {
                 send_flags.bits(),
                 &mut out_message_number,
             );
-            match result {
-                sys::EResult::k_EResultOK => Ok(MessageNumber(out_message_number as u64)),
-                error => Err(error.into()),
-            }
+            crate::to_steam_result(result).map(|_| MessageNumber(out_message_number as u64))
         }
     }
 
@@ -851,11 +839,7 @@ impl NetConnection {
                 self.sockets,
                 self.handle,
             );
-            if let sys::EResult::k_EResultOK = result {
-                Ok(())
-            } else {
-                Err(result.into())
-            }
+            crate::to_steam_result(result)
         }
     }
 

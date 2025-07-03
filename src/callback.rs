@@ -44,6 +44,10 @@ pub enum CallbackResult {
     UserStatsReceived(UserStatsReceived),
     UserStatsStored(UserStatsStored),
     ValidateAuthTicketResponse(ValidateAuthTicketResponse),
+    GSClientApprove(GSClientApprove),
+    GSClientDeny(GSClientDeny),
+    GSClientKick(GSClientKick),
+    GSClientGroupStatus(GSClientGroupStatus),
 }
 
 impl CallbackResult {
@@ -107,6 +111,12 @@ impl CallbackResult {
             ValidateAuthTicketResponse::ID => {
                 Self::ValidateAuthTicketResponse(ValidateAuthTicketResponse::from_raw(data))
             }
+            GSClientApprove::ID => Self::GSClientApprove(GSClientApprove::from_raw(data)),
+            GSClientDeny::ID => Self::GSClientDeny(GSClientDeny::from_raw(data)),
+            GSClientKick::ID => Self::GSClientKick(GSClientKick::from_raw(data)),
+            GSClientGroupStatus::ID => {
+                Self::GSClientGroupStatus(GSClientGroupStatus::from_raw(data))
+            }
             _ => return None,
         })
     }
@@ -139,6 +149,21 @@ impl Drop for CallbackHandle {
             }
         }
     }
+}
+
+macro_rules! impl_callback {
+    ($fn_arg_name:ident: $sys_ty:ident => $callback_ty:ident $from_raw_impl:tt) => {
+        paste::item! {
+            unsafe impl Callback for $callback_ty {
+                const ID: i32 = steamworks_sys::[<$sys_ty _ k_iCallback>] as i32;
+
+                unsafe fn from_raw(raw: *mut c_void) -> Self {
+                    let $fn_arg_name = raw.cast::<steamworks_sys::$sys_ty>().read_unaligned();
+                    $from_raw_impl
+                }
+            }
+        }
+    };
 }
 
 pub(crate) unsafe fn register_callback<C, F>(inner: &Arc<Inner>, mut f: F) -> CallbackHandle

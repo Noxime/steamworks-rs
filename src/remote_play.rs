@@ -159,18 +159,11 @@ pub struct RemotePlayConnected {
     pub session: RemotePlaySessionId,
 }
 
-unsafe impl Callback for RemotePlayConnected {
-    const ID: i32 = sys::SteamRemotePlaySessionConnected_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::SteamRemotePlaySessionConnected_t>()
-            .read_unaligned();
-        RemotePlayConnected {
-            session: RemotePlaySessionId::from_raw(val.m_unSessionID),
-        }
+impl_callback!(cb: SteamRemotePlaySessionConnected_t => RemotePlayConnected {
+    Self {
+        session: RemotePlaySessionId::from_raw(cb.m_unSessionID),
     }
-}
+});
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -180,15 +173,8 @@ pub struct RemotePlayDisconnected {
     pub session: RemotePlaySessionId,
 }
 
-unsafe impl Callback for RemotePlayDisconnected {
-    const ID: i32 = sys::SteamRemotePlaySessionDisconnected_t_k_iCallback as i32;
-
-    unsafe fn from_raw(raw: *mut c_void) -> Self {
-        let val = raw
-            .cast::<sys::SteamRemotePlaySessionDisconnected_t>()
-            .read_unaligned();
-        RemotePlayDisconnected {
-            session: RemotePlaySessionId::from_raw(val.m_unSessionID),
-        }
+impl_callback!(cb: SteamRemotePlaySessionDisconnected_t => RemotePlayDisconnected {
+    Self {
+        session: RemotePlaySessionId::from_raw(cb.m_unSessionID),
     }
-}
+});

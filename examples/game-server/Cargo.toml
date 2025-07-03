@@ -1,0 +1,7 @@
+[package]
+name = "game-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+steamworks = { path = "../../" }
