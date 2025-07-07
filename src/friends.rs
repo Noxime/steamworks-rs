@@ -180,6 +180,15 @@ impl Friends {
         }
     }
 
+    /// Opens up an invite dialog that will send Rich Presence connect string to friends
+    pub fn activate_invite_dialog_connect_string(&self, connect: &str) {
+        // Unwraps can only fail if string contains a nul byte
+        let connect = CString::new(connect).unwrap();
+        unsafe {
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialogConnectString(self.friends, connect.as_ptr());
+        }
+    }
+
     /// Set rich presence for the user. Unsets the rich presence if `value` is None or empty.
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
     pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
