@@ -674,6 +674,7 @@ impl_callback!(cb: GSClientApprove_t => GSClientApprove {
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DenyReason {
     Invalid,
     InvalidVersion,
