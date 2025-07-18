@@ -157,3 +157,12 @@ impl Apps {
         }
     }
 }
+
+/// Called after the user executes a steam url with command line or query parameters such as steam://run/<appid>//?param1=value1;param2=value2;param3=value3; while the game is already running.
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct NewUrlLaunchParameters;
+
+impl_callback!(_cb: NewUrlLaunchParameters_t => NewUrlLaunchParameters {
+    Self
+});

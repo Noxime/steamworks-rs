@@ -39,9 +39,9 @@ pub use crate::user::*;
 pub use crate::user_stats::*;
 pub use crate::utils::*;
 
-mod app;
 #[macro_use]
 mod callback;
+mod app;
 mod error;
 mod friends;
 mod input;
