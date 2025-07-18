@@ -48,6 +48,7 @@ pub enum CallbackResult {
     GSClientDeny(GSClientDeny),
     GSClientKick(GSClientKick),
     GSClientGroupStatus(GSClientGroupStatus),
+    NewUrlLaunchParameters(NewUrlLaunchParameters),
 }
 
 impl CallbackResult {
@@ -116,6 +117,9 @@ impl CallbackResult {
             GSClientKick::ID => Self::GSClientKick(GSClientKick::from_raw(data)),
             GSClientGroupStatus::ID => {
                 Self::GSClientGroupStatus(GSClientGroupStatus::from_raw(data))
+            }
+            NewUrlLaunchParameters::ID => {
+                Self::NewUrlLaunchParameters(NewUrlLaunchParameters::from_raw(data))
             }
             _ => return None,
         })
