@@ -180,14 +180,36 @@ impl Friends {
         }
     }
 
-    /// Set rich presence for the user. Unsets the rich presence if `value` is None or empty.
-    /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
-    pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
+    /// Opens up an invite dialog that will send Rich Presence connect string to friends
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `connect` str contains a null byte.
+    pub fn activate_invite_dialog_connect_string(&self, connect: &str) {
+        let connect = CString::new(connect).unwrap();
         unsafe {
-            // Unwraps are infallible because Rust strs cannot contain null bytes
-            let key = CString::new(key).unwrap();
-            let value = CString::new(value.unwrap_or_default()).unwrap();
-            sys::SteamAPI_ISteamFriends_SetRichPresence(self.friends, key.as_ptr(), value.as_ptr())
+            sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialogConnectString(
+                self.friends,
+                connect.as_ptr(),
+            );
+        }
+    }
+
+    /// Set rich presence for the user. Unsets the rich presence if `value` is None or empty.
+    ///
+    /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `key` or `value` str slices contain a null byte.
+    pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
+        let key = CString::new(key).unwrap();
+        let value = value.map(|v| CString::new(v).unwrap());
+        let value_ptr = value
+            .as_ref()
+            .map_or(std::ptr::null(), |value| value.as_ptr());
+        unsafe {
+            sys::SteamAPI_ISteamFriends_SetRichPresence(self.friends, key.as_ptr(), value_ptr)
         }
     }
 

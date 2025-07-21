@@ -139,7 +139,7 @@ impl Server {
             sys::SteamAPI_ManualDispatch_Init();
             let server_raw = sys::SteamAPI_SteamGameServer_v015();
             let server = Arc::new(Inner {
-                manager: Box::new(ServerManager),
+                manager: Manager::Server,
                 callbacks: Callbacks {
                     callbacks: Mutex::new(HashMap::new()),
                     call_results: Mutex::new(HashMap::new()),
@@ -653,25 +653,6 @@ fn test() {
     server.end_authentication_session(id);
 }
 
-/// Manages keeping the steam api active for servers
-struct ServerManager;
-
-impl Manager for ServerManager {
-    fn get_pipe(&self) -> sys::HSteamPipe {
-        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
-        // always safe to call from any thread.
-        unsafe { sys::SteamGameServer_GetHSteamPipe() }
-    }
-}
-
-impl Drop for ServerManager {
-    fn drop(&mut self) {
-        // SAFETY: This is considered unsafe only because of FFI, the function is otherwise
-        // always safe to call from any thread.
-        unsafe { sys::SteamGameServer_Shutdown() }
-    }
-}
-
 /// Called when a client has been approved to connect to this game server
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -693,6 +674,7 @@ impl_callback!(cb: GSClientApprove_t => GSClientApprove {
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DenyReason {
     Invalid,
     InvalidVersion,
