@@ -1,6 +1,6 @@
-use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use {super::*, ::core::mem::MaybeUninit};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage {
@@ -208,6 +208,39 @@ impl SteamFile {
                 file: self,
             }
         }
+    }
+
+    pub fn share(&self) -> std::io::Result<u64> {
+        let api_call =
+            unsafe { sys::SteamAPI_ISteamRemoteStorage_FileShare(self.rs, self.name.as_ptr()) };
+
+        let mut failed = false;
+        while !unsafe {
+            sys::SteamAPI_ISteamUtils_IsAPICallCompleted(self.util, api_call, &mut failed)
+        } {
+            std::thread::yield_now();
+        }
+        if failed {
+            return Err(std::io::ErrorKind::Other.into());
+        }
+        let mut callback = <MaybeUninit<sys::RemoteStorageFileShareResult_t>>::zeroed();
+        unsafe {
+            sys::SteamAPI_ISteamUtils_GetAPICallResult(
+                self.util,
+                api_call,
+                (&mut callback) as *mut _ as *mut _,
+                std::mem::size_of::<sys::RemoteStorageFileShareResult_t>() as _,
+                sys::RemoteStorageFileShareResult_t_k_iCallback as i32,
+                &mut failed,
+            )
+        };
+        let callback = unsafe { callback.assume_init() };
+
+        if callback.m_eResult != sys::EResult::k_EResultOK {
+            return Err(std::io::ErrorKind::Other.into());
+        }
+
+        Ok(callback.m_hFile)
     }
 }
 /// A write handle for a steam cloud file
