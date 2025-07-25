@@ -223,6 +223,14 @@ impl Utils {
         }
     }
 
+    /// Checks if Steam & the Steam Overlay are running in Big Picture mode.
+    ///
+    /// Games must be launched through the Steam client to enable the Big Picture overlay.
+    /// During development, a game can be added as a non-steam game to the developer's library to test this feature.
+    pub fn is_steam_in_big_picture_mode(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUtils_IsSteamInBigPictureMode(self.utils) }
+    }
+
     /// Checks if Steam is running on a Steam Deck device.
     pub fn is_steam_running_on_steam_deck(&self) -> bool {
         unsafe { sys::SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(self.utils) }
