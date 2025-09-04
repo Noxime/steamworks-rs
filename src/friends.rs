@@ -355,6 +355,7 @@ impl Friend {
             match state {
                 sys::EPersonaState::k_EPersonaStateOffline => FriendState::Offline,
                 sys::EPersonaState::k_EPersonaStateOnline => FriendState::Online,
+                sys::EPersonaState::k_EPersonaStateInvisible => FriendState::Invisible,
                 sys::EPersonaState::k_EPersonaStateBusy => FriendState::Busy,
                 sys::EPersonaState::k_EPersonaStateAway => FriendState::Away,
                 sys::EPersonaState::k_EPersonaStateSnooze => FriendState::Snooze,
@@ -491,6 +492,7 @@ impl Friend {
 pub enum FriendState {
     Offline,
     Online,
+    Invisible,
     Busy,
     Away,
     Snooze,
