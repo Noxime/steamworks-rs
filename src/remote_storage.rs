@@ -1,6 +1,6 @@
-use super::*;
 #[cfg(test)]
 use serial_test::serial;
+use {super::*, ::core::mem::MaybeUninit};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage {
@@ -209,7 +209,31 @@ impl SteamFile {
             }
         }
     }
+
+    pub fn share(&self, cb: impl FnOnce(Result<u64, SteamError>) + 'static + Send) {
+        let api_call =
+            unsafe { sys::SteamAPI_ISteamRemoteStorage_FileShare(self.rs, self.name.as_ptr()) };
+        unsafe {
+            register_call_result::<sys::RemoteStorageFileShareResult_t, _>(
+                &self._inner,
+                api_call,
+                move |v, io_error| {
+                    if io_error {
+                        cb(Err(SteamError::IOFailure));
+                        return;
+                    }
+                    if v.m_eResult != sys::EResult::k_EResultOK {
+                        cb(Err(v.m_eResult.into()));
+                        return;
+                    }
+
+                    cb(Ok(v.m_hFile))
+                },
+            )
+        }
+    }
 }
+
 /// A write handle for a steam cloud file
 pub struct SteamFileWriter {
     file: SteamFile,
