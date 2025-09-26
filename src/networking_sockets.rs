@@ -861,7 +861,7 @@ impl NetConnection {
     pub fn receive_messages(
         &mut self,
         batch_size: usize,
-    ) -> Result<Vec<NetworkingMessage>, InvalidHandle> {
+    ) -> Result<impl Iterator<Item = NetworkingMessage> + use<'_>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -886,8 +886,7 @@ impl NetConnection {
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
-            })
-            .collect())
+            }))
     }
 
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
@@ -963,7 +962,7 @@ unsafe impl Send for NetPollGroup {}
 unsafe impl Sync for NetPollGroup {}
 
 impl NetPollGroup {
-    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
+    pub fn receive_messages(&mut self, batch_size: usize) -> impl Iterator<Item = NetworkingMessage> + use<'_> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -985,7 +984,6 @@ impl NetPollGroup {
                 message: x,
                 _inner: self.inner.clone(),
             })
-            .collect()
     }
 }
 
