@@ -889,6 +889,31 @@ impl NetConnection {
             }))
     }
 
+    pub fn receive_messages_to_buffer(&mut self, buffer: &mut Vec<NetworkingMessage>) {
+        let batch_size = buffer.capacity();
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
+        unsafe {
+            let count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
+                self.sockets,
+                self.handle,
+                self.message_buffer.as_mut_ptr(),
+                batch_size as _,
+            ) as usize;
+            self.message_buffer.set_len(count);
+        }
+
+        buffer.extend(self.message_buffer
+            .drain(..)
+            .map(|x| NetworkingMessage {
+                message: x,
+                _inner: self.inner.clone(),
+            }))
+    }
+
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
     /// single poll group.  Adding a connection to a poll group implicitly removes it from
     /// any other poll group it is in.
@@ -984,6 +1009,31 @@ impl NetPollGroup {
                 message: x,
                 _inner: self.inner.clone(),
             })
+    }
+
+    pub fn receive_messages_to_buffer(&mut self, buffer: &mut Vec<NetworkingMessage>) {
+        let batch_size = buffer.capacity();
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
+        unsafe {
+            let count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnPollGroup(
+                self.sockets,
+                self.handle,
+                self.message_buffer.as_mut_ptr(),
+                batch_size as _,
+            ) as usize;
+            self.message_buffer.set_len(count);
+        }
+
+        buffer.extend(self.message_buffer
+            .drain(..)
+            .map(|x| NetworkingMessage {
+                message: x,
+                _inner: self.inner.clone(),
+            }))
     }
 }
 
