@@ -861,7 +861,7 @@ impl NetConnection {
     pub fn receive_messages(
         &mut self,
         batch_size: usize,
-    ) -> Result<impl Iterator<Item = NetworkingMessage> + use<'_>, InvalidHandle> {
+    ) -> Result<Vec<NetworkingMessage>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -886,9 +886,13 @@ impl NetConnection {
             .map(|x| NetworkingMessage {
                 message: x,
                 _inner: self.inner.clone(),
-            }))
+            })
+            .collect())
     }
 
+    /// Like `receive_messages`, however you provide the buffer which messages are extended off of.
+    /// the amount of messages received are based off of the capacity of the buffer.
+    /// the buffer is expected to be cleared after use.
     pub fn receive_messages_to_buffer(&mut self, buffer: &mut Vec<NetworkingMessage>) {
         let batch_size = buffer.capacity();
         if self.message_buffer.capacity() < batch_size {
@@ -906,12 +910,10 @@ impl NetConnection {
             self.message_buffer.set_len(count);
         }
 
-        buffer.extend(self.message_buffer
-            .drain(..)
-            .map(|x| NetworkingMessage {
-                message: x,
-                _inner: self.inner.clone(),
-            }))
+        buffer.extend(self.message_buffer.drain(..).map(|x| NetworkingMessage {
+            message: x,
+            _inner: self.inner.clone(),
+        }))
     }
 
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
@@ -987,7 +989,7 @@ unsafe impl Send for NetPollGroup {}
 unsafe impl Sync for NetPollGroup {}
 
 impl NetPollGroup {
-    pub fn receive_messages(&mut self, batch_size: usize) -> impl Iterator<Item = NetworkingMessage> + use<'_> {
+    pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
         if self.message_buffer.capacity() < batch_size {
             self.message_buffer
                 .reserve(batch_size - self.message_buffer.capacity());
@@ -1009,6 +1011,7 @@ impl NetPollGroup {
                 message: x,
                 _inner: self.inner.clone(),
             })
+            .collect()
     }
 
     pub fn receive_messages_to_buffer(&mut self, buffer: &mut Vec<NetworkingMessage>) {
@@ -1028,12 +1031,10 @@ impl NetPollGroup {
             self.message_buffer.set_len(count);
         }
 
-        buffer.extend(self.message_buffer
-            .drain(..)
-            .map(|x| NetworkingMessage {
-                message: x,
-                _inner: self.inner.clone(),
-            }))
+        buffer.extend(self.message_buffer.drain(..).map(|x| NetworkingMessage {
+            message: x,
+            _inner: self.inner.clone(),
+        }))
     }
 }
 
