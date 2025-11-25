@@ -156,7 +156,7 @@ impl AchievementHelper<'_> {
             }
         }
     }
- 
+
     /// Get general attributes for an achievement. Currently provides: `Name`, `Description`,
     /// and `Hidden` status.
     ///
