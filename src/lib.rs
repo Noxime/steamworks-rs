@@ -211,6 +211,14 @@ pub fn restart_app_if_necessary(app_id: AppId) -> bool {
     unsafe { sys::SteamAPI_RestartAppIfNecessary(app_id.0) }
 }
 
+/// When you are done using the Steamworks API you should call
+/// SteamAPI_Shutdown to release the resources used by your application
+/// internally within Steam. You should call this during process
+/// shutdown if possible.
+pub fn shutdown() {
+    unsafe { sys::SteamAPI_Shutdown() }
+}
+
 fn static_assert_send<T: Send>() {}
 fn static_assert_sync<T>()
 where
