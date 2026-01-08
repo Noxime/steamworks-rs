@@ -1,0 +1,8 @@
+[package]
+name = "networking-sockets"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+steamworks = { path = "../.." }
+macroquad = "0.4"
