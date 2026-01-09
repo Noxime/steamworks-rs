@@ -487,6 +487,7 @@ impl Friend {
         }
     }
 
+    /// Get a Rich Presence value from a specified friend.
     pub fn rich_presence(&self, key: &str) -> Option<String> {
         let key = CString::new(key).unwrap();
         let value = unsafe {
