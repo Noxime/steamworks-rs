@@ -198,7 +198,7 @@ struct NetworkingSocketsData {
         ),
     >,
     /// Connections to a remote listening port
-    independent_connections: HashMap<sys::HSteamNetConnection, Sender<()>>,
+    independent_connections: HashMap<sys::HSteamNetConnection, Sender<networking_types::NetConnectionEvent>>,
     connection_callback: Weak<CallbackHandle>,
 }
 
