@@ -486,6 +486,21 @@ impl Friend {
             sys::SteamAPI_ISteamFriends_SetPlayedWith(self.friends, self.id.0);
         }
     }
+
+    pub fn rich_presence(&self, key: &str) -> Option<String> {
+        let key = CString::new(key).unwrap();
+        let value = unsafe {
+            sys::SteamAPI_ISteamFriends_GetFriendRichPresence(self.friends, self.id.0, key.as_ptr())
+        };
+        if value.is_null() {
+            return None;
+        }
+        let cstr = unsafe { CStr::from_ptr(value) };
+        if cstr.is_empty() {
+            return None;
+        }
+        Some(cstr.to_string_lossy().into_owned())
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
