@@ -928,7 +928,7 @@ impl NetConnection {
 
     /// Receives messages like `receive_messages`, but does not allocate a Vec to get the results.
     /// 
-    /// Instead, whenever a message is received, the closure is called will `NetworkingMessage` for every message.
+    /// Instead, whenever a message is received, the closure is called with a `NetworkingMessage` for every message.
     ///
     /// All messages will always be received in one call and you don't have to worry about batch size.
     pub fn receive_messages_noalloc(&mut self, mut f: impl FnMut(NetworkingMessage)) {
