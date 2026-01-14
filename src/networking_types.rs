@@ -1108,7 +1108,7 @@ impl TryFrom<sys::ESteamNetworkingAvailability> for NetworkingAvailability {
 pub struct InvalidEnumValue;
 
 /// Struct to get info about this specific connection.
-/// 
+///
 /// Things you might want to get:
 /// * Identity (SteamID or IP Address)
 /// * Connection State: connecting, ongoing, disconnected by peer, ...
@@ -1785,7 +1785,9 @@ impl NetworkingIdentity {
     }
 
     pub fn is_equal_to(&self, other: &Self) -> bool {
-        unsafe { sys::SteamAPI_SteamNetworkingIdentity_IsEqualTo(self.as_ptr() as *mut _, other.as_ptr()) }
+        unsafe {
+            sys::SteamAPI_SteamNetworkingIdentity_IsEqualTo(self.as_ptr() as *mut _, other.as_ptr())
+        }
     }
 
     pub(crate) fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {

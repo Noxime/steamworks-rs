@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use steamworks::{
     networking_types::{NetworkingIdentity, SendFlags},
-    Friends,
-    FriendFlags,
+    FriendFlags, Friends,
 };
 
 mod states;
@@ -15,7 +14,8 @@ const APP_ID: u32 = 480;
 #[macroquad::main("steamworks-rs-networking-sockets")]
 async fn main() {
     prevent_quit();
-    let client = steamworks::Client::init_app(APP_ID).expect("Steam is not running or has not been detected");
+    let client = steamworks::Client::init_app(APP_ID)
+        .expect("Steam is not running or has not been detected");
 
     request_new_screen_size(1280.0, 720.0);
 

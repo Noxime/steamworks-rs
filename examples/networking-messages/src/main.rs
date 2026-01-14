@@ -11,8 +11,8 @@ const APP_ID: u32 = 480;
 
 #[macroquad::main("steamworks-rs-networking-messages")]
 async fn main() {
-    let client =
-        steamworks::Client::init_app(APP_ID).expect("Steam is not running or has not been detected");
+    let client = steamworks::Client::init_app(APP_ID)
+        .expect("Steam is not running or has not been detected");
 
     // Get the API interfaces
     let friends = client.friends();

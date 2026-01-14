@@ -1,10 +1,12 @@
-use steamworks::{
-    Client as SteamClient, FriendFlags, Friends, SteamId,
-    networking_sockets::{ListenSocket, NetConnection, NetworkingSockets},
-    networking_types::{ListenSocketEvent, NetworkingConnectionState, NetworkingIdentity, SendFlags}
-};
 use macroquad::prelude::*;
 use std::time::Instant;
+use steamworks::{
+    networking_sockets::{ListenSocket, NetConnection, NetworkingSockets},
+    networking_types::{
+        ListenSocketEvent, NetworkingConnectionState, NetworkingIdentity, SendFlags,
+    },
+    Client as SteamClient, FriendFlags, Friends, SteamId,
+};
 
 pub enum State {
     MainMenu(MainMenuState),
@@ -73,11 +75,22 @@ impl MainMenuState {
         let mut pos_y = START_Y;
         draw_text("[S] to start a server", MARGIN_X, pos_y, FONT_SIZE, WHITE);
         pos_y += PER_LINE;
-        draw_text("list of friends to connect:", MARGIN_X, pos_y, FONT_SIZE, WHITE);
+        draw_text(
+            "list of friends to connect:",
+            MARGIN_X,
+            pos_y,
+            FONT_SIZE,
+            WHITE,
+        );
         pos_y += PER_LINE;
 
         for (i, friend) in self.friends.iter().take(4).enumerate() {
-            let text = format!("[{}] to try connect to {} (id {})", i + 1, friend.0, friend.1.raw());
+            let text = format!(
+                "[{}] to try connect to {} (id {})",
+                i + 1,
+                friend.0,
+                friend.1.raw()
+            );
             draw_text(&*text, MARGIN_X, pos_y, FONT_SIZE, WHITE);
             pos_y += PER_LINE;
         }
@@ -94,8 +107,12 @@ impl MainMenuState {
         }
 
         for (i, (k1, k2)) in join_key_codes.iter().enumerate() {
-            if !is_key_down(*k1) && !is_key_down(*k2) { continue; }
-            let Some(friend) = self.friends.get(i) else { continue };
+            if !is_key_down(*k1) && !is_key_down(*k2) {
+                continue;
+            }
+            let Some(friend) = self.friends.get(i) else {
+                continue;
+            };
 
             return State::Client(ClientState::new(self.steam, friend.1));
         }
@@ -118,39 +135,55 @@ impl ServerState {
         // not necessary, call this before you know you will need this to reduce initial connection delay,
         // but it is done automatically if needed
         steam.networking_utils().init_relay_network_access();
-        let listen_socket = networking_sockets.create_listen_socket_p2p(0, vec!()).expect("failed to create listener");
+        let listen_socket = networking_sockets
+            .create_listen_socket_p2p(0, vec![])
+            .expect("failed to create listener");
 
         Self {
             steam,
             listen_socket,
-            remotes: vec!(),
+            remotes: vec![],
         }
     }
 
     fn process_render(mut self) -> State {
         self.steam.run_callbacks();
         clear_background(DARKBROWN);
-        let txt = format!("server is listening, currently connected to {} clients", self.remotes.len());
+        let txt = format!(
+            "server is listening, currently connected to {} clients",
+            self.remotes.len()
+        );
         draw_text(&*txt, MARGIN_X, START_Y, FONT_SIZE, WHITE);
 
         while let Some(event) = self.listen_socket.try_receive_event() {
             match event {
                 ListenSocketEvent::Connecting(connecting) => {
-                    println!("received event Connecting: {:?} user_data={}",
-                        connecting.remote(), connecting.user_data()
+                    println!(
+                        "received event Connecting: {:?} user_data={}",
+                        connecting.remote(),
+                        connecting.user_data()
                     );
                     connecting.accept().unwrap();
-                },
+                }
                 ListenSocketEvent::Connected(connected) => {
-                    println!("received event Connected: {:?} user_data={}",
-                        connected.remote(), connected.user_data()
+                    println!(
+                        "received event Connected: {:?} user_data={}",
+                        connected.remote(),
+                        connected.user_data()
                     );
-                    self.remotes.push((connected.remote(), connected.take_connection(), (0.0, 0.0)));
-                },
+                    self.remotes.push((
+                        connected.remote(),
+                        connected.take_connection(),
+                        (0.0, 0.0),
+                    ));
+                }
                 ListenSocketEvent::Disconnected(disconnected) => {
                     let remote = disconnected.remote();
-                    println!("received event Disconnected {:?}: {:?} user_data={}",
-                        disconnected.end_reason(), remote, disconnected.user_data()
+                    println!(
+                        "received event Disconnected {:?}: {:?} user_data={}",
+                        disconnected.end_reason(),
+                        remote,
+                        disconnected.user_data()
                     );
                     self.remotes.retain(|c| c.0 != remote);
                 }
@@ -162,7 +195,9 @@ impl ServerState {
 
             net_conn.receive_messages_noalloc(|msg| {
                 let data = msg.data();
-                if data.len() < 8 { return };
+                if data.len() < 8 {
+                    return;
+                };
                 let x = f32::from_le_bytes(data[0..4].try_into().unwrap());
                 let y = f32::from_le_bytes(data[4..8].try_into().unwrap());
                 *pos_x = x;
@@ -192,7 +227,8 @@ impl ClientState {
         steam.networking_utils().init_relay_network_access();
 
         let networking_identity = NetworkingIdentity::new_steam_id(friend_steam_id.clone());
-        let net_connection = networking_sockets.connect_p2p(networking_identity, 0, vec!())
+        let net_connection = networking_sockets
+            .connect_p2p(networking_identity, 0, vec![])
             .expect("failed to create connection");
 
         Self {
@@ -210,10 +246,25 @@ impl ClientState {
         let info = self.net_connection.info().unwrap();
         let friend_steam_id = self.friend_steam_id.steamid32();
         let (bg_color, txt) = match info.state().unwrap() {
-            NetworkingConnectionState::Connecting => (BLACK, format!("connecting to friend {}...", friend_steam_id)),
-            NetworkingConnectionState::FindingRoute => (BLACK, format!("pathing to friend {}...", friend_steam_id)),
-            NetworkingConnectionState::Connected => (DARKBROWN, format!("connected to friend {}", friend_steam_id)),
-            _ => (RED, format!("disconnected from friend {}; reason = {:?}", friend_steam_id, info.end_reason())),
+            NetworkingConnectionState::Connecting => (
+                BLACK,
+                format!("connecting to friend {}...", friend_steam_id),
+            ),
+            NetworkingConnectionState::FindingRoute => {
+                (BLACK, format!("pathing to friend {}...", friend_steam_id))
+            }
+            NetworkingConnectionState::Connected => (
+                DARKBROWN,
+                format!("connected to friend {}", friend_steam_id),
+            ),
+            _ => (
+                RED,
+                format!(
+                    "disconnected from friend {}; reason = {:?}",
+                    friend_steam_id,
+                    info.end_reason()
+                ),
+            ),
         };
         clear_background(bg_color);
         let mut pos_y = START_Y;
@@ -236,7 +287,9 @@ impl ClientState {
         data_to_send[0..4].copy_from_slice(&self.our_mouse_pos.0.to_le_bytes());
         data_to_send[4..8].copy_from_slice(&self.our_mouse_pos.1.to_le_bytes());
 
-        self.net_connection.send_message(&data_to_send, SendFlags::RELIABLE_NO_NAGLE).unwrap();
+        self.net_connection
+            .send_message(&data_to_send, SendFlags::RELIABLE_NO_NAGLE)
+            .unwrap();
 
         draw_circle(self.our_mouse_pos.0, self.our_mouse_pos.1, 5.0, BLUE);
 

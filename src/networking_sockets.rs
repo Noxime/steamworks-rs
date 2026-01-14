@@ -607,12 +607,12 @@ impl NetConnection {
 
     pub fn info(&self) -> Result<NetConnectionInfo, InvalidHandle> {
         let mut steam_net_conn_info = std::mem::MaybeUninit::uninit();
-        
+
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
                 self.sockets,
                 self.handle,
-                steam_net_conn_info.as_mut_ptr()
+                steam_net_conn_info.as_mut_ptr(),
             )
         };
 
@@ -927,7 +927,7 @@ impl NetConnection {
     }
 
     /// Receives messages like `receive_messages`, but does not allocate a Vec to get the results.
-    /// 
+    ///
     /// Instead, whenever a message is received, the closure is called with a `NetworkingMessage` for every message.
     ///
     /// All messages will always be received in one call and you don't have to worry about batch size.
@@ -941,10 +941,15 @@ impl NetConnection {
         }
 
         loop {
-            let Ok(message_count) = self.receive_messages_internal() else { return };
+            let Ok(message_count) = self.receive_messages_internal() else {
+                return;
+            };
 
             for msg in self.message_buffer.drain(..) {
-                f(NetworkingMessage { message: msg, _inner: self.inner.clone() })
+                f(NetworkingMessage {
+                    message: msg,
+                    _inner: self.inner.clone(),
+                })
             }
             if message_count < cap {
                 break;
@@ -978,11 +983,13 @@ impl NetConnection {
     }
 
     /// Tries to receive a pending event. This will never block.
-    /// 
+    ///
     /// Some `NetConnection` do not receive events through this method but instead through the ListenSocket,
     /// in that case this will always return `None`
     pub fn try_receive_event(&self) -> Option<NetConnectionEvent> {
-        self.event_receiver.as_ref().and_then(|receiver| receiver.try_recv().ok())
+        self.event_receiver
+            .as_ref()
+            .and_then(|receiver| receiver.try_recv().ok())
     }
 
     /// Returns an iterator for ListenSocketEvents that will block until the next event is received
@@ -991,7 +998,9 @@ impl NetConnection {
     /// in that case this will always return `None`. Otherwise, this will return an iterator that empties
     /// the queue of events.
     pub fn try_events<'a>(&'a self) -> Option<impl Iterator<Item = NetConnectionEvent> + 'a> {
-        self.event_receiver.as_ref().map(|receiver| receiver.try_iter())
+        self.event_receiver
+            .as_ref()
+            .map(|receiver| receiver.try_iter())
     }
 
     pub fn run_callbacks(&self) {

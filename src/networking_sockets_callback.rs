@@ -1,6 +1,7 @@
 use crate::networking_sockets::NetConnection;
 use crate::networking_types::{
-    AppNetConnectionEnd, NetConnectionEnd, NetConnectionEvent, NetConnectionStatusChanged, NetworkingConnectionState
+    AppNetConnectionEnd, NetConnectionEnd, NetConnectionEvent, NetConnectionStatusChanged,
+    NetworkingConnectionState,
 };
 use crate::{register_callback, CallbackHandle, Inner};
 use std::sync::{Arc, Weak};
@@ -91,19 +92,23 @@ impl ConnectionCallbackHandler {
     }
 
     fn independent_connection_callback(&self, status_changed: NetConnectionStatusChanged) {
-        let Some(inner) = self.inner.upgrade() else { return };
+        let Some(inner) = self.inner.upgrade() else {
+            return;
+        };
         let data = inner.networking_sockets_data.lock().unwrap();
 
         let Some(sender) = data.independent_connections.get(&status_changed.connection) else {
             // received an event of a connection we did not track... this should basically never happen
             // println!("wrong connection {}; avail = {:?}",
             //    event.connection, data.independent_connections.keys().collect::<Vec<_>>());
-            return
+            return;
         };
-        let Ok(new_state) = status_changed.connection_info.state() else { return };
+        let Ok(new_state) = status_changed.connection_info.state() else {
+            return;
+        };
         let event = NetConnectionEvent {
             new_state,
-            old_state: status_changed.old_state
+            old_state: status_changed.old_state,
         };
         if let Err(_r) = sender.send(event) {
             // something definitely went wrong... but realistically what can we do but simply drop the event?
