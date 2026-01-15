@@ -61,6 +61,32 @@ impl User {
         }
     }
 
+    /// Legacy interface for authentication
+    pub fn initiate_game_connection(&self, game_server_steam_id: SteamId, server_ip: u32, server_port: u16, secure: bool) -> Vec<u8> {
+        unsafe {
+            let mut ticket = vec![0; 2048];
+
+            let ticket_len = sys::SteamAPI_ISteamUser_InitiateGameConnection_DEPRECATED(
+                self.user,
+                ticket.as_mut_ptr().cast(),
+                2048,
+                game_server_steam_id.raw(),
+                server_ip,
+                server_port,
+                secure);
+
+            ticket.truncate(ticket_len as usize);
+            return ticket;
+        }
+    }
+
+    /// Legacy interface for authentication
+    pub fn terminate_game_connection(&self, server_ip: u32, server_port: u16) {
+        unsafe {
+            sys::SteamAPI_ISteamUser_TerminateGameConnection_DEPRECATED(self.user, server_ip, server_port);
+        }
+    }
+
     /// Cancels an authentication session ticket received from
     /// `authentication_session_ticket`.
     ///
