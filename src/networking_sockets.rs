@@ -903,18 +903,6 @@ impl NetConnection {
         }
 
         self.receive_messages_internal()?;
-        unsafe {
-            let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
-                self.sockets,
-                self.handle,
-                self.message_buffer.as_mut_ptr(),
-                batch_size as _,
-            );
-            if message_count < 0 {
-                return Err(InvalidHandle);
-            }
-            self.message_buffer.set_len(message_count as usize);
-        }
 
         Ok(self
             .message_buffer
