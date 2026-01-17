@@ -792,7 +792,7 @@ impl UGC {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::DownloadItemResult_t, _>(
+            register_call_result::<sys::DeleteItemResult_t, _>(
                 &self.inner,
                 api_call,
                 move |v, io_error| {
