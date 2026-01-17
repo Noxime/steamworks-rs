@@ -809,6 +809,106 @@ impl UGC {
             );
         }
     }
+
+    /// Start tracking playtime on a set of workshop items.
+    ///
+    /// When your app shuts down, playtime tracking will automatically stop.
+    ///
+    /// # Arguments
+    /// * `published_file_ids` - The array of workshop items you want to start tracking. (Maximum of 100 items.)
+    ///
+    /// # Returns
+    /// A callback with the result of the operation.
+    pub fn start_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StartPlaytimeTracking(
+                self.ugc,
+                published_file_ids.as_ptr() as *mut u64,
+                published_file_ids.len() as u32,
+            );
+            register_call_result::<sys::StartPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
+
+    /// Stop tracking playtime on a set of workshop items.
+    ///
+    /// This will increment the number of "playtime" sessions for those items by one.
+    /// When your app shuts down, playtime tracking will automatically stop.
+    ///
+    /// # Arguments
+    /// * `published_file_ids` - The array of workshop items you want to stop tracking. (Maximum of 100 items.)
+    ///
+    /// # Returns
+    /// A callback with the result of the operation.
+    pub fn stop_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTracking(
+                self.ugc,
+                published_file_ids.as_ptr() as *mut u64,
+                published_file_ids.len() as u32,
+            );
+            register_call_result::<sys::StopPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
+
+    /// Stop tracking playtime of all workshop items.
+    ///
+    /// When your app shuts down, playtime tracking will automatically stop.
+    /// This will increment the number of "playtime" sessions for all items that were being tracked by one.
+    ///
+    /// # Returns
+    /// A callback with the result of the operation.
+    pub fn stop_playtime_tracking_for_all_items<F>(&self, cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTrackingForAllItems(self.ugc);
+            register_call_result::<sys::StopPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
 }
 
 impl UGC {
