@@ -502,6 +502,20 @@ impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct DeleteItemResult {
+    pub published_file_id: PublishedFileId,
+    pub result: sys::EResult,
+}
+
+impl_callback!(cb: DeleteItemResult_t => DeleteItemResult {
+    Self {
+        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
+        result: cb.m_eResult,
+    }
+});
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InstallInfo {
     pub folder: String,
     pub size_on_disk: u64,
