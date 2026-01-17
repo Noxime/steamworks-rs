@@ -811,14 +811,6 @@ impl UGC {
     }
 
     /// Start tracking playtime on a set of workshop items.
-    ///
-    /// When your app shuts down, playtime tracking will automatically stop.
-    ///
-    /// # Arguments
-    /// * `published_file_ids` - The array of workshop items you want to start tracking. (Maximum of 100 items.)
-    ///
-    /// # Returns
-    /// A callback with the result of the operation.
     pub fn start_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
@@ -846,15 +838,6 @@ impl UGC {
     }
 
     /// Stop tracking playtime on a set of workshop items.
-    ///
-    /// This will increment the number of "playtime" sessions for those items by one.
-    /// When your app shuts down, playtime tracking will automatically stop.
-    ///
-    /// # Arguments
-    /// * `published_file_ids` - The array of workshop items you want to stop tracking. (Maximum of 100 items.)
-    ///
-    /// # Returns
-    /// A callback with the result of the operation.
     pub fn stop_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
@@ -882,12 +865,6 @@ impl UGC {
     }
 
     /// Stop tracking playtime of all workshop items.
-    ///
-    /// When your app shuts down, playtime tracking will automatically stop.
-    /// This will increment the number of "playtime" sessions for all items that were being tracked by one.
-    ///
-    /// # Returns
-    /// A callback with the result of the operation.
     pub fn stop_playtime_tracking_for_all_items<F>(&self, cb: F)
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
