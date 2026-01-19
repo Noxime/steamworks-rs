@@ -193,7 +193,7 @@ impl ServerState {
         for (_net_id, net_conn, (pos_x, pos_y)) in &mut self.remotes {
             net_conn.run_callbacks();
 
-            net_conn.receive_messages_noalloc(|msg| {
+            net_conn.receive_messages_with(|msg| {
                 let data = msg.data();
                 if data.len() < 8 {
                     return;

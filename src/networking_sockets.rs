@@ -863,14 +863,15 @@ impl NetConnection {
     }
 
     /// Internal function used by `receive_messages` and `receive_messages_noalloc`.
-    fn receive_messages_internal(&mut self) -> Result<usize, InvalidHandle> {
+    fn receive_messages_internal(&mut self, batch_size: usize) -> Result<usize, InvalidHandle> {
+        debug_assert!(self.message_buffer.capacity() >= batch_size);
         self.message_buffer.clear();
         let message_count = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
                 self.sockets,
                 self.handle,
                 self.message_buffer.as_mut_ptr(),
-                self.message_buffer.capacity() as _,
+                batch_size as _,
             )
         };
         if message_count < 0 {
@@ -902,7 +903,7 @@ impl NetConnection {
                 .reserve(batch_size - self.message_buffer.capacity());
         }
 
-        self.receive_messages_internal()?;
+        self.receive_messages_internal(batch_size)?;
 
         Ok(self
             .message_buffer
@@ -914,22 +915,45 @@ impl NetConnection {
             .collect())
     }
 
+    /// Like `receive_messages`, but puts the results inside `dest`
+    pub fn receive_messages_into(
+        &mut self,
+        dest: &mut Vec<NetworkingMessage>,
+        batch_size: usize,
+    ) -> Result<(), InvalidHandle> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
+        self.receive_messages_internal(batch_size)?;
+
+        dest.reserve_exact(batch_size);
+        for message in self.message_buffer.drain(..) {
+            dest.push(NetworkingMessage {
+                message,
+                _inner: self.inner.clone(),
+            });
+        }
+
+        Ok(())
+    }
+
     /// Receives messages like `receive_messages`, but does not allocate a Vec to get the results.
     ///
     /// Instead, whenever a message is received, the closure is called with a `NetworkingMessage` for every message.
     ///
-    /// All messages will always be received in one call and you don't have to worry about batch size.
-    pub fn receive_messages_noalloc(&mut self, mut f: impl FnMut(NetworkingMessage)) {
+    /// All messages available in the queue will always be received in one call and you don't have to worry about batch size.
+    pub fn receive_messages_with(&mut self, mut f: impl FnMut(NetworkingMessage)) {
         const MIN_CAPACITY: usize = 32;
-        let cap = self.message_buffer.capacity();
+        let mut cap = self.message_buffer.capacity();
         if cap < MIN_CAPACITY {
-            self.message_buffer.reserve(MIN_CAPACITY - cap);
-            self.receive_messages_noalloc(f);
-            return;
+            self.message_buffer.reserve_exact(MIN_CAPACITY - cap);
+            cap = self.message_buffer.capacity();
         }
 
         loop {
-            let Ok(message_count) = self.receive_messages_internal() else {
+            let Ok(message_count) = self.receive_messages_internal(cap) else {
                 return;
             };
 
