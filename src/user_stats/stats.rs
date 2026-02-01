@@ -150,7 +150,7 @@ impl AchievementHelper<'_> {
     ///
     /// - `request_current_stats()` has completed and successfully returned its callback.
     /// - The specified achievement exists in App Admin on the Steamworks website, and the
-    /// changes are published.
+    ///   changes are published.
     /// - The specified `pchKey` is valid.
     ///
     /// # Example

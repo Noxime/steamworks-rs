@@ -1,6 +1,6 @@
 #[cfg(test)]
 use serial_test::serial;
-use {super::*, ::core::mem::MaybeUninit};
+use {super::*};
 
 /// Access to the steam remote storage interface
 pub struct RemoteStorage {
