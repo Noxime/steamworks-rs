@@ -130,6 +130,34 @@ impl AchievementHelper<'_> {
         }
     }
 
+    /// Gets the achievement status, and the time it was unlocked if unlocked.
+    ///
+    /// You must call `request_current_stats() or request_user_stats(steam_user_id)` and
+    /// successfully returned it's callback.
+    ///
+    /// If the return value is true but the unlock time is zero, that means it was unlocked before
+    /// Steam began tracking achievement unlock times (December 2009). The time is provided in Unix
+    /// epoch format, seconds since January 1, 1970 UTC.
+    pub fn get_achievement_and_unlock_time(&self) -> Result<(bool, u32), ()> {
+        let mut achieved = false;
+        let mut unlocktime = 0u32;
+
+        let success = unsafe {
+            sys::SteamAPI_ISteamUserStats_GetAchievementAndUnlockTime(
+                self.parent.user_stats,
+                self.name.as_ptr(),
+                &mut achieved,
+                &mut unlocktime,
+            )
+        };
+
+        if success {
+            Ok((achieved, unlocktime))
+        } else {
+            Err(())
+        }
+    }
+
     /// Get general attributes for an achievement. Currently provides: `Name`, `Description`,
     /// and `Hidden` status.
     ///
