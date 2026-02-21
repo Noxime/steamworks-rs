@@ -502,6 +502,20 @@ impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct DeleteItemResult {
+    pub published_file_id: PublishedFileId,
+    pub result: sys::EResult,
+}
+
+impl_callback!(cb: DeleteItemResult_t => DeleteItemResult {
+    Self {
+        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
+        result: cb.m_eResult,
+    }
+});
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InstallInfo {
     pub folder: String,
     pub size_on_disk: u64,
@@ -792,7 +806,7 @@ impl UGC {
     {
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::DownloadItemResult_t, _>(
+            register_call_result::<sys::DeleteItemResult_t, _>(
                 &self.inner,
                 api_call,
                 move |v, io_error| {
@@ -801,6 +815,83 @@ impl UGC {
                     } else if v.m_eResult != sys::EResult::k_EResultNone
                         && v.m_eResult != sys::EResult::k_EResultOK
                     {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
+
+    /// Start tracking playtime on a set of workshop items.
+    pub fn start_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StartPlaytimeTracking(
+                self.ugc,
+                published_file_ids.as_ptr() as *mut u64,
+                published_file_ids.len() as u32,
+            );
+            register_call_result::<sys::StartPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
+
+    /// Stop tracking playtime on a set of workshop items.
+    pub fn stop_playtime_tracking<F>(&self, published_file_ids: &[PublishedFileId], cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTracking(
+                self.ugc,
+                published_file_ids.as_ptr() as *mut u64,
+                published_file_ids.len() as u32,
+            );
+            register_call_result::<sys::StopPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
+                        Err(v.m_eResult.into())
+                    } else {
+                        Ok(())
+                    })
+                },
+            );
+        }
+    }
+
+    /// Stop tracking playtime of all workshop items.
+    pub fn stop_playtime_tracking_for_all_items<F>(&self, cb: F)
+    where
+        F: FnOnce(Result<(), SteamError>) + 'static + Send,
+    {
+        unsafe {
+            let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTrackingForAllItems(self.ugc);
+            register_call_result::<sys::StopPlaytimeTrackingResult_t, _>(
+                &self.inner,
+                api_call,
+                move |v, io_error| {
+                    cb(if io_error {
+                        Err(SteamError::IOFailure)
+                    } else if v.m_eResult != sys::EResult::k_EResultOK {
                         Err(v.m_eResult.into())
                     } else {
                         Ok(())
