@@ -17,7 +17,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use sys::SteamNetworkingMessage_t;
 
-use crate::networking_types::AppNetConnectionEnd;
+use crate::networking_types::{AppNetConnectionEnd, NetConnectionEvent};
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
@@ -533,7 +533,7 @@ pub struct NetConnection {
     inner: Arc<Inner>,
     socket: Option<Arc<InnerSocket>>,
     _callback_handle: Option<Arc<CallbackHandle>>,
-    _event_receiver: Option<Receiver<()>>,
+    event_receiver: Option<Receiver<NetConnectionEvent>>,
     message_buffer: Vec<*mut SteamNetworkingMessage_t>,
     is_handled: bool,
 }
@@ -554,7 +554,7 @@ impl NetConnection {
             inner,
             socket: Some(socket),
             _callback_handle: None,
-            _event_receiver: None,
+            event_receiver: None,
             message_buffer: Vec::new(),
             is_handled: false,
         }
@@ -580,7 +580,7 @@ impl NetConnection {
             inner,
             socket: None,
             _callback_handle: Some(callback),
-            _event_receiver: Some(receiver),
+            event_receiver: Some(receiver),
             message_buffer: Vec::new(),
             is_handled: false,
         }
@@ -599,9 +599,28 @@ impl NetConnection {
             inner,
             socket: None,
             _callback_handle: None,
-            _event_receiver: None,
+            event_receiver: None,
             message_buffer: Vec::new(),
             is_handled: false,
+        }
+    }
+
+    pub fn info(&self) -> Result<NetConnectionInfo, InvalidHandle> {
+        let mut steam_net_conn_info = std::mem::MaybeUninit::uninit();
+
+        let was_successful = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
+                self.sockets,
+                self.handle,
+                steam_net_conn_info.as_mut_ptr(),
+            )
+        };
+
+        if was_successful {
+            let steam_net_conn_info = unsafe { steam_net_conn_info.assume_init() };
+            Ok(NetConnectionInfo::from(steam_net_conn_info))
+        } else {
+            Err(InvalidHandle)
         }
     }
 
@@ -843,6 +862,27 @@ impl NetConnection {
         }
     }
 
+    /// Internal function used by `receive_messages` and `receive_messages_noalloc`.
+    fn receive_messages_internal(&mut self, batch_size: usize) -> Result<usize, InvalidHandle> {
+        debug_assert!(self.message_buffer.capacity() >= batch_size);
+        self.message_buffer.clear();
+        let message_count = unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
+                self.sockets,
+                self.handle,
+                self.message_buffer.as_mut_ptr(),
+                batch_size as _,
+            )
+        };
+        if message_count < 0 {
+            return Err(InvalidHandle);
+        }
+        unsafe {
+            self.message_buffer.set_len(message_count as usize);
+        }
+        Ok(message_count as usize)
+    }
+
     /// Fetch the next available message(s) from the connection, if any.
     /// Returns the number of messages returned into your array, up to nMaxMessages.
     /// If the connection handle is invalid, -1 is returned.
@@ -854,10 +894,6 @@ impl NetConnection {
     /// Unreliable messages may be dropped, or delivered out of order with respect to
     /// each other or with respect to reliable messages.  The same unreliable message
     /// may be received multiple times.
-    ///
-    /// If any messages are returned, you MUST call SteamNetworkingMessage_t::Release() on each
-    /// of them free up resources after you are done.  It is safe to keep the object alive for
-    /// a little while (put it into some queue, etc), and you may call Release() from any thread.
     pub fn receive_messages(
         &mut self,
         batch_size: usize,
@@ -867,18 +903,7 @@ impl NetConnection {
                 .reserve(batch_size - self.message_buffer.capacity());
         }
 
-        unsafe {
-            let message_count = sys::SteamAPI_ISteamNetworkingSockets_ReceiveMessagesOnConnection(
-                self.sockets,
-                self.handle,
-                self.message_buffer.as_mut_ptr(),
-                batch_size as _,
-            );
-            if message_count < 0 {
-                return Err(InvalidHandle);
-            }
-            self.message_buffer.set_len(message_count as usize);
-        }
+        self.receive_messages_internal(batch_size)?;
 
         Ok(self
             .message_buffer
@@ -888,6 +913,60 @@ impl NetConnection {
                 _inner: self.inner.clone(),
             })
             .collect())
+    }
+
+    /// Like `receive_messages`, but puts the results inside `dest`
+    pub fn receive_messages_into(
+        &mut self,
+        dest: &mut Vec<NetworkingMessage>,
+        batch_size: usize,
+    ) -> Result<(), InvalidHandle> {
+        if self.message_buffer.capacity() < batch_size {
+            self.message_buffer
+                .reserve(batch_size - self.message_buffer.capacity());
+        }
+
+        self.receive_messages_internal(batch_size)?;
+
+        dest.reserve_exact(batch_size);
+        for message in self.message_buffer.drain(..) {
+            dest.push(NetworkingMessage {
+                message,
+                _inner: self.inner.clone(),
+            });
+        }
+
+        Ok(())
+    }
+
+    /// Receives messages like `receive_messages`, but does not allocate a Vec to get the results.
+    ///
+    /// Instead, whenever a message is received, the closure is called with a `NetworkingMessage` for every message.
+    ///
+    /// All messages available in the queue will always be received in one call and you don't have to worry about batch size.
+    pub fn receive_messages_with(&mut self, mut f: impl FnMut(NetworkingMessage)) {
+        const MIN_CAPACITY: usize = 32;
+        let mut cap = self.message_buffer.capacity();
+        if cap < MIN_CAPACITY {
+            self.message_buffer.reserve_exact(MIN_CAPACITY - cap);
+            cap = self.message_buffer.capacity();
+        }
+
+        loop {
+            let Ok(message_count) = self.receive_messages_internal(cap) else {
+                return;
+            };
+
+            for msg in self.message_buffer.drain(..) {
+                f(NetworkingMessage {
+                    message: msg,
+                    _inner: self.inner.clone(),
+                })
+            }
+            if message_count < cap {
+                break;
+            }
+        }
     }
 
     /// Assign a connection to a poll group.  Note that a connection may only belong to a
@@ -913,6 +992,27 @@ impl NetConnection {
             )
         };
         debug_assert!(was_successful);
+    }
+
+    /// Tries to receive a pending event. This will never block.
+    ///
+    /// Some `NetConnection` do not receive events through this method but instead through the ListenSocket,
+    /// in that case this will always return `None`
+    pub fn try_receive_event(&self) -> Option<NetConnectionEvent> {
+        self.event_receiver
+            .as_ref()
+            .and_then(|receiver| receiver.try_recv().ok())
+    }
+
+    /// Returns an iterator for ListenSocketEvents that will block until the next event is received
+    ///
+    /// Some `NetConnection` do not receive events through this method but instead through the ListenSocket,
+    /// in that case this will always return `None`. Otherwise, this will return an iterator that empties
+    /// the queue of events.
+    pub fn try_events<'a>(&'a self) -> Option<impl Iterator<Item = NetConnectionEvent> + 'a> {
+        self.event_receiver
+            .as_ref()
+            .map(|receiver| receiver.try_iter())
     }
 
     pub fn run_callbacks(&self) {

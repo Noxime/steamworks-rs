@@ -24,6 +24,7 @@ members = [
     "examples/workshop",
     "examples/lobby",
     "examples/networking-messages",
+    "examples/networking-sockets",
     "examples/game-server",
 ]
 
