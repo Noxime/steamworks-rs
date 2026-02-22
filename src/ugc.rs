@@ -958,6 +958,19 @@ impl UpdateHandle {
     }
 
     #[must_use]
+    pub fn language(self, language: &str) -> Self {
+        unsafe {
+            let language = CString::new(language).unwrap();
+            assert!(sys::SteamAPI_ISteamUGC_SetItemUpdateLanguage(
+                self.ugc,
+                self.handle,
+                language.as_ptr()
+            ));
+        }
+        self
+    }
+
+    #[must_use]
     pub fn preview_path(self, path: &Path) -> Self {
         unsafe {
             let path = path.canonicalize().unwrap();
