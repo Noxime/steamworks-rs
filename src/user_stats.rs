@@ -198,7 +198,12 @@ impl UserStats {
                                 details.as_mut_ptr(),
                                 max_details_len as _,
                             );
-                            details.set_len(entry.m_cDetails as usize);
+                            
+                            details.set_len(
+                                std::cmp::min(
+                                    entry.m_cDetails as usize, 
+                                    max_details_len as usize)
+                            );
 
                             entries.push(LeaderboardEntry {
                                 user: SteamId(entry.m_steamIDUser.m_steamid.m_unAll64Bits),
