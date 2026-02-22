@@ -188,7 +188,7 @@ impl NetworkingMessages {
             message: self.net,
             inner: Arc::downgrade(&self.inner),
         };
-        unsafe {
+        let call_handle = unsafe {
             register_callback(
                 &self.inner,
                 move |request: NetworkingMessagesSessionRequest| {
@@ -196,8 +196,9 @@ impl NetworkingMessages {
                         callback(request);
                     }
                 },
-            );
-        }
+            )
+        };
+        std::mem::forget(call_handle);
     }
 
     /// Register a callback that will be called whenever a connection fails to be established.
@@ -208,14 +209,15 @@ impl NetworkingMessages {
         &self,
         mut callback: impl FnMut(NetConnectionInfo) + Send + 'static,
     ) {
-        unsafe {
+        let call_handle = unsafe {
             register_callback(
                 &self.inner,
                 move |failed: NetworkingMessagesSessionFailed| {
                     callback(failed.info);
                 },
-            );
-        }
+            )
+        };
+        std::mem::forget(call_handle);
     }
 
     /// Get information about the status of a connection to a remote host.
