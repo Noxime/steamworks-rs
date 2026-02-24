@@ -13,6 +13,22 @@ Add the following to your `Cargo.toml`:
 steamworks = "0.12.0"
 ```
 
+### Extra note for Linux & MacOS linking
+Since Steamworks-rs loads the SDK dynamically, you need to tell the linker to look for the dynamic library next to your executable. You can do so by using a build script:
+
+Create a `build.rs` file next to your `Cargo.toml`:
+
+```rust
+fn main() {
+    #[cfg(target_os = "macos")]
+    println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path");
+
+    #[cfg(target_os = "linux")]
+    println!("cargo::rustc-link-arg=-Wl,-rpath,$ORIGIN");
+}
+
+```
+
 | Crate  | SDK   | MSRV   |
 | ------ | ----- | ------ |
 | git    | 1.62  | 1.80.0 |
@@ -76,4 +92,4 @@ This crate is dual-licensed under [Apache](./LICENSE-APACHE) and
 [MIT](./LICENSE-MIT), except for the files in [`steamworks-sys/lib/steam/`]
 
 ## Help, I can't run my game!
-If you are seeing errors like `STATUS_DLL_NOT_FOUND`, `Image not found` etc. You are likely missing the Steamworks SDK Redistributable files. Steamworks-rs loads the SDK dynamically, so the libraries need to exist somewhere the operating system can find them. This is likely next to your game binary (.exe on windows). You can find the required files in the SDK release ZIP, under `lib\steam\redistributable_bin`. See #63 for further details
+If you are seeing errors like `STATUS_DLL_NOT_FOUND`, `Image not found` etc. You are likely missing the Steamworks SDK Redistributable files. In this case, please make sure you ship the Steamworks dynamic library with your game. If you can not find the required files, you can download the SDK release ZIP, and find them under `lib\steam\redistributable_bin`. See #63 for further details
