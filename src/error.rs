@@ -754,7 +754,7 @@ impl SteamAPIInitError {
     ) -> Self {
         let err_string = unsafe {
             let cstr = CStr::from_ptr(message.as_ptr());
-            cstr.to_string_lossy().to_owned().into_owned()
+            cstr.to_string_lossy().into_owned()
         };
 
         match result {

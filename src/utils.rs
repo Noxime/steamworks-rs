@@ -305,7 +305,7 @@ pub(crate) struct SteamParamStringArray(Vec<*mut i8>);
 impl Drop for SteamParamStringArray {
     fn drop(&mut self) {
         for c_string in &self.0 {
-            unsafe { drop(CString::from_raw(*c_string)) };
+            unsafe { drop(CString::from_raw(*c_string as *mut c_char)) };
         }
     }
 }
@@ -316,7 +316,7 @@ impl SteamParamStringArray {
                 .map(|s| {
                     CString::new(s.as_ref())
                         .expect("String passed could not be converted to a c string")
-                        .into_raw()
+                        .into_raw() as _
                 })
                 .collect(),
         )
