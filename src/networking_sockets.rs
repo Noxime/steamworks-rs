@@ -376,6 +376,47 @@ impl NetworkingSockets {
         };
         crate::to_steam_result(result)
     }
+
+    /// Send one or more messages on any connection, with per-message lane/channel support.
+    ///
+    /// Each `NetworkingMessage` must have its connection set via `set_connection()`.
+    /// Use `set_channel()` to specify the lane for each message.
+    ///
+    /// This is the same as `ListenSocket::send_messages()` but callable without
+    /// a listen socket — works for both listener and dialer sides.
+    ///
+    /// pOutMessageNumberOrResult is an optional array that will receive,
+    /// for each message, the message number that was assigned to the message
+    /// if sending was successful.  If sending failed, then a negative EResult
+    /// value is placed into the array.  For example, the array will hold
+    /// -k_EResultInvalidState if the connection was in an invalid state.
+    /// See ISteamNetworkingSockets::SendMessageToConnection for possible
+    /// failure codes.
+    pub fn send_messages(
+        &self,
+        messages: impl IntoIterator<Item = NetworkingMessage>,
+    ) -> Vec<SResult<MessageNumber>> {
+        let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
+        let mut results = vec![0; messages.len()];
+        unsafe {
+            sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
+                self.sockets,
+                messages.len() as _,
+                messages.as_ptr(),
+                results.as_mut_ptr(),
+            );
+            results
+                .into_iter()
+                .map(|x| {
+                    if x >= 0 {
+                        Ok(MessageNumber(x as u64))
+                    } else {
+                        Err((-x).try_into().expect("invalid error code"))
+                    }
+                })
+                .collect()
+        }
+    }
 }
 
 /// A socket that will continually listen for client connections.
@@ -899,8 +940,10 @@ impl NetConnection {
         batch_size: usize,
     ) -> Result<Vec<NetworkingMessage>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         self.receive_messages_internal(batch_size)?;
@@ -922,8 +965,10 @@ impl NetConnection {
         batch_size: usize,
     ) -> Result<(), InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         self.receive_messages_internal(batch_size)?;
@@ -1065,8 +1110,10 @@ unsafe impl Sync for NetPollGroup {}
 impl NetPollGroup {
     pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         unsafe {
