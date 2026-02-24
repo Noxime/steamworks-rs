@@ -940,8 +940,10 @@ impl NetConnection {
         batch_size: usize,
     ) -> Result<Vec<NetworkingMessage>, InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         self.receive_messages_internal(batch_size)?;
@@ -963,8 +965,10 @@ impl NetConnection {
         batch_size: usize,
     ) -> Result<(), InvalidHandle> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         self.receive_messages_internal(batch_size)?;
@@ -1106,8 +1110,10 @@ unsafe impl Sync for NetPollGroup {}
 impl NetPollGroup {
     pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
         if self.message_buffer.capacity() < batch_size {
-            self.message_buffer
-                .reserve(batch_size - self.message_buffer.capacity());
+            // reserve(additional) ensures capacity >= len + additional.
+            // Since the buffer is always drained between calls, len == 0,
+            // so reserve(batch_size) guarantees capacity >= batch_size.
+            self.message_buffer.reserve(batch_size);
         }
 
         unsafe {
