@@ -153,8 +153,8 @@ impl Matchmaking {
 
     /// Returns the lobby metadata associated with the specified index
     pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
-        let mut key = [0i8; sys::k_nMaxLobbyKeyLength as usize];
-        let mut value = [0i8; sys::k_cubChatMetadataMax as usize];
+        let mut key: [c_char; _] = [0; sys::k_nMaxLobbyKeyLength as usize];
+        let mut value: [c_char; _] = [0; sys::k_cubChatMetadataMax as usize];
         unsafe {
             let success = sys::SteamAPI_ISteamMatchmaking_GetLobbyDataByIndex(
                 self.mm,

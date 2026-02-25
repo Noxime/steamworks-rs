@@ -301,7 +301,7 @@ impl Utils {
     }
 }
 
-pub(crate) struct SteamParamStringArray(Vec<*mut i8>);
+pub(crate) struct SteamParamStringArray(Vec<*mut c_char>);
 impl Drop for SteamParamStringArray {
     fn drop(&mut self) {
         for c_string in &self.0 {
