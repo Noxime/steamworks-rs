@@ -123,8 +123,8 @@ macro_rules! gen_server_list_fn {
                         return Err(());
                     }
 
-                    let mut key = [0i8; 256];
-                    let mut value = [0i8; 256];
+                    let mut key: [c_char; _] = [0; 256];
+                    let mut value: [c_char; _] = [0; 256];
 
                     unsafe {
                         key.as_mut_ptr()
