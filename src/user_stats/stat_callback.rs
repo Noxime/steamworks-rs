@@ -115,3 +115,35 @@ impl_callback!(cb: UserAchievementIconFetched_t => UserAchievementIconFetched {
         icon_handle: cb.m_nIconHandle,
     }
 });
+
+/// Callback triggered after calling [`request_global_stats()`](struct.UserStats.html#method.request_global_stats).
+///
+/// This callback returns the result of a request for global stats data,
+/// which is available for stats marked as "aggregated" in the Steamworks App Admin.
+///
+/// # Example
+///
+/// ```no_run
+/// # use steamworks::*;
+/// # let client = steamworks::Client::init().unwrap();
+/// let callback_handle = client.register_callback(|val: GlobalStatsReceived| {
+///     if val.result.is_ok() {
+///         println!("Global stats received for game: {:?}", val.game_id);
+///         // Now you can call get_global_stat() to retrieve the actual values
+///     } else {
+///         println!("Failed to get global stats: {:?}", val.result);
+///     }
+/// });
+/// ```
+#[derive(Clone, Debug)]
+pub struct GlobalStatsReceived {
+    pub game_id: GameId,
+    pub result: Result<(), SteamError>,
+}
+
+impl_callback!(cb: GlobalStatsReceived_t => GlobalStatsReceived {
+    Self {
+        game_id: GameId(cb.m_nGameID),
+        result: crate::to_steam_result(cb.m_eResult),
+    }
+});
