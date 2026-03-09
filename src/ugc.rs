@@ -501,9 +501,10 @@ impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
 });
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct DeleteItemResult {
     pub published_file_id: PublishedFileId,
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub result: sys::EResult,
 }
 

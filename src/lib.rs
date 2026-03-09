@@ -653,7 +653,9 @@ impl AccountId {
 /// Combines `AppId` and other information
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct GameId(pub(crate) u64);
+pub struct GameId(
+    #[cfg_attr(feature = "serde", serde(rename = "game_id"))] pub(crate) u64,
+);
 
 impl GameId {
     /// Creates a `GameId` from a raw 64 bit value.
