@@ -136,8 +136,10 @@ impl_callback!(cb: UserAchievementIconFetched_t => UserAchievementIconFetched {
 /// });
 /// ```
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct GlobalStatsReceived {
     pub game_id: GameId,
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub result: Result<(), SteamError>,
 }
 
