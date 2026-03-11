@@ -31,6 +31,79 @@ pub enum SendType {
     ReliableWithBuffering,
 }
 
+/// P2P session error codes
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum P2PSessionError {
+    /// No error
+    None = 0,
+    #[deprecated(
+        note = "For privacy reasons, there is no error if the remote user is playing another game."
+    )]
+    NotRunningApp = 1,
+    /// Local user doesn't own the app that is running
+    NoRightsToApp = 2,
+    #[deprecated(note = "For privacy reasons, there is no error if the remote user is offline")]
+    NotLoggedIn = 3,
+    /// Target isn't responding, perhaps not calling AcceptP2PSessionWithUser()
+    /// This may also occur behind corporate firewalls (P2P sessions require UDP ports 3478, 4379, and 4380 to be open for outgoing traffic)
+    Timeout = 4,
+
+    /// Unknown error code
+    Unknown(u8),
+}
+
+impl From<u8> for P2PSessionError {
+    fn from(value: u8) -> Self {
+        #[allow(deprecated)]
+        match value {
+            0 => P2PSessionError::None,
+            1 => P2PSessionError::NotRunningApp,
+            2 => P2PSessionError::NoRightsToApp,
+            3 => P2PSessionError::NotLoggedIn,
+            4 => P2PSessionError::Timeout,
+            other => P2PSessionError::Unknown(other),
+        }
+    }
+}
+
+impl From<P2PSessionError> for u8 {
+    fn from(error: P2PSessionError) -> Self {
+        #[allow(deprecated)]
+        match error {
+            P2PSessionError::None => 0,
+            P2PSessionError::NotRunningApp => 1,
+            P2PSessionError::NoRightsToApp => 2,
+            P2PSessionError::NotLoggedIn => 3,
+            P2PSessionError::Timeout => 4,
+            P2PSessionError::Unknown(code) => code,
+        }
+    }
+}
+
+/// Information about a P2P session with a remote user
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct P2PSessionState {
+    /// Whether we've got an active open connection
+    pub connection_active: bool,
+    /// Whether we're currently trying to establish a connection
+    pub connecting: bool,
+    /// Last error recorded
+    pub error: P2PSessionError,
+    /// Whether it's going through a Steam relay server
+    pub using_relay: bool,
+    /// Number of bytes queued for sending
+    pub bytes_queued_for_send: i32,
+    /// Number of packets queued for sending
+    pub packets_queued_for_send: i32,
+    /// Potential IP address of remote host (could be Steam relay server)
+    pub remote_ip: u32,
+    /// Remote port number
+    pub remote_port: u16,
+}
+
 impl Networking {
     /// Accepts incoming packets from the given user
     ///
@@ -42,6 +115,30 @@ impl Networking {
     /// Closes the p2p connection between the given user
     pub fn close_p2p_session(&self, user: SteamId) -> bool {
         unsafe { sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, user.0) }
+    }
+
+    /// Gets the connection state to the specified user
+    ///
+    /// Returns the P2P session state if a connection exists with the user,
+    /// or None if no connection exists.
+    pub fn get_p2p_session_state(&self, user: SteamId) -> Option<P2PSessionState> {
+        unsafe {
+            let mut state: sys::P2PSessionState_t = std::mem::zeroed();
+            if sys::SteamAPI_ISteamNetworking_GetP2PSessionState(self.net, user.0, &mut state) {
+                Some(P2PSessionState {
+                    connection_active: state.m_bConnectionActive != 0,
+                    connecting: state.m_bConnecting != 0,
+                    error: P2PSessionError::from(state.m_eP2PSessionError),
+                    using_relay: state.m_bUsingRelay != 0,
+                    bytes_queued_for_send: state.m_nBytesQueuedForSend,
+                    packets_queued_for_send: state.m_nPacketsQueuedForSend,
+                    remote_ip: state.m_nRemoteIP,
+                    remote_port: state.m_nRemotePort,
+                })
+            } else {
+                None
+            }
+        }
     }
 
     /// Sends a packet to the user, starting the
