@@ -388,7 +388,11 @@ pub struct SteamServersDisconnected {
 
 impl_callback!(cb: SteamServersDisconnected_t => SteamServersDisconnected {
     Self {
-        reason: cb.m_eResult.into(),
+        reason: if cb.m_eResult == sys::EResult::k_EResultOK {
+            SteamError::Generic
+        } else {
+            cb.m_eResult.into()
+        },
     }
 });
 
