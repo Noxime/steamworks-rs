@@ -60,6 +60,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rustc-link-search={}", out_path.display());
     println!("cargo:rustc-link-lib=dylib={}", lib);
 
+    // Expose the output directory so dependent crates can locate the shared
+    // library at build time (available as DEP_STEAM_API_LIB_DIR).
+    println!("cargo:lib_dir={}", out_path.display());
+
     #[cfg(feature = "rebuild-bindings")]
     {
         let target_os = if triple.contains("windows") {
