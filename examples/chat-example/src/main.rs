@@ -60,7 +60,7 @@ async fn main() {
     loop {
         client.process_callbacks(|event| {
             if let CallbackResult::P2PSessionRequest(request) = event {
-                println!("ACCEPTED PEER");
+                println!("ACCEPTED REQUEST FROM {}", request.remote.raw());
                 if let States::Chat(lobby_state) = state.state.as_mut() {
                     if lobby_state.is_host {
                         lobby_state.peers.push(request.remote);
