@@ -77,21 +77,37 @@ impl CallbackResult {
                 Self::GameRichPresenceJoinRequested(GameRichPresenceJoinRequested::from_raw(data))
             }
             LobbyChatMsg::ID => Self::LobbyChatMsg(LobbyChatMsg::from_raw(data)),
+            LobbyChatUpdate::ID => Self::LobbyChatUpdate(LobbyChatUpdate::from_raw(data)),
+            LobbyCreated::ID => Self::LobbyCreated(LobbyCreated::from_raw(data)),
             LobbyDataUpdate::ID => Self::LobbyDataUpdate(LobbyDataUpdate::from_raw(data)),
+            LobbyEnter::ID => Self::LobbyEnter(LobbyEnter::from_raw(data)),
             MicroTxnAuthorizationResponse::ID => {
                 Self::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse::from_raw(data))
+            }
+            NetworkingMessagesSessionFailed::ID => {
+                Self::NetworkingMessagesSessionFailed(NetworkingMessagesSessionFailed::from_raw(data))
+            }
+            NetworkingMessagesSessionRequest::ID => {
+                Self::NetworkingMessagesSessionRequest(NetworkingMessagesSessionRequest::from_raw(data))
             }
             P2PSessionConnectFail::ID => {
                 Self::P2PSessionConnectFail(P2PSessionConnectFail::from_raw(data))
             }
             P2PSessionRequest::ID => Self::P2PSessionRequest(P2PSessionRequest::from_raw(data)),
             PersonaStateChange::ID => Self::PersonaStateChange(PersonaStateChange::from_raw(data)),
+            RelayNetworkStatusCallback::ID => {
+                Self::RelayNetworkStatusCallback(RelayNetworkStatusCallback::from_raw(data))
+            }
             RemotePlayConnected::ID => {
                 Self::RemotePlayConnected(RemotePlayConnected::from_raw(data))
             }
             RemotePlayDisconnected::ID => {
                 Self::RemotePlayDisconnected(RemotePlayDisconnected::from_raw(data))
             }
+            ScreenshotRequested::ID => {
+                Self::ScreenshotRequested(ScreenshotRequested::from_raw(data))
+            }
+            ScreenshotReady::ID => Self::ScreenshotReady(ScreenshotReady::from_raw(data)),
             SteamServerConnectFailure::ID => {
                 Self::SteamServerConnectFailure(SteamServerConnectFailure::from_raw(data))
             }
@@ -106,6 +122,9 @@ impl CallbackResult {
             }
             UserAchievementStored::ID => {
                 Self::UserAchievementStored(UserAchievementStored::from_raw(data))
+            }
+            UserAchievementIconFetched::ID => {
+                Self::UserAchievementIconFetched(UserAchievementIconFetched::from_raw(data))
             }
             UserStatsReceived::ID => Self::UserStatsReceived(UserStatsReceived::from_raw(data)),
             UserStatsStored::ID => Self::UserStatsStored(UserStatsStored::from_raw(data)),
