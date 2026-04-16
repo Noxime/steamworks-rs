@@ -84,12 +84,12 @@ impl CallbackResult {
             MicroTxnAuthorizationResponse::ID => {
                 Self::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse::from_raw(data))
             }
-            NetworkingMessagesSessionFailed::ID => {
-                Self::NetworkingMessagesSessionFailed(NetworkingMessagesSessionFailed::from_raw(data))
-            }
-            NetworkingMessagesSessionRequest::ID => {
-                Self::NetworkingMessagesSessionRequest(NetworkingMessagesSessionRequest::from_raw(data))
-            }
+            NetworkingMessagesSessionFailed::ID => Self::NetworkingMessagesSessionFailed(
+                NetworkingMessagesSessionFailed::from_raw(data),
+            ),
+            NetworkingMessagesSessionRequest::ID => Self::NetworkingMessagesSessionRequest(
+                NetworkingMessagesSessionRequest::from_raw(data),
+            ),
             P2PSessionConnectFail::ID => {
                 Self::P2PSessionConnectFail(P2PSessionConnectFail::from_raw(data))
             }
