@@ -53,19 +53,22 @@ async fn main() {
     //For getting values from callback
     let (sender_create_lobby, receiver_create_lobby) = mpsc::channel();
     let (sender_join_lobby, receiver_join_lobby) = mpsc::channel();
-    let (sender_accept, receiver_accept) = mpsc::channel();
-
-    //YOU MUST KEEP CALLBACK IN VARIABLE OTHERWISE CALLBACK WILL NOT WORK
-    let _request_callback = client.register_callback(move |request: P2PSessionRequest| {
-        println!("ACCEPTED PEER");
-        sender_accept.send(request.remote).unwrap();
-    });
 
     //Should be in ChatState :)
     let mut messages: Vec<String> = vec![];
 
     loop {
-        client.run_callbacks();
+        client.process_callbacks(|event| {
+            if let CallbackResult::P2PSessionRequest(request) = event {
+                println!("ACCEPTED PEER");
+                if let States::Chat(lobby_state) = state.state.as_mut() {
+                    if lobby_state.is_host {
+                        lobby_state.peers.push(request.remote);
+                    }
+                }
+                networking.accept_p2p_session(request.remote);
+            }
+        });
         clear_background(BLACK);
 
         let local_sender_create_lobby = sender_create_lobby.clone();
@@ -201,13 +204,6 @@ async fn main() {
                     }
                 }
 
-                if let Ok(user) = receiver_accept.try_recv() {
-                    println!("GET REQUEST FROM {}", user.raw());
-                    if lobby_state.is_host {
-                        lobby_state.peers.push(user);
-                    }
-                    networking.accept_p2p_session(user);
-                }
             }
         }
 
