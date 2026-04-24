@@ -174,6 +174,7 @@ pub enum FileType {
     SteamworksAccessInvite,
     SteamVideo,
     GameManagedItem,
+    Clip,
 }
 
 impl Into<sys::EWorkshopFileType> for FileType {
@@ -201,6 +202,7 @@ impl Into<sys::EWorkshopFileType> for FileType {
             }
             FileType::SteamVideo => sys::EWorkshopFileType::k_EWorkshopFileTypeSteamVideo,
             FileType::GameManagedItem => sys::EWorkshopFileType::k_EWorkshopFileTypeGameManagedItem,
+            FileType::Clip => sys::EWorkshopFileType::k_EWorkshopFileTypeClip,
         }
     }
 }
@@ -229,6 +231,7 @@ impl From<sys::EWorkshopFileType> for FileType {
             }
             sys::EWorkshopFileType::k_EWorkshopFileTypeSteamVideo => FileType::SteamVideo,
             sys::EWorkshopFileType::k_EWorkshopFileTypeGameManagedItem => FileType::GameManagedItem,
+            sys::EWorkshopFileType::k_EWorkshopFileTypeClip => FileType::Clip,
             _ => unreachable!(),
         }
     }
