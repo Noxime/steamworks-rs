@@ -347,6 +347,9 @@ impl_callback!(cb: ValidateAuthTicketResponse_t => ValidateAuthTicketResponse {
             sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => {
                 Err(AuthSessionValidateError::PublisherIssuedBan)
             }
+            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketNetworkIdentityFailure => {
+                Err(AuthSessionValidateError::AuthTicketNetworkIdentityFailure)
+            }
             _ => unreachable!(),
         },
     }
@@ -442,6 +445,13 @@ pub enum AuthSessionValidateError {
     /// The user is banned from the game (not VAC)
     #[error("the user is banned")]
     PublisherIssuedBan,
+    /// The [`NetworkingIdentity`] of the client or game server calling
+    /// [`User::begin_authentication_session`] does not match the one
+    /// in the ticket.
+    ///
+    /// The ticket's networking identity is the one passed to [`User::authentication_session_ticket`].
+    #[error("the authenticator's network identity does not match the one in the ticket")]
+    AuthTicketNetworkIdentityFailure,
 }
 
 /// Results from [`User::user_has_license_for_app`]

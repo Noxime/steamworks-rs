@@ -382,6 +382,48 @@ pub enum SteamError {
     /// max network send size
     #[error("WG network send size exceeded")]
     WGNetworkSendExceeded,
+    #[error("the user is not mutually friends")]
+    AccountNotFriends,
+    #[error("the user is limited")]
+    LimitedUserAccount,
+    #[error("item can't be removed")]
+    CantRemoveItem,
+    #[error("account has been deleted")]
+    AccountDeleted,
+    #[error("A license for this already exists, but cancelled")]
+    ExistingUserCancelledLicense,
+    #[error("access is denied because of a community cooldown (probably from support profile data resets)")]
+    CommunityCooldown,
+    #[error("No launcher was specified, but a launcher was needed to choose correct realm for operation.")]
+    NoLauncherSpecified,
+    #[error("User must agree to china SSA or global SSA before login")]
+    MustAgreeToSSA,
+    #[error(
+        "The specified launcher type is no longer supported; the user should be directed elsewhere"
+    )]
+    LauncherMigrated,
+    #[error("The user's realm does not match the realm of the requested resource")]
+    SteamRealmMismatch,
+    #[error("signature check did not match")]
+    InvalidSignature,
+    #[error("Failed to parse input")]
+    ParseFailure,
+    #[error("account does not have a verified phone number")]
+    NoVerifiedPhone,
+    #[error("user device doesn't have enough battery charge currently to complete the action")]
+    InsufficientBattery,
+    #[error("The operation requires a charger to be plugged in, which wasn't present")]
+    ChargerRequired,
+    #[error("Cached credential was invalid - user must reauthenticate")]
+    CachedCredentialInvalid,
+    #[error("The data being accessed is not supported by this API")]
+    NotSupported,
+    #[error("Reached the maximum size of the family")]
+    FamilySizeLimitExceeded,
+    #[error("The local data for the offline mode cache is insufficient to login")]
+    OfflineAppCacheInvalid,
+    #[error("retry the operation later")]
+    TryLater,
 }
 
 impl From<sys::EResult> for SteamError {
@@ -516,6 +558,28 @@ impl From<sys::EResult> for SteamError {
             sys::EResult::k_EResultTooManyPending => SteamError::TooManyPending,
             sys::EResult::k_EResultNoSiteLicensesFound => SteamError::NoSiteLicensesFound,
             sys::EResult::k_EResultWGNetworkSendExceeded => SteamError::WGNetworkSendExceeded,
+            sys::EResult::k_EResultAccountNotFriends => SteamError::AccountNotFriends,
+            sys::EResult::k_EResultLimitedUserAccount => SteamError::LimitedUserAccount,
+            sys::EResult::k_EResultCantRemoveItem => SteamError::CantRemoveItem,
+            sys::EResult::k_EResultAccountDeleted => SteamError::AccountDeleted,
+            sys::EResult::k_EResultExistingUserCancelledLicense => {
+                SteamError::ExistingUserCancelledLicense
+            }
+            sys::EResult::k_EResultCommunityCooldown => SteamError::CommunityCooldown,
+            sys::EResult::k_EResultNoLauncherSpecified => SteamError::NoLauncherSpecified,
+            sys::EResult::k_EResultMustAgreeToSSA => SteamError::MustAgreeToSSA,
+            sys::EResult::k_EResultLauncherMigrated => SteamError::LauncherMigrated,
+            sys::EResult::k_EResultSteamRealmMismatch => SteamError::SteamRealmMismatch,
+            sys::EResult::k_EResultInvalidSignature => SteamError::InvalidSignature,
+            sys::EResult::k_EResultParseFailure => SteamError::ParseFailure,
+            sys::EResult::k_EResultNoVerifiedPhone => SteamError::NoVerifiedPhone,
+            sys::EResult::k_EResultInsufficientBattery => SteamError::InsufficientBattery,
+            sys::EResult::k_EResultChargerRequired => SteamError::ChargerRequired,
+            sys::EResult::k_EResultCachedCredentialInvalid => SteamError::CachedCredentialInvalid,
+            sys::EResult::k_EResultNotSupported => SteamError::NotSupported,
+            sys::EResult::k_EResultFamilySizeLimitExceeded => SteamError::FamilySizeLimitExceeded,
+            sys::EResult::k_EResultOfflineAppCacheInvalid => SteamError::OfflineAppCacheInvalid,
+            sys::EResult::k_EResultTryLater => SteamError::TryLater,
             _ => unreachable!(),
         }
     }
@@ -724,6 +788,39 @@ impl TryFrom<i64> for SteamError {
             x if x == sys::EResult::k_EResultWGNetworkSendExceeded as i64 => {
                 SteamError::WGNetworkSendExceeded
             }
+            x if x == sys::EResult::k_EResultCommunityCooldown as i64 => {
+                SteamError::CommunityCooldown
+            }
+            x if x == sys::EResult::k_EResultNoLauncherSpecified as i64 => {
+                SteamError::NoLauncherSpecified
+            }
+            x if x == sys::EResult::k_EResultMustAgreeToSSA as i64 => SteamError::MustAgreeToSSA,
+            x if x == sys::EResult::k_EResultLauncherMigrated as i64 => {
+                SteamError::LauncherMigrated
+            }
+            x if x == sys::EResult::k_EResultSteamRealmMismatch as i64 => {
+                SteamError::SteamRealmMismatch
+            }
+            x if x == sys::EResult::k_EResultInvalidSignature as i64 => {
+                SteamError::InvalidSignature
+            }
+            x if x == sys::EResult::k_EResultParseFailure as i64 => SteamError::ParseFailure,
+            x if x == sys::EResult::k_EResultNoVerifiedPhone as i64 => SteamError::NoVerifiedPhone,
+            x if x == sys::EResult::k_EResultInsufficientBattery as i64 => {
+                SteamError::InsufficientBattery
+            }
+            x if x == sys::EResult::k_EResultChargerRequired as i64 => SteamError::ChargerRequired,
+            x if x == sys::EResult::k_EResultCachedCredentialInvalid as i64 => {
+                SteamError::CachedCredentialInvalid
+            }
+            x if x == sys::EResult::k_EResultNotSupported as i64 => SteamError::NotSupported,
+            x if x == sys::EResult::k_EResultFamilySizeLimitExceeded as i64 => {
+                SteamError::FamilySizeLimitExceeded
+            }
+            x if x == sys::EResult::k_EResultOfflineAppCacheInvalid as i64 => {
+                SteamError::OfflineAppCacheInvalid
+            }
+            x if x == sys::EResult::k_EResultTryLater as i64 => SteamError::TryLater,
             _ => return Err(InvalidErrorCode),
         };
         Ok(error)
