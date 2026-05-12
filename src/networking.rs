@@ -246,12 +246,12 @@ impl_callback!(cb: P2PSessionRequest_t => P2PSessionRequest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct P2PSessionConnectFail {
     pub remote: SteamId,
-    pub error: u8,
+    pub error: P2PSessionError,
 }
 
 impl_callback!(cb: P2PSessionConnectFail_t => P2PSessionConnectFail {
     Self {
         remote: SteamId(cb.m_steamIDRemote.m_steamid.m_unAll64Bits),
-        error: cb.m_eP2PSessionError,
+        error: P2PSessionError::from(cb.m_eP2PSessionError),
     }
 });

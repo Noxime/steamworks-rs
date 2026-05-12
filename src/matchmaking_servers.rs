@@ -171,7 +171,7 @@ macro_rules! gen_server_list_fn {
 }
 
 pub struct GameServerItem {
-    pub appid: u32,
+    pub appid: AppId,
     pub players: i32,
     pub do_not_refresh: bool,
     pub successful_response: bool,
@@ -181,7 +181,7 @@ pub struct GameServerItem {
     pub ping: Duration,
     pub max_players: i32,
     pub server_version: i32,
-    pub steamid: u64,
+    pub steamid: SteamId,
     pub last_time_played: Duration,
     pub addr: Ipv4Addr,
     pub query_port: u16,
@@ -197,13 +197,13 @@ impl GameServerItem {
     unsafe fn from_ptr(raw: *const sys::gameserveritem_t) -> Self {
         let raw = *raw;
         Self {
-            appid: raw.m_nAppID,
+            appid: AppId(raw.m_nAppID),
             players: raw.m_nPlayers,
             bot_players: raw.m_nBotPlayers,
             ping: Duration::from_millis(raw.m_nPing.try_into().unwrap()),
             max_players: raw.m_nMaxPlayers,
             server_version: raw.m_nServerVersion,
-            steamid: raw.m_steamID.m_steamid.m_unAll64Bits,
+            steamid: SteamId(raw.m_steamID.m_steamid.m_unAll64Bits),
 
             do_not_refresh: raw.m_bDoNotRefresh,
             successful_response: raw.m_bHadSuccessfulResponse,
