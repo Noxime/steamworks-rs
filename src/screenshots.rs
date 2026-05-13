@@ -130,7 +130,7 @@ pub struct ScreenshotReady {
 impl_callback!(cb: ScreenshotReady_t => ScreenshotReady {
     let local_handle = match cb.m_eResult {
         sys::EResult::k_EResultOK => Ok(cb.m_hLocal),
-        sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::Fail),
+        sys::EResult::k_EResultIOFailure => Err(ScreenshotReadyError::IoFailure),
         _ => Err(ScreenshotReadyError::Fail),
     };
 
