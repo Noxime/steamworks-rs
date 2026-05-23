@@ -2,6 +2,7 @@ use super::*;
 use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
+use std::net::SocketAddrV4;
 
 /// Access to the steam user interface
 pub struct User {
@@ -61,29 +62,55 @@ impl User {
         }
     }
 
-    /// Legacy interface for authentication
-    pub fn initiate_game_connection(&self, game_server_steam_id: SteamId, server_ip: u32, server_port: u16, secure: bool) -> Vec<u8> {
+    /// Legacy authentication handshake used by older titles (e.g. GoldSrc/Source
+    /// engine games) before the `BeginAuthSession` API existed.
+    ///
+    /// Builds an authentication blob that the client must forward to the game
+    /// server to complete the connection handshake. When the client disconnects,
+    /// [`User::terminate_game_connection`] must be called with the same address.
+    ///
+    /// Returns `None` if Steam could not produce a ticket (the SDK signals this
+    /// by writing zero bytes into the buffer).
+    ///
+    /// New code should prefer [`User::authentication_session_ticket`] together
+    /// with `BeginAuthSession` on the server.
+    #[deprecated(note = "Use authentication_session_ticket / BeginAuthSession instead")]
+    pub fn initiate_game_connection(
+        &self,
+        game_server_steam_id: SteamId,
+        server_addr: SocketAddrV4,
+        secure: bool,
+    ) -> Option<Vec<u8>> {
         unsafe {
-            let mut ticket = vec![0; 2048];
-
+            let mut ticket = vec![0u8; 2048];
             let ticket_len = sys::SteamAPI_ISteamUser_InitiateGameConnection_DEPRECATED(
                 self.user,
                 ticket.as_mut_ptr().cast(),
-                2048,
+                ticket.len() as i32,
                 game_server_steam_id.raw(),
-                server_ip,
-                server_port,
-                secure);
-
+                server_addr.ip().to_bits(),
+                server_addr.port(),
+                secure,
+            );
+            if ticket_len == 0 {
+                return None;
+            }
             ticket.truncate(ticket_len as usize);
-            return ticket;
+            Some(ticket)
         }
     }
 
-    /// Legacy interface for authentication
-    pub fn terminate_game_connection(&self, server_ip: u32, server_port: u16) {
+    /// Notifies Steam that the client has disconnected from the game server
+    /// previously passed to [`User::initiate_game_connection`]. The address
+    /// must match the one used to initiate the connection.
+    #[deprecated(note = "Counterpart of the deprecated initiate_game_connection")]
+    pub fn terminate_game_connection(&self, server_addr: SocketAddrV4) {
         unsafe {
-            sys::SteamAPI_ISteamUser_TerminateGameConnection_DEPRECATED(self.user, server_ip, server_port);
+            sys::SteamAPI_ISteamUser_TerminateGameConnection_DEPRECATED(
+                self.user,
+                server_addr.ip().to_bits(),
+                server_addr.port(),
+            );
         }
     }
 
