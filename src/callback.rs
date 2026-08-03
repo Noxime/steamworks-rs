@@ -176,7 +176,7 @@ impl Drop for CallbackHandle {
 
 macro_rules! impl_callback {
     ($fn_arg_name:ident: $sys_ty:ident => $callback_ty:ident $from_raw_impl:tt) => {
-        paste::item! {
+        pastey::item! {
             unsafe impl Callback for $callback_ty {
                 const ID: i32 = steamworks_sys::[<$sys_ty _ k_iCallback>] as i32;
 

@@ -31,7 +31,7 @@ macro_rules! map_binding_name {
         k_EResultInvalidParam
     };
     ($variant:ident) => {
-        paste::paste! { [< k_EResult $variant >] }
+        pastey::paste! { [< k_EResult $variant >] }
     };
 }
 
@@ -46,7 +46,7 @@ macro_rules! steam_error {
             $variant:ident
         ),*
     ) => {
-        paste::paste! {
+        pastey::paste! {
             /// Covers errors that can be returned by the steamworks API
             ///
             /// Note that all [`EResult`](sys::EResult) values are [`SteamError`]s, as for example

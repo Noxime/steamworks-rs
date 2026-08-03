@@ -14,7 +14,7 @@ macro_rules! matchmaking_servers_callback {
             $fn_name:ident($clear_after_call:tt): ( $( $fn_arg_name:ident: $cpp_fn_arg:ty => $rust_fn_arg:ty where $normalize:tt ),* )
         ),*
     ) => {
-        paste::item! {
+        pastey::item! {
             $(
                 #[allow(unused_variables)]
                 extern "C" fn [<$name:lower _ $fn_name _virtual>]($self: *mut [<$name CallbacksReal>] $(, $fn_arg_name: $cpp_fn_arg)*) {
