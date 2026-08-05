@@ -1510,8 +1510,8 @@ pub enum ItemPreviewType {
     EnvironmentMapLatLong,
     /// `url_or_video_id` is a Steam video clip id.
     Clip,
-    /// Reserved upper bound of the preview type range.
-    ReservedMax,
+    /// A preview type this crate does not know about, holding the raw value reported by Steam.
+    Unknown(sys::EItemPreviewType),
 }
 
 impl From<sys::EItemPreviewType> for ItemPreviewType {
@@ -1526,9 +1526,7 @@ impl From<sys::EItemPreviewType> for ItemPreviewType {
             }
             k_EItemPreviewType_EnvironmentMap_LatLong => Self::EnvironmentMapLatLong,
             k_EItemPreviewType_Clip => Self::Clip,
-            // `EItemPreviewType` is non-exhaustive; treat anything else (including
-            // `ReservedMax` and any future Steam value) as the reserved bound.
-            _ => Self::ReservedMax,
+            other => Self::Unknown(other),
         }
     }
 }
