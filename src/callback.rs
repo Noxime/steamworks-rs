@@ -189,6 +189,7 @@ macro_rules! impl_callback {
     };
 }
 
+#[must_use = "The callback handle must be kept alive for the callback to be called"]
 pub(crate) unsafe fn register_callback<C, F>(inner: &Arc<Inner>, mut f: F) -> CallbackHandle
 where
     C: Callback,

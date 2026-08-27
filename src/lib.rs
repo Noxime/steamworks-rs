@@ -333,6 +333,7 @@ impl Client {
     ///
     /// [`run_callbacks`]: Self::run_callbacks
     /// [`process_callbacks`]: Self::process_callbacks
+    #[must_use = "The callback handle must be kept alive for the callback to be called"]
     pub fn register_callback<C, F>(&self, f: F) -> CallbackHandle
     where
         C: Callback,
