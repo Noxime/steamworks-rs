@@ -1593,6 +1593,58 @@ pub struct QueryResults<'a> {
     was_cached: bool,
     _phantom: marker::PhantomData<&'a sys::ISteamUGC>,
 }
+
+/// The kind of an [`AdditionalPreview`], mirroring Steam's `EItemPreviewType`.
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum ItemPreviewType {
+    /// `url_or_video_id` is the URL of an image.
+    Image,
+    /// `url_or_video_id` is a YouTube video id.
+    YouTubeVideo,
+    /// `url_or_video_id` is a Sketchfab model id.
+    Sketchfab,
+    /// Standard image file expected on disk, expanded to a horizontal-cross environment map.
+    EnvironmentMapHorizontalCross,
+    /// Standard image file expected on disk, expanded to a lat-long environment map.
+    EnvironmentMapLatLong,
+    /// `url_or_video_id` is a Steam video clip id.
+    Clip,
+    /// A preview type this crate does not know about, holding the raw value reported by Steam.
+    Unknown(sys::EItemPreviewType),
+}
+
+impl From<sys::EItemPreviewType> for ItemPreviewType {
+    fn from(t: sys::EItemPreviewType) -> Self {
+        use sys::EItemPreviewType::*;
+        match t {
+            k_EItemPreviewType_Image => Self::Image,
+            k_EItemPreviewType_YouTubeVideo => Self::YouTubeVideo,
+            k_EItemPreviewType_Sketchfab => Self::Sketchfab,
+            k_EItemPreviewType_EnvironmentMap_HorizontalCross => {
+                Self::EnvironmentMapHorizontalCross
+            }
+            k_EItemPreviewType_EnvironmentMap_LatLong => Self::EnvironmentMapLatLong,
+            k_EItemPreviewType_Clip => Self::Clip,
+            other => Self::Unknown(other),
+        }
+    }
+}
+
+/// An additional preview (screenshot, video, etc.) attached to a published workshop file,
+/// returned by [`QueryResults::additional_preview`].
+#[derive(Debug, Clone)]
+pub struct AdditionalPreview {
+    /// For image previews this is the URL of the image; for video previews it is the video id.
+    pub url_or_video_id: String,
+    /// The original filename of the preview, or `None` if Steam reports none.
+    pub original_file_name: Option<String>,
+    /// The kind of preview this is.
+    pub preview_type: ItemPreviewType,
+}
+
 impl<'a> Drop for QueryResults<'a> {
     fn drop(&mut self) {
         unsafe {
@@ -1632,6 +1684,59 @@ impl<'a> QueryResults<'a> {
 
         if ok {
             Some(unsafe { CStr::from_ptr(url.as_ptr()).to_string_lossy().into_owned() })
+        } else {
+            None
+        }
+    }
+
+    /// Gets the number of additional previews (screenshots, videos, etc.) of the published file
+    /// at the specified index.
+    pub fn num_additional_previews(&self, index: u32) -> u32 {
+        unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCNumAdditionalPreviews(self.ugc, self.handle, index)
+        }
+    }
+
+    /// Gets an additional preview of the published file at the specified index.
+    ///
+    /// `preview_index` must be less than the count returned by
+    /// [`num_additional_previews`](Self::num_additional_previews).
+    pub fn additional_preview(&self, index: u32, preview_index: u32) -> Option<AdditionalPreview> {
+        let mut url = [0 as c_char; 4096];
+        let mut file_name = [0 as c_char; 260];
+        let mut preview_type = sys::EItemPreviewType::k_EItemPreviewType_Image;
+
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_GetQueryUGCAdditionalPreview(
+                self.ugc,
+                self.handle,
+                index,
+                preview_index,
+                url.as_mut_ptr(),
+                url.len() as _,
+                file_name.as_mut_ptr(),
+                file_name.len() as _,
+                &mut preview_type,
+            )
+        };
+
+        if ok {
+            let original_file_name = unsafe {
+                CStr::from_ptr(file_name.as_ptr())
+                    .to_string_lossy()
+                    .into_owned()
+            };
+            Some(AdditionalPreview {
+                url_or_video_id: unsafe {
+                    CStr::from_ptr(url.as_ptr()).to_string_lossy().into_owned()
+                },
+                original_file_name: if original_file_name.is_empty() {
+                    None
+                } else {
+                    Some(original_file_name)
+                },
+                preview_type: preview_type.into(),
+            })
         } else {
             None
         }
