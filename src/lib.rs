@@ -27,6 +27,7 @@ pub use crate::callback::*;
 pub use crate::error::*;
 pub use crate::friends::*;
 pub use crate::input::*;
+pub use crate::inventory::*;
 pub use crate::matchmaking::*;
 pub use crate::matchmaking_servers::*;
 pub use crate::networking::*;
@@ -45,6 +46,7 @@ mod app;
 mod error;
 mod friends;
 mod input;
+mod inventory;
 mod matchmaking;
 mod matchmaking_servers;
 mod networking;
@@ -101,6 +103,7 @@ struct Inner {
     manager: Manager,
     callbacks: Callbacks,
     networking_sockets_data: Mutex<NetworkingSocketsData>,
+    inventory_results: inventory::PendingResults,
 }
 
 struct Callbacks {
@@ -269,6 +272,7 @@ impl Client {
                     independent_connections: Default::default(),
                     connection_callback: Default::default(),
                 }),
+                inventory_results: Default::default(),
             });
             Ok(Client { inner: client })
         }
@@ -498,6 +502,15 @@ impl Client {
                 ugc,
                 inner: self.inner.clone(),
             }
+        }
+    }
+
+    /// Returns an accessor to the steam inventory interface
+    pub fn inventory(&self) -> Inventory {
+        unsafe {
+            let inventory = sys::SteamAPI_SteamInventory_v003();
+            debug_assert!(!inventory.is_null());
+            Inventory::new(inventory, self.inner.clone())
         }
     }
 
