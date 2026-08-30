@@ -50,6 +50,7 @@ pub enum CallbackResult {
     GSClientGroupStatus(GSClientGroupStatus),
     NewUrlLaunchParameters(NewUrlLaunchParameters),
     UserSubscribedItemsListChanged(UserSubscribedItemsListChanged),
+    ItemInstalled(ItemInstalled),
 }
 
 impl CallbackResult {
@@ -144,6 +145,7 @@ impl CallbackResult {
             UserSubscribedItemsListChanged::ID => {
                 Self::UserSubscribedItemsListChanged(UserSubscribedItemsListChanged::from_raw(data))
             }
+            ItemInstalled::ID => Self::ItemInstalled(ItemInstalled::from_raw(data)),
             _ => return None,
         })
     }

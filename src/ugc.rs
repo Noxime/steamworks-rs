@@ -528,6 +528,20 @@ impl_callback!(cb: UserSubscribedItemsListChanged_t => UserSubscribedItemsListCh
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ItemInstalled {
+    pub app_id: AppId,
+    pub published_file_id: PublishedFileId,
+}
+
+impl_callback!(cb: ItemInstalled_t => ItemInstalled {
+    Self {
+        app_id: AppId(cb.m_unAppID),
+        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
+    }
+});
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InstallInfo {
     pub folder: String,
     pub size_on_disk: u64,
