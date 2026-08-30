@@ -49,6 +49,8 @@ pub enum CallbackResult {
     GSClientKick(GSClientKick),
     GSClientGroupStatus(GSClientGroupStatus),
     NewUrlLaunchParameters(NewUrlLaunchParameters),
+    UserSubscribedItemsListChanged(UserSubscribedItemsListChanged),
+    ItemInstalled(ItemInstalled),
 }
 
 impl CallbackResult {
@@ -140,6 +142,10 @@ impl CallbackResult {
             NewUrlLaunchParameters::ID => {
                 Self::NewUrlLaunchParameters(NewUrlLaunchParameters::from_raw(data))
             }
+            UserSubscribedItemsListChanged::ID => {
+                Self::UserSubscribedItemsListChanged(UserSubscribedItemsListChanged::from_raw(data))
+            }
+            ItemInstalled::ID => Self::ItemInstalled(ItemInstalled::from_raw(data)),
             _ => return None,
         })
     }

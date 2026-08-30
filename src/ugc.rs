@@ -516,6 +516,32 @@ impl_callback!(cb: DeleteItemResult_t => DeleteItemResult {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UserSubscribedItemsListChanged {
+    pub app_id: AppId,
+}
+
+impl_callback!(cb: UserSubscribedItemsListChanged_t => UserSubscribedItemsListChanged {
+    Self {
+        app_id: AppId(cb.m_nAppID),
+    }
+});
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ItemInstalled {
+    pub app_id: AppId,
+    pub published_file_id: PublishedFileId,
+}
+
+impl_callback!(cb: ItemInstalled_t => ItemInstalled {
+    Self {
+        app_id: AppId(cb.m_unAppID),
+        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
+    }
+});
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InstallInfo {
     pub folder: String,
     pub size_on_disk: u64,
