@@ -6,7 +6,7 @@ use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
 use crate::{Callback, Inner, SteamId, SteamResult};
 use std::convert::{TryFrom, TryInto};
-use std::ffi::{c_void, CString, CStr};
+use std::ffi::{c_void, CStr, CString};
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
@@ -1753,7 +1753,7 @@ impl NetworkingIdentity {
         };
         match CStr::from_bytes_until_nul(&buffer) {
             Err(_) => String::from("invalid"),
-            Ok(cstr) => cstr.to_string_lossy().to_string()
+            Ok(cstr) => cstr.to_string_lossy().to_string(),
         }
     }
 
@@ -1766,10 +1766,12 @@ impl NetworkingIdentity {
         unsafe {
             let result = sys::SteamAPI_SteamNetworkingIdentity_ParseString(
                 inner.as_mut_ptr(),
-                c_string.as_ptr()
+                c_string.as_ptr(),
             );
             if result {
-                Ok(Self { inner: inner.assume_init() })
+                Ok(Self {
+                    inner: inner.assume_init(),
+                })
             } else {
                 Err(())
             }
