@@ -6,7 +6,7 @@ use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
 use crate::{Callback, Inner, SteamId, SteamResult};
 use std::convert::{TryFrom, TryInto};
-use std::ffi::{c_void, CString};
+use std::ffi::{c_void, CString, CStr};
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
@@ -1664,8 +1664,8 @@ pub struct NetworkingIdentity {
     inner: sys::SteamNetworkingIdentity,
 }
 
-// const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
-//     sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
+const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
+    sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
 
 impl NetworkingIdentity {
     pub fn new() -> Self {
@@ -1743,44 +1743,17 @@ impl NetworkingIdentity {
     }
 
     pub fn debug_string(&self) -> String {
-        // For some reason I can't get the original function to work,
-        // so I decided to recreate the original from https://github.com/ValveSoftware/GameNetworkingSockets/blob/529901e7c1caf50928ac8814cad205d192bbf27d/src/steamnetworkingsockets/steamnetworkingsockets_shared.cpp
-
-        // let mut buffer = vec![0i8; NETWORK_IDENTITY_STRING_BUFFER_SIZE];
-        // let string = unsafe {
-        //     sys::SteamAPI_SteamNetworkingIdentity_ToString(
-        //         self.as_ptr() as *mut sys::SteamNetworkingIdentity,
-        //         buffer.as_mut_ptr(),
-        //         NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
-        //     );
-        //     CString::from_raw(buffer.as_mut_ptr())
-        // };
-        // string.into_string().unwrap()
-
+        let mut buffer = vec![0u8; NETWORK_IDENTITY_STRING_BUFFER_SIZE];
         unsafe {
-            match self.inner.m_eType {
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_Invalid => {
-                    "invalid".to_string()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_SteamID => {
-                    let id = self.inner.__bindgen_anon_1.m_steamID64;
-                    format!("steamid:{}", id)
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_IPAddress => {
-                    let ip = SteamIpAddr::from(self.inner.__bindgen_anon_1.m_ip);
-                    format!("ip:{}", ip)
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericString => {
-                    unimplemented!()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericBytes => {
-                    unimplemented!()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_UnknownType => {
-                    unimplemented!()
-                }
-                ty => format!("bad_type:{}", ty as u32),
-            }
+            sys::SteamAPI_SteamNetworkingIdentity_ToString(
+                self.as_ptr() as *mut sys::SteamNetworkingIdentity,
+                buffer.as_mut_ptr() as *mut _ as *mut i8, // black magic to type-convert a [u8] to [i8]
+                NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
+            );
+        };
+        match CStr::from_bytes_until_nul(&buffer) {
+            Err(_) => String::from("invalid"),
+            Ok(cstr) => cstr.to_string_lossy().to_string()
         }
     }
 
