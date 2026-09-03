@@ -1763,6 +1763,18 @@ impl NetworkingIdentity {
         }
     }
 
+    /// Returns the underlying internal representation bytes of NetworkingIdentity
+    ///
+    /// It is properly cut by the amount of bytes necessary, e.g. steamid will only be 8 bytes, etc.
+    fn internal_representation_bytes(&self) -> &[u8] {
+        const INNER_SIZE: usize = 128;
+        let inner: &[u8; INNER_SIZE] = unsafe { std::mem::transmute(&self.inner.__bindgen_anon_1) };
+        // just to be on the safe side, take at most 128 bytes and don't trust cbSize fully.
+        // we never know what might happen on the cpp side...
+        let inner_len = std::cmp::min(self.inner.m_cbSize as usize, INNER_SIZE);
+        &inner[0..inner_len]
+    }
+
     pub(crate) fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
         &self.inner
     }
@@ -1775,6 +1787,16 @@ impl NetworkingIdentity {
 impl PartialEq for NetworkingIdentity {
     fn eq(&self, other: &Self) -> bool {
         self.is_equal_to(other)
+    }
+}
+
+impl std::hash::Hash for NetworkingIdentity {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let e_type = self.inner.m_eType; // necessary for alignment because self.inner is 1-packed
+        e_type.hash(state);
+        let cn_size = self.inner.m_cbSize; // also necessary for alignment
+        cn_size.hash(state);
+        self.internal_representation_bytes().hash(state);
     }
 }
 
