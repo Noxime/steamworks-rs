@@ -1757,6 +1757,25 @@ impl NetworkingIdentity {
         }
     }
 
+    /// Tries to parse a NetworkingIdentity from a string (generated from `debug_string`)
+    ///
+    /// Returns `Err(())` if the string contained a nul-byte or was an invalid networking identity
+    pub fn from_debug_string(value: &str) -> Result<Self, ()> {
+        let c_string = CString::new(value).map_err(|_| ())?;
+        let mut inner = std::mem::MaybeUninit::<sys::SteamNetworkingIdentity>::uninit();
+        unsafe {
+            let result = sys::SteamAPI_SteamNetworkingIdentity_ParseString(
+                inner.as_mut_ptr(),
+                c_string.as_ptr()
+            );
+            if result {
+                Ok(Self { inner: inner.assume_init() })
+            } else {
+                Err(())
+            }
+        }
+    }
+
     pub fn is_equal_to(&self, other: &Self) -> bool {
         unsafe {
             sys::SteamAPI_SteamNetworkingIdentity_IsEqualTo(self.as_ptr() as *mut _, other.as_ptr())
@@ -2261,5 +2280,16 @@ mod tests {
 
             // Drop it immediately
         }
+    }
+
+    #[test]
+    #[serial]
+    fn test_networking_id_debug_ser_deser() {
+        let _client = Client::init().unwrap();
+        let steam_id = SteamId(76561199000000000u64);
+
+        let net_id1 = NetworkingIdentity::new_steam_id(steam_id);
+        let net_id2 = NetworkingIdentity::from_debug_string(&net_id1.debug_string()).unwrap();
+        assert_eq!(net_id1, net_id2);
     }
 }
