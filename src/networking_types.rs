@@ -1579,7 +1579,7 @@ pub(crate) enum NetConnectionError {
 
 #[derive(Clone)]
 pub struct NetworkingConfigEntry {
-    inner: sys::SteamNetworkingConfigValue_t,
+    pub(crate) inner: sys::SteamNetworkingConfigValue_t,
 }
 
 impl NetworkingConfigEntry {
@@ -1588,6 +1588,15 @@ impl NetworkingConfigEntry {
             m_eValue: sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_Invalid,
             m_eDataType: sys::ESteamNetworkingConfigDataType::k_ESteamNetworkingConfig_Int32,
             m_val: sys::SteamNetworkingConfigValue_t__bindgen_ty_1 { m_int32: 0 },
+        }
+    }
+
+    pub fn new(value_type: NetworkingConfigValue, data: NetworkingConfigData) -> Self {
+        match data {
+            NetworkingConfigData::Int32(data) => Self::new_int32(value_type, data),
+            NetworkingConfigData::Int64(data) => Self::new_int64(value_type, data),
+            NetworkingConfigData::Float(data) => Self::new_float(value_type, data),
+            NetworkingConfigData::String(data) => Self::new_string(value_type, &data),
         }
     }
 
@@ -1652,6 +1661,44 @@ impl NetworkingConfigEntry {
 impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
     fn from(entry: NetworkingConfigEntry) -> sys::SteamNetworkingConfigValue_t {
         entry.inner
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum NetworkingConfigData {
+    Int32(i32),
+    Int64(i64),
+    Float(f32),
+    String(String),
+}
+
+impl NetworkingConfigData {
+    pub(crate) fn from_buf(bytes: &[u8], data_type: NetworkingConfigDataType) -> Option<Self> {
+        let data = match data_type {
+            NetworkingConfigDataType::Float => {
+                let data = f32::from_ne_bytes(*bytes.get(0..4)?.as_array::<4>()?);
+                Self::Float(data)
+            }
+            NetworkingConfigDataType::Int64 => {
+                let data = i64::from_ne_bytes(*bytes.get(0..8)?.as_array::<8>()?);
+                Self::Int64(data)
+            }
+            NetworkingConfigDataType::Int32 => {
+                let data = i32::from_ne_bytes(*bytes.get(0..4)?.as_array::<4>()?);
+                Self::Int32(data)
+            }
+            NetworkingConfigDataType::String => {
+                let data = unsafe { CStr::from_ptr(bytes.as_ptr() as *const _) }
+                    .to_string_lossy()
+                    .to_string();
+                Self::String(data)
+            }
+            NetworkingConfigDataType::Callback => {
+                // TODO
+                return None;
+            }
+        };
+        Some(data)
     }
 }
 
