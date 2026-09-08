@@ -1700,6 +1700,39 @@ impl NetworkingConfigData {
         };
         Some(data)
     }
+
+    /// Attempts to transform this data into a `&str`. Returns `None` if the data type is not string.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            Self::String(s) => Some(&*s),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `i32`. Returns `None` if the data type is not Int32.
+    pub fn as_i32(&self) -> Option<i32> {
+        match self {
+            Self::Int32(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `i64`. Returns `None` if the data type is not Int64 or Int32.
+    pub fn as_i64(&self) -> Option<i64> {
+        match self {
+            Self::Int32(v) => Some(*v as i64),
+            Self::Int64(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `f32`. Returns `None` if the data type is not Float.
+    pub fn as_f32(&self) -> Option<f32> {
+        match self {
+            Self::Float(v) => Some(*v),
+            _ => None,
+        }
+    }
 }
 
 /// A safe wrapper for SteamNetworkingIdentity
