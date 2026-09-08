@@ -497,6 +497,21 @@ impl ListenSocket {
         }
     }
 
+    /// Unsets a config value for this listener.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .unset_config_value_internal(
+                    self.inner.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_ListenSocket,
+                    value,
+                )
+        }
+    }
+
     /// Get a config value applied for this ListenSocket.
     pub fn get_config_value(
         &self,
@@ -713,6 +728,21 @@ impl NetConnection {
                     self.handle,
                     sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Connection,
                     config_entry,
+                )
+        }
+    }
+
+    /// Unsets a config value for this specific net connection.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .unset_config_value_internal(
+                    self.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Connection,
+                    value,
                 )
         }
     }
