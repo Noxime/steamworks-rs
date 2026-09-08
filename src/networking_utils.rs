@@ -154,6 +154,40 @@ impl NetworkingUtils {
         }
     }
 
+    /// Unsets a config value globally, using the system defaults instead.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.unset_config_value_internal(
+                0,
+                sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Global,
+                value,
+            )
+        }
+    }
+
+    /// Unset a configuration value for different scopes. Internal use only.
+    ///
+    /// Returns true if the parameter was successfully unset
+    pub(crate) unsafe fn unset_config_value_internal(
+        &self,
+        scope_handle: u32,
+        scope: sys::ESteamNetworkingConfigScope,
+        value: NetworkingConfigValue,
+    ) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamNetworkingUtils_SetConfigValue(
+                self.utils,
+                value.into(),
+                scope,
+                scope_handle as isize,
+                value.data_type().into(),
+                std::ptr::null()
+            )
+        }
+    }
+
     /// Get a config value applied for the global instance.
     pub fn get_config_value(
         &self,
