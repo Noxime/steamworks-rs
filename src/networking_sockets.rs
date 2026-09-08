@@ -497,6 +497,7 @@ impl ListenSocket {
         }
     }
 
+    /// Get a config value applied for this ListenSocket.
     pub fn get_config_value(
         &self,
         value: NetworkingConfigValue,
@@ -716,6 +717,7 @@ impl NetConnection {
         }
     }
 
+    /// Get a config value applied for this NetConnection.
     pub fn get_config_value(
         &self,
         value: NetworkingConfigValue,
