@@ -1883,6 +1883,19 @@ impl NetworkingIdentity {
     pub(crate) fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
         &mut self.inner
     }
+
+    /// Returns the inner struct of `NetworkingIdentity`
+    ///
+    /// In most cases should not be used, but it may be be useful
+    /// for serializing or interoping with an existing C codebase.
+    pub fn raw(&self) -> sys::SteamNetworkingIdentity {
+        self.inner.clone()
+    }
+
+    /// Allows to build a NetworkingIdentity from a raw `SteamNetworkingIdentity`
+    pub fn from_raw(raw: sys::SteamNetworkingIdentity) -> Self {
+        Self { inner: raw }
+    }
 }
 
 impl PartialEq for NetworkingIdentity {
