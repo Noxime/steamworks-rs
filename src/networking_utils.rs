@@ -183,7 +183,7 @@ impl NetworkingUtils {
                 scope,
                 scope_handle as isize,
                 value.data_type().into(),
-                std::ptr::null()
+                std::ptr::null(),
             )
         }
     }
