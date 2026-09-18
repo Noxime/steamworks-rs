@@ -30,6 +30,13 @@ impl_callback!(_cb: FloatingGamepadTextInputDismissed_t => FloatingGamepadTextIn
     Self
 });
 
+#[derive(Clone, Debug)]
+pub struct SteamShutdown;
+
+impl_callback!(_cb: SteamShutdown_t => SteamShutdown {
+    Self
+});
+
 pub enum NotificationPosition {
     TopLeft,
     TopRight,
