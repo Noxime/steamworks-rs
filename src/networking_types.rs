@@ -1676,15 +1676,15 @@ impl NetworkingConfigData {
     pub(crate) fn from_buf(bytes: &[u8], data_type: NetworkingConfigDataType) -> Option<Self> {
         let data = match data_type {
             NetworkingConfigDataType::Float => {
-                let data = f32::from_ne_bytes(*bytes.get(0..4)?.as_array::<4>()?);
+                let data = f32::from_ne_bytes(bytes.get(0..4)?.try_into().ok()?);
                 Self::Float(data)
             }
             NetworkingConfigDataType::Int64 => {
-                let data = i64::from_ne_bytes(*bytes.get(0..8)?.as_array::<8>()?);
+                let data = i64::from_ne_bytes(bytes.get(0..8)?.try_into().ok()?);
                 Self::Int64(data)
             }
             NetworkingConfigDataType::Int32 => {
-                let data = i32::from_ne_bytes(*bytes.get(0..4)?.as_array::<4>()?);
+                let data = i32::from_ne_bytes(bytes.get(0..4)?.try_into().ok()?);
                 Self::Int32(data)
             }
             NetworkingConfigDataType::String => {
