@@ -6,7 +6,7 @@ use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
 use crate::{Callback, Inner, SResult, SteamId};
 use std::convert::{TryFrom, TryInto};
-use std::ffi::{c_void, CStr, CString};
+use std::ffi::{c_char, c_void, CStr, CString};
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
@@ -1827,7 +1827,7 @@ impl NetworkingIdentity {
         unsafe {
             sys::SteamAPI_SteamNetworkingIdentity_ToString(
                 self.as_ptr() as *mut sys::SteamNetworkingIdentity,
-                buffer.as_mut_ptr() as *mut _ as *mut i8, // black magic to type-convert a [u8] to [i8]
+                buffer.as_mut_ptr() as *mut _ as *mut c_char, // black magic to type-convert a [u8] to *c_char
                 NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
             );
         };
