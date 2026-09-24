@@ -274,6 +274,10 @@ impl Client {
         }
     }
 
+    pub(crate) fn from_inner(inner: Arc<Inner>) -> Self {
+        Self { inner }
+    }
+
     /// Attempts to initialize the steamworks api with the APP_ID
     /// without full API integration through SteamAPI_InitFlat
     /// and returns a client to access the rest of the api.
