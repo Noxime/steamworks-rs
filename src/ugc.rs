@@ -501,6 +501,18 @@ impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
 });
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UserSubscribedItemsListChanged {
+    pub app_id: AppId,
+}
+
+impl_callback!(cb: UserSubscribedItemsListChanged_t => UserSubscribedItemsListChanged {
+    Self {
+        app_id: AppId(cb.m_nAppID),
+    }
+});
+
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct DeleteItemResult {
     pub published_file_id: PublishedFileId,
