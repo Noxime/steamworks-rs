@@ -67,8 +67,9 @@ pub enum InputGlyphBaseStyle {
 /// [`InputGlyphBaseStyle::Knockout`] with both options disabled (flags value `0`).
 ///
 /// Note that this does not match the legacy [`Input::get_glyph_for_action_origin`],
-/// which has been observed to return glyphs in the dark style. Use
-/// `InputGlyphStyle::new(InputGlyphBaseStyle::Dark)` for a similar look.
+/// which always returns dark, medium-size glyphs. To get the same look from
+/// [`Input::get_glyph_png_for_action_origin`], pass [`InputGlyphSize::Medium`] and
+/// `InputGlyphStyle::new(InputGlyphBaseStyle::Dark)`.
 ///
 /// ```
 /// use steamworks::{InputGlyphBaseStyle, InputGlyphStyle};
