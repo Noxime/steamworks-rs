@@ -26,6 +26,126 @@ pub enum InputType {
     SteamDeckController,
 }
 
+/// The size of a glyph image returned by [`Input::get_glyph_png_for_action_origin`].
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum InputGlyphSize {
+    /// Small glyph.
+    Small,
+    /// Medium glyph.
+    Medium,
+    /// Large glyph.
+    Large,
+}
+
+impl From<InputGlyphSize> for sys::ESteamInputGlyphSize {
+    fn from(size: InputGlyphSize) -> Self {
+        match size {
+            InputGlyphSize::Small => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Small,
+            InputGlyphSize::Medium => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Medium,
+            InputGlyphSize::Large => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Large,
+        }
+    }
+}
+
+/// The base look of a glyph, see [`InputGlyphStyle`].
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
+pub enum InputGlyphBaseStyle {
+    /// Glyphs with a transparent "knockout" cut-out of the button symbol.
+    #[default]
+    Knockout,
+    /// Light glyphs, intended for dark backgrounds.
+    Light,
+    /// Dark glyphs, intended for light backgrounds.
+    Dark,
+}
+
+/// The style of a glyph returned by [`Input::get_glyph_png_for_action_origin`] and
+/// [`Input::get_glyph_svg_for_action_origin`].
+///
+/// A style is one [`InputGlyphBaseStyle`] plus two independent options for how
+/// the A/B/X/Y face buttons are drawn. The [`Default`] style is
+/// [`InputGlyphBaseStyle::Knockout`] with both options disabled.
+///
+/// ```
+/// use steamworks::{InputGlyphBaseStyle, InputGlyphStyle};
+///
+/// let style = InputGlyphStyle::new(InputGlyphBaseStyle::Dark).solid_abxy(true);
+/// assert_eq!(style.to_flags(), 2 | 32);
+/// ```
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
+pub struct InputGlyphStyle {
+    /// The base look of the glyph.
+    pub base: InputGlyphBaseStyle,
+    /// Use neutral colours for the A/B/X/Y buttons.
+    pub neutral_color_abxy: bool,
+    /// Use solid (filled) A/B/X/Y buttons.
+    pub solid_abxy: bool,
+}
+
+impl InputGlyphStyle {
+    /// Creates a style with the given base look and no extra options.
+    pub fn new(base: InputGlyphBaseStyle) -> Self {
+        Self {
+            base,
+            ..Self::default()
+        }
+    }
+
+    /// Sets whether A/B/X/Y buttons use neutral colours.
+    pub fn neutral_color_abxy(mut self, enabled: bool) -> Self {
+        self.neutral_color_abxy = enabled;
+        self
+    }
+
+    /// Sets whether A/B/X/Y buttons are drawn solid.
+    pub fn solid_abxy(mut self, enabled: bool) -> Self {
+        self.solid_abxy = enabled;
+        self
+    }
+
+    /// Converts the style to the `ESteamInputGlyphStyle` flags value Steam expects.
+    pub fn to_flags(self) -> u32 {
+        let base = match self.base {
+            InputGlyphBaseStyle::Knockout => {
+                sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Knockout
+            }
+            InputGlyphBaseStyle::Light => sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Light,
+            InputGlyphBaseStyle::Dark => sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Dark,
+        } as u32;
+        let mut flags = base;
+        if self.neutral_color_abxy {
+            flags |= sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_NeutralColorABXY as u32;
+        }
+        if self.solid_abxy {
+            flags |= sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_SolidABXY as u32;
+        }
+        flags
+    }
+}
+
+impl From<InputGlyphStyle> for u32 {
+    fn from(style: InputGlyphStyle) -> Self {
+        style.to_flags()
+    }
+}
+
+/// Copies a string owned by Steam, mapping null and empty strings to `None`.
+///
+/// # Safety
+///
+/// `ptr` must be null or point to a valid nul-terminated C string.
+unsafe fn owned_string_from_steam(ptr: *const std::os::raw::c_char) -> Option<String> {
+    if ptr.is_null() {
+        return None;
+    }
+    let value = CStr::from_ptr(ptr).to_string_lossy().into_owned();
+    if value.is_empty() {
+        None
+    } else {
+        Some(value)
+    }
+}
+
 impl Input {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
@@ -125,6 +245,54 @@ impl Input {
                 sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
             let glyph_path = CStr::from_ptr(glyph_path);
             glyph_path.to_string_lossy().into_owned()
+        }
+    }
+
+    /// Returns the path to a PNG glyph for an input action origin, in the requested
+    /// size and style, or `None` if Steam has no glyph for it.
+    ///
+    /// [`Input::init`] must be called before using this.
+    ///
+    /// Unlike [`Input::get_glyph_for_action_origin`], which wraps the legacy API
+    /// and always uses Steam's default style, this lets you choose the size and
+    /// [`InputGlyphStyle`].
+    pub fn get_glyph_png_for_action_origin(
+        &self,
+        action_origin: sys::EInputActionOrigin,
+        size: InputGlyphSize,
+        style: InputGlyphStyle,
+    ) -> Option<String> {
+        unsafe {
+            let glyph_path = sys::SteamAPI_ISteamInput_GetGlyphPNGForActionOrigin(
+                self.input,
+                action_origin,
+                size.into(),
+                style.to_flags(),
+            );
+            owned_string_from_steam(glyph_path)
+        }
+    }
+
+    /// Returns the path to an SVG glyph for an input action origin in the requested
+    /// style, or `None` if Steam has no glyph for it.
+    ///
+    /// [`Input::init`] must be called before using this.
+    ///
+    /// Unlike [`Input::get_glyph_for_action_origin`], which wraps the legacy API
+    /// and always uses Steam's default style, this lets you choose the
+    /// [`InputGlyphStyle`].
+    pub fn get_glyph_svg_for_action_origin(
+        &self,
+        action_origin: sys::EInputActionOrigin,
+        style: InputGlyphStyle,
+    ) -> Option<String> {
+        unsafe {
+            let glyph_path = sys::SteamAPI_ISteamInput_GetGlyphSVGForActionOrigin(
+                self.input,
+                action_origin,
+                style.to_flags(),
+            );
+            owned_string_from_steam(glyph_path)
         }
     }
 
@@ -243,6 +411,67 @@ impl Input {
     pub fn shutdown(&self) {
         unsafe {
             sys::SteamAPI_ISteamInput_Shutdown(self.input);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn glyph_style_flags() {
+        use InputGlyphBaseStyle::*;
+
+        assert_eq!(InputGlyphStyle::default().to_flags(), 0);
+        assert_eq!(InputGlyphStyle::new(Knockout).to_flags(), 0);
+        assert_eq!(InputGlyphStyle::new(Light).to_flags(), 1);
+        assert_eq!(InputGlyphStyle::new(Dark).to_flags(), 2);
+
+        for (base, base_flag) in [(Knockout, 0), (Light, 1), (Dark, 2)] {
+            let style = InputGlyphStyle::new(base);
+            assert_eq!(style.neutral_color_abxy(true).to_flags(), base_flag | 16);
+            assert_eq!(style.solid_abxy(true).to_flags(), base_flag | 32);
+            assert_eq!(
+                style.neutral_color_abxy(true).solid_abxy(true).to_flags(),
+                base_flag | 16 | 32
+            );
+            assert_eq!(
+                style
+                    .neutral_color_abxy(true)
+                    .neutral_color_abxy(false)
+                    .to_flags(),
+                base_flag
+            );
+        }
+        assert_eq!(u32::from(InputGlyphStyle::new(Dark).solid_abxy(true)), 34);
+    }
+
+    #[test]
+    fn glyph_size_conversion() {
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Small) as u32,
+            0
+        );
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Medium) as u32,
+            1
+        );
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Large) as u32,
+            2
+        );
+    }
+
+    #[test]
+    fn steam_string_conversion() {
+        unsafe {
+            assert_eq!(owned_string_from_steam(std::ptr::null()), None);
+            assert_eq!(owned_string_from_steam(c"".as_ptr()), None);
+            assert_eq!(
+                owned_string_from_steam(c"glyph.png".as_ptr()),
+                Some("glyph.png".to_owned())
+            );
         }
     }
 }
