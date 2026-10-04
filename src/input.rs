@@ -129,7 +129,20 @@ impl From<InputGlyphStyle> for u32 {
     }
 }
 
+/// Replaces `\` with `/` in a path returned by Steam.
+///
+/// Steam builds glyph paths with mixed separators on non-Windows platforms (for
+/// example `.../MacOS\controller_base\images\api\knockout/button.png`). There
+/// the backslashes are ordinary filename characters, so the file does not exist
+/// as returned.
+fn replace_backslashes(path: &str) -> String {
+    path.replace('\\', "/")
+}
+
 /// Copies a string owned by Steam, mapping null and empty strings to `None`.
+///
+/// Paths are normalised to use `/` on non-Windows targets, see
+/// [`replace_backslashes`]. Windows paths are left untouched.
 ///
 /// # Safety
 ///
@@ -141,8 +154,10 @@ unsafe fn owned_string_from_steam(ptr: *const std::os::raw::c_char) -> Option<St
     let value = CStr::from_ptr(ptr).to_string_lossy().into_owned();
     if value.is_empty() {
         None
-    } else {
+    } else if cfg!(windows) {
         Some(value)
+    } else {
+        Some(replace_backslashes(&value))
     }
 }
 
@@ -464,6 +479,18 @@ mod tests {
             sys::ESteamInputGlyphSize::from(InputGlyphSize::Large) as u32,
             2
         );
+    }
+
+    #[test]
+    fn backslash_replacement() {
+        assert_eq!(
+            replace_backslashes(
+                r"/MacOS\controller_base\images\api\knockout/shared_color_button_a_sm.png"
+            ),
+            "/MacOS/controller_base/images/api/knockout/shared_color_button_a_sm.png"
+        );
+        assert_eq!(replace_backslashes("a/b/c.png"), "a/b/c.png");
+        assert_eq!(replace_backslashes(""), "");
     }
 
     #[test]
