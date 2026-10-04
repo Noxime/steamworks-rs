@@ -64,7 +64,11 @@ pub enum InputGlyphBaseStyle {
 ///
 /// A style is one [`InputGlyphBaseStyle`] plus two independent options for how
 /// the A/B/X/Y face buttons are drawn. The [`Default`] style is
-/// [`InputGlyphBaseStyle::Knockout`] with both options disabled.
+/// [`InputGlyphBaseStyle::Knockout`] with both options disabled (flags value `0`).
+///
+/// Note that this does not match the legacy [`Input::get_glyph_for_action_origin`],
+/// which has been observed to return glyphs in the dark style. Use
+/// `InputGlyphStyle::new(InputGlyphBaseStyle::Dark)` for a similar look.
 ///
 /// ```
 /// use steamworks::{InputGlyphBaseStyle, InputGlyphStyle};
@@ -139,15 +143,16 @@ fn replace_backslashes(path: &str) -> String {
     path.replace('\\', "/")
 }
 
-/// Copies a string owned by Steam, mapping null and empty strings to `None`.
+/// Copies a file path owned by Steam, mapping null and empty strings to `None`.
 ///
-/// Paths are normalised to use `/` on non-Windows targets, see
-/// [`replace_backslashes`]. Windows paths are left untouched.
+/// On non-Windows targets `\` is rewritten as `/`, see [`replace_backslashes`];
+/// Windows paths are left untouched. Only use this for paths, since it would
+/// mangle other strings such as display names.
 ///
 /// # Safety
 ///
 /// `ptr` must be null or point to a valid nul-terminated C string.
-unsafe fn owned_string_from_steam(ptr: *const std::os::raw::c_char) -> Option<String> {
+unsafe fn owned_path_from_steam(ptr: *const std::os::raw::c_char) -> Option<String> {
     if ptr.is_null() {
         return None;
     }
@@ -262,7 +267,7 @@ impl Input {
         unsafe {
             let glyph_path =
                 sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
-            owned_string_from_steam(glyph_path).unwrap_or_default()
+            owned_path_from_steam(glyph_path).unwrap_or_default()
         }
     }
 
@@ -287,7 +292,7 @@ impl Input {
                 size.into(),
                 style.to_flags(),
             );
-            owned_string_from_steam(glyph_path)
+            owned_path_from_steam(glyph_path)
         }
     }
 
@@ -310,7 +315,7 @@ impl Input {
                 action_origin,
                 style.to_flags(),
             );
-            owned_string_from_steam(glyph_path)
+            owned_path_from_steam(glyph_path)
         }
     }
 
@@ -494,12 +499,12 @@ mod tests {
     }
 
     #[test]
-    fn steam_string_conversion() {
+    fn steam_path_conversion() {
         unsafe {
-            assert_eq!(owned_string_from_steam(std::ptr::null()), None);
-            assert_eq!(owned_string_from_steam(c"".as_ptr()), None);
+            assert_eq!(owned_path_from_steam(std::ptr::null()), None);
+            assert_eq!(owned_path_from_steam(c"".as_ptr()), None);
             assert_eq!(
-                owned_string_from_steam(c"glyph.png".as_ptr()),
+                owned_path_from_steam(c"glyph.png".as_ptr()),
                 Some("glyph.png".to_owned())
             );
         }
