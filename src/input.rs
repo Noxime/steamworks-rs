@@ -239,12 +239,15 @@ impl Input {
     }
 
     /// Returns the glyph for an input action
+    ///
+    /// Returns an empty string if Steam has no glyph for the origin (for example
+    /// `k_EInputActionOrigin_None`). See [`Input::get_glyph_png_for_action_origin`]
+    /// for a variant that lets you choose the size and style.
     pub fn get_glyph_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
         unsafe {
             let glyph_path =
                 sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
-            let glyph_path = CStr::from_ptr(glyph_path);
-            glyph_path.to_string_lossy().into_owned()
+            owned_string_from_steam(glyph_path).unwrap_or_default()
         }
     }
 
