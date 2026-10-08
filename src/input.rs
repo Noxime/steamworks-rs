@@ -2,6 +2,20 @@ use sys::InputHandle_t;
 
 use super::*;
 
+// `EInputActionOrigin` cannot hold origins of devices newer than this SDK, so this takes
+// and returns the raw value.
+extern "C" {
+    #[link_name = "SteamAPI_ISteamInput_TranslateActionOrigin"]
+    fn translate_raw_action_origin(
+        input: *mut sys::ISteamInput,
+        destination_input_type: sys::ESteamInputType,
+        source_origin: u32,
+    ) -> u32;
+}
+
+const ACTION_ORIGIN_NONE: u32 = sys::EInputActionOrigin::k_EInputActionOrigin_None as u32;
+const ACTION_ORIGIN_COUNT: u32 = sys::EInputActionOrigin::k_EInputActionOrigin_Count as u32;
+
 /// Access to the steam input interface
 pub struct Input {
     pub(crate) input: *mut sys::ISteamInput,
@@ -188,7 +202,7 @@ impl Input {
     pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
         let mut handles = vec![0_u64; sys::STEAM_INPUT_MAX_COUNT as usize];
         let quantity = self.get_connected_controllers_slice(&mut handles);
-        handles.shrink_to(quantity);
+        handles.truncate(quantity);
         handles
     }
 
@@ -377,45 +391,72 @@ impl Input {
     }
 
     /// Get the origin(s) for a digital action within an action set.
+    ///
+    /// Origins of devices newer than this SDK are translated to their closest known equivalent.
     pub fn get_digital_action_origins(
         &self,
         input_handle: sys::InputHandle_t,
         action_set_handle: sys::InputActionSetHandle_t,
         digital_action_handle: sys::InputDigitalActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
-        unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
-            let len = sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
+        let mut origins = [ACTION_ORIGIN_NONE; sys::STEAM_INPUT_MAX_ORIGINS as usize];
+        // Steam writes into `u32` storage, so origins unknown to this SDK never become an
+        // `EInputActionOrigin`.
+        let len = unsafe {
+            sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
                 self.input,
                 input_handle,
                 action_set_handle,
                 digital_action_handle,
-                origins.as_mut_ptr(),
-            );
-            origins.set_len(len as usize);
-            origins
-        }
+                origins.as_mut_ptr().cast(),
+            )
+        };
+        self.known_action_origins(&origins, len)
     }
 
     /// Get the origin(s) for an analog action within an action set.
+    ///
+    /// Origins of devices newer than this SDK are translated to their closest known equivalent.
     pub fn get_analog_action_origins(
         &self,
         input_handle: sys::InputHandle_t,
         action_set_handle: sys::InputActionSetHandle_t,
         analog_action_handle: sys::InputAnalogActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
-        unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
-            let len = sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
+        let mut origins = [ACTION_ORIGIN_NONE; sys::STEAM_INPUT_MAX_ORIGINS as usize];
+        // See `get_digital_action_origins`.
+        let len = unsafe {
+            sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
                 self.input,
                 input_handle,
                 action_set_handle,
                 analog_action_handle,
-                origins.as_mut_ptr(),
-            );
-            origins.set_len(len as usize);
-            origins
-        }
+                origins.as_mut_ptr().cast(),
+            )
+        };
+        self.known_action_origins(&origins, len)
+    }
+
+    fn known_action_origins(&self, origins: &[u32], len: i32) -> Vec<sys::EInputActionOrigin> {
+        origins[..(len.max(0) as usize).min(origins.len())]
+            .iter()
+            .filter_map(|&origin| {
+                let origin = if origin < ACTION_ORIGIN_COUNT {
+                    origin
+                } else {
+                    unsafe {
+                        translate_raw_action_origin(
+                            self.input,
+                            sys::ESteamInputType::k_ESteamInputType_Unknown,
+                            origin,
+                        )
+                    }
+                };
+                // Every value below `k_EInputActionOrigin_Count` is a variant.
+                (origin != ACTION_ORIGIN_NONE && origin < ACTION_ORIGIN_COUNT)
+                    .then(|| unsafe { std::mem::transmute::<u32, sys::EInputActionOrigin>(origin) })
+            })
+            .collect()
     }
 
     pub fn get_motion_data(&self, input_handle: sys::InputHandle_t) -> sys::InputMotionData_t {
