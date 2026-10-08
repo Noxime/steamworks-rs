@@ -78,3 +78,8 @@ This crate is dual-licensed under [Apache](./LICENSE-APACHE) and
 
 ## Help, I can't run my game!
 If you are seeing errors like `STATUS_DLL_NOT_FOUND`, `Image not found` etc. You are likely missing the Steamworks SDK Redistributable files. Steamworks-rs loads the SDK dynamically, so the libraries need to exist somewhere the operating system can find them. This is likely next to your game binary (.exe on windows). You can find the required files in the SDK release ZIP, under `lib\steam\redistributable_bin`. See #63 for further details
+
+A build script in a crate that directly depends on `steamworks-sys` can read
+`DEP_STEAM_API_LIB_DIR` to find the output directory containing the copied SDK
+redistributable library. Cargo does not expose this variable through a transitive
+dependency on `steamworks` alone.
