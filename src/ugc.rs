@@ -11,6 +11,7 @@ use std::path::Path;
 pub const RESULTS_PER_PAGE: u32 = sys::kNumUGCResultsPerPage as u32;
 
 pub struct UGC {
+    pub(crate) unavailable: bool,
     pub(crate) ugc: *mut sys::ISteamUGC,
     pub(crate) inner: Arc<Inner>,
 }
@@ -525,6 +526,9 @@ pub struct InstallInfo {
 impl UGC {
     /// Suspends or resumes all workshop downloads
     pub fn suspend_downloads(&self, suspend: bool) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamUGC_SuspendDownloads(self.ugc, suspend);
         }
@@ -535,6 +539,9 @@ impl UGC {
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
             register_call_result::<sys::CreateItemResult_t, _>(
@@ -559,9 +566,18 @@ impl UGC {
     /// Starts an item update process
     #[must_use]
     pub fn start_item_update(&self, app_id: AppId, file_id: PublishedFileId) -> UpdateHandle {
+        if self.unavailable {
+            return UpdateHandle {
+                unavailable: true,
+                ugc: std::ptr::null_mut(),
+                inner: self.inner.clone(),
+                handle: 0,
+            };
+        }
         unsafe {
             let handle = sys::SteamAPI_ISteamUGC_StartItemUpdate(self.ugc, app_id.0, file_id.0);
             UpdateHandle {
+                unavailable: self.unavailable,
                 ugc: self.ugc,
                 inner: self.inner.clone(),
 
@@ -575,6 +591,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
             register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _>(
@@ -595,6 +614,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
             register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _>(
@@ -616,6 +638,9 @@ impl UGC {
     /// Set `include_locally_disabled` to `true` to include items that are
     /// locally disabled.
     pub fn subscribed_items(&self, include_locally_disabled: bool) -> Vec<PublishedFileId> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let count =
                 sys::SteamAPI_ISteamUGC_GetNumSubscribedItems(self.ugc, include_locally_disabled);
@@ -632,6 +657,9 @@ impl UGC {
     }
 
     pub fn item_state(&self, item: PublishedFileId) -> ItemState {
+        if self.unavailable {
+            return ItemState::from_bits_truncate(0);
+        }
         unsafe {
             let state = sys::SteamAPI_ISteamUGC_GetItemState(self.ugc, item.0);
             ItemState::from_bits_truncate(state)
@@ -639,6 +667,9 @@ impl UGC {
     }
 
     pub fn item_download_info(&self, item: PublishedFileId) -> Option<(u64, u64)> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut current = 0u64;
             let mut total = 0u64;
@@ -656,6 +687,9 @@ impl UGC {
     }
 
     pub fn item_install_info(&self, item: PublishedFileId) -> Option<InstallInfo> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut size_on_disk = 0u64;
             let mut folder = [0 as c_char; 4096];
@@ -682,6 +716,9 @@ impl UGC {
     }
 
     pub fn download_item(&self, item: PublishedFileId, high_priority: bool) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamUGC_DownloadItem(self.ugc, item.0, high_priority) }
     }
 
@@ -693,6 +730,9 @@ impl UGC {
         appids: AppIDs,
         page: u32,
     ) -> Result<QueryHandle, CreateQueryError> {
+        if self.unavailable {
+            return Err(CreateQueryError);
+        }
         // Call the external function with the correct parameters
         let handle = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryAllUGCRequestPage(
@@ -728,6 +768,9 @@ impl UGC {
         appids: AppIDs,
         page: u32,
     ) -> Result<QueryHandle, CreateQueryError> {
+        if self.unavailable {
+            return Err(CreateQueryError);
+        }
         let res = unsafe {
             sys::SteamAPI_ISteamUGC_CreateQueryUserUGCRequest(
                 self.ugc,
@@ -756,6 +799,9 @@ impl UGC {
         &self,
         mut items: Vec<PublishedFileId>,
     ) -> Result<QueryHandle, CreateQueryError> {
+        if self.unavailable {
+            return Err(CreateQueryError);
+        }
         debug_assert!(items.len() > 0);
 
         let res = unsafe {
@@ -778,6 +824,9 @@ impl UGC {
     }
 
     pub fn query_item(&self, item: PublishedFileId) -> Result<QueryHandle, CreateQueryError> {
+        if self.unavailable {
+            return Err(CreateQueryError);
+        }
         let mut items = vec![item];
 
         let res = unsafe {
@@ -804,6 +853,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_DeleteItem(self.ugc, published_file_id.0);
             register_call_result::<sys::DeleteItemResult_t, _>(
@@ -827,6 +879,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_StartPlaytimeTracking(
                 self.ugc,
@@ -854,6 +909,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTracking(
                 self.ugc,
@@ -881,6 +939,9 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamUGC_StopPlaytimeTrackingForAllItems(self.ugc);
             register_call_result::<sys::StopPlaytimeTrackingResult_t, _>(
@@ -922,6 +983,7 @@ impl UGC {
 
 /// A handle to update a published item
 pub struct UpdateHandle {
+    pub(crate) unavailable: bool,
     ugc: *mut sys::ISteamUGC,
     inner: Arc<Inner>,
 
@@ -931,6 +993,9 @@ pub struct UpdateHandle {
 impl UpdateHandle {
     #[must_use]
     pub fn title(self, title: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let title = CString::new(title).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemTitle(
@@ -944,6 +1009,9 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn description(self, description: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let description = CString::new(description).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemDescription(
@@ -957,6 +1025,9 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn language(self, language: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let language = CString::new(language).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemUpdateLanguage(
@@ -970,6 +1041,9 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn preview_path(self, path: &Path) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let path = path.canonicalize().unwrap();
             let preview_path = CString::new(&*path.to_string_lossy()).unwrap();
@@ -984,6 +1058,9 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn content_path(self, path: &Path) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let path = path.canonicalize().unwrap();
             let content_path = CString::new(&*path.to_string_lossy()).unwrap();
@@ -998,6 +1075,9 @@ impl UpdateHandle {
 
     #[must_use]
     pub fn metadata(self, metadata: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let metadata = CString::new(metadata).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_SetItemMetadata(
@@ -1010,6 +1090,9 @@ impl UpdateHandle {
     }
 
     pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
                 self.ugc,
@@ -1021,6 +1104,9 @@ impl UpdateHandle {
     }
 
     pub fn tags<S: AsRef<str>>(self, tags: Vec<S>, allow_admin_tags: bool) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let mut tags = SteamParamStringArray::new(&tags);
             assert!(sys::SteamAPI_ISteamUGC_SetItemTags(
@@ -1034,6 +1120,9 @@ impl UpdateHandle {
     }
 
     pub fn add_key_value_tag(self, key: &str, value: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let key = CString::new(key).unwrap();
             let value = CString::new(value).unwrap();
@@ -1048,6 +1137,9 @@ impl UpdateHandle {
     }
 
     pub fn remove_key_value_tag(self, key: &str) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             let key = CString::new(key).unwrap();
             assert!(sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(
@@ -1060,6 +1152,9 @@ impl UpdateHandle {
     }
 
     pub fn add_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_AddContentDescriptor(
                 self.ugc,
@@ -1071,6 +1166,9 @@ impl UpdateHandle {
     }
 
     pub fn remove_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_RemoveContentDescriptor(
                 self.ugc,
@@ -1082,6 +1180,9 @@ impl UpdateHandle {
     }
 
     pub fn remove_all_key_value_tags(self) -> Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             assert!(sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(
                 self.ugc,
@@ -1095,6 +1196,14 @@ impl UpdateHandle {
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return UpdateWatchHandle {
+                unavailable: true,
+                ugc: std::ptr::null_mut(),
+                _inner: self.inner.clone(),
+                handle: 0,
+            };
+        }
         use std::ptr;
         unsafe {
             let change_note = change_note.and_then(|v| CString::new(v).ok());
@@ -1118,6 +1227,7 @@ impl UpdateHandle {
             );
         }
         UpdateWatchHandle {
+            unavailable: self.unavailable,
             ugc: self.ugc,
             _inner: self.inner,
             handle: self.handle,
@@ -1127,6 +1237,7 @@ impl UpdateHandle {
 
 /// A handle to watch an update of a published item
 pub struct UpdateWatchHandle {
+    pub(crate) unavailable: bool,
     ugc: *mut sys::ISteamUGC,
     _inner: Arc<Inner>,
 
@@ -1138,6 +1249,9 @@ unsafe impl Sync for UpdateWatchHandle {}
 
 impl UpdateWatchHandle {
     pub fn progress(&self) -> (UpdateStatus, u64, u64) {
+        if self.unavailable {
+            return (UpdateStatus::Invalid, 0, 0);
+        }
         unsafe {
             let mut progress = 0;
             let mut total = 0;

@@ -31,6 +31,9 @@ impl AchievementHelper<'_> {
     /// Fails if this achievement's 'API Name' is unknown, or unsuccessful
     /// [`UserStatsReceived`](../struct.UserStatsReceived.html).
     pub fn get(&self) -> Result<bool, ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         unsafe {
             let mut achieved = false;
             let success = sys::SteamAPI_ISteamUserStats_GetAchievement(
@@ -55,6 +58,9 @@ impl AchievementHelper<'_> {
     /// Fails if this achievement's 'API Name' is unknown, or unsuccessful
     /// [`UserStatsReceived`](../struct.UserStatsReceived.html).
     pub fn set(&self) -> Result<(), ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_SetAchievement(self.parent.user_stats, self.name.as_ptr())
         };
@@ -74,6 +80,9 @@ impl AchievementHelper<'_> {
     /// Fails if this achievement's 'API Name' is unknown, or unsuccessful
     /// [`UserStatsReceived`](../struct.UserStatsReceived.html).
     pub fn clear(&self) -> Result<(), ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_ClearAchievement(
                 self.parent.user_stats,
@@ -115,6 +124,9 @@ impl AchievementHelper<'_> {
     /// # Err(())
     /// ```
     pub fn get_achievement_achieved_percent(&self) -> Result<f32, ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         unsafe {
             let mut percent = 0.0;
             let success = sys::SteamAPI_ISteamUserStats_GetAchievementAchievedPercent(
@@ -139,6 +151,9 @@ impl AchievementHelper<'_> {
     /// Steam began tracking achievement unlock times (December 2009). The time is provided in Unix
     /// epoch format, seconds since January 1, 1970 UTC.
     pub fn get_achievement_and_unlock_time(&self) -> Result<(bool, u32), ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         let mut achieved = false;
         let mut unlocktime = 0u32;
 
@@ -191,6 +206,9 @@ impl AchievementHelper<'_> {
     /// # Err(())
     /// ```
     pub fn get_achievement_display_attribute(&self, key: &str) -> Result<&str, ()> {
+        if self.parent.unavailable {
+            return Err(());
+        }
         unsafe {
             let key_c_str = CString::new(key).expect("Failed to create c_str from key parameter");
 
@@ -219,6 +237,9 @@ impl AchievementHelper<'_> {
     /// ** Note: This may return None if Steam has not retrieved the icon yet. In that case an `UserAchievementIconFetched` callback will be processed
 
     pub fn get_achievement_icon(&self) -> Option<Vec<u8>> {
+        if self.parent.unavailable {
+            return None;
+        }
         Some(self.internal_get_achievement_icon(true)?.0)
     }
 
@@ -262,6 +283,9 @@ impl AchievementHelper<'_> {
     /// ** Note: This may return None if Steam has not retrieved the icon yet. In that case an `UserAchievementIconFetched` callback will be processed
     #[cfg(feature = "image")]
     pub fn get_achievement_icon_v2(&self) -> Option<image::ImageBuffer<image::Rgba<u8>, Vec<u8>>> {
+        if self.parent.unavailable {
+            return None;
+        }
         let (vec, width, height) = self.internal_get_achievement_icon(false)?;
         let img = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(width, height, vec)?;
         return Some(img);

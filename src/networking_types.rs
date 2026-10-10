@@ -1832,6 +1832,7 @@ impl Default for NetworkingIdentity {
 }
 
 pub struct NetworkingMessage {
+    pub(crate) unavailable: bool,
     pub(crate) message: *mut sys::SteamNetworkingMessage_t,
 
     // Not sure if this is necessary here, we may not need a Manager to use free on messages
@@ -1857,6 +1858,9 @@ impl NetworkingMessage {
     ///
     /// Use this with `ListenSocket::send_messages` for efficient sending.
     pub fn set_connection(&mut self, connection: &NetConnection) {
+        if self.unavailable {
+            return;
+        }
         unsafe { (*self.message).m_conn = connection.handle }
     }
 
@@ -1864,6 +1868,9 @@ impl NetworkingMessage {
     /// For outbound messages on connections: not used.
     /// For outbound messages on the ad-hoc ISteamNetworkingMessages interface: who should we send this to?
     pub fn identity_peer(&self) -> NetworkingIdentity {
+        if self.unavailable {
+            return NetworkingIdentity::new();
+        }
         unsafe {
             let ident = &mut (*self.message).m_identityPeer;
             NetworkingIdentity { inner: *ident }
@@ -1872,6 +1879,9 @@ impl NetworkingMessage {
 
     /// The identity of the sender or, the receiver when used with the NetworkingMessages interface.
     pub fn set_identity_peer(&mut self, identity: NetworkingIdentity) {
+        if self.unavailable {
+            return;
+        }
         unsafe { (*self.message).m_identityPeer = identity.inner }
     }
 
@@ -1892,12 +1902,18 @@ impl NetworkingMessage {
     ///
     /// Not used when sending messages,
     pub fn connection_user_data(&self) -> i64 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { (*self.message).m_nConnUserData }
     }
 
     /// Message number assigned by the sender.
     /// This is not used for outbound messages
     pub fn message_number(&self) -> MessageNumber {
+        if self.unavailable {
+            return MessageNumber(0);
+        }
         unsafe { MessageNumber((*self.message).m_nMessageNumber as u64) }
     }
 
@@ -1905,6 +1921,9 @@ impl NetworkingMessage {
     /// For received messages, only the k_nSteamNetworkingSend_Reliable bit is valid.
     /// For outbound messages, all bits are relevant
     pub fn send_flags(&self) -> SendFlags {
+        if self.unavailable {
+            return SendFlags::from_bits_truncate(0);
+        }
         unsafe {
             SendFlags::from_bits((*self.message).m_nFlags)
                 .expect("send flags could not be converted to rust representation")
@@ -1912,6 +1931,9 @@ impl NetworkingMessage {
     }
 
     pub fn set_send_flags(&mut self, send_flags: SendFlags) {
+        if self.unavailable {
+            return;
+        }
         unsafe { (*self.message).m_nFlags = send_flags.bits() }
     }
 
@@ -1919,10 +1941,16 @@ impl NetworkingMessage {
     /// For received messages, only the k_nSteamNetworkingSend_Reliable bit is valid.
     /// For outbound messages, all bits are relevant
     pub fn channel(&self) -> i32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { (*self.message).m_nChannel }
     }
 
     pub fn set_channel(&mut self, channel: i32) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             (*self.message).m_nChannel = channel;
         }
@@ -1930,6 +1958,9 @@ impl NetworkingMessage {
 
     /// Message payload
     pub fn data(&self) -> &[u8] {
+        if self.unavailable {
+            return &[];
+        }
         unsafe {
             std::slice::from_raw_parts(
                 (*self.message).m_pData as _,
@@ -1939,6 +1970,9 @@ impl NetworkingMessage {
     }
 
     pub fn copy_data_into_buffer(&mut self, data: &[u8]) -> Result<(), MessageError> {
+        if self.unavailable {
+            return Err(MessageError::NullBuffer);
+        }
         unsafe {
             if (*self.message).m_pData.is_null() {
                 return Err(MessageError::NullBuffer);
@@ -1958,6 +1992,9 @@ impl NetworkingMessage {
     ///
     /// Returns `Err(MessageError::BufferAlreadySet)` if the current buffer is not NULL.
     pub fn set_data(&mut self, data: Vec<u8>) -> Result<(), MessageError> {
+        if self.unavailable {
+            return Err(MessageError::NullBuffer);
+        }
         unsafe {
             if !(*self.message).m_pData.is_null() {
                 return Err(MessageError::BufferAlreadySet);
@@ -1979,6 +2016,9 @@ impl NetworkingMessage {
     ///
     /// Not used for received messages.
     pub fn user_data(&self) -> i64 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { (*self.message).m_nUserData }
     }
 
@@ -1988,6 +2028,9 @@ impl NetworkingMessage {
     ///
     /// Not used for received messages.
     pub fn set_user_data(&mut self, user_data: i64) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             (*self.message).m_nUserData = user_data;
         }

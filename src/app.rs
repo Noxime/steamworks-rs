@@ -12,6 +12,7 @@ impl From<u32> for AppId {
 
 /// Access to the steam apps interface
 pub struct Apps {
+    pub(crate) unavailable: bool,
     pub(crate) apps: *mut sys::ISteamApps,
     pub(crate) _inner: Arc<Inner>,
 }
@@ -22,12 +23,18 @@ impl Apps {
     ///
     /// This does not mean the user owns the game.
     pub fn is_app_installed(&self, app_id: AppId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsAppInstalled(self.apps, app_id.0) }
     }
 
     /// Returns whether the user owns the specific dlc and has it
     /// installed.
     pub fn is_dlc_installed(&self, app_id: AppId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsDlcInstalled(self.apps, app_id.0) }
     }
 
@@ -37,38 +44,59 @@ impl Apps {
     /// This should only be used to check ownership of a game related to
     /// yours (e.g. demo).
     pub fn is_subscribed_app(&self, app_id: AppId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedApp(self.apps, app_id.0) }
     }
 
     /// Returns whether the user is subscribed via a free weekend
     pub fn is_subscribed_from_free_weekend(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsSubscribedFromFreeWeekend(self.apps) }
     }
 
     /// Returns whether the user has a VAC ban on their account.
     pub fn is_vac_banned(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsVACBanned(self.apps) }
     }
 
     /// Returns whether the license for the current app ID
     /// is for cyber cafes.
     pub fn is_cybercafe(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsCybercafe(self.apps) }
     }
 
     /// Returns whether the license for the current app ID
     /// provides low violence depots.
     pub fn is_low_violence(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsLowViolence(self.apps) }
     }
 
     /// Returns whether the user is subscribed to the current app ID
     pub fn is_subscribed(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamApps_BIsSubscribed(self.apps) }
     }
 
     /// Returns the build id of this app.
     pub fn app_build_id(&self) -> i32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { sys::SteamAPI_ISteamApps_GetAppBuildId(self.apps) as i32 }
     }
 
@@ -77,6 +105,9 @@ impl Apps {
     /// This works even if the app isn't installed, returning where it
     /// would be installed in the default location.
     pub fn app_install_dir(&self, app_id: AppId) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let mut buffer = vec![0; 2048];
             sys::SteamAPI_ISteamApps_GetAppInstallDir(
@@ -94,11 +125,17 @@ impl Apps {
     ///
     /// Differs from the current user if the app is borrowed.
     pub fn app_owner(&self) -> SteamId {
+        if self.unavailable {
+            return SteamId::from_raw(0);
+        }
         unsafe { SteamId(sys::SteamAPI_ISteamApps_GetAppOwner(self.apps)) }
     }
 
     /// Returns a list of languages that the current app supports.
     pub fn available_game_languages(&self) -> Vec<String> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let langs = sys::SteamAPI_ISteamApps_GetAvailableGameLanguages(self.apps);
             let langs = CStr::from_ptr(langs);
@@ -112,6 +149,9 @@ impl Apps {
     /// If the language hasn't been set this returns the language
     /// used for the steam UI.
     pub fn current_game_language(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let lang = sys::SteamAPI_ISteamApps_GetCurrentGameLanguage(self.apps);
             let lang = CStr::from_ptr(lang);
@@ -124,6 +164,9 @@ impl Apps {
     /// If the user isn't playing on a beta branch then this
     /// returns `None`
     pub fn current_beta_name(&self) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut buffer = vec![0; 256];
             if sys::SteamAPI_ISteamApps_GetCurrentBetaName(
@@ -145,6 +188,9 @@ impl Apps {
     ///
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamApps#GetLaunchCommandLine)
     pub fn launch_command_line(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let mut buffer = vec![0; 256];
             let _bytes = sys::SteamAPI_ISteamApps_GetLaunchCommandLine(
@@ -164,6 +210,9 @@ impl Apps {
     ///
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamApps#GetLaunchQueryParam)
     pub fn launch_query_param(&self, key: &str) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         let key = CString::new(key).unwrap();
         unsafe {
             let value = sys::SteamAPI_ISteamApps_GetLaunchQueryParam(self.apps, key.as_ptr());

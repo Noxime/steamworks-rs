@@ -1,6 +1,7 @@
 use super::*;
 
 pub struct RemotePlay {
+    pub(crate) unavailable: bool,
     pub(crate) rp: *mut sys::ISteamRemotePlay,
     pub(crate) inner: Arc<Inner>,
 }
@@ -8,6 +9,7 @@ pub struct RemotePlay {
 impl Clone for RemotePlay {
     fn clone(&self) -> Self {
         RemotePlay {
+            unavailable: self.unavailable,
             inner: self.inner.clone(),
             rp: self.rp,
         }
@@ -17,6 +19,9 @@ impl Clone for RemotePlay {
 impl RemotePlay {
     /// Return a list of all active Remote Play sessions
     pub fn sessions(&self) -> Vec<RemotePlaySession> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamRemotePlay_GetSessionCount(self.rp);
             let mut sessions = Vec::with_capacity(count as usize);
@@ -38,7 +43,16 @@ impl RemotePlay {
 
     /// Get a remote play session from a session ID. The session may or may not be valid or active
     pub fn session(&self, session: RemotePlaySessionId) -> RemotePlaySession {
+        if self.unavailable {
+            return RemotePlaySession {
+                unavailable: true,
+                session: RemotePlaySessionId::from_raw(0),
+                rp: std::ptr::null_mut(),
+                _inner: self.inner.clone(),
+            };
+        }
         RemotePlaySession {
+            unavailable: self.unavailable,
             session,
             rp: self.rp,
             _inner: self.inner.clone(),
@@ -69,6 +83,7 @@ impl RemotePlaySessionId {
 }
 
 pub struct RemotePlaySession {
+    pub(crate) unavailable: bool,
     session: RemotePlaySessionId,
     pub(crate) rp: *mut sys::ISteamRemotePlay,
     pub(crate) _inner: Arc<Inner>,
@@ -86,6 +101,9 @@ impl RemotePlaySession {
     /// Get the user associated with this Remote Play session. This is either the logged in user or a friend when Remote
     /// Playing Together.
     pub fn user(&self) -> SteamId {
+        if self.unavailable {
+            return SteamId::from_raw(0);
+        }
         unsafe {
             SteamId(sys::SteamAPI_ISteamRemotePlay_GetSessionSteamID(
                 self.rp,
@@ -96,6 +114,9 @@ impl RemotePlaySession {
 
     /// Gets the client device name for this session. Returns `None` if the session has expired
     pub fn client_name(&self) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let name =
                 sys::SteamAPI_ISteamRemotePlay_GetSessionClientName(self.rp, self.session.raw());
@@ -112,6 +133,9 @@ impl RemotePlaySession {
     /// Gets the client device form factor for this session. Returns `None` if the session has expired or if the form
     /// factor is unknown
     pub fn client_form_factor(&self) -> Option<SteamDeviceFormFactor> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             use SteamDeviceFormFactor::*;
             match sys::SteamAPI_ISteamRemotePlay_GetSessionClientFormFactor(
@@ -129,6 +153,9 @@ impl RemotePlaySession {
 
     /// Gets the client device resolution for this session. Returns `None` if the session has expired
     pub fn client_resolution(&self) -> Option<(u32, u32)> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut width = 0;
             let mut height = 0;
@@ -145,6 +172,9 @@ impl RemotePlaySession {
 
     /// Invites a friend to join the game using Remote Play Together
     pub fn invite(&self, friend: SteamId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe {
             sys::SteamAPI_ISteamRemotePlay_BSendRemotePlayTogetherInvite(self.rp, friend.raw())
         }

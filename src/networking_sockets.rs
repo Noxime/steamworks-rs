@@ -22,6 +22,7 @@ use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingSockets {
+    pub(crate) unavailable: bool,
     pub(crate) sockets: *mut sys::ISteamNetworkingSockets,
     pub(crate) inner: Arc<Inner>,
 }
@@ -49,6 +50,9 @@ impl NetworkingSockets {
         local_address: SocketAddr,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
+        if self.unavailable {
+            return Err(InvalidHandle);
+        }
         let local_address = SteamIpAddr::from(local_address);
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
@@ -92,6 +96,9 @@ impl NetworkingSockets {
         address: SocketAddr,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<NetConnection, InvalidHandle> {
+        if self.unavailable {
+            return Err(InvalidHandle);
+        }
         let handle = unsafe {
             let address = SteamIpAddr::from(address);
             let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
@@ -141,6 +148,9 @@ impl NetworkingSockets {
         local_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
+        if self.unavailable {
+            return Err(InvalidHandle);
+        }
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P(
@@ -174,6 +184,9 @@ impl NetworkingSockets {
         remote_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<NetConnection, InvalidHandle> {
+        if self.unavailable {
+            return Err(InvalidHandle);
+        }
         let handle = unsafe {
             let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectP2P(
@@ -213,6 +226,9 @@ impl NetworkingSockets {
         local_virtual_port: u32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
+        if self.unavailable {
+            return Err(InvalidHandle);
+        }
         let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateHostedDedicatedServerListenSocket(
@@ -255,6 +271,9 @@ impl NetworkingSockets {
     pub fn init_authentication(
         &self,
     ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+        if self.unavailable {
+            return Err(NetworkingAvailabilityError::Unknown);
+        }
         unsafe { sys::SteamAPI_ISteamNetworkingSockets_InitAuthentication(self.sockets).try_into() }
     }
 
@@ -262,9 +281,19 @@ impl NetworkingSockets {
     ///
     /// You should destroy the poll group when you are done using DestroyPollGroup
     pub fn create_poll_group(&self) -> NetPollGroup {
+        if self.unavailable {
+            return NetPollGroup {
+                unavailable: true,
+                handle: 0,
+                sockets: std::ptr::null_mut(),
+                inner: self.inner.clone(),
+                message_buffer: Vec::new(),
+            };
+        }
         let poll_group =
             unsafe { sys::SteamAPI_ISteamNetworkingSockets_CreatePollGroup(self.sockets) };
         NetPollGroup {
+            unavailable: self.unavailable,
             handle: poll_group,
             sockets: self.sockets,
             inner: self.inner.clone(),
@@ -275,6 +304,9 @@ impl NetworkingSockets {
     pub fn get_authentication_status(
         &self,
     ) -> Result<NetworkingAvailability, NetworkingAvailabilityError> {
+        if self.unavailable {
+            return Err(NetworkingAvailabilityError::Unknown);
+        }
         let mut details: sys::SteamNetAuthenticationStatus_t = unsafe { std::mem::zeroed() };
         let auth = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetAuthenticationStatus(
@@ -293,6 +325,9 @@ impl NetworkingSockets {
         &self,
         connection: &NetConnection,
     ) -> Result<NetConnectionInfo, bool> {
+        if self.unavailable {
+            return Err(false);
+        }
         let mut info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
         let was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_GetConnectionInfo(
@@ -324,6 +359,9 @@ impl NetworkingSockets {
         ),
         SteamError,
     > {
+        if self.unavailable {
+            return Err(SteamError::IOFailure);
+        }
         let mut info: sys::SteamNetConnectionRealTimeStatus_t = unsafe { std::mem::zeroed() };
         let mut p_lanes: Vec<sys::SteamNetConnectionRealTimeLaneStatus_t> =
             Vec::with_capacity(lanes as usize);
@@ -365,6 +403,9 @@ impl NetworkingSockets {
         lane_priorities: &[i32],
         lane_weights: &[u16],
     ) -> Result<(), SteamError> {
+        if self.unavailable {
+            return Err(SteamError::IOFailure);
+        }
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_ConfigureConnectionLanes(
                 self.sockets,
@@ -396,6 +437,9 @@ impl NetworkingSockets {
         &self,
         messages: impl IntoIterator<Item = NetworkingMessage>,
     ) -> Vec<SteamResult<MessageNumber>> {
+        if self.unavailable {
+            return Vec::new();
+        }
         let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
         let mut results = vec![0; messages.len()];
         unsafe {
@@ -952,6 +996,7 @@ impl NetConnection {
             .message_buffer
             .drain(..)
             .map(|x| NetworkingMessage {
+                unavailable: false,
                 message: x,
                 _inner: self.inner.clone(),
             })
@@ -976,6 +1021,7 @@ impl NetConnection {
         dest.reserve_exact(batch_size);
         for message in self.message_buffer.drain(..) {
             dest.push(NetworkingMessage {
+                unavailable: false,
                 message,
                 _inner: self.inner.clone(),
             });
@@ -1004,6 +1050,7 @@ impl NetConnection {
 
             for msg in self.message_buffer.drain(..) {
                 f(NetworkingMessage {
+                    unavailable: false,
                     message: msg,
                     _inner: self.inner.clone(),
                 })
@@ -1098,6 +1145,7 @@ impl Drop for NetConnection {
 }
 
 pub struct NetPollGroup {
+    pub(crate) unavailable: bool,
     handle: sys::HSteamNetPollGroup,
     sockets: *mut sys::ISteamNetworkingSockets,
     inner: Arc<Inner>,
@@ -1109,6 +1157,9 @@ unsafe impl Sync for NetPollGroup {}
 
 impl NetPollGroup {
     pub fn receive_messages(&mut self, batch_size: usize) -> Vec<NetworkingMessage> {
+        if self.unavailable {
+            return Vec::new();
+        }
         if self.message_buffer.capacity() < batch_size {
             // reserve(additional) ensures capacity >= len + additional.
             // Since the buffer is always drained between calls, len == 0,
@@ -1129,6 +1180,7 @@ impl NetPollGroup {
         self.message_buffer
             .drain(..)
             .map(|x| NetworkingMessage {
+                unavailable: false,
                 message: x,
                 _inner: self.inner.clone(),
             })
@@ -1138,6 +1190,9 @@ impl NetPollGroup {
 
 impl Drop for NetPollGroup {
     fn drop(&mut self) {
+        if self.unavailable {
+            return;
+        }
         let _was_successful = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_DestroyPollGroup(self.sockets, self.handle)
         };
