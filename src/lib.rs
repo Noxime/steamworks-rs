@@ -851,7 +851,7 @@ mod unavailable_guard_tests {
     use std::net::SocketAddr;
 
     fn test_inner() -> Arc<Inner> {
-        Arc::new(Inner {
+        let inner = Arc::new(Inner {
             manager: Manager::Client,
             callbacks: Callbacks {
                 callbacks: Mutex::new(HashMap::new()),
@@ -862,7 +862,11 @@ mod unavailable_guard_tests {
                 independent_connections: HashMap::new(),
                 connection_callback: Weak::new(),
             }),
-        })
+        });
+        // Leak one strong reference: dropping Inner fires SteamAPI_Shutdown via
+        // Manager::drop, and these tests never initialize the Steam API.
+        std::mem::forget(Arc::clone(&inner));
+        inner
     }
 
     #[test]
