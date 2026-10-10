@@ -13,7 +13,7 @@ use steamworks_sys as sys;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
 use std::sync::atomic::AtomicU64;
@@ -119,20 +119,41 @@ struct Callbacks {
     replacing: Mutex<HashMap<i32, CallbackHandle>>,
     /// Source of the unique sequence numbers stored in `callbacks` entries.
     next_seq: AtomicU64,
+    /// Sequence numbers whose handle was dropped while their entry was out of
+    /// the table mid-dispatch; the dispatcher drops those entries instead of
+    /// putting them back, so a `CallbackHandle` dropped from inside its own
+    /// callback still unregisters it.
+    pending_removal: Mutex<HashSet<u64>>,
 }
 
 impl Callbacks {
     /// Calls every callback registered for `id`, in registration order.
     ///
-    /// The table lock is held while the callbacks run: registering or
-    /// removing callbacks from inside a callback deadlocks (pre-existing
-    /// behavior, tracked as defect #2 residual).
+    /// The registered entries are taken out of the table while they run, so
+    /// re-entrant calls from inside a callback — registering callbacks,
+    /// nesting a dispatch, or dropping a `CallbackHandle` — cannot deadlock
+    /// on the table lock (defect #2 residual). A dispatch of the same type
+    /// nested inside itself finds no entries and returns immediately;
+    /// registrations made during the dispatch join the table and first fire
+    /// on the next dispatch.
     fn dispatch(&self, id: i32, data: *mut c_void) {
+        let taken = self.callbacks.lock().unwrap().remove(&id);
+        let Some(mut entries) = taken else { return };
+        for (_seq, cb) in entries.iter_mut() {
+            cb(data);
+        }
         let mut callbacks = self.callbacks.lock().unwrap();
-        if let Some(entries) = callbacks.get_mut(&id) {
-            for (_seq, cb) in entries.iter_mut() {
-                cb(data);
+        let slot = callbacks.entry(id).or_default();
+        let mut pending_removal = self.pending_removal.lock().unwrap();
+        for (seq, cb) in entries {
+            if pending_removal.remove(&seq) {
+                continue; // its handle was dropped mid-dispatch: stay removed
             }
+            slot.push((seq, cb));
+        }
+        slot.sort_unstable_by_key(|(seq, _)| *seq);
+        if slot.is_empty() {
+            callbacks.remove(&id);
         }
     }
 }
@@ -285,6 +306,7 @@ impl Client {
                     call_results: Mutex::new(HashMap::new()),
                     replacing: Mutex::new(HashMap::new()),
                     next_seq: AtomicU64::new(1),
+                    pending_removal: Mutex::new(HashSet::new()),
                 },
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
@@ -852,6 +874,8 @@ mod tests {
 mod callback_multi_registration_tests {
     use super::*;
     use std::sync::mpsc;
+    use std::thread;
+    use std::time::Duration;
 
     use crate::networking_sockets_callback::get_or_create_connection_callback;
     use crate::networking_types::NetConnectionStatusChanged;
@@ -874,6 +898,7 @@ mod callback_multi_registration_tests {
                 call_results: Mutex::new(HashMap::new()),
                 replacing: Mutex::new(HashMap::new()),
                 next_seq: AtomicU64::new(1),
+                pending_removal: Mutex::new(HashSet::new()),
             },
             networking_sockets_data: Mutex::new(NetworkingSocketsData {
                 sockets: HashMap::new(),
@@ -1005,5 +1030,148 @@ mod callback_multi_registration_tests {
         // user first, then the surviving (second) replacing registration; the
         // replaced first registration must not have fired.
         assert_eq!(got, vec![0, 2]);
+    }
+
+    /// Second stand-in type so nested-dispatch tests can target a different
+    /// bucket than `TestCallback`.
+    struct NestedTestCallback;
+    unsafe impl Callback for NestedTestCallback {
+        const ID: i32 = 9_999_998;
+        unsafe fn from_raw(_raw: *mut c_void) -> Self {
+            NestedTestCallback
+        }
+    }
+
+    /// Runs one dispatch on a separate thread so a re-entrancy regression
+    /// (deadlock) surfaces as a failed timeout assertion instead of hanging
+    /// the whole test suite.
+    fn dispatch_with_deadlock_guard(inner: &Arc<Inner>) {
+        let (done_tx, done_rx) = mpsc::channel();
+        let inner = Arc::clone(inner);
+        thread::spawn(move || {
+            inner
+                .callbacks
+                .dispatch(TestCallback::ID, std::ptr::null_mut());
+            done_tx.send(()).unwrap();
+        });
+        assert!(
+            done_rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+            "dispatch deadlocked on re-entrant callback"
+        );
+    }
+
+    /// Repro scenario B from defect-02 residual: registering a callback from
+    /// inside a callback must not deadlock, must not receive the event that
+    /// is currently being dispatched, and must fire from the next dispatch
+    /// on (after the older entries, in registration order).
+    #[test]
+    fn registering_from_inside_a_callback_does_not_deadlock() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let inner2 = Arc::clone(&inner);
+        let _h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                // re-entrant same-type registration while this entry is in
+                // flight; forget the handle: nothing must remove it here
+                let inner3 = Arc::clone(&inner2);
+                std::mem::forget(register_callback::<TestCallback, _>(
+                    &inner3,
+                    tag_receiver(tx.clone(), 2),
+                ));
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 2);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Repro scenario C from defect-02 residual: dispatching (nested
+    /// `run_callbacks`) from inside a callback must not deadlock; a same-type
+    /// nested dispatch is a no-op, a different-type nested dispatch runs.
+    #[test]
+    fn nested_dispatch_inside_a_callback_does_not_deadlock() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let _other = unsafe {
+            register_callback::<NestedTestCallback, _>(&inner, tag_receiver(tx.clone(), 0))
+        };
+        let inner2 = Arc::clone(&inner);
+        let _h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                // same type: bucket is in flight, must return immediately
+                inner2
+                    .callbacks
+                    .dispatch(TestCallback::ID, std::ptr::null_mut());
+                // different type: must run normally
+                inner2
+                    .callbacks
+                    .dispatch(NestedTestCallback::ID, std::ptr::null_mut());
+                tx.send(2).unwrap();
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert_eq!(rx.try_recv().unwrap(), 0);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+    }
+
+    /// Repro scenario D from defect-02 residual: dropping a callback's own
+    /// `CallbackHandle` from inside that callback must not deadlock and must
+    /// keep the callback unregistered once the dispatch completes.
+    #[test]
+    fn dropping_own_handle_inside_callback_unregisters_it() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        // The handle is parked in a slot the callback body empties, so the
+        // Drop runs while the callback's own entry is mid-dispatch.
+        let slot: Arc<Mutex<Option<CallbackHandle>>> = Arc::new(Mutex::new(None));
+        let slot2 = Arc::clone(&slot);
+        let h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                *slot2.lock().unwrap() = None;
+            })
+        };
+        *slot.lock().unwrap() = Some(h);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 0);
+        dispatch_with_deadlock_guard(&inner);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Re-registering through `register_replacing_callback` from inside a
+    /// callback of the same type: the replaced registration is mid-dispatch,
+    /// its handle drop must tombstone it (not deadlock), and only the new
+    /// registration must survive.
+    #[test]
+    fn replacing_registration_from_inside_callback_takes_effect() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let inner2 = Arc::clone(&inner);
+        unsafe {
+            register_replacing_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                register_replacing_callback::<TestCallback, _>(
+                    &inner2,
+                    tag_receiver(tx.clone(), 2),
+                );
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 1);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
     }
 }

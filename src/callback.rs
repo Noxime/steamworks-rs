@@ -169,9 +169,25 @@ impl Drop for CallbackHandle {
             match inner.callbacks.callbacks.lock() {
                 Ok(mut cbs) => {
                     let mut empty = false;
+                    let mut found = false;
                     if let Some(entries) = cbs.get_mut(&self.id) {
+                        let before = entries.len();
                         entries.retain(|(seq, _)| *seq != self.seq);
+                        found = entries.len() != before;
                         empty = entries.is_empty();
+                    }
+                    if !found {
+                        // The seq is not in the table because its entry is
+                        // mid-dispatch (the bucket was taken out whole, or
+                        // re-created around it by a re-entrant registration):
+                        // record a tombstone so the dispatcher does not put
+                        // this registration back.
+                        inner
+                            .callbacks
+                            .pending_removal
+                            .lock()
+                            .unwrap()
+                            .insert(self.seq);
                     }
                     if empty {
                         cbs.remove(&self.id);

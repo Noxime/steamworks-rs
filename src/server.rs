@@ -146,6 +146,7 @@ impl Server {
                     call_results: Mutex::new(HashMap::new()),
                     replacing: Mutex::new(HashMap::new()),
                     next_seq: AtomicU64::new(1),
+                    pending_removal: Mutex::new(HashSet::new()),
                 },
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
