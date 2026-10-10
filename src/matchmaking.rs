@@ -1293,3 +1293,75 @@ fn test_set_lobby_game_server() {
         ::std::thread::sleep(::std::time::Duration::from_millis(100));
     }
 }
+
+#[cfg(test)]
+mod pure_logic_tests {
+    use super::*;
+
+    #[test]
+    fn lobby_key_accepts_keys_up_to_max_length() {
+        let max = sys::k_nMaxLobbyKeyLength as usize;
+        assert!(LobbyKey::try_new(&"k".repeat(max)).is_ok());
+        assert!(LobbyKey::try_new(&"k".repeat(max + 1)).is_err());
+    }
+
+    #[test]
+    #[should_panic]
+    fn lobby_key_new_panics_over_max_length() {
+        LobbyKey::new(&"k".repeat(sys::k_nMaxLobbyKeyLength as usize + 1));
+    }
+
+    fn map_kind(kind: StringFilterKind) -> sys::ELobbyComparison {
+        kind.into()
+    }
+
+    #[test]
+    fn string_filter_kind_maps_exhaustively_to_lobby_comparison() {
+        assert_eq!(
+            map_kind(StringFilterKind::EqualToOrLessThan),
+            sys::ELobbyComparison::k_ELobbyComparisonEqualToOrLessThan
+        );
+        assert_eq!(
+            map_kind(StringFilterKind::LessThan),
+            sys::ELobbyComparison::k_ELobbyComparisonLessThan
+        );
+        assert_eq!(
+            map_kind(StringFilterKind::Equal),
+            sys::ELobbyComparison::k_ELobbyComparisonEqual
+        );
+        assert_eq!(
+            map_kind(StringFilterKind::GreaterThan),
+            sys::ELobbyComparison::k_ELobbyComparisonGreaterThan
+        );
+        assert_eq!(
+            map_kind(StringFilterKind::EqualToOrGreaterThan),
+            sys::ELobbyComparison::k_ELobbyComparisonEqualToOrGreaterThan
+        );
+        assert_eq!(
+            map_kind(StringFilterKind::NotEqual),
+            sys::ELobbyComparison::k_ELobbyComparisonNotEqual
+        );
+    }
+
+    #[test]
+    fn lobby_list_filter_builder_round_trips() {
+        let filter = LobbyListFilter::default()
+            .set_string(Some(vec![StringFilter(
+                LobbyKey::new("map"),
+                "de_dust2",
+                StringFilterKind::Equal,
+            )]))
+            .set_number(Some(vec![NumberFilter(
+                LobbyKey::new("elo"),
+                1500,
+                ComparisonFilter::GreaterThan,
+            )]))
+            .set_near_value(Some(vec![NearFilter(LobbyKey::new("elo"), 1500)]))
+            .set_open_slots(Some(2));
+
+        assert_eq!(filter.string.as_ref().map(Vec::len), Some(1));
+        assert_eq!(filter.number.as_ref().map(Vec::len), Some(1));
+        assert_eq!(filter.near_value.as_ref().map(Vec::len), Some(1));
+        assert_eq!(filter.open_slots, Some(2));
+    }
+}
