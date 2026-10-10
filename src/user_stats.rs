@@ -1,3 +1,4 @@
+use crate::cstring;
 mod stat_callback;
 pub mod stats;
 
@@ -13,12 +14,16 @@ pub struct UserStats {
 }
 
 impl UserStats {
+    /// If `name` contains a NUL byte, `cb` is called with `Err(SteamError::IOFailure)`.
     pub fn find_leaderboard<F>(&self, name: &str, cb: F)
     where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
         unsafe {
-            let name = CString::new(name).unwrap();
+            let Some(name) = cstring(name) else {
+                cb(Err(SteamError::IOFailure));
+                return;
+            };
             let api_call =
                 sys::SteamAPI_ISteamUserStats_FindLeaderboard(self.user_stats, name.as_ptr());
             register_call_result::<sys::LeaderboardFindResult_t, _>(
@@ -39,6 +44,7 @@ impl UserStats {
         }
     }
 
+    /// If `name` contains a NUL byte, `cb` is called with `Err(SteamError::IOFailure)`.
     pub fn find_or_create_leaderboard<F>(
         &self,
         name: &str,
@@ -49,7 +55,10 @@ impl UserStats {
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
         unsafe {
-            let name = CString::new(name).unwrap();
+            let Some(name) = cstring(name) else {
+                cb(Err(SteamError::IOFailure));
+                return;
+            };
 
             let sort_method = match sort_method {
                 LeaderboardSortMethod::Ascending => {
@@ -547,7 +556,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn get_stat_i32(&self, name: &str) -> Result<i32, ()> {
-        let name = CString::new(name).unwrap();
+        let Some(name) = cstring(name) else {
+            return Err(());
+        };
 
         let mut value: i32 = 0;
         let success = unsafe {
@@ -570,7 +581,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn set_stat_i32(&self, name: &str, stat: i32) -> Result<(), ()> {
-        let name = CString::new(name).unwrap();
+        let Some(name) = cstring(name) else {
+            return Err(());
+        };
 
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_SetStatInt32(self.user_stats, name.as_ptr(), stat)
@@ -589,7 +602,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn get_stat_f32(&self, name: &str) -> Result<f32, ()> {
-        let name = CString::new(name).unwrap();
+        let Some(name) = cstring(name) else {
+            return Err(());
+        };
 
         let mut value: f32 = 0.0;
         let success = unsafe {
@@ -612,7 +627,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn set_stat_f32(&self, name: &str, stat: f32) -> Result<(), ()> {
-        let name = CString::new(name).unwrap();
+        let Some(name) = cstring(name) else {
+            return Err(());
+        };
 
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_SetStatFloat(self.user_stats, name.as_ptr(), stat)
@@ -630,9 +647,11 @@ impl UserStats {
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     #[inline]
     #[must_use]
+    /// If `name` contains a NUL byte, an empty name is used and Steam lookups
+    /// on the helper will not match any achievement.
     pub fn achievement(&self, name: &str) -> stats::AchievementHelper<'_> {
         stats::AchievementHelper {
-            name: CString::new(name).unwrap(),
+            name: cstring(name).unwrap_or_default(),
             parent: self,
         }
     }

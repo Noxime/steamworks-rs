@@ -1,3 +1,4 @@
+use crate::cstring;
 use std::{
     fmt::Display,
     net::{Ipv4Addr, SocketAddrV4},
@@ -153,7 +154,7 @@ impl Matchmaking {
     /// Returns the lobby metadata associated with the specified key from the
     /// specified lobby.
     pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<String> {
-        let key = CString::new(key).unwrap();
+        let key = cstring(key)?;
         unsafe {
             let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyData(self.mm, lobby.0, key.as_ptr());
             CStr::from_ptr(data)
@@ -192,8 +193,12 @@ impl Matchmaking {
 
     /// Sets the lobby metadata associated with the specified key in the specified lobby.
     pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) -> bool {
-        let key = CString::new(key).unwrap();
-        let value = CString::new(value).unwrap();
+        let Some(key) = cstring(key) else {
+            return false;
+        };
+        let Some(value) = cstring(value) else {
+            return false;
+        };
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_SetLobbyData(
                 self.mm,
@@ -206,7 +211,9 @@ impl Matchmaking {
 
     /// Deletes the lobby metadata associated with the specified key in the specified lobby.
     pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) -> bool {
-        let key = CString::new(key).unwrap();
+        let Some(key) = cstring(key) else {
+            return false;
+        };
         unsafe { sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr()) }
     }
 
@@ -214,8 +221,12 @@ impl Matchmaking {
     ///
     /// Triggers a LobbyDataUpdate callback.
     pub fn set_lobby_member_data(&self, lobby: LobbyId, key: &str, value: &str) {
-        let key = CString::new(key).unwrap();
-        let value = CString::new(value).unwrap();
+        let Some(key) = cstring(key) else {
+            return;
+        };
+        let Some(value) = cstring(value) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_SetLobbyMemberData(
                 self.mm,
@@ -236,7 +247,7 @@ impl Matchmaking {
         user: SteamId,
         key: &str,
     ) -> Option<String> {
-        let key = CString::new(key).unwrap();
+        let key = cstring(key)?;
         unsafe {
             let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberData(
                 self.mm,
@@ -404,8 +415,12 @@ impl Matchmaking {
         &self,
         StringFilter(LobbyKey(key), value, kind): StringFilter,
     ) -> &Self {
-        let key = CString::new(key).unwrap();
-        let value = CString::new(value).unwrap();
+        let Some(key) = cstring(key) else {
+            return self;
+        };
+        let Some(value) = cstring(value) else {
+            return self;
+        };
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListStringFilter(
                 self.mm,
@@ -430,7 +445,9 @@ impl Matchmaking {
         &self,
         NumberFilter(LobbyKey(key), value, comparison): NumberFilter,
     ) -> &Self {
-        let key = CString::new(key).unwrap();
+        let Some(key) = cstring(key) else {
+            return self;
+        };
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
                 self.mm,
@@ -455,7 +472,9 @@ impl Matchmaking {
         &self,
         NearFilter(LobbyKey(key), value): NearFilter,
     ) -> &Self {
-        let key = CString::new(key).unwrap();
+        let Some(key) = cstring(key) else {
+            return self;
+        };
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
                 self.mm,

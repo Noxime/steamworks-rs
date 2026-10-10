@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 use std::net::Ipv4Addr;
 
 bitflags! {
@@ -121,7 +122,9 @@ impl Friends {
     }
 
     pub fn activate_game_overlay(&self, dialog: &str) {
-        let dialog = CString::new(dialog).unwrap();
+        let Some(dialog) = cstring(dialog) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlay(self.friends, dialog.as_ptr());
         }
@@ -130,7 +133,9 @@ impl Friends {
     // I don't know why these are part of friends either
     pub fn activate_game_overlay_to_web_page(&self, url: &str) {
         unsafe {
-            let url = CString::new(url).unwrap();
+            let Some(url) = cstring(url) else {
+                return;
+            };
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(
                 self.friends,
                 url.as_ptr(),
@@ -163,7 +168,9 @@ impl Friends {
     }
 
     pub fn activate_game_overlay_to_user(&self, dialog: &str, user: SteamId) {
-        let dialog = CString::new(dialog).unwrap();
+        let Some(dialog) = cstring(dialog) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
                 self.friends,
@@ -182,11 +189,11 @@ impl Friends {
 
     /// Opens up an invite dialog that will send Rich Presence connect string to friends
     ///
-    /// # Panics
-    ///
-    /// Panics if the `connect` str contains a null byte.
+    /// If the `connect` string contains a NUL byte, the call is silently skipped.
     pub fn activate_invite_dialog_connect_string(&self, connect: &str) {
-        let connect = CString::new(connect).unwrap();
+        let Some(connect) = cstring(connect) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialogConnectString(
                 self.friends,
@@ -199,12 +206,18 @@ impl Friends {
     ///
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamFriends#SetRichPresence)
     ///
-    /// # Panics
     ///
-    /// Panics if the `key` or `value` str slices contain a null byte.
+    /// Returns `false` without calling Steam if the `key` or `value` string
+    /// contains a NUL byte.
     pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
-        let key = CString::new(key).unwrap();
-        let value = value.map(|v| CString::new(v).unwrap());
+        let Some(key) = cstring(key) else {
+            return false;
+        };
+        let value = match value.map(cstring) {
+            None => None,
+            Some(None) => return false,
+            Some(Some(v)) => Some(v),
+        };
         let value_ptr = value
             .as_ref()
             .map_or(std::ptr::null(), |value| value.as_ptr());
@@ -470,7 +483,9 @@ impl Friend {
     /// If the game is already running for that user, then they will receive a GameRichPresenceJoinRequested_t callback with the connect string.
     pub fn invite_user_to_game(&self, connect_string: &str) {
         unsafe {
-            let connect_string = CString::new(connect_string).unwrap();
+            let Some(connect_string) = cstring(connect_string) else {
+                return;
+            };
             sys::SteamAPI_ISteamFriends_InviteUserToGame(
                 self.friends,
                 self.id.0,
@@ -489,7 +504,7 @@ impl Friend {
 
     /// Get a Rich Presence value from a specified friend.
     pub fn rich_presence(&self, key: &str) -> Option<String> {
-        let key = CString::new(key).unwrap();
+        let key = cstring(key)?;
         let value = unsafe {
             sys::SteamAPI_ISteamFriends_GetFriendRichPresence(self.friends, self.id.0, key.as_ptr())
         };

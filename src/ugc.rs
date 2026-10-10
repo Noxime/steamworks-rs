@@ -1,5 +1,6 @@
 use super::*;
 
+use crate::cstring;
 use std::error;
 use std::ffi::{CStr, CString};
 use std::fmt;
@@ -907,10 +908,12 @@ impl UGC {
     ///
     /// The folder is a path to the directory where you wish for this game server to store UGC content.
     ///
-    /// `true` upon success; otherwise, `false` if the calling user is not a game server or if the workshop is currently updating its content.
+    /// `true` upon success; otherwise, `false` if the calling user is not a game server, if the workshop is currently updating its content, or if `folder` contains a NUL byte.
     pub fn init_for_game_server(&self, workshop_depot: sys::DepotId_t, folder: &str) -> bool {
         unsafe {
-            let folder = CString::new(folder).unwrap();
+            let Some(folder) = cstring(folder) else {
+                return false;
+            };
             sys::SteamAPI_ISteamUGC_BInitWorkshopForGameServer(
                 self.ugc,
                 workshop_depot,

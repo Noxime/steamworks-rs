@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
@@ -139,9 +140,14 @@ impl User {
     /// This API can not be used to create a ticket for
     /// use by the BeginAuthSession/ISteamGameServer::BeginAuthSession.
     /// Use the `authentication_session_ticket` API instead
+    ///
+    /// If the `identity` string contains a NUL byte, an invalid ticket
+    /// (`AuthTicket(0)`) is returned.
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
         unsafe {
-            let c_str = CString::new(identity).unwrap();
+            let Some(c_str) = cstring(identity) else {
+                return AuthTicket(0);
+            };
             let auth_ticket =
                 sys::SteamAPI_ISteamUser_GetAuthTicketForWebApi(self.user, c_str.as_ptr());
 

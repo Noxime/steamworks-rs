@@ -1,3 +1,4 @@
+use crate::cstring;
 use crate::{networking_sockets_callback, networking_types::NetConnectionRealTimeLaneStatus};
 use crate::{
     networking_types::{
@@ -11,7 +12,6 @@ use crate::{CallbackHandle, Inner, SteamResult};
 #[cfg(test)]
 use serial_test::serial;
 use std::convert::TryInto;
-use std::ffi::CString;
 use std::net::SocketAddr;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
@@ -753,13 +753,20 @@ impl NetConnection {
     /// If the connection has already ended and you are just freeing up the
     /// connection interface, the reason code, debug string, and linger flag are
     /// ignored.
+    ///
+    /// Returns `false` without closing the connection if `debug_string` contains
+    /// a NUL byte.
     pub fn close(
         mut self,
         reason: NetConnectionEnd,
         debug_string: Option<&str>,
         enable_linger: bool,
     ) -> bool {
-        let debug_string = debug_string.map(|x| CString::new(x).unwrap());
+        let debug_string = match debug_string.map(cstring) {
+            None => None,
+            Some(None) => return false,
+            Some(Some(s)) => Some(s),
+        };
         let debug_string_ptr = match debug_string {
             None => std::ptr::null(),
             Some(s) => s.as_ptr(),
@@ -813,7 +820,9 @@ impl NetConnection {
 
     /// Set a name for the connection, used mostly for debugging
     pub fn set_connection_name(&self, name: &str) {
-        let name = CString::new(name).unwrap();
+        let Some(name) = cstring(name) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SetConnectionName(
                 self.sockets,
@@ -1073,7 +1082,7 @@ impl NetConnection {
 impl Drop for NetConnection {
     fn drop(&mut self) {
         if !self.is_handled {
-            let debug_string = CString::new("Handle was dropped").unwrap();
+            let debug_string = c"Handle was dropped";
             let _was_successful = unsafe {
                 sys::SteamAPI_ISteamNetworkingSockets_CloseConnection(
                     self.sockets,

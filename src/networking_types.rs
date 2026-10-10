@@ -1,4 +1,5 @@
 //! Types that are used by both [`networking_sockets`](../networking_sockets) and [`networking_messages`](../networking_messages).
+use crate::cstring;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +7,7 @@ use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
 use crate::{Callback, Inner, SteamId, SteamResult};
 use std::convert::{TryFrom, TryInto};
-use std::ffi::{c_void, CString};
+use std::ffi::c_void;
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
@@ -1633,12 +1634,13 @@ impl NetworkingConfigEntry {
         }
     }
 
+    /// If `value` contains a NUL byte, an empty string is set instead.
     pub fn new_string(value_type: NetworkingConfigValue, value: &str) -> Self {
         debug_assert_eq!(value_type.data_type(), NetworkingConfigDataType::String);
 
         let mut config = Self::new_uninitialized_config_value();
         unsafe {
-            let c_str = CString::new(value).expect("Rust string could not be converted");
+            let c_str = cstring(value).unwrap_or_default();
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetString(
                 &mut config,
                 value_type.into(),

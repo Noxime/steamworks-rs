@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 
 /// An id for a steam app/game
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -164,7 +165,9 @@ impl Apps {
     ///
     /// See [Steam API](https://partner.steamgames.com/doc/api/ISteamApps#GetLaunchQueryParam)
     pub fn launch_query_param(&self, key: &str) -> String {
-        let key = CString::new(key).unwrap();
+        let Some(key) = cstring(key) else {
+            return String::new();
+        };
         unsafe {
             let value = sys::SteamAPI_ISteamApps_GetLaunchQueryParam(self.apps, key.as_ptr());
             let value = CStr::from_ptr(value);

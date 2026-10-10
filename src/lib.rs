@@ -75,6 +75,17 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     }
 }
 
+/// Converts a caller-provided string into a `CString`, returning `None` when it
+/// contains an interior NUL byte.
+///
+/// Public APIs use this to stay panic-free on invalid input: instead of
+/// panicking on `CString::new(...).unwrap()`, callers degrade (skip the call,
+/// return `false`/`None`, or report an error) the same way the Steam SDK
+/// treats invalid input.
+pub(crate) fn cstring(s: impl AsRef<str>) -> Option<CString> {
+    CString::new(s.as_ref()).ok()
+}
+
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
 // the documentation for a method states otherwise,
@@ -817,5 +828,177 @@ mod tests {
 
         let steamid = SteamId(76561198174976054);
         assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
+    }
+}
+
+#[cfg(test)]
+mod cstring_nul_degrade_tests {
+    use super::*;
+    use crate::networking_types::{NetworkingConfigEntry, NetworkingConfigValue};
+    use std::sync::mpsc;
+
+    /// All strings in these tests contain an interior NUL byte, so every guard
+    /// fires before any Steam interface pointer is dereferenced. The interface
+    /// pointers are null on purpose: if a guard regresses into a deref, the test
+    /// crashes instead of failing an assertion.
+    fn test_inner() -> Arc<Inner> {
+        let inner = Arc::new(Inner {
+            manager: Manager::Client,
+            callbacks: Callbacks {
+                callbacks: Mutex::new(HashMap::new()),
+                call_results: Mutex::new(HashMap::new()),
+            },
+            networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                sockets: HashMap::new(),
+                independent_connections: HashMap::new(),
+                connection_callback: Weak::new(),
+            }),
+        });
+        // Leak one strong reference: dropping Inner fires SteamAPI_Shutdown via
+        // Manager::drop, and these tests never initialize the Steam API.
+        std::mem::forget(Arc::clone(&inner));
+        inner
+    }
+
+    #[test]
+    fn friends_nul_inputs_degrade_without_panic() {
+        let friends = Friends {
+            friends: std::ptr::null_mut(),
+            inner: test_inner(),
+        };
+        assert!(!friends.set_rich_presence("key\0", Some("value")));
+        assert!(!friends.set_rich_presence("key", Some("value\0")));
+        friends.activate_game_overlay("overlay\0");
+        friends.activate_game_overlay_to_web_page("url\0");
+        friends.activate_invite_dialog_connect_string("connect\0");
+    }
+
+    #[test]
+    fn matchmaking_nul_inputs_degrade() {
+        let mm = Matchmaking {
+            mm: std::ptr::null_mut(),
+            inner: test_inner(),
+        };
+        let lobby = LobbyId(1);
+        assert_eq!(mm.lobby_data(lobby, "key\0"), None);
+        assert!(!mm.set_lobby_data(lobby, "key\0", "value"));
+        assert!(!mm.set_lobby_data(lobby, "key", "value\0"));
+    }
+
+    #[test]
+    fn apps_launch_query_param_nul_is_empty() {
+        let apps = Apps {
+            apps: std::ptr::null_mut(),
+            _inner: test_inner(),
+        };
+        assert_eq!(apps.launch_query_param("key\0"), String::new());
+    }
+
+    #[test]
+    fn input_action_set_handle_nul_is_zero() {
+        let input = Input {
+            input: std::ptr::null_mut(),
+            _inner: test_inner(),
+        };
+        assert_eq!(input.get_action_set_handle("set\0"), 0);
+    }
+
+    #[test]
+    fn user_auth_ticket_for_webapi_nul_is_invalid() {
+        let user = User {
+            user: std::ptr::null_mut(),
+            _inner: test_inner(),
+        };
+        assert_eq!(user.authentication_session_ticket_for_webapi("id\0").0, 0);
+    }
+
+    #[test]
+    fn user_stats_nul_inputs_degrade() {
+        let stats = UserStats {
+            user_stats: std::ptr::null_mut(),
+            inner: test_inner(),
+        };
+        assert!(stats.get_stat_i32("stat\0").is_err());
+        let helper = stats.achievement("name\0");
+        assert_eq!(helper.name, CString::default());
+        assert!(helper.get_achievement_display_attribute("key\0").is_err());
+    }
+
+    #[test]
+    fn leaderboard_callbacks_receive_error_on_nul() {
+        #[allow(clippy::arc_with_non_send_sync)] // test scaffolding over null sys pointers
+        let stats = Arc::new(UserStats {
+            user_stats: std::ptr::null_mut(),
+            inner: test_inner(),
+        });
+        let (tx, rx) = mpsc::channel();
+        stats.find_leaderboard("lb\0", move |r| {
+            tx.send(r.is_err()).unwrap();
+        });
+        assert_eq!(rx.recv(), Ok(true));
+
+        let (tx2, rx2) = mpsc::channel();
+        stats.find_or_create_leaderboard(
+            "lb\0",
+            LeaderboardSortMethod::Ascending,
+            LeaderboardDisplayType::Numeric,
+            move |r| {
+                tx2.send(r.is_err()).unwrap();
+            },
+        );
+        assert_eq!(rx2.recv(), Ok(true));
+    }
+
+    #[test]
+    fn utils_nul_inputs_degrade() {
+        let utils = Utils {
+            utils: std::ptr::null_mut(),
+            _inner: test_inner(),
+        };
+        assert!(!utils.show_gamepad_text_input(
+            GamepadTextInputMode::Normal,
+            GamepadTextInputLineMode::SingleLine,
+            "description\0",
+            10,
+            None,
+            |_| {},
+        ));
+        assert!(!utils.show_gamepad_text_input(
+            GamepadTextInputMode::Normal,
+            GamepadTextInputLineMode::SingleLine,
+            "description",
+            10,
+            Some("text\0"),
+            |_| {},
+        ));
+        let arr = SteamParamStringArray::new(&["ok", "bad\0"]);
+        drop(arr);
+    }
+
+    #[test]
+    fn ugc_init_for_game_server_nul_is_false() {
+        let ugc = UGC {
+            ugc: std::ptr::null_mut(),
+            inner: test_inner(),
+        };
+        assert!(!ugc.init_for_game_server(480, "folder\0"));
+    }
+
+    #[test]
+    fn networking_config_entry_nul_uses_empty_string() {
+        let _entry =
+            NetworkingConfigEntry::new_string(NetworkingConfigValue::P2PSTUNServerList, "value\0");
+    }
+
+    #[test]
+    fn server_init_nul_version_is_error() {
+        let result = Server::init(
+            "127.0.0.1".parse().unwrap(),
+            27015,
+            27016,
+            ServerMode::NoAuthentication,
+            "1.0.0\0",
+        );
+        assert!(matches!(result, Err(SteamAPIInitError::Generic(_))));
     }
 }

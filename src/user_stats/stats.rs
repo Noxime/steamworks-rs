@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 
 /// Achievement API.
 ///
@@ -190,9 +191,12 @@ impl AchievementHelper<'_> {
     /// client.user_stats().achievement("WIN_THE_GAME").get_achievement_display_attribute("desc").unwrap();
     /// # Err(())
     /// ```
+    /// Returns `Err(())` if `key` contains a NUL byte.
     pub fn get_achievement_display_attribute(&self, key: &str) -> Result<&str, ()> {
         unsafe {
-            let key_c_str = CString::new(key).expect("Failed to create c_str from key parameter");
+            let Some(key_c_str) = cstring(key) else {
+                return Err(());
+            };
 
             let str = sys::SteamAPI_ISteamUserStats_GetAchievementDisplayAttribute(
                 self.parent.user_stats,

@@ -1,5 +1,6 @@
 use super::*;
 
+use crate::cstring;
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::panic;
@@ -237,6 +238,9 @@ impl Utils {
     }
 
     /// Activates the Big Picture text input dialog which only supports gamepad input.
+    ///
+    /// Returns `false` without calling Steam if `description` or `existing_text`
+    /// contains a NUL byte.
     pub fn show_gamepad_text_input<F>(
         &self,
         input_mode: GamepadTextInputMode,
@@ -250,8 +254,14 @@ impl Utils {
         F: FnMut(GamepadTextInputDismissed) + 'static + Send,
     {
         unsafe {
-            let description = CString::new(description).unwrap();
-            let existing_text = existing_text.map(|s| CString::new(s).unwrap());
+            let Some(description) = cstring(description) else {
+                return false;
+            };
+            let existing_text = match existing_text.map(cstring) {
+                None => None,
+                Some(None) => return false,
+                Some(Some(s)) => Some(s),
+            };
             std::mem::forget(register_callback(&self._inner, dismissed_cb));
             sys::SteamAPI_ISteamUtils_ShowGamepadTextInput(
                 self.utils,
@@ -313,14 +323,11 @@ impl Drop for SteamParamStringArray {
     }
 }
 impl SteamParamStringArray {
+    /// Strings containing a NUL byte are dropped from the array.
     pub(crate) fn new<S: AsRef<str>>(vec: &[S]) -> SteamParamStringArray {
         SteamParamStringArray(
             vec.into_iter()
-                .map(|s| {
-                    CString::new(s.as_ref())
-                        .expect("String passed could not be converted to a c string")
-                        .into_raw()
-                })
+                .filter_map(|s| cstring(s.as_ref()).map(|s| s.into_raw()))
                 .collect(),
         )
     }
