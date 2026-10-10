@@ -363,6 +363,7 @@ pub struct SteamFileInfo {
 
 #[test]
 #[serial]
+#[ignore = "requires a running Steam client"]
 fn test_cloud() {
     use std::io::{Read, Write};
     let client = Client::init().unwrap();

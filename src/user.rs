@@ -196,6 +196,7 @@ pub enum AuthSessionError {
 
 #[test]
 #[serial]
+#[ignore = "requires a running Steam client"]
 fn test_auth_dll() {
     let client = Client::init().unwrap();
     let user = client.user();
@@ -261,6 +262,7 @@ impl_callback!(cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
 
 #[test]
 #[serial]
+#[ignore = "requires a running Steam client"]
 fn test_auth_webapi() {
     let client = Client::init().unwrap();
     let user = client.user();
