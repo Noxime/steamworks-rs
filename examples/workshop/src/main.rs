@@ -50,38 +50,47 @@ fn upload_item_content(ugc: &UGC, published_id: PublishedFileId) {
     // notes:
     // - once an upload is started, it cannot be cancelled!
     // - content_path is the path to a folder which houses the content you wish to upload
-    let _upload_handle = ugc
-        .start_item_update(steamworks::AppId(480), published_id)
-        .content_path(Path::new("/absolute/path/to/content"))
-        .preview_path(Path::new("/absolute/path/to/preview.png"))
-        .title("Item title")
-        .description("Item description")
-        .tags(Vec::<String>::new(), false)
-        .visibility(steamworks::PublishedFileVisibility::Public)
-        .submit(Some("My changenotes"), |upload_result| {
-            // handle the result
-            match upload_result {
-                Ok((published_id, needs_to_agree_to_terms)) => {
-                    if needs_to_agree_to_terms {
-                        // as stated in the create_item function, if the user needs to agree to the terms of use,
-                        // the upload did NOT succeed, despite the result being Ok
-                        println!(
-                            "You need to agree to the terms of use before you can upload any files"
-                        );
-                    } else {
-                        // this is the definite indicator that an item was uploaded successfully
-                        // the watch handle is NOT an accurate indicator whether the upload is done
-                        // the progress on the other hand IS accurate and can simply be used to monitor the upload
-                        println!("Uploaded item with id {:?}", published_id);
+    // each builder step returns a Result: a NUL byte in a string, a missing
+    // content/preview path or a Steam-side rejection yields an error instead
+    // of a panic; on error the abandoned staging session is simply dropped
+    let prepare_result: Result<(), steamworks::SteamError> = (|| {
+        let _upload_handle = ugc
+            .start_item_update(steamworks::AppId(480), published_id)
+            .content_path(Path::new("/absolute/path/to/content"))?
+            .preview_path(Path::new("/absolute/path/to/preview.png"))?
+            .title("Item title")?
+            .description("Item description")?
+            .tags(Vec::<String>::new(), false)?
+            .visibility(steamworks::PublishedFileVisibility::Public)?
+            .submit(Some("My changenotes"), |upload_result| {
+                // handle the result
+                match upload_result {
+                    Ok((published_id, needs_to_agree_to_terms)) => {
+                        if needs_to_agree_to_terms {
+                            // as stated in the create_item function, if the user needs to agree to the terms of use,
+                            // the upload did NOT succeed, despite the result being Ok
+                            println!(
+                                "You need to agree to the terms of use before you can upload any files"
+                            );
+                        } else {
+                            // this is the definite indicator that an item was uploaded successfully
+                            // the watch handle is NOT an accurate indicator whether the upload is done
+                            // the progress on the other hand IS accurate and can simply be used to monitor the upload
+                            println!("Uploaded item with id {:?}", published_id);
+                        }
+                    }
+                    Err(e) => {
+                        // the upload failed
+                        // the exact reason can be found in the error type
+                        println!("Error uploading item: {:?}", e);
                     }
                 }
-                Err(e) => {
-                    // the upload failed
-                    // the exact reason can be found in the error type
-                    println!("Error uploading item: {:?}", e);
-                }
-            }
-        });
+            });
+        Ok(())
+    })();
+    if let Err(e) = prepare_result {
+        println!("Error preparing item update: {:?}", e);
+    }
 }
 
 fn delete_item(ugc: &UGC, published_id: PublishedFileId) {

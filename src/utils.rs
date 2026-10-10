@@ -313,16 +313,21 @@ impl Drop for SteamParamStringArray {
     }
 }
 impl SteamParamStringArray {
-    pub(crate) fn new<S: AsRef<str>>(vec: &[S]) -> SteamParamStringArray {
-        SteamParamStringArray(
-            vec.into_iter()
-                .map(|s| {
-                    CString::new(s.as_ref())
-                        .expect("String passed could not be converted to a c string")
-                        .into_raw()
-                })
-                .collect(),
-        )
+    pub(crate) fn new<S: AsRef<str>>(vec: &[S]) -> Option<SteamParamStringArray> {
+        let mut strings = Vec::with_capacity(vec.len());
+        for s in vec {
+            match CString::new(s.as_ref()) {
+                Ok(c) => strings.push(c.into_raw()),
+                Err(_) => {
+                    // hand back the strings already converted before failing
+                    for ptr in strings {
+                        unsafe { drop(CString::from_raw(ptr)) };
+                    }
+                    return None;
+                }
+            }
+        }
+        Some(SteamParamStringArray(strings))
     }
 
     pub(crate) fn as_raw(&mut self) -> sys::SteamParamStringArray_t {

@@ -819,3 +819,33 @@ mod tests {
         assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
     }
 }
+
+#[cfg(test)]
+pub(crate) mod test_support {
+    use std::collections::HashMap;
+    use std::sync::{Arc, Mutex, Weak};
+
+    use crate::{Callbacks, Inner, Manager, NetworkingSocketsData};
+
+    /// Builds an `Inner` without touching the Steam API.
+    ///
+    /// Dropping an `Inner` runs `SteamAPI_Shutdown` via `Manager::drop`, which is
+    /// only valid on an initialized context; tests never initialize Steam, so one
+    /// strong reference is leaked on purpose to keep `Inner` alive.
+    pub(crate) fn test_inner() -> Arc<Inner> {
+        let inner = Arc::new(Inner {
+            manager: Manager::Client,
+            callbacks: Callbacks {
+                callbacks: Mutex::new(HashMap::new()),
+                call_results: Mutex::new(HashMap::new()),
+            },
+            networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                sockets: HashMap::new(),
+                independent_connections: HashMap::new(),
+                connection_callback: Weak::new(),
+            }),
+        });
+        std::mem::forget(Arc::clone(&inner));
+        inner
+    }
+}

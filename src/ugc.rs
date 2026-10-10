@@ -901,21 +901,16 @@ impl UGC {
 }
 
 impl UGC {
-    /// Initialize this UGC interface for a Steam game server.
-    ///
-    /// You should pass in the Workshop depot, you can find this on SteamDB. It's usually just the app ID.
-    ///
-    /// The folder is a path to the directory where you wish for this game server to store UGC content.
-    ///
-    /// `true` upon success; otherwise, `false` if the calling user is not a game server or if the workshop is currently updating its content.
     pub fn init_for_game_server(&self, workshop_depot: sys::DepotId_t, folder: &str) -> bool {
-        unsafe {
-            let folder = CString::new(folder).unwrap();
-            sys::SteamAPI_ISteamUGC_BInitWorkshopForGameServer(
-                self.ugc,
-                workshop_depot,
-                folder.as_ptr(),
-            )
+        match CString::new(folder) {
+            Ok(folder) => unsafe {
+                sys::SteamAPI_ISteamUGC_BInitWorkshopForGameServer(
+                    self.ugc,
+                    workshop_depot,
+                    folder.as_ptr(),
+                )
+            },
+            Err(_) => false,
         }
     }
 }
@@ -929,166 +924,194 @@ pub struct UpdateHandle {
 }
 
 impl UpdateHandle {
-    #[must_use]
-    pub fn title(self, title: &str) -> Self {
-        unsafe {
-            let title = CString::new(title).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemTitle(
-                self.ugc,
-                self.handle,
-                title.as_ptr()
-            ));
+    pub fn title(self, title: &str) -> Result<Self, SteamError> {
+        let title = CString::new(title).map_err(|_| SteamError::InvalidParameter)?;
+        let ok =
+            unsafe { sys::SteamAPI_ISteamUGC_SetItemTitle(self.ugc, self.handle, title.as_ptr()) };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    #[must_use]
-    pub fn description(self, description: &str) -> Self {
-        unsafe {
-            let description = CString::new(description).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemDescription(
-                self.ugc,
-                self.handle,
-                description.as_ptr()
-            ));
+    pub fn description(self, description: &str) -> Result<Self, SteamError> {
+        let description = CString::new(description).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemDescription(self.ugc, self.handle, description.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    #[must_use]
-    pub fn language(self, language: &str) -> Self {
-        unsafe {
-            let language = CString::new(language).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemUpdateLanguage(
-                self.ugc,
-                self.handle,
-                language.as_ptr()
-            ));
+    pub fn language(self, language: &str) -> Result<Self, SteamError> {
+        let language = CString::new(language).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemUpdateLanguage(self.ugc, self.handle, language.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    #[must_use]
-    pub fn preview_path(self, path: &Path) -> Self {
-        unsafe {
-            let path = path.canonicalize().unwrap();
-            let preview_path = CString::new(&*path.to_string_lossy()).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemPreview(
-                self.ugc,
-                self.handle,
-                preview_path.as_ptr()
-            ));
+    pub fn preview_path(self, path: &Path) -> Result<Self, SteamError> {
+        let path = path.canonicalize().map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                SteamError::FileNotFound
+            } else {
+                SteamError::IOFailure
+            }
+        })?;
+        let preview_path =
+            CString::new(&*path.to_string_lossy()).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemPreview(self.ugc, self.handle, preview_path.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    #[must_use]
-    pub fn content_path(self, path: &Path) -> Self {
-        unsafe {
-            let path = path.canonicalize().unwrap();
-            let content_path = CString::new(&*path.to_string_lossy()).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemContent(
-                self.ugc,
-                self.handle,
-                content_path.as_ptr()
-            ));
+    pub fn content_path(self, path: &Path) -> Result<Self, SteamError> {
+        let path = path.canonicalize().map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                SteamError::FileNotFound
+            } else {
+                SteamError::IOFailure
+            }
+        })?;
+        let content_path =
+            CString::new(&*path.to_string_lossy()).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemContent(self.ugc, self.handle, content_path.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    #[must_use]
-    pub fn metadata(self, metadata: &str) -> Self {
-        unsafe {
-            let metadata = CString::new(metadata).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_SetItemMetadata(
-                self.ugc,
-                self.handle,
-                metadata.as_ptr()
-            ));
+    pub fn metadata(self, metadata: &str) -> Result<Self, SteamError> {
+        let metadata = CString::new(metadata).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemMetadata(self.ugc, self.handle, metadata.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn visibility(self, visibility: remote_storage::PublishedFileVisibility) -> Self {
-        unsafe {
-            assert!(sys::SteamAPI_ISteamUGC_SetItemVisibility(
-                self.ugc,
-                self.handle,
-                visibility.into()
-            ));
+    pub fn visibility(
+        self,
+        visibility: remote_storage::PublishedFileVisibility,
+    ) -> Result<Self, SteamError> {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemVisibility(self.ugc, self.handle, visibility.into())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn tags<S: AsRef<str>>(self, tags: Vec<S>, allow_admin_tags: bool) -> Self {
-        unsafe {
-            let mut tags = SteamParamStringArray::new(&tags);
-            assert!(sys::SteamAPI_ISteamUGC_SetItemTags(
+    pub fn tags<S: AsRef<str>>(
+        self,
+        tags: Vec<S>,
+        allow_admin_tags: bool,
+    ) -> Result<Self, SteamError> {
+        let mut tags = SteamParamStringArray::new(&tags).ok_or(SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_SetItemTags(
                 self.ugc,
                 self.handle,
                 &tags.as_raw(),
-                allow_admin_tags
-            ));
+                allow_admin_tags,
+            )
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn add_key_value_tag(self, key: &str, value: &str) -> Self {
-        unsafe {
-            let key = CString::new(key).unwrap();
-            let value = CString::new(value).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_AddItemKeyValueTag(
+    pub fn add_key_value_tag(self, key: &str, value: &str) -> Result<Self, SteamError> {
+        let key = CString::new(key).map_err(|_| SteamError::InvalidParameter)?;
+        let value = CString::new(value).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_AddItemKeyValueTag(
                 self.ugc,
                 self.handle,
                 key.as_ptr(),
-                value.as_ptr()
-            ));
+                value.as_ptr(),
+            )
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn remove_key_value_tag(self, key: &str) -> Self {
-        unsafe {
-            let key = CString::new(key).unwrap();
-            assert!(sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(
-                self.ugc,
-                self.handle,
-                key.as_ptr()
-            ));
+    pub fn remove_key_value_tag(self, key: &str) -> Result<Self, SteamError> {
+        let key = CString::new(key).map_err(|_| SteamError::InvalidParameter)?;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_RemoveItemKeyValueTags(self.ugc, self.handle, key.as_ptr())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn add_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
-        unsafe {
-            assert!(sys::SteamAPI_ISteamUGC_AddContentDescriptor(
-                self.ugc,
-                self.handle,
-                desc_id.into(),
-            ));
+    pub fn add_content_descriptor(
+        self,
+        desc_id: UGCContentDescriptorID,
+    ) -> Result<Self, SteamError> {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_AddContentDescriptor(self.ugc, self.handle, desc_id.into())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn remove_content_descriptor(self, desc_id: UGCContentDescriptorID) -> Self {
-        unsafe {
-            assert!(sys::SteamAPI_ISteamUGC_RemoveContentDescriptor(
-                self.ugc,
-                self.handle,
-                desc_id.into()
-            ));
+    pub fn remove_content_descriptor(
+        self,
+        desc_id: UGCContentDescriptorID,
+    ) -> Result<Self, SteamError> {
+        let ok = unsafe {
+            sys::SteamAPI_ISteamUGC_RemoveContentDescriptor(self.ugc, self.handle, desc_id.into())
+        };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
-    pub fn remove_all_key_value_tags(self) -> Self {
-        unsafe {
-            assert!(sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(
-                self.ugc,
-                self.handle
-            ));
+    pub fn remove_all_key_value_tags(self) -> Result<Self, SteamError> {
+        let ok =
+            unsafe { sys::SteamAPI_ISteamUGC_RemoveAllItemKeyValueTags(self.ugc, self.handle) };
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
         }
-        self
     }
 
     pub fn submit<F>(self, change_note: Option<&str>, cb: F) -> UpdateWatchHandle
@@ -1204,28 +1227,38 @@ impl Drop for QueryHandle {
 impl QueryHandle {
     /// Excludes items with a specific tag.
     ///
-    /// Panics if `tag` could not be converted to a `CString`.
-    pub fn exclude_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag)
-            .expect("String passed to exclude_tag could not be converted to a c string");
+    /// # Errors
+    ///
+    /// Returns `SteamError::InvalidParameter` if the string contains a
+    /// NUL byte or Steam rejects the property.
+    pub fn exclude_tag(self, tag: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(tag).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Only include items with a specific tag.
     ///
-    /// Panics if `tag` could not be converted to a `CString`.
-    pub fn require_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag)
-            .expect("String passed to require_tag could not be converted to a c string");
+    /// # Errors
+    ///
+    /// Returns `SteamError::InvalidParameter` if the string contains a
+    /// NUL byte or Steam rejects the property.
+    pub fn require_tag(self, tag: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(tag).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets how to match tags added by `require_tag`. If `true`, then any tag may match. If `false`, all required tags must match.
@@ -1239,14 +1272,21 @@ impl QueryHandle {
     /// Sets the language to return the title and description in for the items on a pending UGC Query.
     ///
     /// Defaults to "english"
-    pub fn language(self, language: &str) -> Self {
-        let cstr = CString::new(language)
-            .expect("String passed to language could not be converted to a c string");
+    ///
+    /// # Errors
+    ///
+    /// Returns `SteamError::InvalidParameter` if the string contains a
+    /// NUL byte or Steam rejects the property.
+    pub fn language(self, language: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(language).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets whether results will be returned from the cache for the specific period of time on a pending UGC Query.
@@ -1318,23 +1358,29 @@ impl QueryHandle {
     }
 
     /// Adds a tag that must be present on all returned items.
-    pub fn add_required_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag).unwrap();
+    pub fn add_required_tag(self, tag: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(tag).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddRequiredTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Adds a tag that must not be present on any returned items.
-    pub fn add_excluded_tag(self, tag: &str) -> Self {
-        let cstr = CString::new(tag).unwrap();
+    pub fn add_excluded_tag(self, tag: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(tag).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddExcludedTag(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets whether to only return the IDs of the items.
@@ -1429,13 +1475,16 @@ impl QueryHandle {
     }
 
     /// Sets the language to return the title and description in.
-    pub fn set_language(self, language: &str) -> Self {
-        let cstr = CString::new(language).unwrap();
+    pub fn set_language(self, language: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(language).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetLanguage(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets whether results will be returned from the cache.
@@ -1452,8 +1501,8 @@ impl QueryHandle {
     }
 
     /// Sets a filter for the cloud file name.
-    pub fn set_cloud_file_name_filter(self, file_name: &str) -> Self {
-        let cstr = CString::new(file_name).unwrap();
+    pub fn set_cloud_file_name_filter(self, file_name: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(file_name).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetCloudFileNameFilter(
                 self.ugc,
@@ -1461,8 +1510,11 @@ impl QueryHandle {
                 cstr.as_ptr(),
             )
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets whether any of the required tags are sufficient for an item to be returned.
@@ -1475,13 +1527,16 @@ impl QueryHandle {
     }
 
     /// Sets the full-text search string.
-    pub fn set_search_text(self, search_text: &str) -> Self {
-        let cstr = CString::new(search_text).unwrap();
+    pub fn set_search_text(self, search_text: &str) -> Result<Self, SteamError> {
+        let cstr = CString::new(search_text).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_SetSearchText(self.ugc, self.handle.unwrap(), cstr.as_ptr())
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sets the number of days to consider for trending items.
@@ -1494,9 +1549,9 @@ impl QueryHandle {
     }
 
     /// Adds a required key-value tag that must be present on all returned items.
-    pub fn add_required_key_value_tag(self, key: &str, value: &str) -> Self {
-        let key_cstr = CString::new(key).unwrap();
-        let value_cstr = CString::new(value).unwrap();
+    pub fn add_required_key_value_tag(self, key: &str, value: &str) -> Result<Self, SteamError> {
+        let key_cstr = CString::new(key).map_err(|_| SteamError::InvalidParameter)?;
+        let value_cstr = CString::new(value).map_err(|_| SteamError::InvalidParameter)?;
         let ok = unsafe {
             sys::SteamAPI_ISteamUGC_AddRequiredKeyValueTag(
                 self.ugc,
@@ -1505,8 +1560,11 @@ impl QueryHandle {
                 value_cstr.as_ptr(),
             )
         };
-        debug_assert!(ok);
-        self
+        if ok {
+            Ok(self)
+        } else {
+            Err(SteamError::InvalidParameter)
+        }
     }
 
     /// Sends the query to Steam and calls the provided callback with the results when completed.
@@ -1891,3 +1949,154 @@ impl fmt::Display for CreateQueryError {
     }
 }
 impl error::Error for CreateQueryError {}
+
+#[cfg(test)]
+mod builder_result_tests {
+    use super::{QueryHandle, UpdateHandle, UGC};
+    use crate::test_support::test_inner;
+    use crate::SteamError;
+    use std::path::Path;
+
+    fn update_handle() -> UpdateHandle {
+        UpdateHandle {
+            ugc: std::ptr::null_mut(),
+            inner: test_inner(),
+            handle: 0,
+        }
+    }
+
+    fn query_handle() -> QueryHandle {
+        QueryHandle {
+            ugc: std::ptr::null_mut(),
+            inner: test_inner(),
+            // `None` keeps `QueryHandle::drop` from calling into Steam with
+            // the null `ugc` pointer; the error paths under test never reach
+            // `handle.unwrap()`, so no test observes this value.
+            handle: None,
+        }
+    }
+
+    fn expect_err<T>(result: Result<T, SteamError>, expected: SteamError) {
+        match result {
+            Err(e) => assert_eq!(e, expected, "unexpected error variant"),
+            Ok(_) => panic!("expected Err({expected:?}), got Ok"),
+        }
+    }
+
+    // The error paths below all fire before any Steam call, so the null `ugc`
+    // pointer is never dereferenced. Happy paths are untestable offline.
+
+    #[test]
+    fn update_string_nul_yields_invalid_parameter() {
+        expect_err(update_handle().title("a\0b"), SteamError::InvalidParameter);
+        expect_err(
+            update_handle().description("d\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            update_handle().language("l\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            update_handle().metadata("m\0"),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn update_key_value_tag_nul_yields_invalid_parameter() {
+        expect_err(
+            update_handle().add_key_value_tag("k\0", "v"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            update_handle().add_key_value_tag("k", "v\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            update_handle().remove_key_value_tag("k\0"),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn update_tags_nul_element_yields_invalid_parameter() {
+        expect_err(
+            update_handle().tags(vec!["ok", "bad\0"], false),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn update_missing_paths_yield_file_not_found() {
+        expect_err(
+            update_handle().content_path(Path::new("missing/content/dir")),
+            SteamError::FileNotFound,
+        );
+        expect_err(
+            update_handle().preview_path(Path::new("missing/preview.png")),
+            SteamError::FileNotFound,
+        );
+    }
+
+    #[test]
+    fn query_tag_nul_yields_invalid_parameter() {
+        expect_err(
+            query_handle().exclude_tag("t\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().require_tag("t\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().add_required_tag("t\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().add_excluded_tag("t\0"),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn query_language_nul_yields_invalid_parameter() {
+        expect_err(
+            query_handle().language("en\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().set_language("en\0"),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn query_other_string_nul_yields_invalid_parameter() {
+        expect_err(
+            query_handle().set_cloud_file_name_filter("f\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().set_search_text("s\0"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().add_required_key_value_tag("k\0", "v"),
+            SteamError::InvalidParameter,
+        );
+        expect_err(
+            query_handle().add_required_key_value_tag("k", "v\0"),
+            SteamError::InvalidParameter,
+        );
+    }
+
+    #[test]
+    fn init_for_game_server_nul_folder_returns_false() {
+        let ugc = UGC {
+            ugc: std::ptr::null_mut(),
+            inner: test_inner(),
+        };
+        assert!(!ugc.init_for_game_server(480, "workshop\0dir"));
+    }
+}
