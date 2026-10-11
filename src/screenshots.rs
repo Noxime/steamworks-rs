@@ -1,3 +1,4 @@
+use crate::cstring;
 use std::path::Path;
 
 pub use sys::ScreenshotHandle;
@@ -139,5 +140,5 @@ impl_callback!(cb: ScreenshotReady_t => ScreenshotReady {
 
 fn path_to_absolute_cstring(filename: &Path) -> Option<CString> {
     let filename = filename.canonicalize().ok()?;
-    Some(CString::new(filename.to_str()?).unwrap())
+    cstring(filename.to_str()?)
 }

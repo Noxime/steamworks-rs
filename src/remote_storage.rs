@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 #[cfg(test)]
 use serial_test::serial;
 
@@ -102,12 +103,15 @@ impl RemoteStorage {
     /// Returns a handle to a steam cloud file
     ///
     /// The file does not have to exist.
+    ///
+    /// If `name` contains a NUL byte, an empty file name is used instead and the
+    /// resulting handle will not refer to any file.
     pub fn file(&self, name: &str) -> SteamFile {
         SteamFile {
             rs: self.rs,
             util: self.util,
             _inner: self.inner.clone(),
-            name: CString::new(name).unwrap(),
+            name: cstring(name).unwrap_or_default(),
         }
     }
 }
@@ -390,4 +394,39 @@ fn test_cloud() {
     println!("Got: {:?}", output);
 
     assert_eq!(output, "Testing");
+}
+
+#[cfg(test)]
+mod cstring_nul_degrade_tests {
+    use super::*;
+
+    #[test]
+    fn steam_file_nul_name_uses_empty_name() {
+        let rs = RemoteStorage {
+            rs: std::ptr::null_mut(),
+            util: std::ptr::null_mut(),
+            inner: test_cstring_inner(),
+        };
+        assert!(rs.file("name\0").name.to_bytes().is_empty());
+    }
+
+    fn test_cstring_inner() -> std::sync::Arc<crate::Inner> {
+        use std::collections::HashMap;
+        let inner = std::sync::Arc::new(crate::Inner {
+            manager: crate::Manager::Client,
+            callbacks: crate::Callbacks {
+                callbacks: std::sync::Mutex::new(HashMap::new()),
+                call_results: std::sync::Mutex::new(HashMap::new()),
+            },
+            networking_sockets_data: std::sync::Mutex::new(crate::NetworkingSocketsData {
+                sockets: HashMap::new(),
+                independent_connections: HashMap::new(),
+                connection_callback: std::sync::Weak::new(),
+            }),
+        });
+        // Leak one strong reference: dropping Inner fires SteamAPI_Shutdown via
+        // Manager::drop, and these tests never initialize the Steam API.
+        std::mem::forget(std::sync::Arc::clone(&inner));
+        inner
+    }
 }

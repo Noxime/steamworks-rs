@@ -1,6 +1,7 @@
 use sys::InputHandle_t;
 
 use super::*;
+use crate::cstring;
 
 /// Access to the steam input interface
 pub struct Input {
@@ -68,7 +69,9 @@ impl Input {
 
     /// Allows to load a specific Action Manifest File localy
     pub fn set_input_action_manifest_file_path(&self, path: &str) -> bool {
-        let path = CString::new(path).unwrap();
+        let Some(path) = cstring(path) else {
+            return false;
+        };
         unsafe {
             sys::SteamAPI_ISteamInput_SetInputActionManifestFilePath(self.input, path.as_ptr())
         }
@@ -76,7 +79,9 @@ impl Input {
 
     /// Returns the associated ControllerActionSet handle for the specified controller,
     pub fn get_action_set_handle(&self, action_set_name: &str) -> sys::InputActionSetHandle_t {
-        let name = CString::new(action_set_name).unwrap();
+        let Some(name) = cstring(action_set_name) else {
+            return 0;
+        };
         unsafe { sys::SteamAPI_ISteamInput_GetActionSetHandle(self.input, name.as_ptr()) }
     }
 
@@ -152,13 +157,17 @@ impl Input {
 
     /// Get the handle of the specified Digital action.
     pub fn get_digital_action_handle(&self, action_name: &str) -> sys::InputDigitalActionHandle_t {
-        let name = CString::new(action_name).unwrap();
+        let Some(name) = cstring(action_name) else {
+            return 0;
+        };
         unsafe { sys::SteamAPI_ISteamInput_GetDigitalActionHandle(self.input, name.as_ptr()) }
     }
 
     /// Get the handle of the specified Analog action.
     pub fn get_analog_action_handle(&self, action_name: &str) -> sys::InputAnalogActionHandle_t {
-        let name = CString::new(action_name).unwrap();
+        let Some(name) = cstring(action_name) else {
+            return 0;
+        };
         unsafe { sys::SteamAPI_ISteamInput_GetAnalogActionHandle(self.input, name.as_ptr()) }
     }
 

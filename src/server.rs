@@ -1,4 +1,5 @@
 use super::*;
+use crate::cstring;
 use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
@@ -101,6 +102,7 @@ impl Server {
     /// * The game isn't running on the same user/level as the steam client
     /// * The user doesn't own a license for the game.
     /// * The app ID isn't completely set up.
+    /// * The `version` string contains a NUL byte.
     pub fn init(
         ip: Ipv4Addr,
         game_port: u16,
@@ -109,7 +111,11 @@ impl Server {
         version: &str,
     ) -> Result<(Server, Client), SteamAPIInitError> {
         unsafe {
-            let version = CString::new(version).unwrap();
+            let Some(version) = cstring(version) else {
+                return Err(SteamAPIInitError::Generic(String::from(
+                    "version string contains a NUL byte",
+                )));
+            };
 
             // let internal_check_interface_versions =
 
@@ -369,7 +375,9 @@ impl Server {
     /// This is required for all game servers and can only be set before calling
     /// log_on() or log_on_anonymous().
     pub fn set_product(&self, product: &str) {
-        let product = CString::new(product).unwrap();
+        let Some(product) = cstring(product) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetProduct(self.server, product.as_ptr());
         }
@@ -380,7 +388,9 @@ impl Server {
     /// This is required for all game servers and can only be set before calling
     /// log_on() or log_on_anonymous().
     pub fn set_game_description(&self, desc: &str) {
-        let desc = CString::new(desc).unwrap();
+        let Some(desc) = cstring(desc) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetGameDescription(self.server, desc.as_ptr());
         }
@@ -394,7 +404,9 @@ impl Server {
     /// Don't set this unless it actually changes, its only uploaded to the master once; when
     /// acknowledged.
     pub fn set_game_data(&self, data: &str) {
-        let desc = CString::new(data).unwrap();
+        let Some(desc) = cstring(data) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetGameData(self.server, desc.as_ptr());
         }
@@ -416,7 +428,9 @@ impl Server {
 
     /// Login to a generic account by token
     pub fn log_on(&self, token: &str) {
-        let token = CString::new(token).unwrap();
+        let Some(token) = cstring(token) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_LogOn(self.server, token.as_ptr());
         }
@@ -446,7 +460,9 @@ impl Server {
     /// If your game is a "mod," pass the string that identifies it.  The default is an empty
     /// string, meaning this application is the original game, not a mod.
     pub fn set_mod_dir(&self, mod_dir: &str) {
-        let mod_dir = CString::new(mod_dir).unwrap();
+        let Some(mod_dir) = cstring(mod_dir) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetModDir(self.server, mod_dir.as_ptr());
         }
@@ -454,7 +470,9 @@ impl Server {
 
     /// Set name of map to report in the server browser
     pub fn set_map_name(&self, map_name: &str) {
-        let map_name = CString::new(map_name).unwrap();
+        let Some(map_name) = cstring(map_name) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetMapName(self.server, map_name.as_ptr());
         }
@@ -462,7 +480,9 @@ impl Server {
 
     /// Set the name of server as it will appear in the server browser
     pub fn set_server_name(&self, server_name: &str) {
-        let server_name = CString::new(server_name).unwrap();
+        let Some(server_name) = cstring(server_name) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetServerName(self.server, server_name.as_ptr());
         }
@@ -491,7 +511,9 @@ impl Server {
         assert!(tags.len() != 0, "tags must not be an empty string (\"\").");
         assert!(tags.len() < 128, "tags can not be longer than 127.");
 
-        let tags = CString::new(tags).unwrap();
+        let Some(tags) = cstring(tags) else {
+            return;
+        };
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetGameTags(self.server, tags.as_ptr());
         }
@@ -499,8 +521,12 @@ impl Server {
 
     /// Add/update a rules key/value pair.
     pub fn set_key_value(&self, key: &str, value: &str) {
-        let key = CString::new(key).unwrap();
-        let value = CString::new(value).unwrap();
+        let Some(key) = cstring(key) else {
+            return;
+        };
+        let Some(value) = cstring(value) else {
+            return;
+        };
 
         unsafe {
             sys::SteamAPI_ISteamGameServer_SetKeyValue(self.server, key.as_ptr(), value.as_ptr());
