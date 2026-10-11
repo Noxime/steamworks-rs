@@ -173,10 +173,18 @@ impl Inner {
                         apicall.m_iCallback,
                         &mut failed,
                     ) {
-                        let mut call_results = self.callbacks.call_results.lock().unwrap();
+                        // Take the handler out under the lock and invoke it only after the
+                        // guard is dropped: a call result handler routinely starts another
+                        // async call (server-browser join after a list result, subscribe
+                        // after create_item), and `register_call_result` needs this very
+                        // lock, which `std::sync::Mutex` is not reentrant on.
                         // The &{val} pattern here is to avoid taking a reference to a packed field
                         // Since the value here is Copy, we can just copy it and borrow the copy
-                        if let Some(cb) = call_results.remove(&{ apicall.m_hAsyncCall }) {
+                        let handler = {
+                            let mut call_results = self.callbacks.call_results.lock().unwrap();
+                            call_results.remove(&{ apicall.m_hAsyncCall })
+                        };
+                        if let Some(cb) = handler {
                             cb(apicall_result.as_mut_ptr().cast(), failed);
                         }
                     }
