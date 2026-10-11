@@ -1891,3 +1891,26 @@ impl fmt::Display for CreateQueryError {
     }
 }
 impl error::Error for CreateQueryError {}
+
+#[cfg(test)]
+mod pure_logic_tests {
+    use super::*;
+
+    #[test]
+    fn app_ids_accessors_per_variant() {
+        let creator = AppIDs::CreatorAppId(AppId(1));
+        assert_eq!(creator.creator_app_id(), Some(AppId(1)));
+        assert_eq!(creator.consumer_app_id(), None);
+
+        let consumer = AppIDs::ConsumerAppId(AppId(3));
+        assert_eq!(consumer.creator_app_id(), None);
+        assert_eq!(consumer.consumer_app_id(), Some(AppId(3)));
+
+        let both = AppIDs::Both {
+            creator: AppId(2),
+            consumer: AppId(3),
+        };
+        assert_eq!(both.creator_app_id(), Some(AppId(2)));
+        assert_eq!(both.consumer_app_id(), Some(AppId(3)));
+    }
+}

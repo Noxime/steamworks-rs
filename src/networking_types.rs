@@ -2268,3 +2268,72 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod pure_logic_tests {
+    use super::*;
+
+    // AppNetConnectionEnd: pure range contract, no Steam client needed.
+
+    #[test]
+    fn app_net_connection_end_generic_codes() {
+        let normal = AppNetConnectionEnd::generic_normal();
+        assert!(normal.is_normal());
+        assert!(!normal.is_exception());
+
+        let exception = AppNetConnectionEnd::generic_exception();
+        assert!(exception.is_exception());
+        assert!(!exception.is_normal());
+    }
+
+    #[test]
+    fn app_net_connection_end_ranges_are_disjoint() {
+        let normal = AppNetConnectionEnd::normal(1999);
+        assert!(normal.is_normal());
+        assert!(!normal.is_exception());
+
+        let exception = AppNetConnectionEnd::exception(2000);
+        assert!(!exception.is_normal());
+        assert!(exception.is_exception());
+    }
+
+    #[test]
+    #[should_panic]
+    fn app_net_connection_end_normal_rejects_below_range() {
+        AppNetConnectionEnd::normal(999);
+    }
+
+    #[test]
+    #[should_panic]
+    fn app_net_connection_end_normal_rejects_above_range() {
+        AppNetConnectionEnd::normal(2000);
+    }
+
+    #[test]
+    #[should_panic]
+    fn app_net_connection_end_exception_rejects_below_range() {
+        AppNetConnectionEnd::exception(1999);
+    }
+
+    #[test]
+    #[should_panic]
+    fn app_net_connection_end_exception_rejects_above_range() {
+        AppNetConnectionEnd::exception(3000);
+    }
+
+    #[test]
+    fn networking_config_value_data_type_spot_check() {
+        assert_eq!(
+            NetworkingConfigValue::FakePacketLossSend.data_type(),
+            NetworkingConfigDataType::Float
+        );
+        assert_eq!(
+            NetworkingConfigValue::SendBufferSize.data_type(),
+            NetworkingConfigDataType::Int32
+        );
+        assert_eq!(
+            NetworkingConfigValue::CallbackConnectionStatusChanged.data_type(),
+            NetworkingConfigDataType::Callback
+        );
+    }
+}
