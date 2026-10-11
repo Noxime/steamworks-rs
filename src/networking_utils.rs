@@ -1,5 +1,5 @@
 use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
-use crate::{register_callback, Callback, Inner};
+use crate::{register_replacing_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CStr};
 use std::sync::Arc;
@@ -105,12 +105,9 @@ impl NetworkingUtils {
         mut callback: impl FnMut(RelayNetworkStatus) + Send + 'static,
     ) {
         unsafe {
-            std::mem::forget(register_callback(
-                &self.inner,
-                move |status: RelayNetworkStatusCallback| {
-                    callback(status.status);
-                },
-            ));
+            register_replacing_callback(&self.inner, move |status: RelayNetworkStatusCallback| {
+                callback(status.status);
+            });
         }
     }
 }

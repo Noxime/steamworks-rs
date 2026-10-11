@@ -6,6 +6,7 @@ use crate::screenshots::*;
 
 use crate::sys;
 
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Weak};
 
 /// A sum type over all possible callback results
@@ -153,9 +154,12 @@ pub unsafe trait Callback {
 /// A handle that can be used to remove a callback
 /// at a later point.
 ///
-/// Removes the callback from the Steam API context when dropped.
+/// Removes the registration this handle was created for from the Steam API
+/// context when dropped. Other registrations of the same callback type are
+/// unaffected.
 pub struct CallbackHandle {
     id: i32,
+    seq: u64,
     inner: Weak<Inner>,
 }
 
@@ -163,8 +167,31 @@ impl Drop for CallbackHandle {
     fn drop(&mut self) {
         if let Some(inner) = self.inner.upgrade() {
             match inner.callbacks.callbacks.lock() {
-                Ok(mut cb) => {
-                    cb.remove(&self.id);
+                Ok(mut cbs) => {
+                    let mut empty = false;
+                    let mut found = false;
+                    if let Some(entries) = cbs.get_mut(&self.id) {
+                        let before = entries.len();
+                        entries.retain(|(seq, _)| *seq != self.seq);
+                        found = entries.len() != before;
+                        empty = entries.is_empty();
+                    }
+                    if !found {
+                        // The seq is not in the table because its entry is
+                        // mid-dispatch (the bucket was taken out whole, or
+                        // re-created around it by a re-entrant registration):
+                        // record a tombstone so the dispatcher does not put
+                        // this registration back.
+                        inner
+                            .callbacks
+                            .pending_removal
+                            .lock()
+                            .unwrap()
+                            .insert(self.seq);
+                    }
+                    if empty {
+                        cbs.remove(&self.id);
+                    }
                 }
                 Err(err) => {
                     eprintln!("error while dropping callback: {:?}", err);
@@ -194,19 +221,51 @@ where
     C: Callback,
     F: FnMut(C) + Send + 'static,
 {
+    let seq = inner.callbacks.next_seq.fetch_add(1, Ordering::Relaxed);
     {
-        inner.callbacks.callbacks.lock().unwrap().insert(
-            C::ID,
-            Box::new(move |param| {
-                let param = C::from_raw(param);
-                f(param)
-            }),
-        );
+        inner
+            .callbacks
+            .callbacks
+            .lock()
+            .unwrap()
+            .entry(C::ID)
+            .or_default()
+            .push((
+                seq,
+                Box::new(move |param| {
+                    let param = C::from_raw(param);
+                    f(param)
+                }),
+            ));
     }
     CallbackHandle {
         id: C::ID,
+        seq,
         inner: Arc::downgrade(inner),
     }
+}
+
+/// Registers a callback whose re-registration replaces the previous
+/// registration made through this helper for the same callback type, while
+/// leaving registrations made by other callers (e.g. via
+/// `Client::register_callback`) untouched. This backs the wrapper APIs whose
+/// docs say "calling this function more than once will replace the previous
+/// callback".
+pub(crate) unsafe fn register_replacing_callback<C, F>(inner: &Arc<Inner>, f: F)
+where
+    C: Callback,
+    F: FnMut(C) + Send + 'static,
+{
+    let handle = register_callback::<C, F>(inner, f);
+    let old = inner
+        .callbacks
+        .replacing
+        .lock()
+        .unwrap()
+        .insert(C::ID, handle);
+    // Drop the replaced handle only after the registry lock is released:
+    // dropping it takes the callback table lock.
+    drop(old);
 }
 
 pub(crate) unsafe fn register_call_result<C, F>(

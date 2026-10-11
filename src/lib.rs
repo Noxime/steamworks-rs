@@ -13,9 +13,10 @@ use steamworks_sys as sys;
 use sys::{EServerMode, ESteamAPIInitResult, SteamErrMsg};
 
 use core::ffi::c_void;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::{c_char, CStr, CString};
 use std::fmt::{self, Debug, Formatter};
+use std::sync::atomic::AtomicU64;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, Weak};
 
@@ -104,9 +105,57 @@ struct Inner {
 }
 
 struct Callbacks {
-    callbacks: Mutex<HashMap<i32, Box<dyn FnMut(*mut c_void) + Send + 'static>>>,
+    /// Registered callbacks keyed by callback type ID. Multiple callbacks of
+    /// the same type coexist and are dispatched in registration order; each
+    /// entry carries a unique sequence number so a `CallbackHandle` removes
+    /// exactly its own registration.
+    callbacks: Mutex<HashMap<i32, Vec<(u64, Box<dyn FnMut(*mut c_void) + Send + 'static>)>>>,
     call_results:
         Mutex<HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>>,
+    /// Registrations made through `register_replacing_callback`, keyed by
+    /// callback type ID. Re-registering through that helper drops the stored
+    /// handle, which preserves the documented replace semantics of those
+    /// wrapper APIs without touching registrations made by other callers.
+    replacing: Mutex<HashMap<i32, CallbackHandle>>,
+    /// Source of the unique sequence numbers stored in `callbacks` entries.
+    next_seq: AtomicU64,
+    /// Sequence numbers whose handle was dropped while their entry was out of
+    /// the table mid-dispatch; the dispatcher drops those entries instead of
+    /// putting them back, so a `CallbackHandle` dropped from inside its own
+    /// callback still unregisters it.
+    pending_removal: Mutex<HashSet<u64>>,
+}
+
+impl Callbacks {
+    /// Calls every callback registered for `id`, in registration order.
+    ///
+    /// The registered entries are taken out of the table while they run, so
+    /// re-entrant calls from inside a callback — registering callbacks,
+    /// nesting a dispatch, or dropping a `CallbackHandle` — cannot deadlock
+    /// on the table lock (defect #2 residual). A dispatch of the same type
+    /// nested inside itself finds no entries and returns immediately;
+    /// registrations made during the dispatch join the table and first fire
+    /// on the next dispatch.
+    fn dispatch(&self, id: i32, data: *mut c_void) {
+        let taken = self.callbacks.lock().unwrap().remove(&id);
+        let Some(mut entries) = taken else { return };
+        for (_seq, cb) in entries.iter_mut() {
+            cb(data);
+        }
+        let mut callbacks = self.callbacks.lock().unwrap();
+        let slot = callbacks.entry(id).or_default();
+        let mut pending_removal = self.pending_removal.lock().unwrap();
+        for (seq, cb) in entries {
+            if pending_removal.remove(&seq) {
+                continue; // its handle was dropped mid-dispatch: stay removed
+            }
+            slot.push((seq, cb));
+        }
+        slot.sort_unstable_by_key(|(seq, _)| *seq);
+        if slot.is_empty() {
+            callbacks.remove(&id);
+        }
+    }
 }
 
 impl Inner {
@@ -119,10 +168,7 @@ impl Inner {
     /// in order to reduce the latency between receiving events.
     pub fn run_callbacks(&self) {
         self.run_callbacks_raw(|cb_discrim, data| {
-            let mut callbacks = self.callbacks.callbacks.lock().unwrap();
-            if let Some(cb) = callbacks.get_mut(&cb_discrim) {
-                cb(data);
-            }
+            self.callbacks.dispatch(cb_discrim, data);
         });
     }
 
@@ -138,12 +184,7 @@ impl Inner {
     /// in order to reduce the latency between receiving events.
     pub fn process_callbacks(&self, mut callback_handler: impl FnMut(CallbackResult)) {
         self.run_callbacks_raw(|cb_discrim, data| {
-            {
-                let mut callbacks = self.callbacks.callbacks.lock().unwrap();
-                if let Some(cb) = callbacks.get_mut(&cb_discrim) {
-                    cb(data);
-                }
-            }
+            self.callbacks.dispatch(cb_discrim, data);
             let cb_result = unsafe { CallbackResult::from_raw(cb_discrim, data) };
             if let Some(cb_result) = cb_result {
                 callback_handler(cb_result);
@@ -263,6 +304,9 @@ impl Client {
                 callbacks: Callbacks {
                     callbacks: Mutex::new(HashMap::new()),
                     call_results: Mutex::new(HashMap::new()),
+                    replacing: Mutex::new(HashMap::new()),
+                    next_seq: AtomicU64::new(1),
+                    pending_removal: Mutex::new(HashSet::new()),
                 },
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
@@ -323,6 +367,12 @@ impl Client {
 
     /// Registers the passed function as a callback for the
     /// given type.
+    ///
+    /// Registering multiple callbacks of the same type is supported: they are
+    /// called in registration order, and each registration stays active until
+    /// its returned handle is dropped. Dropping a handle removes only the
+    /// registration it was created for; other registrations of the same
+    /// callback type are unaffected.
     ///
     /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
@@ -817,5 +867,311 @@ mod tests {
 
         let steamid = SteamId(76561198174976054);
         assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
+    }
+}
+
+#[cfg(test)]
+mod callback_multi_registration_tests {
+    use super::*;
+    use std::sync::mpsc;
+    use std::thread;
+    use std::time::Duration;
+
+    use crate::networking_sockets_callback::get_or_create_connection_callback;
+    use crate::networking_types::NetConnectionStatusChanged;
+
+    /// Stand-in callback type with an ID outside every real Steam callback ID,
+    /// so table assertions never collide with registrations made elsewhere.
+    struct TestCallback;
+    unsafe impl Callback for TestCallback {
+        const ID: i32 = 9_999_999;
+        unsafe fn from_raw(_raw: *mut c_void) -> Self {
+            TestCallback
+        }
+    }
+
+    fn test_inner() -> Arc<Inner> {
+        let inner = Arc::new(Inner {
+            manager: Manager::Client,
+            callbacks: Callbacks {
+                callbacks: Mutex::new(HashMap::new()),
+                call_results: Mutex::new(HashMap::new()),
+                replacing: Mutex::new(HashMap::new()),
+                next_seq: AtomicU64::new(1),
+                pending_removal: Mutex::new(HashSet::new()),
+            },
+            networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                sockets: HashMap::new(),
+                independent_connections: HashMap::new(),
+                connection_callback: Weak::new(),
+            }),
+        });
+        // Leak one strong reference: dropping Inner fires SteamAPI_Shutdown
+        // via Manager::drop, and these tests never initialize the Steam API.
+        std::mem::forget(Arc::clone(&inner));
+        inner
+    }
+
+    fn registered_count(inner: &Inner, id: i32) -> usize {
+        inner
+            .callbacks
+            .callbacks
+            .lock()
+            .unwrap()
+            .get(&id)
+            .map(Vec::len)
+            .unwrap_or(0)
+    }
+
+    /// Drives the same `Callbacks::dispatch` method the production dispatch
+    /// paths use; `from_raw` is never called because TestCallback ignores it.
+    fn dispatch_test_callback(inner: &Inner) {
+        inner
+            .callbacks
+            .dispatch(TestCallback::ID, std::ptr::null_mut());
+    }
+
+    fn tag_receiver<C>(tx: mpsc::Sender<u32>, tag: u32) -> impl FnMut(C) + Send + 'static {
+        move |_| {
+            tx.send(tag).unwrap();
+        }
+    }
+
+    /// Repro scenario A from defect-01: two callbacks of the same type must
+    /// both fire, in registration order (was: second silently overwrote first).
+    #[test]
+    fn two_callbacks_same_type_both_fire_in_order() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let _h1 =
+            unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx.clone(), 1)) };
+        let _h2 = unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx, 2)) };
+        assert_eq!(registered_count(&inner, TestCallback::ID), 2);
+        dispatch_test_callback(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Repro scenario B from defect-01: dropping the first handle must remove
+    /// only the first registration (was: removed by ID and killed the second).
+    #[test]
+    fn dropping_first_handle_keeps_second() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let h1 =
+            unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx.clone(), 1)) };
+        let _h2 = unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx, 2)) };
+        drop(h1);
+        assert_eq!(registered_count(&inner, TestCallback::ID), 1);
+        dispatch_test_callback(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
+    }
+
+    #[test]
+    fn dropping_last_handle_removes_table_entry() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let h = unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx, 1)) };
+        assert_eq!(registered_count(&inner, TestCallback::ID), 1);
+        drop(h);
+        assert_eq!(registered_count(&inner, TestCallback::ID), 0);
+        dispatch_test_callback(&inner);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// New finding 2 from defect-01: the sockets-internal registration and a
+    /// user registration of `NetConnectionStatusChanged` must coexist (was:
+    /// whichever came second silently killed the other), and dropping the
+    /// internal handle must leave the user's registration intact.
+    #[test]
+    fn internal_and_user_registration_coexist() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let _user = unsafe {
+            register_callback::<NetConnectionStatusChanged, _>(&inner, tag_receiver(tx, 7))
+        };
+        let internal = get_or_create_connection_callback(Arc::clone(&inner), std::ptr::null_mut());
+        assert_eq!(
+            registered_count(&inner, NetConnectionStatusChanged::ID),
+            2,
+            "internal registration must not overwrite the user's callback"
+        );
+        drop(internal);
+        assert_eq!(
+            registered_count(&inner, NetConnectionStatusChanged::ID),
+            1,
+            "dropping the internal handle must not remove the user's callback"
+        );
+        dispatch_test_callback(&inner);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// The replace-on-re-register helper must drop exactly its own previous
+    /// registration and leave user registrations of the same type untouched,
+    /// preserving the documented semantics of the wrapper APIs.
+    #[test]
+    fn replacing_registration_replaces_only_its_own() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let _user =
+            unsafe { register_callback::<TestCallback, _>(&inner, tag_receiver(tx.clone(), 0)) };
+        unsafe {
+            register_replacing_callback::<TestCallback, _>(&inner, tag_receiver(tx.clone(), 1))
+        };
+        unsafe { register_replacing_callback::<TestCallback, _>(&inner, tag_receiver(tx, 2)) };
+        assert_eq!(registered_count(&inner, TestCallback::ID), 2);
+        dispatch_test_callback(&inner);
+        let mut got = Vec::new();
+        while let Ok(v) = rx.try_recv() {
+            got.push(v);
+        }
+        // user first, then the surviving (second) replacing registration; the
+        // replaced first registration must not have fired.
+        assert_eq!(got, vec![0, 2]);
+    }
+
+    /// Second stand-in type so nested-dispatch tests can target a different
+    /// bucket than `TestCallback`.
+    struct NestedTestCallback;
+    unsafe impl Callback for NestedTestCallback {
+        const ID: i32 = 9_999_998;
+        unsafe fn from_raw(_raw: *mut c_void) -> Self {
+            NestedTestCallback
+        }
+    }
+
+    /// Runs one dispatch on a separate thread so a re-entrancy regression
+    /// (deadlock) surfaces as a failed timeout assertion instead of hanging
+    /// the whole test suite.
+    fn dispatch_with_deadlock_guard(inner: &Arc<Inner>) {
+        let (done_tx, done_rx) = mpsc::channel();
+        let inner = Arc::clone(inner);
+        thread::spawn(move || {
+            inner
+                .callbacks
+                .dispatch(TestCallback::ID, std::ptr::null_mut());
+            done_tx.send(()).unwrap();
+        });
+        assert!(
+            done_rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+            "dispatch deadlocked on re-entrant callback"
+        );
+    }
+
+    /// Repro scenario B from defect-02 residual: registering a callback from
+    /// inside a callback must not deadlock, must not receive the event that
+    /// is currently being dispatched, and must fire from the next dispatch
+    /// on (after the older entries, in registration order).
+    #[test]
+    fn registering_from_inside_a_callback_does_not_deadlock() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let inner2 = Arc::clone(&inner);
+        let _h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                // re-entrant same-type registration while this entry is in
+                // flight; forget the handle: nothing must remove it here
+                let inner3 = Arc::clone(&inner2);
+                std::mem::forget(register_callback::<TestCallback, _>(
+                    &inner3,
+                    tag_receiver(tx.clone(), 2),
+                ));
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 2);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Repro scenario C from defect-02 residual: dispatching (nested
+    /// `run_callbacks`) from inside a callback must not deadlock; a same-type
+    /// nested dispatch is a no-op, a different-type nested dispatch runs.
+    #[test]
+    fn nested_dispatch_inside_a_callback_does_not_deadlock() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let _other = unsafe {
+            register_callback::<NestedTestCallback, _>(&inner, tag_receiver(tx.clone(), 0))
+        };
+        let inner2 = Arc::clone(&inner);
+        let _h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                // same type: bucket is in flight, must return immediately
+                inner2
+                    .callbacks
+                    .dispatch(TestCallback::ID, std::ptr::null_mut());
+                // different type: must run normally
+                inner2
+                    .callbacks
+                    .dispatch(NestedTestCallback::ID, std::ptr::null_mut());
+                tx.send(2).unwrap();
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert_eq!(rx.try_recv().unwrap(), 0);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+    }
+
+    /// Repro scenario D from defect-02 residual: dropping a callback's own
+    /// `CallbackHandle` from inside that callback must not deadlock and must
+    /// keep the callback unregistered once the dispatch completes.
+    #[test]
+    fn dropping_own_handle_inside_callback_unregisters_it() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        // The handle is parked in a slot the callback body empties, so the
+        // Drop runs while the callback's own entry is mid-dispatch.
+        let slot: Arc<Mutex<Option<CallbackHandle>>> = Arc::new(Mutex::new(None));
+        let slot2 = Arc::clone(&slot);
+        let h = unsafe {
+            register_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                *slot2.lock().unwrap() = None;
+            })
+        };
+        *slot.lock().unwrap() = Some(h);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 0);
+        dispatch_with_deadlock_guard(&inner);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Re-registering through `register_replacing_callback` from inside a
+    /// callback of the same type: the replaced registration is mid-dispatch,
+    /// its handle drop must tombstone it (not deadlock), and only the new
+    /// registration must survive.
+    #[test]
+    fn replacing_registration_from_inside_callback_takes_effect() {
+        let inner = test_inner();
+        let (tx, rx) = mpsc::channel();
+        let inner2 = Arc::clone(&inner);
+        unsafe {
+            register_replacing_callback::<TestCallback, _>(&inner, move |_| {
+                tx.send(1).unwrap();
+                register_replacing_callback::<TestCallback, _>(
+                    &inner2,
+                    tag_receiver(tx.clone(), 2),
+                );
+            })
+        };
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 1);
+        assert!(rx.try_recv().is_err());
+        assert_eq!(registered_count(&inner, TestCallback::ID), 1);
+        dispatch_with_deadlock_guard(&inner);
+        assert_eq!(rx.try_recv().unwrap(), 2);
+        assert!(rx.try_recv().is_err());
     }
 }
