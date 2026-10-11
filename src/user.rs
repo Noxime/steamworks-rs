@@ -5,6 +5,7 @@ use serial_test::serial;
 
 /// Access to the steam user interface
 pub struct User {
+    pub(crate) unavailable: bool,
     pub(crate) user: *mut sys::ISteamUser,
     pub(crate) _inner: Arc<Inner>,
 }
@@ -12,16 +13,25 @@ pub struct User {
 impl User {
     /// Returns the steam id of the current user
     pub fn steam_id(&self) -> SteamId {
+        if self.unavailable {
+            return SteamId::from_raw(0);
+        }
         unsafe { SteamId(sys::SteamAPI_ISteamUser_GetSteamID(self.user)) }
     }
 
     /// Returns the level of the current user
     pub fn level(&self) -> u32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { sys::SteamAPI_ISteamUser_GetPlayerSteamLevel(self.user) as u32 }
     }
 
     /// Returns whether the current user's Steam client is connected to the Steam servers.
     pub fn logged_on(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamUser_BLoggedOn(self.user) }
     }
 
@@ -40,12 +50,18 @@ impl User {
         &self,
         steam_id: SteamId,
     ) -> (AuthTicket, Vec<u8>) {
+        if self.unavailable {
+            return (AuthTicket(0), Vec::new());
+        }
         self.authentication_session_ticket(NetworkingIdentity::new_steam_id(steam_id))
     }
     pub fn authentication_session_ticket(
         &self,
         network_identity: NetworkingIdentity,
     ) -> (AuthTicket, Vec<u8>) {
+        if self.unavailable {
+            return (AuthTicket(0), Vec::new());
+        }
         unsafe {
             let mut ticket = vec![0; 1024];
             let mut ticket_len = 0;
@@ -67,6 +83,9 @@ impl User {
     /// This should be called when you are no longer playing with
     /// the specified entity.
     pub fn cancel_authentication_ticket(&self, ticket: AuthTicket) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamUser_CancelAuthTicket(self.user, ticket.0);
         }
@@ -85,6 +104,9 @@ impl User {
         user: SteamId,
         ticket: &[u8],
     ) -> Result<(), AuthSessionError> {
+        if self.unavailable {
+            return Err(AuthSessionError::InvalidTicket);
+        }
         unsafe {
             let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
                 self.user,
@@ -120,6 +142,9 @@ impl User {
     /// This should be called when you are no longer playing with
     /// the specified entity.
     pub fn end_authentication_session(&self, user: SteamId) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamUser_EndAuthSession(self.user, user.0);
         }
@@ -140,6 +165,9 @@ impl User {
     /// use by the BeginAuthSession/ISteamGameServer::BeginAuthSession.
     /// Use the `authentication_session_ticket` API instead
     pub fn authentication_session_ticket_for_webapi(&self, identity: &str) -> AuthTicket {
+        if self.unavailable {
+            return AuthTicket(0);
+        }
         unsafe {
             let c_str = CString::new(identity).unwrap();
             let auth_ticket =
@@ -154,6 +182,9 @@ impl User {
     /// This can only be called after authenticating
     /// with the user using `begin_authentication_session`.
     pub fn user_has_license_for_app(&self, user: SteamId, app_id: AppId) -> UserHasLicense {
+        if self.unavailable {
+            return UserHasLicense::NoAuth;
+        }
         unsafe {
             let license_response =
                 sys::SteamAPI_ISteamUser_UserHasLicenseForApp(self.user, user.0, app_id.0);

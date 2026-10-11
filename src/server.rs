@@ -536,6 +536,7 @@ impl Server {
             let ugc = sys::SteamAPI_SteamGameServerUGC_v021();
             debug_assert!(!ugc.is_null());
             UGC {
+                unavailable: ugc.is_null(),
                 ugc,
                 inner: self.inner.clone(),
             }
@@ -548,6 +549,7 @@ impl Server {
             let utils = sys::SteamAPI_SteamGameServerUtils_v010();
             debug_assert!(!utils.is_null());
             Utils {
+                unavailable: utils.is_null(),
                 utils: utils,
                 _inner: self.inner.clone(),
             }
@@ -560,6 +562,7 @@ impl Server {
             let net = sys::SteamAPI_SteamGameServerNetworking_v006();
             debug_assert!(!net.is_null());
             Networking {
+                unavailable: net.is_null(),
                 net: net,
                 _inner: self.inner.clone(),
             }
@@ -571,6 +574,7 @@ impl Server {
             let net = sys::SteamAPI_SteamGameServerNetworkingMessages_SteamAPI_v002();
             debug_assert!(!net.is_null());
             networking_messages::NetworkingMessages {
+                unavailable: net.is_null(),
                 net,
                 inner: self.inner.clone(),
             }
@@ -582,6 +586,7 @@ impl Server {
             let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v012();
             debug_assert!(!sockets.is_null());
             networking_sockets::NetworkingSockets {
+                unavailable: sockets.is_null(),
                 sockets,
                 inner: self.inner.clone(),
             }
@@ -595,6 +600,7 @@ impl Server {
             let apps = sys::steam_rust_get_server_apps();
             debug_assert!(!apps.is_null());
             Apps {
+                unavailable: apps.is_null(),
                 apps: apps,
                 _inner: self.inner.clone(),
             }

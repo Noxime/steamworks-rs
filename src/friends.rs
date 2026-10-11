@@ -54,6 +54,7 @@ pub enum OverlayToStoreFlag {
 
 /// Access to the steam friends interface
 pub struct Friends {
+    pub(crate) unavailable: bool,
     pub(crate) friends: *mut sys::ISteamFriends,
     pub(crate) inner: Arc<Inner>,
 }
@@ -61,6 +62,9 @@ pub struct Friends {
 impl Friends {
     /// Returns the (display) name of the current user
     pub fn name(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetPersonaName(self.friends);
             let name = CStr::from_ptr(name);
@@ -69,6 +73,9 @@ impl Friends {
     }
 
     pub fn get_friends(&self, flags: FriendFlags) -> Vec<Friend> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetFriendCount(self.friends, flags.bits() as _);
             if count == -1 {
@@ -89,6 +96,9 @@ impl Friends {
     }
     /// Returns recently played with players list
     pub fn get_coplay_friends(&self) -> Vec<Friend> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamFriends_GetCoplayFriendCount(self.friends);
             if count == -1 {
@@ -107,7 +117,16 @@ impl Friends {
     }
 
     pub fn get_friend(&self, friend: SteamId) -> Friend {
+        if self.unavailable {
+            return Friend {
+                unavailable: true,
+                id: SteamId::from_raw(0),
+                friends: std::ptr::null_mut(),
+                _inner: self.inner.clone(),
+            };
+        }
         Friend {
+            unavailable: self.unavailable,
             id: friend,
             friends: self.friends,
             _inner: self.inner.clone(),
@@ -115,12 +134,18 @@ impl Friends {
     }
 
     pub fn request_user_information(&self, user: SteamId, name_only: bool) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe {
             sys::SteamAPI_ISteamFriends_RequestUserInformation(self.friends, user.0, name_only)
         }
     }
 
     pub fn activate_game_overlay(&self, dialog: &str) {
+        if self.unavailable {
+            return;
+        }
         let dialog = CString::new(dialog).unwrap();
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlay(self.friends, dialog.as_ptr());
@@ -129,6 +154,9 @@ impl Friends {
 
     // I don't know why these are part of friends either
     pub fn activate_game_overlay_to_web_page(&self, url: &str) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let url = CString::new(url).unwrap();
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToWebPage(
@@ -144,6 +172,9 @@ impl Friends {
         app_id: AppId,
         overlay_to_store_flag: OverlayToStoreFlag,
     ) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let overlay_to_store_flag = match overlay_to_store_flag {
                 OverlayToStoreFlag::None => sys::EOverlayToStoreFlag::k_EOverlayToStoreFlag_None,
@@ -163,6 +194,9 @@ impl Friends {
     }
 
     pub fn activate_game_overlay_to_user(&self, dialog: &str, user: SteamId) {
+        if self.unavailable {
+            return;
+        }
         let dialog = CString::new(dialog).unwrap();
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayToUser(
@@ -175,6 +209,9 @@ impl Friends {
 
     /// Opens up an invite dialog for the given lobby
     pub fn activate_invite_dialog(&self, lobby: LobbyId) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialog(self.friends, lobby.0);
         }
@@ -186,6 +223,9 @@ impl Friends {
     ///
     /// Panics if the `connect` str contains a null byte.
     pub fn activate_invite_dialog_connect_string(&self, connect: &str) {
+        if self.unavailable {
+            return;
+        }
         let connect = CString::new(connect).unwrap();
         unsafe {
             sys::SteamAPI_ISteamFriends_ActivateGameOverlayInviteDialogConnectString(
@@ -203,6 +243,9 @@ impl Friends {
     ///
     /// Panics if the `key` or `value` str slices contain a null byte.
     pub fn set_rich_presence(&self, key: &str, value: Option<&str>) -> bool {
+        if self.unavailable {
+            return false;
+        }
         let key = CString::new(key).unwrap();
         let value = value.map(|v| CString::new(v).unwrap());
         let value_ptr = value
@@ -215,6 +258,9 @@ impl Friends {
 
     /// Clears all of the current user's Rich Presence key/values.
     pub fn clear_rich_presence(&self) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamFriends_ClearRichPresence(self.friends);
         }
@@ -309,6 +355,7 @@ impl_callback!(cb: GameRichPresenceJoinRequested_t => GameRichPresenceJoinReques
 });
 
 pub struct Friend {
+    pub(crate) unavailable: bool,
     id: SteamId,
     friends: *mut sys::ISteamFriends,
     _inner: Arc<Inner>,
@@ -322,10 +369,16 @@ impl Debug for Friend {
 
 impl Friend {
     pub fn id(&self) -> SteamId {
+        if self.unavailable {
+            return SteamId::from_raw(0);
+        }
         self.id
     }
 
     pub fn name(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetFriendPersonaName(self.friends, self.id.0);
             let name = CStr::from_ptr(name);
@@ -334,6 +387,9 @@ impl Friend {
     }
     /// Gets the nickname that the current user has set for the specified user.
     pub fn nick_name(&self) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let name = sys::SteamAPI_ISteamFriends_GetPlayerNickname(self.friends, self.id.0);
             if name.is_null() {
@@ -350,6 +406,9 @@ impl Friend {
     }
 
     pub fn state(&self) -> FriendState {
+        if self.unavailable {
+            return FriendState::Offline;
+        }
         unsafe {
             let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0);
             match state {
@@ -368,6 +427,9 @@ impl Friend {
 
     /// Returns information about the game the player is current playing if any
     pub fn game_played(&self) -> Option<FriendGame> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut info: sys::FriendGameInfo_t = std::mem::zeroed();
             if sys::SteamAPI_ISteamFriends_GetFriendGamePlayed(self.friends, self.id.0, &mut info) {
@@ -385,6 +447,9 @@ impl Friend {
     }
     /// Gets the app ID of the game that user played with someone on their recently-played-with list.
     pub fn coplay_game_played(&self) -> AppId {
+        if self.unavailable {
+            return AppId(0);
+        }
         unsafe {
             let app_id = sys::SteamAPI_ISteamFriends_GetFriendCoplayGame(self.friends, self.id.0);
             AppId(app_id)
@@ -393,11 +458,17 @@ impl Friend {
 
     /// Gets the timestamp of when the user played with someone on their recently-played-with list.
     pub fn coplay_time(&self) -> i32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { sys::SteamAPI_ISteamFriends_GetFriendCoplayTime(self.friends, self.id.0) }
     }
 
     /// Returns a small (32x32) avatar for the user in RGBA format
     pub fn small_avatar(&self) -> Option<Vec<u8>> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let utils = sys::SteamAPI_SteamUtils_v010();
             let img = sys::SteamAPI_ISteamFriends_GetSmallFriendAvatar(self.friends, self.id.0);
@@ -419,6 +490,9 @@ impl Friend {
 
     /// Returns a medium (64x64) avatar for the user in RGBA format
     pub fn medium_avatar(&self) -> Option<Vec<u8>> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let utils = sys::SteamAPI_SteamUtils_v010();
             let img = sys::SteamAPI_ISteamFriends_GetMediumFriendAvatar(self.friends, self.id.0);
@@ -440,6 +514,9 @@ impl Friend {
 
     /// Returns a large (184x184) avatar for the user in RGBA format
     pub fn large_avatar(&self) -> Option<Vec<u8>> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let utils = sys::SteamAPI_SteamUtils_v010();
             let img = sys::SteamAPI_ISteamFriends_GetLargeFriendAvatar(self.friends, self.id.0);
@@ -462,6 +539,9 @@ impl Friend {
 
     /// Checks if the user meets the specified criteria. (Friends, blocked, users on the same server, etc)
     pub fn has_friend(&self, flags: FriendFlags) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamFriends_HasFriend(self.friends, self.id.0, flags.bits() as _) }
     }
 
@@ -469,6 +549,9 @@ impl Friend {
     /// If the target user accepts the invite then the ConnectString gets added to the command-line when launching the game.
     /// If the game is already running for that user, then they will receive a GameRichPresenceJoinRequested_t callback with the connect string.
     pub fn invite_user_to_game(&self, connect_string: &str) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let connect_string = CString::new(connect_string).unwrap();
             sys::SteamAPI_ISteamFriends_InviteUserToGame(
@@ -482,6 +565,9 @@ impl Friend {
     /// Mark a target user as 'played with'.
     /// NOTE: The current user must be in game with the other player for the association to work.
     pub fn set_played_with(&self) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamFriends_SetPlayedWith(self.friends, self.id.0);
         }
@@ -489,6 +575,9 @@ impl Friend {
 
     /// Get a Rich Presence value from a specified friend.
     pub fn rich_presence(&self, key: &str) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         let key = CString::new(key).unwrap();
         let value = unsafe {
             sys::SteamAPI_ISteamFriends_GetFriendRichPresence(self.friends, self.id.0, key.as_ptr())

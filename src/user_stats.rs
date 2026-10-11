@@ -8,6 +8,7 @@ use serial_test::serial;
 
 /// Access to the steam user interface
 pub struct UserStats {
+    pub(crate) unavailable: bool,
     pub(crate) user_stats: *mut sys::ISteamUserStats,
     pub(crate) inner: Arc<Inner>,
 }
@@ -17,6 +18,9 @@ impl UserStats {
     where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let name = CString::new(name).unwrap();
             let api_call =
@@ -48,6 +52,9 @@ impl UserStats {
     ) where
         F: FnOnce(Result<Option<Leaderboard>, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let name = CString::new(name).unwrap();
 
@@ -106,6 +113,9 @@ impl UserStats {
     ) where
         F: FnOnce(Result<Option<LeaderboardScoreUploaded>, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let method = match method {
                 UploadScoreMethod::KeepBest => {
@@ -157,6 +167,9 @@ impl UserStats {
     ) where
         F: FnOnce(Result<Vec<LeaderboardEntry>, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let request = match request {
                 LeaderboardDataRequest::Global => {
@@ -223,6 +236,9 @@ impl UserStats {
         &self,
         leaderboard: &Leaderboard,
     ) -> Option<LeaderboardDisplayType> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             match sys::SteamAPI_ISteamUserStats_GetLeaderboardDisplayType(
                 self.user_stats,
@@ -247,6 +263,9 @@ impl UserStats {
         &self,
         leaderboard: &Leaderboard,
     ) -> Option<LeaderboardSortMethod> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             match sys::SteamAPI_ISteamUserStats_GetLeaderboardSortMethod(
                 self.user_stats,
@@ -265,6 +284,9 @@ impl UserStats {
 
     /// Returns the name of a leaderboard handle. Returns an empty string if the leaderboard handle is invalid.
     pub fn get_leaderboard_name(&self, leaderboard: &Leaderboard) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let name = CStr::from_ptr(sys::SteamAPI_ISteamUserStats_GetLeaderboardName(
                 self.user_stats,
@@ -276,6 +298,9 @@ impl UserStats {
 
     /// Returns the total number of entries in a leaderboard. Returns 0 if the leaderboard handle is invalid.
     pub fn get_leaderboard_entry_count(&self, leaderboard: &Leaderboard) -> i32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe {
             sys::SteamAPI_ISteamUserStats_GetLeaderboardEntryCount(self.user_stats, leaderboard.0)
         }
@@ -283,6 +308,9 @@ impl UserStats {
 
     /// Triggers a [`UserStatsReceived`](./struct.UserStatsReceived.html) callback.
     pub fn request_user_stats(&self, steam_user_id: u64) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamUserStats_RequestUserStats(self.user_stats, steam_user_id);
         }
@@ -301,6 +329,9 @@ impl UserStats {
     where
         F: FnOnce(Result<GameId, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call =
                 sys::SteamAPI_ISteamUserStats_RequestGlobalAchievementPercentages(self.user_stats);
@@ -350,6 +381,9 @@ impl UserStats {
     where
         F: FnOnce(Result<GameId, SteamError>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call =
                 sys::SteamAPI_ISteamUserStats_RequestGlobalStats(self.user_stats, history_days);
@@ -383,6 +417,9 @@ impl UserStats {
     /// Returns `Ok(i64)` with the stat value if successful, or `Err(())` if the stat doesn't exist
     /// or hasn't been received yet.
     pub fn get_global_stat_i64(&self, name: &str) -> Result<i64, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).map_err(|_| ())?;
         let mut value: i64 = 0;
         let success = unsafe {
@@ -415,6 +452,9 @@ impl UserStats {
     /// Returns `Ok(f64)` with the stat value if successful, or `Err(())` if the stat doesn't exist
     /// or hasn't been received yet.
     pub fn get_global_stat_f64(&self, name: &str) -> Result<f64, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).map_err(|_| ())?;
         let mut value: f64 = 0.0;
         let success = unsafe {
@@ -453,6 +493,9 @@ impl UserStats {
     /// Returns `Ok(Vec<i64>)` containing the daily values (from today backwards) if successful,
     /// or `Err(())` if the stat doesn't exist or hasn't been received yet.
     pub fn get_global_stat_history_i64(&self, name: &str, max_days: usize) -> Result<Vec<i64>, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).map_err(|_| ())?;
         let mut data = vec![0i64; max_days];
         let count = unsafe {
@@ -493,6 +536,9 @@ impl UserStats {
     /// Returns `Ok(Vec<f64>)` containing the daily values (from today backwards) if successful,
     /// or `Err(())` if the stat doesn't exist or hasn't been received yet.
     pub fn get_global_stat_history_f64(&self, name: &str, max_days: usize) -> Result<Vec<f64>, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).map_err(|_| ())?;
         let mut data = vec![0f64; max_days];
         let count = unsafe {
@@ -520,6 +566,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn store_stats(&self) -> Result<(), ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let success = unsafe { sys::SteamAPI_ISteamUserStats_StoreStats(self.user_stats) };
         if success {
             Ok(())
@@ -530,6 +579,9 @@ impl UserStats {
 
     /// Resets the current users stats and, optionally achievements.
     pub fn reset_all_stats(&self, achievements_too: bool) -> Result<(), ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let success = unsafe {
             sys::SteamAPI_ISteamUserStats_ResetAllStats(self.user_stats, achievements_too)
         };
@@ -547,6 +599,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn get_stat_i32(&self, name: &str) -> Result<i32, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).unwrap();
 
         let mut value: i32 = 0;
@@ -570,6 +625,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn set_stat_i32(&self, name: &str, stat: i32) -> Result<(), ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).unwrap();
 
         let success = unsafe {
@@ -589,6 +647,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn get_stat_f32(&self, name: &str) -> Result<f32, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).unwrap();
 
         let mut value: f32 = 0.0;
@@ -612,6 +673,9 @@ impl UserStats {
     /// Requires [`request_current_stats()`](#method.request_current_stats) to have been called
     /// and a successful [`UserStatsReceived`](./struct.UserStatsReceived.html) callback processed.
     pub fn set_stat_f32(&self, name: &str, stat: f32) -> Result<(), ()> {
+        if self.unavailable {
+            return Err(());
+        }
         let name = CString::new(name).unwrap();
 
         let success = unsafe {
@@ -631,6 +695,12 @@ impl UserStats {
     #[inline]
     #[must_use]
     pub fn achievement(&self, name: &str) -> stats::AchievementHelper<'_> {
+        if self.unavailable {
+            return stats::AchievementHelper {
+                name: CString::default(),
+                parent: self,
+            };
+        }
         stats::AchievementHelper {
             name: CString::new(name).unwrap(),
             parent: self,
@@ -645,6 +715,9 @@ impl UserStats {
     ///
     /// *Note: Returns an error for AppId `480` (Spacewar)!*
     pub fn get_num_achievements(&self) -> Result<u32, ()> {
+        if self.unavailable {
+            return Err(());
+        }
         unsafe {
             let num = sys::SteamAPI_ISteamUserStats_GetNumAchievements(self.user_stats);
             if num != 0 {
@@ -660,6 +733,9 @@ impl UserStats {
     /// Returns an empty string for an achievement name if `iAchievement` is not a valid index,
     /// and the current AppId must have achievements.
     pub fn get_achievement_names(&self) -> Option<Vec<String>> {
+        if self.unavailable {
+            return None;
+        }
         let num = self
             .get_num_achievements()
             .expect("Failed to get number of achievements");

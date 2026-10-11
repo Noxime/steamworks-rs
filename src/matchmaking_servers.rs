@@ -439,12 +439,16 @@ impl ServerListRequest {
 
 /// Access to the steam MatchmakingServers interface
 pub struct MatchmakingServers {
+    pub(crate) unavailable: bool,
     pub(crate) mms: *mut sys::ISteamMatchmakingServers,
     pub(crate) _inner: Arc<Inner>,
 }
 
 impl MatchmakingServers {
     pub fn ping_server(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: PingCallbacks) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let callbacks = create_ping(callbacks);
 
@@ -463,6 +467,9 @@ impl MatchmakingServers {
         port: u16,
         callbacks: PlayerDetailsCallbacks,
     ) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let callbacks = create_playerdetails(callbacks);
 
@@ -476,6 +483,9 @@ impl MatchmakingServers {
     }
 
     pub fn server_rules(&self, ip: std::net::Ipv4Addr, port: u16, callbacks: ServerRulesCallbacks) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let callbacks = create_serverrules(callbacks);
 
@@ -500,6 +510,14 @@ impl MatchmakingServers {
         app_id: ID,
         callbacks: ServerListCallbacks,
     ) -> Arc<Mutex<ServerListRequest>> {
+        if self.unavailable {
+            return std::sync::Arc::new(std::sync::Mutex::new(ServerListRequest {
+                h_req: std::ptr::null_mut(),
+                released: true,
+                mms: std::ptr::null_mut(),
+                real: std::ptr::null_mut(),
+            }));
+        }
         unsafe {
             let app_id = app_id.into().0;
 

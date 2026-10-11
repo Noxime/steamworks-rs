@@ -9,6 +9,7 @@ use serial_test::serial;
 
 /// Access to the steam matchmaking interface
 pub struct Matchmaking {
+    pub(crate) unavailable: bool,
     pub(crate) mm: *mut sys::ISteamMatchmaking,
     pub(crate) inner: Arc<Inner>,
 }
@@ -50,6 +51,9 @@ impl Matchmaking {
     where
         F: FnOnce(SteamResult<Vec<LobbyId>>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_RequestLobbyList(self.mm);
             register_call_result::<sys::LobbyMatchList_t, _>(
@@ -87,6 +91,9 @@ impl Matchmaking {
     where
         F: FnOnce(SteamResult<LobbyId>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         assert!(max_members <= 250); // Steam API limits
         unsafe {
             let ty = match ty {
@@ -116,6 +123,9 @@ impl Matchmaking {
     where
         F: FnOnce(Result<LobbyId, ()>) + 'static + Send,
     {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let api_call = sys::SteamAPI_ISteamMatchmaking_JoinLobby(self.mm, lobby.0);
             register_call_result::<sys::LobbyEnter_t, _>(
@@ -142,17 +152,26 @@ impl Matchmaking {
     ///
     /// * `LobbyDataUpdate`
     pub fn request_lobby_data(&self, lobby: LobbyId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamMatchmaking_RequestLobbyData(self.mm, lobby.0) }
     }
 
     /// Returns the number of data keys in the lobby
     pub fn lobby_data_count(&self, lobby: LobbyId) -> u32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { sys::SteamAPI_ISteamMatchmaking_GetLobbyDataCount(self.mm, lobby.0) as _ }
     }
 
     /// Returns the lobby metadata associated with the specified key from the
     /// specified lobby.
     pub fn lobby_data(&self, lobby: LobbyId, key: &str) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         let key = CString::new(key).unwrap();
         unsafe {
             let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyData(self.mm, lobby.0, key.as_ptr());
@@ -166,6 +185,9 @@ impl Matchmaking {
 
     /// Returns the lobby metadata associated with the specified index
     pub fn lobby_data_by_index(&self, lobby: LobbyId, idx: u32) -> Option<(String, String)> {
+        if self.unavailable {
+            return None;
+        }
         let mut key = [0 as c_char; sys::k_nMaxLobbyKeyLength as usize];
         let mut value = [0 as c_char; sys::k_cubChatMetadataMax as usize];
         unsafe {
@@ -192,6 +214,9 @@ impl Matchmaking {
 
     /// Sets the lobby metadata associated with the specified key in the specified lobby.
     pub fn set_lobby_data(&self, lobby: LobbyId, key: &str, value: &str) -> bool {
+        if self.unavailable {
+            return false;
+        }
         let key = CString::new(key).unwrap();
         let value = CString::new(value).unwrap();
         unsafe {
@@ -206,6 +231,9 @@ impl Matchmaking {
 
     /// Deletes the lobby metadata associated with the specified key in the specified lobby.
     pub fn delete_lobby_data(&self, lobby: LobbyId, key: &str) -> bool {
+        if self.unavailable {
+            return false;
+        }
         let key = CString::new(key).unwrap();
         unsafe { sys::SteamAPI_ISteamMatchmaking_DeleteLobbyData(self.mm, lobby.0, key.as_ptr()) }
     }
@@ -214,6 +242,9 @@ impl Matchmaking {
     ///
     /// Triggers a LobbyDataUpdate callback.
     pub fn set_lobby_member_data(&self, lobby: LobbyId, key: &str, value: &str) {
+        if self.unavailable {
+            return;
+        }
         let key = CString::new(key).unwrap();
         let value = CString::new(value).unwrap();
         unsafe {
@@ -236,6 +267,9 @@ impl Matchmaking {
         user: SteamId,
         key: &str,
     ) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         let key = CString::new(key).unwrap();
         unsafe {
             let data = sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberData(
@@ -253,6 +287,9 @@ impl Matchmaking {
 
     /// Exits the passed lobby
     pub fn leave_lobby(&self, lobby: LobbyId) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_LeaveLobby(self.mm, lobby.0);
         }
@@ -262,6 +299,9 @@ impl Matchmaking {
     ///
     /// Returns `[None]` if no metadata is available for the specified lobby.
     pub fn lobby_member_limit(&self, lobby: LobbyId) -> Option<usize> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamMatchmaking_GetLobbyMemberLimit(self.mm, lobby.0);
             match count {
@@ -273,6 +313,9 @@ impl Matchmaking {
 
     /// Returns the steam id of the current owner of the passed lobby
     pub fn lobby_owner(&self, lobby: LobbyId) -> SteamId {
+        if self.unavailable {
+            return SteamId::from_raw(0);
+        }
         unsafe {
             SteamId(sys::SteamAPI_ISteamMatchmaking_GetLobbyOwner(
                 self.mm, lobby.0,
@@ -284,6 +327,9 @@ impl Matchmaking {
     ///
     /// Useful if you are not currently in the lobby
     pub fn lobby_member_count(&self, lobby: LobbyId) -> usize {
+        if self.unavailable {
+            return 0;
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
             count as usize
@@ -292,6 +338,9 @@ impl Matchmaking {
 
     /// Returns a list of members currently in the lobby
     pub fn lobby_members(&self, lobby: LobbyId) -> Vec<SteamId> {
+        if self.unavailable {
+            return Vec::new();
+        }
         unsafe {
             let count = sys::SteamAPI_ISteamMatchmaking_GetNumLobbyMembers(self.mm, lobby.0);
             let mut members = Vec::with_capacity(count as usize);
@@ -314,6 +363,9 @@ impl Matchmaking {
     ///
     /// Returns true on success, false if the current user doesn't own the lobby.
     pub fn set_lobby_joinable(&self, lobby: LobbyId, joinable: bool) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamMatchmaking_SetLobbyJoinable(self.mm, lobby.0, joinable) }
     }
 
@@ -344,6 +396,9 @@ impl Matchmaking {
     /// Returns `Ok(())` if the message was successfully sent. Returns an error of type `SteamError` if the
     /// message is too small or too large, or if no connection to Steam could be made.
     pub fn send_lobby_chat_message(&self, lobby: LobbyId, msg: &[u8]) -> Result<(), SteamError> {
+        if self.unavailable {
+            return Err(SteamError::IOFailure);
+        }
         match unsafe {
             steamworks_sys::SteamAPI_ISteamMatchmaking_SendLobbyChatMsg(
                 self.mm,
@@ -373,6 +428,9 @@ impl Matchmaking {
         chat_id: i32,
         buffer: &'a mut [u8],
     ) -> &'a [u8] {
+        if self.unavailable {
+            return &[];
+        }
         let mut steam_user = sys::CSteamID {
             m_steamid: sys::CSteamID_SteamID_t { m_unAll64Bits: 0 },
         };
@@ -404,6 +462,9 @@ impl Matchmaking {
         &self,
         StringFilter(LobbyKey(key), value, kind): StringFilter,
     ) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         let key = CString::new(key).unwrap();
         let value = CString::new(value).unwrap();
         unsafe {
@@ -430,6 +491,9 @@ impl Matchmaking {
         &self,
         NumberFilter(LobbyKey(key), value, comparison): NumberFilter,
     ) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         let key = CString::new(key).unwrap();
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNumericalFilter(
@@ -455,6 +519,9 @@ impl Matchmaking {
         &self,
         NearFilter(LobbyKey(key), value): NearFilter,
     ) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         let key = CString::new(key).unwrap();
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListNearValueFilter(
@@ -474,6 +541,9 @@ impl Matchmaking {
     /// * `open_slots`: The number of open slots in a lobby to filter by.
     ///
     pub fn set_request_lobby_list_slots_available_filter(&self, open_slots: u8) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListFilterSlotsAvailable(
                 self.mm,
@@ -491,6 +561,9 @@ impl Matchmaking {
     /// * `distance`: The `DistanceFilter` indicating the distance criterion for the filter.
     ///
     pub fn set_request_lobby_list_distance_filter(&self, distance: DistanceFilter) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListDistanceFilter(
                 self.mm,
@@ -508,6 +581,9 @@ impl Matchmaking {
     /// * `count`: The maximum number of lobby results to include in the response.
     ///
     pub fn set_request_lobby_list_result_count_filter(&self, count: u64) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_AddRequestLobbyListResultCountFilter(
                 self.mm,
@@ -558,6 +634,9 @@ impl Matchmaking {
     /// }
     /// ```
     pub fn set_lobby_list_filter(&self, filter: LobbyListFilter<'_>) -> &Self {
+        if self.unavailable {
+            return self;
+        }
         filter.string.into_iter().flatten().for_each(|str_filter| {
             self.add_request_lobby_list_string_filter(str_filter);
         });
@@ -600,6 +679,9 @@ impl Matchmaking {
         server_addr: SocketAddrV4,
         server_steam_id: Option<SteamId>,
     ) -> () {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamMatchmaking_SetLobbyGameServer(
                 self.mm,
@@ -621,6 +703,9 @@ impl Matchmaking {
     /// - `server_addr`: The IP address and port of the game server
     /// - `server_steam_id`: The Steam ID of the game server (if available)
     pub fn get_lobby_game_server(&self, lobby: LobbyId) -> Option<(SocketAddrV4, Option<SteamId>)> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut server_ip = 0;
             let mut server_port = 0;

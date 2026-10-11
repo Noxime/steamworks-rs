@@ -6,6 +6,7 @@ use super::*;
 
 /// Access to the steam screenshots interface
 pub struct Screenshots {
+    pub(crate) unavailable: bool,
     pub(crate) screenshots: *mut sys::ISteamScreenshots,
     pub(crate) _inner: Arc<Inner>,
 }
@@ -20,6 +21,9 @@ impl Screenshots {
     ///
     /// You can check if hooking is enabled with [`Self::is_screenshots_hooked`].
     pub fn hook_screenshots(&self, hook: bool) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamScreenshots_HookScreenshots(self.screenshots, hook);
         }
@@ -32,6 +36,9 @@ impl Screenshots {
     /// Returns
     /// - `true` if the game is hooking screenshots and is expected to handle them; otherwise, `false`.
     pub fn is_screenshots_hooked(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamScreenshots_IsScreenshotsHooked(self.screenshots) }
     }
 
@@ -43,6 +50,9 @@ impl Screenshots {
     /// - Only causes [`ScreenshotRequested`] if hooking has been enabled with [`Self::hook_screenshots`].
     /// - Otherwise [`ScreenshotReady`] will be called when the screenshot has been saved and added to the library.
     pub fn trigger_screenshot(&self) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamScreenshots_TriggerScreenshot(self.screenshots);
         }
@@ -61,6 +71,9 @@ impl Screenshots {
         width: i32,
         height: i32,
     ) -> Result<ScreenshotHandle, ScreenshotLibraryAddError> {
+        if self.unavailable {
+            return Err(ScreenshotLibraryAddError::SavingFailed);
+        }
         let filename =
             path_to_absolute_cstring(filename).ok_or(ScreenshotLibraryAddError::InvalidPath)?;
 

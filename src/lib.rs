@@ -347,6 +347,7 @@ impl Client {
             let utils = sys::SteamAPI_SteamUtils_v010();
             debug_assert!(!utils.is_null());
             Utils {
+                unavailable: utils.is_null(),
                 utils: utils,
                 _inner: self.inner.clone(),
             }
@@ -359,6 +360,7 @@ impl Client {
             let mm = sys::SteamAPI_SteamMatchmaking_v009();
             debug_assert!(!mm.is_null());
             Matchmaking {
+                unavailable: mm.is_null(),
                 mm: mm,
                 inner: self.inner.clone(),
             }
@@ -371,6 +373,7 @@ impl Client {
             let mm = sys::SteamAPI_SteamMatchmakingServers_v002();
             debug_assert!(!mm.is_null());
             MatchmakingServers {
+                unavailable: mm.is_null(),
                 mms: mm,
                 _inner: self.inner.clone(),
             }
@@ -383,6 +386,7 @@ impl Client {
             let net = sys::SteamAPI_SteamNetworking_v006();
             debug_assert!(!net.is_null());
             Networking {
+                unavailable: net.is_null(),
                 net: net,
                 _inner: self.inner.clone(),
             }
@@ -395,6 +399,7 @@ impl Client {
             let apps = sys::SteamAPI_SteamApps_v009();
             debug_assert!(!apps.is_null());
             Apps {
+                unavailable: apps.is_null(),
                 apps: apps,
                 _inner: self.inner.clone(),
             }
@@ -407,6 +412,7 @@ impl Client {
             let friends = sys::SteamAPI_SteamFriends_v018();
             debug_assert!(!friends.is_null());
             Friends {
+                unavailable: friends.is_null(),
                 friends: friends,
                 inner: self.inner.clone(),
             }
@@ -419,6 +425,7 @@ impl Client {
             let input = sys::SteamAPI_SteamInput_v006();
             debug_assert!(!input.is_null());
             Input {
+                unavailable: input.is_null(),
                 input,
                 _inner: self.inner.clone(),
             }
@@ -431,6 +438,7 @@ impl Client {
             let user = sys::SteamAPI_SteamUser_v023();
             debug_assert!(!user.is_null());
             User {
+                unavailable: user.is_null(),
                 user,
                 _inner: self.inner.clone(),
             }
@@ -443,6 +451,7 @@ impl Client {
             let us = sys::SteamAPI_SteamUserStats_v013();
             debug_assert!(!us.is_null());
             UserStats {
+                unavailable: us.is_null(),
                 user_stats: us,
                 inner: self.inner.clone(),
             }
@@ -455,6 +464,7 @@ impl Client {
             let rp = sys::SteamAPI_SteamRemotePlay_v004();
             debug_assert!(!rp.is_null());
             RemotePlay {
+                unavailable: rp.is_null(),
                 rp,
                 inner: self.inner.clone(),
             }
@@ -469,6 +479,7 @@ impl Client {
             let util = sys::SteamAPI_SteamUtils_v010();
             debug_assert!(!util.is_null());
             RemoteStorage {
+                unavailable: rs.is_null(),
                 rs,
                 util,
                 inner: self.inner.clone(),
@@ -482,6 +493,7 @@ impl Client {
             let screenshots = sys::SteamAPI_SteamScreenshots_v003();
             debug_assert!(!screenshots.is_null());
             Screenshots {
+                unavailable: screenshots.is_null(),
                 screenshots,
                 _inner: self.inner.clone(),
             }
@@ -494,6 +506,7 @@ impl Client {
             let ugc = sys::SteamAPI_SteamUGC_v021();
             debug_assert!(!ugc.is_null());
             UGC {
+                unavailable: ugc.is_null(),
                 ugc,
                 inner: self.inner.clone(),
             }
@@ -518,6 +531,7 @@ impl Client {
             let net = sys::SteamAPI_SteamNetworkingMessages_SteamAPI_v002();
             debug_assert!(!net.is_null());
             networking_messages::NetworkingMessages {
+                unavailable: net.is_null(),
                 net,
                 inner: self.inner.clone(),
             }
@@ -529,6 +543,7 @@ impl Client {
             let sockets = sys::SteamAPI_SteamNetworkingSockets_SteamAPI_v012();
             debug_assert!(!sockets.is_null());
             networking_sockets::NetworkingSockets {
+                unavailable: sockets.is_null(),
                 sockets,
                 inner: self.inner.clone(),
             }
@@ -540,6 +555,7 @@ impl Client {
             let utils = sys::SteamAPI_SteamNetworkingUtils_SteamAPI_v004();
             debug_assert!(!utils.is_null());
             networking_utils::NetworkingUtils {
+                unavailable: utils.is_null(),
                 utils,
                 inner: self.inner.clone(),
             }
@@ -817,5 +833,144 @@ mod tests {
 
         let steamid = SteamId(76561198174976054);
         assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
+    }
+}
+
+// Release-mode guard (defect #4): interface getters can return a struct whose
+// interface pointer is null (e.g. Steam API function pointer missing). Every
+// method must then answer with a zero value instead of dereferencing the
+// pointer. These tests exercise that path fully offline (no Steam client).
+#[cfg(test)]
+mod unavailable_guard_tests {
+    use super::*;
+    use crate::friends::FriendState;
+    use crate::networking_messages::NetworkingMessages;
+    use crate::networking_sockets::NetworkingSockets;
+    use crate::networking_types::NetworkingMessage;
+    use std::io::{Read, Write};
+    use std::net::SocketAddr;
+
+    fn test_inner() -> Arc<Inner> {
+        let inner = Arc::new(Inner {
+            manager: Manager::Client,
+            callbacks: Callbacks {
+                callbacks: Mutex::new(HashMap::new()),
+                call_results: Mutex::new(HashMap::new()),
+            },
+            networking_sockets_data: Mutex::new(NetworkingSocketsData {
+                sockets: HashMap::new(),
+                independent_connections: HashMap::new(),
+                connection_callback: Weak::new(),
+            }),
+        });
+        // Leak one strong reference: dropping Inner fires SteamAPI_Shutdown via
+        // Manager::drop, and these tests never initialize the Steam API.
+        std::mem::forget(Arc::clone(&inner));
+        inner
+    }
+
+    #[test]
+    fn unavailable_interfaces_return_zero_values() {
+        let inner = test_inner();
+
+        let apps = Apps {
+            unavailable: true,
+            apps: std::ptr::null_mut(),
+            _inner: inner.clone(),
+        };
+        assert_eq!(apps.app_build_id(), 0);
+
+        let utils = Utils {
+            unavailable: true,
+            utils: std::ptr::null_mut(),
+            _inner: inner.clone(),
+        };
+        assert_eq!(utils.get_server_real_time(), 0);
+
+        let friends = Friends {
+            unavailable: true,
+            friends: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        let friend = friends.get_friend(SteamId::from_raw(0));
+        assert_eq!(friend.id().raw(), 0);
+        assert!(matches!(friend.state(), FriendState::Offline));
+
+        let stats = UserStats {
+            unavailable: true,
+            user_stats: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        assert!(stats.get_global_stat_i64("any").is_err());
+
+        let sockets = NetworkingSockets {
+            unavailable: true,
+            sockets: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        let addr: SocketAddr = "0.0.0.0:0".parse().unwrap();
+        assert!(sockets.create_listen_socket_ip(addr, []).is_err());
+
+        let messages = NetworkingMessages {
+            unavailable: true,
+            net: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        assert!(messages.receive_messages_on_channel(0, 1).is_empty());
+
+        let play = RemotePlay {
+            unavailable: true,
+            rp: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        assert!(play.sessions().is_empty());
+    }
+
+    #[test]
+    fn unavailable_storage_family_never_touches_null_pointers() {
+        let inner = test_inner();
+        let storage = RemoteStorage {
+            unavailable: true,
+            rs: std::ptr::null_mut(),
+            util: std::ptr::null_mut(),
+            inner: inner.clone(),
+        };
+        assert!(!storage.is_cloud_enabled_for_app());
+
+        let file = storage.file("missing.txt");
+        assert!(file.unavailable);
+
+        // io::Read guard: EOF without touching the null stream pointer
+        let mut reader = file.read();
+        let mut buf = [0u8; 16];
+        assert_eq!(reader.read(&mut buf).unwrap(), 0);
+
+        // io::Write guard: error without touching the null stream pointer;
+        // dropping the writer must not call FileWriteStreamClose either
+        let file2 = storage.file("missing2.txt");
+        let mut writer = file2.write();
+        assert!(writer.write(b"data").is_err());
+        drop(writer);
+
+        // poll group drop must not call DestroyPollGroup on a null interface
+        let sockets = NetworkingSockets {
+            unavailable: true,
+            sockets: std::ptr::null_mut(),
+            inner,
+        };
+        drop(sockets.create_poll_group());
+    }
+
+    #[test]
+    fn unavailable_networking_message_returns_zero_values() {
+        let inner = test_inner();
+        let msg = NetworkingMessage {
+            unavailable: true,
+            message: std::ptr::null_mut(),
+            _inner: inner,
+        };
+        assert!(msg.data().is_empty());
+        assert_eq!(msg.channel(), 0);
+        assert_eq!(msg.message_number().0, 0);
     }
 }

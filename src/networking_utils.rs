@@ -8,6 +8,7 @@ use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
 pub struct NetworkingUtils {
+    pub(crate) unavailable: bool,
     pub(crate) utils: *mut sys::ISteamNetworkingUtils,
     pub(crate) inner: Arc<Inner>,
 }
@@ -31,10 +32,18 @@ impl NetworkingUtils {
     /// m_cbSize will be zero, and m_pfnFreeData will be NULL.  You will need to
     /// set each of these.
     pub fn allocate_message(&self, buffer_size: usize) -> NetworkingMessage {
+        if self.unavailable {
+            return NetworkingMessage {
+                unavailable: true,
+                message: std::ptr::null_mut(),
+                _inner: self.inner.clone(),
+            };
+        }
         unsafe {
             let message =
                 sys::SteamAPI_ISteamNetworkingUtils_AllocateMessage(self.utils, buffer_size as _);
             NetworkingMessage {
+                unavailable: false,
                 message,
                 _inner: self.inner.clone(),
             }
@@ -62,6 +71,9 @@ impl NetworkingUtils {
     /// the dedicated server will be using P2P functionality, it will act as
     /// a "client" and this should be called.
     pub fn init_relay_network_access(&self) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess(self.utils);
         }
@@ -71,6 +83,9 @@ impl NetworkingUtils {
     ///
     /// If you want more detailed information use [`detailed_relay_network_status`](#method.detailed_relay_network_status) instead.
     pub fn relay_network_status(&self) -> NetworkingAvailabilityResult {
+        if self.unavailable {
+            return Err(crate::networking_types::NetworkingAvailabilityError::Unknown);
+        }
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_GetRelayNetworkStatus(
                 self.utils,
@@ -82,6 +97,15 @@ impl NetworkingUtils {
 
     /// Fetch current detailed status of the relay network.
     pub fn detailed_relay_network_status(&self) -> RelayNetworkStatus {
+        if self.unavailable {
+            return RelayNetworkStatus {
+                availability: Err(crate::networking_types::NetworkingAvailabilityError::Unknown),
+                is_ping_measurement_in_progress: false,
+                network_config: Err(crate::networking_types::NetworkingAvailabilityError::Unknown),
+                any_relay: Err(crate::networking_types::NetworkingAvailabilityError::Unknown),
+                debugging_message: String::new(),
+            };
+        }
         unsafe {
             let mut status = sys::SteamRelayNetworkStatus_t {
                 m_eAvail: sys::ESteamNetworkingAvailability::k_ESteamNetworkingAvailability_Unknown,
@@ -104,6 +128,9 @@ impl NetworkingUtils {
         &self,
         mut callback: impl FnMut(RelayNetworkStatus) + Send + 'static,
     ) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             std::mem::forget(register_callback(
                 &self.inner,

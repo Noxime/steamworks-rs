@@ -8,6 +8,7 @@ use std::sync::RwLock;
 
 /// Access to the steam utils interface
 pub struct Utils {
+    pub(crate) unavailable: bool,
     pub(crate) utils: *mut sys::ISteamUtils,
     pub(crate) _inner: Arc<Inner>,
 }
@@ -130,11 +131,17 @@ unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
 impl Utils {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
+        if self.unavailable {
+            return AppId(0);
+        }
         unsafe { AppId(sys::SteamAPI_ISteamUtils_GetAppID(self.utils)) }
     }
 
     /// Returns the country code of the current user based on their IP
     pub fn ip_country(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let ipcountry = sys::SteamAPI_ISteamUtils_GetIPCountry(self.utils);
             let ipcountry = CStr::from_ptr(ipcountry);
@@ -144,6 +151,9 @@ impl Utils {
 
     /// Returns whether or not the overlay is enabled in Steam
     pub fn is_overlay_enabled(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamUtils_IsOverlayEnabled(self.utils) }
     }
 
@@ -152,6 +162,9 @@ impl Utils {
     ///
     /// Generally you want `Apps::current_game_language` instead of this
     pub fn ui_language(&self) -> String {
+        if self.unavailable {
+            return String::new();
+        }
         unsafe {
             let lang = sys::SteamAPI_ISteamUtils_GetSteamUILanguage(self.utils);
             let lang = CStr::from_ptr(lang);
@@ -162,12 +175,18 @@ impl Utils {
     /// Returns the current real time on the Steam servers
     /// in Unix epoch format (seconds since 1970/1/1 UTC).
     pub fn get_server_real_time(&self) -> u32 {
+        if self.unavailable {
+            return 0;
+        }
         unsafe { sys::SteamAPI_ISteamUtils_GetServerRealTime(self.utils) }
     }
 
     /// Sets the position on the screen where popups from the steam overlay
     /// should appear and display themselves in.
     pub fn set_overlay_notification_position(&self, position: NotificationPosition) {
+        if self.unavailable {
+            return;
+        }
         unsafe {
             let position = match position {
                 NotificationPosition::TopLeft => sys::ENotificationPosition::k_EPositionTopLeft,
@@ -193,6 +212,9 @@ impl Utils {
     where
         F: Fn(i32, &CStr) + Send + Sync + 'static,
     {
+        if self.unavailable {
+            return;
+        }
         let mut lock = WARNING_CALLBACK
             .write()
             .expect("warning func lock poisoned");
@@ -210,6 +232,9 @@ impl Utils {
         &self,
         dismissed_data: &GamepadTextInputDismissed,
     ) -> Option<String> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let len = dismissed_data.submitted_text_len?;
             let mut buf = vec![0u8; len as usize];
@@ -228,11 +253,17 @@ impl Utils {
     /// Games must be launched through the Steam client to enable the Big Picture overlay.
     /// During development, a game can be added as a non-steam game to the developer's library to test this feature.
     pub fn is_steam_in_big_picture_mode(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamUtils_IsSteamInBigPictureMode(self.utils) }
     }
 
     /// Checks if Steam is running on a Steam Deck device.
     pub fn is_steam_running_on_steam_deck(&self) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(self.utils) }
     }
 
@@ -249,6 +280,9 @@ impl Utils {
     where
         F: FnMut(GamepadTextInputDismissed) + 'static + Send,
     {
+        if self.unavailable {
+            return false;
+        }
         unsafe {
             let description = CString::new(description).unwrap();
             let existing_text = existing_text.map(|s| CString::new(s).unwrap());
@@ -285,6 +319,9 @@ impl Utils {
     where
         F: FnMut() + 'static + Send, // TODO: Support FnOnce callbacks
     {
+        if self.unavailable {
+            return false;
+        }
         unsafe {
             std::mem::forget(register_callback(
                 &self._inner,

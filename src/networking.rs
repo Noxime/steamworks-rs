@@ -7,6 +7,7 @@ use super::*;
 
 /// Access to the steam networking interface
 pub struct Networking {
+    pub(crate) unavailable: bool,
     pub(crate) net: *mut sys::ISteamNetworking,
     pub(crate) _inner: Arc<Inner>,
 }
@@ -109,11 +110,17 @@ impl Networking {
     ///
     /// Should only be called in response to a `P2PSessionRequest`.
     pub fn accept_p2p_session(&self, user: SteamId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamNetworking_AcceptP2PSessionWithUser(self.net, user.0) }
     }
 
     /// Closes the p2p connection between the given user
     pub fn close_p2p_session(&self, user: SteamId) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe { sys::SteamAPI_ISteamNetworking_CloseP2PSessionWithUser(self.net, user.0) }
     }
 
@@ -122,6 +129,9 @@ impl Networking {
     /// Returns the P2P session state if a connection exists with the user,
     /// or None if no connection exists.
     pub fn get_p2p_session_state(&self, user: SteamId) -> Option<P2PSessionState> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut state: sys::P2PSessionState_t = std::mem::zeroed();
             if sys::SteamAPI_ISteamNetworking_GetP2PSessionState(self.net, user.0, &mut state) {
@@ -144,6 +154,9 @@ impl Networking {
     /// Sends a packet to the user, starting the
     /// connection if it isn't started already
     pub fn send_p2p_packet(&self, remote: SteamId, send_type: SendType, data: &[u8]) -> bool {
+        if self.unavailable {
+            return false;
+        }
         self.send_p2p_packet_on_channel(remote, send_type, data, 0)
     }
 
@@ -155,6 +168,9 @@ impl Networking {
         data: &[u8],
         channel: i32,
     ) -> bool {
+        if self.unavailable {
+            return false;
+        }
         unsafe {
             let send_type = match send_type {
                 SendType::Unreliable => sys::EP2PSend::k_EP2PSendUnreliable,
@@ -177,11 +193,17 @@ impl Networking {
     ///
     /// Returns the size of the queued packet if any.
     pub fn is_p2p_packet_available(&self) -> Option<usize> {
+        if self.unavailable {
+            return None;
+        }
         self.is_p2p_packet_available_on_channel(0)
     }
 
     /// Returns whether there is a packet available on a specific channel
     pub fn is_p2p_packet_available_on_channel(&self, channel: i32) -> Option<usize> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut size = 0;
             if sys::SteamAPI_ISteamNetworking_IsP2PPacketAvailable(self.net, &mut size, channel) {
@@ -198,6 +220,9 @@ impl Networking {
     /// Returns the steam id of the sender and the size of the
     /// packet.
     pub fn read_p2p_packet(&self, buf: &mut [u8]) -> Option<(SteamId, usize)> {
+        if self.unavailable {
+            return None;
+        }
         self.read_p2p_packet_from_channel(buf, 0)
     }
 
@@ -208,6 +233,9 @@ impl Networking {
         buf: &mut [u8],
         channel: i32,
     ) -> Option<(SteamId, usize)> {
+        if self.unavailable {
+            return None;
+        }
         unsafe {
             let mut size = 0;
             let mut remote = 0;

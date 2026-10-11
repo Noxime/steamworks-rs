@@ -35,6 +35,7 @@ use steamworks_sys as sys;
 
 /// Access to the steam networking messages interface
 pub struct NetworkingMessages {
+    pub(crate) unavailable: bool,
     pub(crate) net: *mut sys::ISteamNetworkingMessages,
     pub(crate) inner: Arc<Inner>,
 }
@@ -92,6 +93,9 @@ impl NetworkingMessages {
         data: &[u8],
         channel: u32,
     ) -> SteamResult {
+        if self.unavailable {
+            return Err(crate::SteamError::IOFailure);
+        }
         let result = unsafe {
             sys::SteamAPI_ISteamNetworkingMessages_SendMessageToUser(
                 self.net,
@@ -132,6 +136,9 @@ impl NetworkingMessages {
         channel: u32,
         batch_size: usize,
     ) -> Vec<NetworkingMessage> {
+        if self.unavailable {
+            return Vec::new();
+        }
         let mut buffer = Vec::with_capacity(batch_size);
         unsafe {
             let message_count = sys::SteamAPI_ISteamNetworkingMessages_ReceiveMessagesOnChannel(
@@ -146,6 +153,7 @@ impl NetworkingMessages {
         buffer
             .into_iter()
             .map(|x| NetworkingMessage {
+                unavailable: false,
                 message: x,
                 _inner: self.inner.clone(),
             })
@@ -180,6 +188,9 @@ impl NetworkingMessages {
         &self,
         mut callback: impl FnMut(SessionRequest) + Send + 'static,
     ) {
+        if self.unavailable {
+            return;
+        }
         let builder = SessionRequestBuilder {
             message: self.net,
             inner: Arc::downgrade(&self.inner),
@@ -205,6 +216,9 @@ impl NetworkingMessages {
         &self,
         mut callback: impl FnMut(NetConnectionInfo) + Send + 'static,
     ) {
+        if self.unavailable {
+            return;
+        }
         let call_handle = unsafe {
             register_callback(
                 &self.inner,
@@ -232,6 +246,9 @@ impl NetworkingMessages {
         Option<NetConnectionInfo>,
         Option<NetConnectionRealTimeInfo>,
     ) {
+        if self.unavailable {
+            return (NetworkingConnectionState::None, None, None);
+        }
         let mut connection_info: sys::SteamNetConnectionInfo_t = unsafe { std::mem::zeroed() };
         let mut quick_status: sys::SteamNetConnectionRealTimeStatus_t =
             unsafe { std::mem::zeroed() };
