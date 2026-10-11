@@ -75,6 +75,21 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     }
 }
 
+/// Upper bound for a single call result payload (`SteamAPICallCompleted_t::m_cubParam`).
+///
+/// `m_cubParam` is a raw `uint32` straight from Steam: without a bound here, one
+/// corrupt value would drive a multi-gigabyte allocation, and allocation failure
+/// aborts the process rather than panicking, so it cannot be caught. Real call
+/// results are struct-sized, orders of magnitude below this bound.
+const MAX_CALL_RESULT_SIZE: usize = 64 * 1024 * 1024;
+
+/// Whether a call result size is worth fetching. Must also fit `i32`: the size
+/// goes back to the C API as a signed `cubCallback`, and `u32 -> i32` silently
+/// negates anything above `i32::MAX`.
+fn call_result_size_ok(size: usize) -> bool {
+    size <= MAX_CALL_RESULT_SIZE && size <= i32::MAX as usize
+}
+
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
 // the documentation for a method states otherwise,
@@ -156,14 +171,22 @@ impl Inner {
             let pipe = self.manager.get_pipe();
             sys::SteamAPI_ManualDispatch_RunFrame(pipe);
             let mut callback = std::mem::zeroed();
-            let mut apicall_result = Vec::new();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
                     let apicall = callback
                         .m_pubParam
                         .cast::<sys::SteamAPICallCompleted_t>()
                         .read_unaligned();
-                    apicall_result.resize(apicall.m_cubParam as usize, 0u8);
+                    let size = apicall.m_cubParam as usize;
+                    if !call_result_size_ok(size) {
+                        // Skip a malformed result rather than attempting a
+                        // multi-gigabyte allocation for it.
+                        sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
+                        continue;
+                    }
+                    // Sized per dispatch so that one bad (but accepted) size
+                    // cannot keep its capacity resident for the rest of the loop.
+                    let mut apicall_result = vec![0u8; size];
                     let mut failed = false;
                     if sys::SteamAPI_ManualDispatch_GetAPICallResult(
                         pipe,
@@ -817,5 +840,15 @@ mod tests {
 
         let steamid = SteamId(76561198174976054);
         assert_eq!("STEAM_0:0:107355163", steamid.steamid32());
+    }
+
+    #[test]
+    fn call_result_size_bound() {
+        for ok in [0, 512, 64 * 1024, MAX_CALL_RESULT_SIZE] {
+            assert!(call_result_size_ok(ok));
+        }
+        for too_big in [MAX_CALL_RESULT_SIZE + 1, u32::MAX as usize, usize::MAX] {
+            assert!(!call_result_size_ok(too_big));
+        }
     }
 }
