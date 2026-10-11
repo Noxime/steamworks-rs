@@ -1161,6 +1161,7 @@ mod tests {
 
     #[test]
     #[serial]
+    #[ignore = "requires a running Steam client"]
     fn test_create_listen_socket_ip() {
         let client = Client::init().unwrap();
         let sockets = client.networking_sockets();
@@ -1173,6 +1174,7 @@ mod tests {
 
     #[test]
     #[serial]
+    #[ignore = "requires a running Steam client"]
     fn test_socket_connection() {
         let client = Client::init().unwrap();
         let sockets = client.networking_sockets();

@@ -1225,6 +1225,7 @@ impl_callback!(cb: LobbyEnter_t => LobbyEnter {
 
 #[test]
 #[serial]
+#[ignore = "requires a running Steam client"]
 fn test_lobby() {
     let client = Client::init().unwrap();
     let mm = client.matchmaking();
@@ -1254,6 +1255,7 @@ fn test_lobby() {
 
 #[test]
 #[serial]
+#[ignore = "requires a running Steam client"]
 fn test_set_lobby_game_server() {
     let client = Client::init().unwrap();
     let mm = client.matchmaking();

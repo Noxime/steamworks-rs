@@ -2249,6 +2249,7 @@ mod tests {
 
     #[test]
     #[serial]
+    #[ignore = "requires a running Steam client"]
     fn test_allocate_and_free_message() {
         let client = Client::init().unwrap();
         let utils = client.networking_utils();

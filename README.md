@@ -24,7 +24,7 @@ steamworks = "0.13.0"
 
 ## Example
 You can find more examples in [examples](examples/).
-```rust
+```rust,no_run
 use steamworks::AppId;
 use steamworks::Client;
 use steamworks::FriendFlags;

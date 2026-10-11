@@ -544,6 +544,7 @@ impl MatchmakingServers {
 
 #[test]
 #[serial_test::serial]
+#[ignore = "requires a running Steam client"]
 fn test_internet_servers() {
     let client = Client::init_app(304930).unwrap();
 

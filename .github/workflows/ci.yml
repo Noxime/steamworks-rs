@@ -58,3 +58,49 @@ jobs:
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"
+
+  test:
+    # Offline tier: the tests marked `#[ignore = "requires a running Steam
+    # client"]` are the integration tier and do not run here; everything that
+    # remains must actually execute (a pure-skip suite must not look green).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rs/toolchain@v1
+        id: toolchain
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run tests
+        shell: bash
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-C debuginfo=0"
+        run: |
+          set -o pipefail
+          cargo test 2>&1 | tee test-output.txt
+
+      - name: Gate on summary
+        shell: bash
+        run: |
+          # Every result line must report zero failures, and at least one
+          # line must report actual executions (guards against a suite that
+          # only skips).
+          grep -E "^test result: ok\. [1-9][0-9]* passed; 0 failed" test-output.txt
+          # Keep the skip count visible in the job log.
+          grep -oE "^test result: ok\. [0-9]+ passed; 0 failed; [0-9]+ ignored" test-output.txt
