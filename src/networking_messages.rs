@@ -27,7 +27,7 @@ use crate::networking_types::{
     NetConnectionInfo, NetConnectionRealTimeInfo, NetworkingConnectionState, NetworkingIdentity,
     NetworkingMessage, SendFlags,
 };
-use crate::{register_callback, to_steam_result, Callback, Inner, SteamResult};
+use crate::{register_replacing_callback, to_steam_result, Callback, Inner, SteamResult};
 use std::ffi::c_void;
 use std::sync::{Arc, Weak};
 
@@ -184,17 +184,16 @@ impl NetworkingMessages {
             message: self.net,
             inner: Arc::downgrade(&self.inner),
         };
-        let call_handle = unsafe {
-            register_callback(
+        unsafe {
+            register_replacing_callback(
                 &self.inner,
                 move |request: NetworkingMessagesSessionRequest| {
                     if let Some(request) = builder.build_request(request.remote) {
                         callback(request);
                     }
                 },
-            )
-        };
-        std::mem::forget(call_handle);
+            );
+        }
     }
 
     /// Register a callback that will be called whenever a connection fails to be established.
@@ -205,15 +204,14 @@ impl NetworkingMessages {
         &self,
         mut callback: impl FnMut(NetConnectionInfo) + Send + 'static,
     ) {
-        let call_handle = unsafe {
-            register_callback(
+        unsafe {
+            register_replacing_callback(
                 &self.inner,
                 move |failed: NetworkingMessagesSessionFailed| {
                     callback(failed.info);
                 },
-            )
-        };
-        std::mem::forget(call_handle);
+            );
+        }
     }
 
     /// Get information about the status of a connection to a remote host.

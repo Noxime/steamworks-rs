@@ -3,6 +3,7 @@ use crate::networking_types::NetworkingIdentity;
 #[cfg(test)]
 use serial_test::serial;
 use std::net::{Ipv4Addr, SocketAddrV4};
+use std::sync::atomic::AtomicU64;
 
 /// The main entry point into the steam client for servers.
 ///
@@ -143,6 +144,9 @@ impl Server {
                 callbacks: Callbacks {
                     callbacks: Mutex::new(HashMap::new()),
                     call_results: Mutex::new(HashMap::new()),
+                    replacing: Mutex::new(HashMap::new()),
+                    next_seq: AtomicU64::new(1),
+                    pending_removal: Mutex::new(HashSet::new()),
                 },
                 networking_sockets_data: Mutex::new(NetworkingSocketsData {
                     sockets: Default::default(),
@@ -187,6 +191,12 @@ impl Server {
 
     /// Registers the passed function as a callback for the
     /// given type.
+    ///
+    /// Registering multiple callbacks of the same type is supported: they are
+    /// called in registration order, and each registration stays active until
+    /// its returned handle is dropped. Dropping a handle removes only the
+    /// registration it was created for; other registrations of the same
+    /// callback type are unaffected.
     ///
     /// The callback will be run on the thread that [`run_callbacks`]
     /// is called when the event arrives.
