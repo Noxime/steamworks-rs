@@ -1,4 +1,7 @@
-use crate::networking_types::{NetworkingAvailabilityResult, NetworkingMessage};
+use crate::networking_types::{
+    NetworkingAvailabilityResult, NetworkingConfigData, NetworkingConfigDataType,
+    NetworkingConfigEntry, NetworkingConfigValue, NetworkingMessage,
+};
 use crate::{register_callback, Callback, Inner};
 use std::convert::TryInto;
 use std::ffi::{c_void, CStr};
@@ -112,6 +115,140 @@ impl NetworkingUtils {
                 },
             ));
         }
+    }
+
+    /// Set a networking configuration value globally.
+    ///
+    /// Returns true if the setting was successful.
+    pub fn set_config_value(&self, config_entry: NetworkingConfigEntry) -> bool {
+        unsafe {
+            self.set_config_value_internal(
+                0, // handle is ignored for global
+                sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Global,
+                config_entry,
+            )
+        }
+    }
+
+    /// Set a configuration value for different scopes. Internal use only.
+    ///
+    /// Returns true if the parameter was successfully set
+    pub(crate) unsafe fn set_config_value_internal(
+        &self,
+        scope_handle: u32,
+        scope: sys::ESteamNetworkingConfigScope,
+        config_entry: NetworkingConfigEntry,
+    ) -> bool {
+        // FIXME: unfortunately I can't seem to make set_config_value work for strings...
+        // I can retrieve them with `get_config_value`, and it works for floats and ints, sure,
+        // but I can't edit string values specifically.
+        unsafe {
+            sys::SteamAPI_ISteamNetworkingUtils_SetConfigValue(
+                self.utils,
+                config_entry.inner.m_eValue,
+                scope,
+                scope_handle as isize,
+                config_entry.inner.m_eDataType,
+                &config_entry.inner.m_val as *const _ as *const c_void,
+            )
+        }
+    }
+
+    /// Unsets a config value globally, using the system defaults instead.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.unset_config_value_internal(
+                0,
+                sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Global,
+                value,
+            )
+        }
+    }
+
+    /// Unset a configuration value for different scopes. Internal use only.
+    ///
+    /// Returns true if the parameter was successfully unset
+    pub(crate) unsafe fn unset_config_value_internal(
+        &self,
+        scope_handle: u32,
+        scope: sys::ESteamNetworkingConfigScope,
+        value: NetworkingConfigValue,
+    ) -> bool {
+        unsafe {
+            sys::SteamAPI_ISteamNetworkingUtils_SetConfigValue(
+                self.utils,
+                value.into(),
+                scope,
+                scope_handle as isize,
+                value.data_type().into(),
+                std::ptr::null(),
+            )
+        }
+    }
+
+    /// Get a config value applied for the global instance.
+    pub fn get_config_value(
+        &self,
+        value: NetworkingConfigValue,
+    ) -> Result<NetworkingConfigData, ()> {
+        unsafe {
+            self.get_config_value_internal(
+                0,
+                sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Global,
+                value,
+            )
+        }
+    }
+
+    pub(crate) unsafe fn get_config_value_internal(
+        &self,
+        scope_handle: u32,
+        scope: sys::ESteamNetworkingConfigScope,
+        value: NetworkingConfigValue,
+    ) -> Result<NetworkingConfigData, ()> {
+        let mut buf_size = match value.data_type() {
+            NetworkingConfigDataType::String => {
+                // for strings, we need to first retrieve the size of the output string
+                let mut buf_size: usize = 0;
+                let r = sys::SteamAPI_ISteamNetworkingUtils_GetConfigValue(
+                    self.utils,
+                    value.into(),
+                    scope,
+                    scope_handle as isize,
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut(),
+                    &mut buf_size as *mut _,
+                );
+                if r != sys::ESteamNetworkingGetConfigValueResult::k_ESteamNetworkingGetConfigValue_BufferTooSmall {
+                    // at this stage, the API *should* return BufferTooSmall
+                    return Err(());
+                }
+                buf_size
+            }
+            NetworkingConfigDataType::Int32 => std::mem::size_of::<i32>(),
+            NetworkingConfigDataType::Int64 => std::mem::size_of::<i64>(),
+            NetworkingConfigDataType::Float => std::mem::size_of::<f32>(),
+            NetworkingConfigDataType::Callback => std::mem::size_of::<*mut ()>(),
+        };
+        // once we have buf size, we can transform bytes into our values
+        let mut buf = vec![0; buf_size];
+        unsafe {
+            let r = sys::SteamAPI_ISteamNetworkingUtils_GetConfigValue(
+                self.utils,
+                value.into(),
+                scope,
+                scope_handle as isize,
+                std::ptr::null_mut(),
+                buf.as_mut_ptr() as *mut c_void,
+                &mut buf_size as *mut _,
+            );
+            if (r as i32) < 0 {
+                return Err(());
+            }
+        };
+        NetworkingConfigData::from_buf(&*buf, value.data_type()).ok_or(())
     }
 }
 

@@ -6,7 +6,7 @@ use crate::networking_sockets::{InnerSocket, NetConnection};
 use crate::networking_types::NetConnectionError::UnhandledType;
 use crate::{Callback, Inner, SteamId, SteamResult};
 use std::convert::{TryFrom, TryInto};
-use std::ffi::{c_void, CString};
+use std::ffi::{c_char, c_void, CStr, CString};
 use std::fmt::{Debug, Display, Formatter};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::panic::catch_unwind;
@@ -1579,7 +1579,7 @@ pub(crate) enum NetConnectionError {
 
 #[derive(Clone)]
 pub struct NetworkingConfigEntry {
-    inner: sys::SteamNetworkingConfigValue_t,
+    pub(crate) inner: sys::SteamNetworkingConfigValue_t,
 }
 
 impl NetworkingConfigEntry {
@@ -1588,6 +1588,15 @@ impl NetworkingConfigEntry {
             m_eValue: sys::ESteamNetworkingConfigValue::k_ESteamNetworkingConfig_Invalid,
             m_eDataType: sys::ESteamNetworkingConfigDataType::k_ESteamNetworkingConfig_Int32,
             m_val: sys::SteamNetworkingConfigValue_t__bindgen_ty_1 { m_int32: 0 },
+        }
+    }
+
+    pub fn new(value_type: NetworkingConfigValue, data: NetworkingConfigData) -> Self {
+        match data {
+            NetworkingConfigData::Int32(data) => Self::new_int32(value_type, data),
+            NetworkingConfigData::Int64(data) => Self::new_int64(value_type, data),
+            NetworkingConfigData::Float(data) => Self::new_float(value_type, data),
+            NetworkingConfigData::String(data) => Self::new_string(value_type, &data),
         }
     }
 
@@ -1655,6 +1664,77 @@ impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum NetworkingConfigData {
+    Int32(i32),
+    Int64(i64),
+    Float(f32),
+    String(String),
+}
+
+impl NetworkingConfigData {
+    pub(crate) fn from_buf(bytes: &[u8], data_type: NetworkingConfigDataType) -> Option<Self> {
+        let data = match data_type {
+            NetworkingConfigDataType::Float => {
+                let data = f32::from_ne_bytes(bytes.get(0..4)?.try_into().ok()?);
+                Self::Float(data)
+            }
+            NetworkingConfigDataType::Int64 => {
+                let data = i64::from_ne_bytes(bytes.get(0..8)?.try_into().ok()?);
+                Self::Int64(data)
+            }
+            NetworkingConfigDataType::Int32 => {
+                let data = i32::from_ne_bytes(bytes.get(0..4)?.try_into().ok()?);
+                Self::Int32(data)
+            }
+            NetworkingConfigDataType::String => {
+                let data = unsafe { CStr::from_ptr(bytes.as_ptr() as *const _) }
+                    .to_string_lossy()
+                    .to_string();
+                Self::String(data)
+            }
+            NetworkingConfigDataType::Callback => {
+                // TODO
+                return None;
+            }
+        };
+        Some(data)
+    }
+
+    /// Attempts to transform this data into a `&str`. Returns `None` if the data type is not string.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            Self::String(s) => Some(&*s),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `i32`. Returns `None` if the data type is not Int32.
+    pub fn as_i32(&self) -> Option<i32> {
+        match self {
+            Self::Int32(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `i64`. Returns `None` if the data type is not Int64 or Int32.
+    pub fn as_i64(&self) -> Option<i64> {
+        match self {
+            Self::Int32(v) => Some(*v as i64),
+            Self::Int64(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Attempts to transform this data into a `f32`. Returns `None` if the data type is not Float.
+    pub fn as_f32(&self) -> Option<f32> {
+        match self {
+            Self::Float(v) => Some(*v),
+            _ => None,
+        }
+    }
+}
+
 /// A safe wrapper for SteamNetworkingIdentity
 #[derive(Clone)]
 pub struct NetworkingIdentity {
@@ -1664,8 +1744,8 @@ pub struct NetworkingIdentity {
     inner: sys::SteamNetworkingIdentity,
 }
 
-// const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
-//     sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
+const NETWORK_IDENTITY_STRING_BUFFER_SIZE: usize =
+    sys::SteamNetworkingIdentity__bindgen_ty_1::k_cchMaxString as usize;
 
 impl NetworkingIdentity {
     pub fn new() -> Self {
@@ -1743,43 +1823,37 @@ impl NetworkingIdentity {
     }
 
     pub fn debug_string(&self) -> String {
-        // For some reason I can't get the original function to work,
-        // so I decided to recreate the original from https://github.com/ValveSoftware/GameNetworkingSockets/blob/529901e7c1caf50928ac8814cad205d192bbf27d/src/steamnetworkingsockets/steamnetworkingsockets_shared.cpp
-
-        // let mut buffer = vec![0i8; NETWORK_IDENTITY_STRING_BUFFER_SIZE];
-        // let string = unsafe {
-        //     sys::SteamAPI_SteamNetworkingIdentity_ToString(
-        //         self.as_ptr() as *mut sys::SteamNetworkingIdentity,
-        //         buffer.as_mut_ptr(),
-        //         NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
-        //     );
-        //     CString::from_raw(buffer.as_mut_ptr())
-        // };
-        // string.into_string().unwrap()
-
+        let mut buffer = vec![0u8; NETWORK_IDENTITY_STRING_BUFFER_SIZE];
         unsafe {
-            match self.inner.m_eType {
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_Invalid => {
-                    "invalid".to_string()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_SteamID => {
-                    let id = self.inner.__bindgen_anon_1.m_steamID64;
-                    format!("steamid:{}", id)
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_IPAddress => {
-                    let ip = SteamIpAddr::from(self.inner.__bindgen_anon_1.m_ip);
-                    format!("ip:{}", ip)
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericString => {
-                    unimplemented!()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_GenericBytes => {
-                    unimplemented!()
-                }
-                sys::ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_UnknownType => {
-                    unimplemented!()
-                }
-                ty => format!("bad_type:{}", ty as u32),
+            sys::SteamAPI_SteamNetworkingIdentity_ToString(
+                self.as_ptr() as *mut sys::SteamNetworkingIdentity,
+                buffer.as_mut_ptr() as *mut _ as *mut c_char, // black magic to type-convert a [u8] to *c_char
+                NETWORK_IDENTITY_STRING_BUFFER_SIZE as u32,
+            );
+        };
+        match CStr::from_bytes_until_nul(&buffer) {
+            Err(_) => String::from("invalid"),
+            Ok(cstr) => cstr.to_string_lossy().to_string(),
+        }
+    }
+
+    /// Tries to parse a NetworkingIdentity from a string (generated from `debug_string`)
+    ///
+    /// Returns `Err(())` if the string contained a nul-byte or was an invalid networking identity
+    pub fn from_debug_string(value: &str) -> Result<Self, ()> {
+        let c_string = CString::new(value).map_err(|_| ())?;
+        let mut inner = std::mem::MaybeUninit::<sys::SteamNetworkingIdentity>::uninit();
+        unsafe {
+            let result = sys::SteamAPI_SteamNetworkingIdentity_ParseString(
+                inner.as_mut_ptr(),
+                c_string.as_ptr(),
+            );
+            if result {
+                Ok(Self {
+                    inner: inner.assume_init(),
+                })
+            } else {
+                Err(())
             }
         }
     }
@@ -1790,6 +1864,18 @@ impl NetworkingIdentity {
         }
     }
 
+    /// Returns the underlying internal representation bytes of NetworkingIdentity
+    ///
+    /// It is properly cut by the amount of bytes necessary, e.g. steamid will only be 8 bytes, etc.
+    fn internal_representation_bytes(&self) -> &[u8] {
+        const INNER_SIZE: usize = 128;
+        let inner: &[u8; INNER_SIZE] = unsafe { std::mem::transmute(&self.inner.__bindgen_anon_1) };
+        // just to be on the safe side, take at most 128 bytes and don't trust cbSize fully.
+        // we never know what might happen on the cpp side...
+        let inner_len = std::cmp::min(self.inner.m_cbSize as usize, INNER_SIZE);
+        &inner[0..inner_len]
+    }
+
     pub(crate) fn as_ptr(&self) -> *const sys::SteamNetworkingIdentity {
         &self.inner
     }
@@ -1797,11 +1883,34 @@ impl NetworkingIdentity {
     pub(crate) fn as_mut_ptr(&mut self) -> *mut sys::SteamNetworkingIdentity {
         &mut self.inner
     }
+
+    /// Returns the inner struct of `NetworkingIdentity`
+    ///
+    /// In most cases should not be used, but it may be be useful
+    /// for serializing or interoping with an existing C codebase.
+    pub fn raw(&self) -> sys::SteamNetworkingIdentity {
+        self.inner.clone()
+    }
+
+    /// Allows to build a NetworkingIdentity from a raw `SteamNetworkingIdentity`
+    pub fn from_raw(raw: sys::SteamNetworkingIdentity) -> Self {
+        Self { inner: raw }
+    }
 }
 
 impl PartialEq for NetworkingIdentity {
     fn eq(&self, other: &Self) -> bool {
         self.is_equal_to(other)
+    }
+}
+
+impl std::hash::Hash for NetworkingIdentity {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let e_type = self.inner.m_eType; // necessary for alignment because self.inner is 1-packed
+        e_type.hash(state);
+        let cn_size = self.inner.m_cbSize; // also necessary for alignment
+        cn_size.hash(state);
+        self.internal_representation_bytes().hash(state);
     }
 }
 
@@ -2266,5 +2375,16 @@ mod tests {
 
             // Drop it immediately
         }
+    }
+
+    #[test]
+    #[serial]
+    fn test_networking_id_debug_ser_deser() {
+        let _client = Client::init().unwrap();
+        let steam_id = SteamId(76561199000000000u64);
+
+        let net_id1 = NetworkingIdentity::new_steam_id(steam_id);
+        let net_id2 = NetworkingIdentity::from_debug_string(&net_id1.debug_string()).unwrap();
+        assert_eq!(net_id1, net_id2);
     }
 }
