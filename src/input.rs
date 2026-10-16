@@ -2,6 +2,20 @@ use sys::InputHandle_t;
 
 use super::*;
 
+// `EInputActionOrigin` cannot hold origins of devices newer than this SDK, so this takes
+// and returns the raw value.
+extern "C" {
+    #[link_name = "SteamAPI_ISteamInput_TranslateActionOrigin"]
+    fn translate_raw_action_origin(
+        input: *mut sys::ISteamInput,
+        destination_input_type: sys::ESteamInputType,
+        source_origin: u32,
+    ) -> u32;
+}
+
+const ACTION_ORIGIN_NONE: u32 = sys::EInputActionOrigin::k_EInputActionOrigin_None as u32;
+const ACTION_ORIGIN_COUNT: u32 = sys::EInputActionOrigin::k_EInputActionOrigin_Count as u32;
+
 /// Access to the steam input interface
 pub struct Input {
     pub(crate) input: *mut sys::ISteamInput,
@@ -26,6 +40,147 @@ pub enum InputType {
     SteamDeckController,
 }
 
+/// The size of a glyph image returned by [`Input::get_glyph_png_for_action_origin`].
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum InputGlyphSize {
+    /// Small glyph.
+    Small,
+    /// Medium glyph.
+    Medium,
+    /// Large glyph.
+    Large,
+}
+
+impl From<InputGlyphSize> for sys::ESteamInputGlyphSize {
+    fn from(size: InputGlyphSize) -> Self {
+        match size {
+            InputGlyphSize::Small => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Small,
+            InputGlyphSize::Medium => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Medium,
+            InputGlyphSize::Large => sys::ESteamInputGlyphSize::k_ESteamInputGlyphSize_Large,
+        }
+    }
+}
+
+/// The base look of a glyph, see [`InputGlyphStyle`].
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
+pub enum InputGlyphBaseStyle {
+    /// Glyphs with a transparent "knockout" cut-out of the button symbol.
+    #[default]
+    Knockout,
+    /// Light glyphs, intended for dark backgrounds.
+    Light,
+    /// Dark glyphs, intended for light backgrounds.
+    Dark,
+}
+
+/// The style of a glyph returned by [`Input::get_glyph_png_for_action_origin`] and
+/// [`Input::get_glyph_svg_for_action_origin`].
+///
+/// A style is one [`InputGlyphBaseStyle`] plus two independent options for how
+/// the A/B/X/Y face buttons are drawn. The [`Default`] style is
+/// [`InputGlyphBaseStyle::Knockout`] with both options disabled (flags value `0`).
+///
+/// Note that this does not match the legacy [`Input::get_glyph_for_action_origin`],
+/// which always returns dark, medium-size glyphs. To get the same look from
+/// [`Input::get_glyph_png_for_action_origin`], pass [`InputGlyphSize::Medium`] and
+/// `InputGlyphStyle::new(InputGlyphBaseStyle::Dark)`.
+///
+/// ```
+/// use steamworks::{InputGlyphBaseStyle, InputGlyphStyle};
+///
+/// let style = InputGlyphStyle::new(InputGlyphBaseStyle::Dark).solid_abxy(true);
+/// assert_eq!(style.to_flags(), 2 | 32);
+/// ```
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
+pub struct InputGlyphStyle {
+    /// The base look of the glyph.
+    pub base: InputGlyphBaseStyle,
+    /// Use neutral colours for the A/B/X/Y buttons.
+    pub neutral_color_abxy: bool,
+    /// Use solid (filled) A/B/X/Y buttons.
+    pub solid_abxy: bool,
+}
+
+impl InputGlyphStyle {
+    /// Creates a style with the given base look and no extra options.
+    pub fn new(base: InputGlyphBaseStyle) -> Self {
+        Self {
+            base,
+            ..Self::default()
+        }
+    }
+
+    /// Sets whether A/B/X/Y buttons use neutral colours.
+    pub fn neutral_color_abxy(mut self, enabled: bool) -> Self {
+        self.neutral_color_abxy = enabled;
+        self
+    }
+
+    /// Sets whether A/B/X/Y buttons are drawn solid.
+    pub fn solid_abxy(mut self, enabled: bool) -> Self {
+        self.solid_abxy = enabled;
+        self
+    }
+
+    /// Converts the style to the `ESteamInputGlyphStyle` flags value Steam expects.
+    pub fn to_flags(self) -> u32 {
+        let base = match self.base {
+            InputGlyphBaseStyle::Knockout => {
+                sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Knockout
+            }
+            InputGlyphBaseStyle::Light => sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Light,
+            InputGlyphBaseStyle::Dark => sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_Dark,
+        } as u32;
+        let mut flags = base;
+        if self.neutral_color_abxy {
+            flags |= sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_NeutralColorABXY as u32;
+        }
+        if self.solid_abxy {
+            flags |= sys::ESteamInputGlyphStyle::ESteamInputGlyphStyle_SolidABXY as u32;
+        }
+        flags
+    }
+}
+
+impl From<InputGlyphStyle> for u32 {
+    fn from(style: InputGlyphStyle) -> Self {
+        style.to_flags()
+    }
+}
+
+/// Replaces `\` with `/` in a path returned by Steam.
+///
+/// Steam builds glyph paths with mixed separators on non-Windows platforms (for
+/// example `.../MacOS\controller_base\images\api\knockout/button.png`). There
+/// the backslashes are ordinary filename characters, so the file does not exist
+/// as returned.
+fn replace_backslashes(path: &str) -> String {
+    path.replace('\\', "/")
+}
+
+/// Copies a file path owned by Steam, mapping null and empty strings to `None`.
+///
+/// On non-Windows targets `\` is rewritten as `/`, see [`replace_backslashes`];
+/// Windows paths are left untouched. Only use this for paths, since it would
+/// mangle other strings such as display names.
+///
+/// # Safety
+///
+/// `ptr` must be null or point to a valid nul-terminated C string.
+unsafe fn owned_path_from_steam(ptr: *const std::os::raw::c_char) -> Option<String> {
+    if ptr.is_null() {
+        return None;
+    }
+    let value = CStr::from_ptr(ptr).to_string_lossy().into_owned();
+    if value.is_empty() {
+        None
+    } else if cfg!(windows) {
+        Some(value)
+    } else {
+        Some(replace_backslashes(&value))
+    }
+}
+
 impl Input {
     /// Init must be called when starting use of this interface.
     /// if explicitly_call_run_frame is called then you will need to manually call RunFrame
@@ -47,7 +202,7 @@ impl Input {
     pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
         let mut handles = vec![0_u64; sys::STEAM_INPUT_MAX_COUNT as usize];
         let quantity = self.get_connected_controllers_slice(&mut handles);
-        handles.shrink_to(quantity);
+        handles.truncate(quantity);
         handles
     }
 
@@ -119,12 +274,63 @@ impl Input {
     }
 
     /// Returns the glyph for an input action
+    ///
+    /// Returns an empty string if Steam has no glyph for the origin (for example
+    /// `k_EInputActionOrigin_None`). See [`Input::get_glyph_png_for_action_origin`]
+    /// for a variant that lets you choose the size and style.
     pub fn get_glyph_for_action_origin(&self, action_origin: sys::EInputActionOrigin) -> String {
         unsafe {
             let glyph_path =
                 sys::SteamAPI_ISteamInput_GetGlyphForActionOrigin_Legacy(self.input, action_origin);
-            let glyph_path = CStr::from_ptr(glyph_path);
-            glyph_path.to_string_lossy().into_owned()
+            owned_path_from_steam(glyph_path).unwrap_or_default()
+        }
+    }
+
+    /// Returns the path to a PNG glyph for an input action origin, in the requested
+    /// size and style, or `None` if Steam has no glyph for it.
+    ///
+    /// [`Input::init`] must be called before using this.
+    ///
+    /// Unlike [`Input::get_glyph_for_action_origin`], which wraps the legacy API
+    /// and always uses Steam's default style, this lets you choose the size and
+    /// [`InputGlyphStyle`].
+    pub fn get_glyph_png_for_action_origin(
+        &self,
+        action_origin: sys::EInputActionOrigin,
+        size: InputGlyphSize,
+        style: InputGlyphStyle,
+    ) -> Option<String> {
+        unsafe {
+            let glyph_path = sys::SteamAPI_ISteamInput_GetGlyphPNGForActionOrigin(
+                self.input,
+                action_origin,
+                size.into(),
+                style.to_flags(),
+            );
+            owned_path_from_steam(glyph_path)
+        }
+    }
+
+    /// Returns the path to an SVG glyph for an input action origin in the requested
+    /// style, or `None` if Steam has no glyph for it.
+    ///
+    /// [`Input::init`] must be called before using this.
+    ///
+    /// Unlike [`Input::get_glyph_for_action_origin`], which wraps the legacy API
+    /// and always uses Steam's default style, this lets you choose the
+    /// [`InputGlyphStyle`].
+    pub fn get_glyph_svg_for_action_origin(
+        &self,
+        action_origin: sys::EInputActionOrigin,
+        style: InputGlyphStyle,
+    ) -> Option<String> {
+        unsafe {
+            let glyph_path = sys::SteamAPI_ISteamInput_GetGlyphSVGForActionOrigin(
+                self.input,
+                action_origin,
+                style.to_flags(),
+            );
+            owned_path_from_steam(glyph_path)
         }
     }
 
@@ -185,45 +391,72 @@ impl Input {
     }
 
     /// Get the origin(s) for a digital action within an action set.
+    ///
+    /// Origins of devices newer than this SDK are translated to their closest known equivalent.
     pub fn get_digital_action_origins(
         &self,
         input_handle: sys::InputHandle_t,
         action_set_handle: sys::InputActionSetHandle_t,
         digital_action_handle: sys::InputDigitalActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
-        unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
-            let len = sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
+        let mut origins = [ACTION_ORIGIN_NONE; sys::STEAM_INPUT_MAX_ORIGINS as usize];
+        // Steam writes into `u32` storage, so origins unknown to this SDK never become an
+        // `EInputActionOrigin`.
+        let len = unsafe {
+            sys::SteamAPI_ISteamInput_GetDigitalActionOrigins(
                 self.input,
                 input_handle,
                 action_set_handle,
                 digital_action_handle,
-                origins.as_mut_ptr(),
-            );
-            origins.set_len(len as usize);
-            origins
-        }
+                origins.as_mut_ptr().cast(),
+            )
+        };
+        self.known_action_origins(&origins, len)
     }
 
     /// Get the origin(s) for an analog action within an action set.
+    ///
+    /// Origins of devices newer than this SDK are translated to their closest known equivalent.
     pub fn get_analog_action_origins(
         &self,
         input_handle: sys::InputHandle_t,
         action_set_handle: sys::InputActionSetHandle_t,
         analog_action_handle: sys::InputAnalogActionHandle_t,
     ) -> Vec<sys::EInputActionOrigin> {
-        unsafe {
-            let mut origins = Vec::with_capacity(sys::STEAM_INPUT_MAX_ORIGINS as usize);
-            let len = sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
+        let mut origins = [ACTION_ORIGIN_NONE; sys::STEAM_INPUT_MAX_ORIGINS as usize];
+        // See `get_digital_action_origins`.
+        let len = unsafe {
+            sys::SteamAPI_ISteamInput_GetAnalogActionOrigins(
                 self.input,
                 input_handle,
                 action_set_handle,
                 analog_action_handle,
-                origins.as_mut_ptr(),
-            );
-            origins.set_len(len as usize);
-            origins
-        }
+                origins.as_mut_ptr().cast(),
+            )
+        };
+        self.known_action_origins(&origins, len)
+    }
+
+    fn known_action_origins(&self, origins: &[u32], len: i32) -> Vec<sys::EInputActionOrigin> {
+        origins[..(len.max(0) as usize).min(origins.len())]
+            .iter()
+            .filter_map(|&origin| {
+                let origin = if origin < ACTION_ORIGIN_COUNT {
+                    origin
+                } else {
+                    unsafe {
+                        translate_raw_action_origin(
+                            self.input,
+                            sys::ESteamInputType::k_ESteamInputType_Unknown,
+                            origin,
+                        )
+                    }
+                };
+                // Every value below `k_EInputActionOrigin_Count` is a variant.
+                (origin != ACTION_ORIGIN_NONE && origin < ACTION_ORIGIN_COUNT)
+                    .then(|| unsafe { std::mem::transmute::<u32, sys::EInputActionOrigin>(origin) })
+            })
+            .collect()
     }
 
     pub fn get_motion_data(&self, input_handle: sys::InputHandle_t) -> sys::InputMotionData_t {
@@ -243,6 +476,79 @@ impl Input {
     pub fn shutdown(&self) {
         unsafe {
             sys::SteamAPI_ISteamInput_Shutdown(self.input);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn glyph_style_flags() {
+        use InputGlyphBaseStyle::*;
+
+        assert_eq!(InputGlyphStyle::default().to_flags(), 0);
+        assert_eq!(InputGlyphStyle::new(Knockout).to_flags(), 0);
+        assert_eq!(InputGlyphStyle::new(Light).to_flags(), 1);
+        assert_eq!(InputGlyphStyle::new(Dark).to_flags(), 2);
+
+        for (base, base_flag) in [(Knockout, 0), (Light, 1), (Dark, 2)] {
+            let style = InputGlyphStyle::new(base);
+            assert_eq!(style.neutral_color_abxy(true).to_flags(), base_flag | 16);
+            assert_eq!(style.solid_abxy(true).to_flags(), base_flag | 32);
+            assert_eq!(
+                style.neutral_color_abxy(true).solid_abxy(true).to_flags(),
+                base_flag | 16 | 32
+            );
+            assert_eq!(
+                style
+                    .neutral_color_abxy(true)
+                    .neutral_color_abxy(false)
+                    .to_flags(),
+                base_flag
+            );
+        }
+        assert_eq!(u32::from(InputGlyphStyle::new(Dark).solid_abxy(true)), 34);
+    }
+
+    #[test]
+    fn glyph_size_conversion() {
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Small) as u32,
+            0
+        );
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Medium) as u32,
+            1
+        );
+        assert_eq!(
+            sys::ESteamInputGlyphSize::from(InputGlyphSize::Large) as u32,
+            2
+        );
+    }
+
+    #[test]
+    fn backslash_replacement() {
+        assert_eq!(
+            replace_backslashes(
+                r"/MacOS\controller_base\images\api\knockout/shared_color_button_a_sm.png"
+            ),
+            "/MacOS/controller_base/images/api/knockout/shared_color_button_a_sm.png"
+        );
+        assert_eq!(replace_backslashes("a/b/c.png"), "a/b/c.png");
+        assert_eq!(replace_backslashes(""), "");
+    }
+
+    #[test]
+    fn steam_path_conversion() {
+        unsafe {
+            assert_eq!(owned_path_from_steam(std::ptr::null()), None);
+            assert_eq!(owned_path_from_steam(c"".as_ptr()), None);
+            assert_eq!(
+                owned_path_from_steam(c"glyph.png".as_ptr()),
+                Some("glyph.png".to_owned())
+            );
         }
     }
 }
