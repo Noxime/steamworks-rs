@@ -38,6 +38,7 @@ pub enum CallbackResult {
     SteamServerConnectFailure(SteamServerConnectFailure),
     SteamServersConnected(SteamServersConnected),
     SteamServersDisconnected(SteamServersDisconnected),
+    SteamShutdown(SteamShutdown),
     TicketForWebApiResponse(TicketForWebApiResponse),
     UserAchievementStored(UserAchievementStored),
     UserAchievementIconFetched(UserAchievementIconFetched),
@@ -117,6 +118,7 @@ impl CallbackResult {
             SteamServersDisconnected::ID => {
                 Self::SteamServersDisconnected(SteamServersDisconnected::from_raw(data))
             }
+            SteamShutdown::ID => Self::SteamShutdown(SteamShutdown::from_raw(data)),
             TicketForWebApiResponse::ID => {
                 Self::TicketForWebApiResponse(TicketForWebApiResponse::from_raw(data))
             }
