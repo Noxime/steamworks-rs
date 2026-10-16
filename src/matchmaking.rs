@@ -244,6 +244,10 @@ impl Matchmaking {
                 user.0,
                 key.as_ptr(),
             );
+            // May be null, for example if member has left
+            if data.is_null() {
+                return None;
+            }
             CStr::from_ptr(data)
         }
         .to_str()
@@ -958,24 +962,26 @@ impl From<ComparisonFilter> for sys::ELobbyComparison {
     }
 }
 
-/// Flags describing how a users lobby state has changed. This is provided from `LobbyChatUpdate`.
-#[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum ChatMemberStateChange {
-    /// This user has joined or is joining the lobby.
-    Entered,
-
-    /// This user has left or is leaving the lobby.
-    Left,
-
-    /// User disconnected without leaving the lobby first.
-    Disconnected,
-
-    /// The user has been kicked.
-    Kicked,
-
-    /// The user has been kicked and banned.
-    Banned,
+bitflags! {
+    /// Flags describing how a users lobby state has changed. This is provided from `LobbyChatUpdate`.
+    ///
+    /// Multiple flags can be set at once, e.g. `LEFT | DISCONNECTED` when a
+    /// user loses connection to Steam while in the lobby.
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[repr(C)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
+    pub struct ChatMemberStateChange: u32 {
+        /// This user has joined or is joining the lobby.
+        const ENTERED      = sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32;
+        /// This user has left or is leaving the lobby.
+        const LEFT         = sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32;
+        /// User disconnected without leaving the lobby first.
+        const DISCONNECTED = sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32;
+        /// The user has been kicked.
+        const KICKED       = sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32;
+        /// The user has been kicked and banned.
+        const BANNED       = sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32;
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1130,7 +1136,7 @@ pub struct LobbyChatUpdate {
     pub user_changed: SteamId,
     /// Chat member who made the change. This can be different from `user_changed` if kicking, muting, etc. For example, if one user kicks another from the lobby, this will be set to the id of the user who initiated the kick.
     pub making_change: SteamId,
-    /// "ChatMemberStateChange" values.
+    /// Bitfield of [`ChatMemberStateChange`] flags describing the change. Multiple flags may be set at once.
     pub member_state_change: ChatMemberStateChange,
 }
 
@@ -1139,26 +1145,9 @@ impl_callback!(cb: LobbyChatUpdate_t => LobbyChatUpdate {
         lobby: LobbyId(cb.m_ulSteamIDLobby),
         user_changed: SteamId(cb.m_ulSteamIDUserChanged),
         making_change: SteamId(cb.m_ulSteamIDMakingChange),
-        member_state_change: match cb.m_rgfChatMemberStateChange {
-            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32 => {
-                ChatMemberStateChange::Entered
-            }
-            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32 => {
-                ChatMemberStateChange::Left
-            }
-            x if x
-                == sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32 =>
-            {
-                ChatMemberStateChange::Disconnected
-            }
-            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32 => {
-                ChatMemberStateChange::Kicked
-            }
-            x if x == sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32 => {
-                ChatMemberStateChange::Banned
-            }
-            _ => unreachable!(),
-        },
+        member_state_change: ChatMemberStateChange::from_bits_retain(
+            cb.m_rgfChatMemberStateChange,
+        ),
     }
 });
 
