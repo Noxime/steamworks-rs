@@ -244,10 +244,7 @@ impl Matchmaking {
                 user.0,
                 key.as_ptr(),
             );
-            // GetLobbyMemberData returns NULL when the lobby or user is
-            // invalid — notably for a member who has just left the lobby.
-            // CStr::from_ptr on NULL is undefined behavior (access violation
-            // in practice), so bail out before constructing the CStr.
+            // May be null, for example if member has left
             if data.is_null() {
                 return None;
             }
@@ -975,15 +972,15 @@ bitflags! {
     #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct ChatMemberStateChange: u32 {
         /// This user has joined or is joining the lobby.
-        const ENTERED      = 0x0001;
+        const ENTERED      = sys::EChatMemberStateChange::k_EChatMemberStateChangeEntered as u32;
         /// This user has left or is leaving the lobby.
-        const LEFT         = 0x0002;
+        const LEFT         = sys::EChatMemberStateChange::k_EChatMemberStateChangeLeft as u32;
         /// User disconnected without leaving the lobby first.
-        const DISCONNECTED = 0x0004;
+        const DISCONNECTED = sys::EChatMemberStateChange::k_EChatMemberStateChangeDisconnected as u32;
         /// The user has been kicked.
-        const KICKED       = 0x0008;
+        const KICKED       = sys::EChatMemberStateChange::k_EChatMemberStateChangeKicked as u32;
         /// The user has been kicked and banned.
-        const BANNED       = 0x0010;
+        const BANNED       = sys::EChatMemberStateChange::k_EChatMemberStateChangeBanned as u32;
     }
 }
 
