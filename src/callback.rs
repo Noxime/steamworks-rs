@@ -129,9 +129,9 @@ impl CallbackResult {
             }
             UserStatsReceived::ID => Self::UserStatsReceived(UserStatsReceived::from_raw(data)),
             UserStatsStored::ID => Self::UserStatsStored(UserStatsStored::from_raw(data)),
-            UserSubscribedItemsListChanged::ID => Self::UserSubscribedItemsListChanged(
-                UserSubscribedItemsListChanged::from_raw(data),
-            ),
+            UserSubscribedItemsListChanged::ID => {
+                Self::UserSubscribedItemsListChanged(UserSubscribedItemsListChanged::from_raw(data))
+            }
             ValidateAuthTicketResponse::ID => {
                 Self::ValidateAuthTicketResponse(ValidateAuthTicketResponse::from_raw(data))
             }
