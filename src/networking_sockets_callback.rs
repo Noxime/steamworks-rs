@@ -11,6 +11,7 @@ use sys::ISteamNetworkingSockets;
 /// All independent connections (to a remote host) and listening sockets share the same Callback for
 /// `NetConnectionStatusChangedCallback`. This function either returns the existing handle, or creates a new
 /// handler.
+#[must_use = "The callback handle must be kept alive for the callback to be called"]
 pub(crate) fn get_or_create_connection_callback(
     inner: Arc<Inner>,
     sockets: *mut ISteamNetworkingSockets,
