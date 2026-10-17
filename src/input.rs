@@ -46,12 +46,14 @@ impl Input {
     /// Returns a list of the currently connected controllers
     pub fn get_connected_controllers(&self) -> Vec<sys::InputHandle_t> {
         let mut handles = vec![0_u64; sys::STEAM_INPUT_MAX_COUNT as usize];
-        let quantity = self.get_connected_controllers_slice(&mut handles);
-        handles.shrink_to(quantity);
+        let len = self.get_connected_controllers_slice(&mut handles);
+        handles.truncate(len);
         handles
     }
 
     /// Returns a list of the currently connected controllers without allocating, and the count
+    /// 
+    /// Provided slice must be at least [`sys::STEAM_INPUT_MAX_COUNT`] elements.
     pub fn get_connected_controllers_slice(
         &self,
         mut controllers: impl AsMut<[InputHandle_t]>,
