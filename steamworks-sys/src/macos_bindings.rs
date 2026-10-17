@@ -81,24 +81,40 @@ where
     }
 }
 pub const _LIBCPP_ABI_VERSION: u32 = 1;
+pub const _LIBCPP_ABI_FORCE_ITANIUM: u32 = 0;
+pub const _LIBCPP_ABI_FORCE_MICROSOFT: u32 = 0;
+pub const _LIBCPP_HAS_THREADS: u32 = 1;
+pub const _LIBCPP_HAS_MONOTONIC_CLOCK: u32 = 1;
+pub const _LIBCPP_HAS_TERMINAL: u32 = 1;
+pub const _LIBCPP_HAS_MUSL_LIBC: u32 = 0;
+pub const _LIBCPP_HAS_THREAD_API_PTHREAD: u32 = 0;
+pub const _LIBCPP_HAS_THREAD_API_EXTERNAL: u32 = 0;
+pub const _LIBCPP_HAS_THREAD_API_WIN32: u32 = 0;
+pub const _LIBCPP_HAS_THREAD_API_C11: u32 = 0;
+pub const _LIBCPP_HAS_VENDOR_AVAILABILITY_ANNOTATIONS: u32 = 1;
+pub const _LIBCPP_HAS_FILESYSTEM: u32 = 1;
+pub const _LIBCPP_HAS_RANDOM_DEVICE: u32 = 1;
+pub const _LIBCPP_HAS_LOCALIZATION: u32 = 1;
+pub const _LIBCPP_HAS_UNICODE: u32 = 1;
+pub const _LIBCPP_HAS_WIDE_CHARACTERS: u32 = 1;
+pub const _LIBCPP_HAS_TIME_ZONE_DATABASE: u32 = 0;
+pub const _LIBCPP_INSTRUMENTED_WITH_ASAN: u32 = 0;
 pub const _LIBCPP_HARDENING_MODE_DEFAULT: u32 = 2;
+pub const _LIBCPP_ASSERTION_SEMANTIC_DEFAULT: u32 = 2;
 pub const _LIBCPP_OBJECT_FORMAT_MACHO: u32 = 1;
 pub const _LIBCPP_STD_VER: u32 = 11;
-pub const _LIBCPP_INTRODUCED_IN_LLVM_19: u32 = 0;
+pub const _LIBCPP_HAS_RTTI: u32 = 1;
+pub const _LIBCPP_HAS_EXCEPTIONS: u32 = 1;
+pub const _LIBCPP_INTRODUCED_IN_LLVM_21: u32 = 0;
+pub const _LIBCPP_INTRODUCED_IN_LLVM_20: u32 = 1;
+pub const _LIBCPP_INTRODUCED_IN_LLVM_19: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_18: u32 = 1;
-pub const _LIBCPP_INTRODUCED_IN_LLVM_17: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_16: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_15: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_14: u32 = 1;
-pub const _LIBCPP_INTRODUCED_IN_LLVM_13: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_12: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_11: u32 = 1;
-pub const _LIBCPP_INTRODUCED_IN_LLVM_10: u32 = 1;
 pub const _LIBCPP_INTRODUCED_IN_LLVM_9: u32 = 1;
-pub const _LIBCPP_INTRODUCED_IN_LLVM_4: u32 = 1;
-pub const _LIBCPP_AVAILABILITY_HAS_BAD_OPTIONAL_ACCESS: u32 = 1;
-pub const _LIBCPP_AVAILABILITY_HAS_BAD_VARIANT_ACCESS: u32 = 1;
-pub const _LIBCPP_AVAILABILITY_HAS_BAD_ANY_CAST: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_FILESYSTEM_LIBRARY: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_SYNC: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_ADDITIONAL_IOSTREAM_EXPLICIT_INSTANTIATIONS_1: u32 = 1;
@@ -107,16 +123,46 @@ pub const _LIBCPP_AVAILABILITY_HAS_VERBOSE_ABORT: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_PMR: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_INIT_PRIMARY_EXCEPTION: u32 = 1;
 pub const _LIBCPP_AVAILABILITY_HAS_PRINT: u32 = 1;
-pub const _LIBCPP_AVAILABILITY_HAS_TZDB: u32 = 0;
-pub const _LIBCPP_AVAILABILITY_HAS_BAD_FUNCTION_CALL_KEY_FUNCTION: u32 = 0;
-pub const _LIBCPP_AVAILABILITY_HAS_BAD_EXPECTED_ACCESS_KEY_FUNCTION: u32 = 0;
-pub const _LIBCPP_VERSION: u32 = 190102;
+pub const _LIBCPP_AVAILABILITY_HAS_TZDB: u32 = 1;
+pub const _LIBCPP_AVAILABILITY_HAS_BAD_FUNCTION_CALL_KEY_FUNCTION: u32 = 1;
+pub const _LIBCPP_AVAILABILITY_HAS_BAD_EXPECTED_ACCESS_KEY_FUNCTION: u32 = 1;
+pub const _LIBCPP_AVAILABILITY_HAS_FROM_CHARS_FLOATING_POINT: u32 = 1;
+pub const _LIBCPP_AVAILABILITY_HAS_HASH_MEMORY: u32 = 0;
+pub const _LIBCPP_AVAILABILITY_HAS_BAD_FUNCTION_CALL_GOOD_WHAT_MESSAGE: u32 = 0;
+pub const _LIBCPP_HAS_EXPERIMENTAL_LIBRARY: u32 = 0;
+pub const _LIBCPP_HAS_EXPERIMENTAL_PSTL: u32 = 0;
+pub const _LIBCPP_HAS_EXPERIMENTAL_TZDB: u32 = 0;
+pub const _LIBCPP_HAS_EXPERIMENTAL_SYNCSTREAM: u32 = 0;
+pub const _LIBCPP_HAS_EXPERIMENTAL_HARDENING_OBSERVE_SEMANTIC: u32 = 0;
 pub const _LIBCPP_HARDENING_MODE_NONE: u32 = 2;
 pub const _LIBCPP_HARDENING_MODE_FAST: u32 = 4;
 pub const _LIBCPP_HARDENING_MODE_EXTENSIVE: u32 = 16;
 pub const _LIBCPP_HARDENING_MODE_DEBUG: u32 = 8;
 pub const _LIBCPP_HARDENING_MODE: u32 = 2;
-pub const _LIBCPP_LOCALE__L_EXTENSIONS: u32 = 1;
+pub const _LIBCPP_ASSERTION_SEMANTIC_HARDENING_DEPENDENT: u32 = 2;
+pub const _LIBCPP_ASSERTION_SEMANTIC_IGNORE: u32 = 4;
+pub const _LIBCPP_ASSERTION_SEMANTIC_OBSERVE: u32 = 8;
+pub const _LIBCPP_ASSERTION_SEMANTIC_QUICK_ENFORCE: u32 = 16;
+pub const _LIBCPP_ASSERTION_SEMANTIC_ENFORCE: u32 = 32;
+pub const _LIBCPP_ASSERTION_SEMANTIC: u32 = 16;
+pub const _LIBCPP_VERSION: u32 = 210106;
+pub const _LIBCPP_HAS_OPEN_WITH_WCHAR: u32 = 0;
+pub const _LIBCPP_HAS_BITSCAN64: u32 = 0;
+pub const _LIBCPP_HAS_BLOCKS_RUNTIME: u32 = 1;
+pub const _LIBCPP_HAS_INT128: u32 = 1;
+pub const _LIBCPP_HAS_LIBRARY_ALIGNED_ALLOCATION: u32 = 1;
+pub const _LIBCPP_HAS_ALIGNED_ALLOCATION: u32 = 0;
+pub const _LIBCPP_HAS_C11_ALIGNED_ALLOC: u32 = 1;
+pub const _LIBCPP_HAS_CHAR8_T: u32 = 0;
+pub const _LIBCPP_HAS_COND_CLOCKWAIT: u32 = 0;
+pub const _LIBCPP_HAS_TRIVIAL_MUTEX_DESTRUCTION: u32 = 0;
+pub const _LIBCPP_HAS_TRIVIAL_CONDVAR_DESTRUCTION: u32 = 0;
+pub const _LIBCPP_HAS_C_ATOMIC_IMP: u32 = 1;
+pub const _LIBCPP_HAS_GCC_ATOMIC_IMP: u32 = 0;
+pub const _LIBCPP_HAS_EXTERNAL_ATOMIC_IMP: u32 = 0;
+pub const _LIBCPP_HAS_ATOMIC_HEADER: u32 = 1;
+pub const _LIBCPP_HAS_C8RTOMB_MBRTOC8: u32 = 0;
+pub const _LIBCPP_HAS_EXPLICIT_THIS_PARAMETER: u32 = 0;
 pub const __has_safe_buffers: u32 = 1;
 pub const __DARWIN_ONLY_64_BIT_INO_T: u32 = 1;
 pub const __DARWIN_ONLY_UNIX_CONFORMANCE: u32 = 1;
@@ -234,6 +280,14 @@ pub const __MAC_15_2: u32 = 150200;
 pub const __MAC_15_3: u32 = 150300;
 pub const __MAC_15_4: u32 = 150400;
 pub const __MAC_15_5: u32 = 150500;
+pub const __MAC_15_6: u32 = 150600;
+pub const __MAC_16_0: u32 = 160000;
+pub const __MAC_26_0: u32 = 260000;
+pub const __MAC_26_1: u32 = 260100;
+pub const __MAC_26_2: u32 = 260200;
+pub const __MAC_26_3: u32 = 260300;
+pub const __MAC_26_4: u32 = 260400;
+pub const __MAC_26_5: u32 = 260500;
 pub const __IPHONE_2_0: u32 = 20000;
 pub const __IPHONE_2_1: u32 = 20100;
 pub const __IPHONE_2_2: u32 = 20200;
@@ -286,7 +340,6 @@ pub const __IPHONE_14_1: u32 = 140100;
 pub const __IPHONE_14_2: u32 = 140200;
 pub const __IPHONE_14_3: u32 = 140300;
 pub const __IPHONE_14_5: u32 = 140500;
-pub const __IPHONE_14_4: u32 = 140400;
 pub const __IPHONE_14_6: u32 = 140600;
 pub const __IPHONE_14_7: u32 = 140700;
 pub const __IPHONE_14_8: u32 = 140800;
@@ -321,6 +374,14 @@ pub const __IPHONE_18_2: u32 = 180200;
 pub const __IPHONE_18_3: u32 = 180300;
 pub const __IPHONE_18_4: u32 = 180400;
 pub const __IPHONE_18_5: u32 = 180500;
+pub const __IPHONE_18_6: u32 = 180600;
+pub const __IPHONE_19_0: u32 = 190000;
+pub const __IPHONE_26_0: u32 = 260000;
+pub const __IPHONE_26_1: u32 = 260100;
+pub const __IPHONE_26_2: u32 = 260200;
+pub const __IPHONE_26_3: u32 = 260300;
+pub const __IPHONE_26_4: u32 = 260400;
+pub const __IPHONE_26_5: u32 = 260500;
 pub const __WATCHOS_1_0: u32 = 10000;
 pub const __WATCHOS_2_0: u32 = 20000;
 pub const __WATCHOS_2_1: u32 = 20100;
@@ -376,6 +437,14 @@ pub const __WATCHOS_11_2: u32 = 110200;
 pub const __WATCHOS_11_3: u32 = 110300;
 pub const __WATCHOS_11_4: u32 = 110400;
 pub const __WATCHOS_11_5: u32 = 110500;
+pub const __WATCHOS_11_6: u32 = 110600;
+pub const __WATCHOS_12_0: u32 = 120000;
+pub const __WATCHOS_26_0: u32 = 260000;
+pub const __WATCHOS_26_1: u32 = 260100;
+pub const __WATCHOS_26_2: u32 = 260200;
+pub const __WATCHOS_26_3: u32 = 260300;
+pub const __WATCHOS_26_4: u32 = 260400;
+pub const __WATCHOS_26_5: u32 = 260500;
 pub const __TVOS_9_0: u32 = 90000;
 pub const __TVOS_9_1: u32 = 90100;
 pub const __TVOS_9_2: u32 = 90200;
@@ -431,6 +500,14 @@ pub const __TVOS_18_2: u32 = 180200;
 pub const __TVOS_18_3: u32 = 180300;
 pub const __TVOS_18_4: u32 = 180400;
 pub const __TVOS_18_5: u32 = 180500;
+pub const __TVOS_18_6: u32 = 180600;
+pub const __TVOS_19_0: u32 = 190000;
+pub const __TVOS_26_0: u32 = 260000;
+pub const __TVOS_26_1: u32 = 260100;
+pub const __TVOS_26_2: u32 = 260200;
+pub const __TVOS_26_3: u32 = 260300;
+pub const __TVOS_26_4: u32 = 260400;
+pub const __TVOS_26_5: u32 = 260500;
 pub const __BRIDGEOS_2_0: u32 = 20000;
 pub const __BRIDGEOS_3_0: u32 = 30000;
 pub const __BRIDGEOS_3_1: u32 = 30100;
@@ -464,6 +541,13 @@ pub const __BRIDGEOS_9_2: u32 = 90200;
 pub const __BRIDGEOS_9_3: u32 = 90300;
 pub const __BRIDGEOS_9_4: u32 = 90400;
 pub const __BRIDGEOS_9_5: u32 = 90500;
+pub const __BRIDGEOS_9_6: u32 = 90600;
+pub const __BRIDGEOS_10_0: u32 = 100000;
+pub const __BRIDGEOS_10_1: u32 = 100100;
+pub const __BRIDGEOS_10_2: u32 = 100200;
+pub const __BRIDGEOS_10_3: u32 = 100300;
+pub const __BRIDGEOS_10_4: u32 = 100400;
+pub const __BRIDGEOS_26_5: u32 = 260500;
 pub const __DRIVERKIT_19_0: u32 = 190000;
 pub const __DRIVERKIT_20_0: u32 = 200000;
 pub const __DRIVERKIT_21_0: u32 = 210000;
@@ -484,6 +568,13 @@ pub const __DRIVERKIT_24_2: u32 = 240200;
 pub const __DRIVERKIT_24_3: u32 = 240300;
 pub const __DRIVERKIT_24_4: u32 = 240400;
 pub const __DRIVERKIT_24_5: u32 = 240500;
+pub const __DRIVERKIT_24_6: u32 = 240600;
+pub const __DRIVERKIT_25_0: u32 = 250000;
+pub const __DRIVERKIT_25_1: u32 = 250100;
+pub const __DRIVERKIT_25_2: u32 = 250200;
+pub const __DRIVERKIT_25_3: u32 = 250300;
+pub const __DRIVERKIT_25_4: u32 = 250400;
+pub const __DRIVERKIT_25_5: u32 = 250500;
 pub const __VISIONOS_1_0: u32 = 10000;
 pub const __VISIONOS_1_1: u32 = 10100;
 pub const __VISIONOS_1_2: u32 = 10200;
@@ -494,6 +585,14 @@ pub const __VISIONOS_2_2: u32 = 20200;
 pub const __VISIONOS_2_3: u32 = 20300;
 pub const __VISIONOS_2_4: u32 = 20400;
 pub const __VISIONOS_2_5: u32 = 20500;
+pub const __VISIONOS_2_6: u32 = 20600;
+pub const __VISIONOS_3_0: u32 = 30000;
+pub const __VISIONOS_26_0: u32 = 260000;
+pub const __VISIONOS_26_1: u32 = 260100;
+pub const __VISIONOS_26_2: u32 = 260200;
+pub const __VISIONOS_26_3: u32 = 260300;
+pub const __VISIONOS_26_4: u32 = 260400;
+pub const __VISIONOS_26_5: u32 = 260500;
 pub const MAC_OS_X_VERSION_10_0: u32 = 1000;
 pub const MAC_OS_X_VERSION_10_1: u32 = 1010;
 pub const MAC_OS_X_VERSION_10_2: u32 = 1020;
@@ -564,22 +663,31 @@ pub const MAC_OS_VERSION_15_2: u32 = 150200;
 pub const MAC_OS_VERSION_15_3: u32 = 150300;
 pub const MAC_OS_VERSION_15_4: u32 = 150400;
 pub const MAC_OS_VERSION_15_5: u32 = 150500;
+pub const MAC_OS_VERSION_15_6: u32 = 150600;
+pub const MAC_OS_VERSION_16_0: u32 = 160000;
+pub const MAC_OS_VERSION_26_0: u32 = 260000;
+pub const MAC_OS_VERSION_26_1: u32 = 260100;
+pub const MAC_OS_VERSION_26_2: u32 = 260200;
+pub const MAC_OS_VERSION_26_3: u32 = 260300;
+pub const MAC_OS_VERSION_26_4: u32 = 260400;
+pub const MAC_OS_VERSION_26_5: u32 = 260500;
 pub const __AVAILABILITY_VERSIONS_VERSION_HASH: u32 = 93585900;
 pub const __AVAILABILITY_VERSIONS_VERSION_STRING: &[u8; 6] = b"Local\0";
 pub const __AVAILABILITY_FILE: &[u8; 23] = b"AvailabilityVersions.h\0";
-pub const __MAC_OS_X_VERSION_MAX_ALLOWED: u32 = 150500;
+pub const __MAC_OS_X_VERSION_MAX_ALLOWED: u32 = 260500;
 pub const __ENABLE_LEGACY_MAC_AVAILABILITY: u32 = 1;
 pub const USE_CLANG_STDDEF: u32 = 0;
 pub const STEAMCLIENT_INTERFACE_VERSION: &[u8; 15] = b"SteamClient023\0";
 pub const STEAMUSER_INTERFACE_VERSION: &[u8; 13] = b"SteamUser023\0";
 pub const STEAMFRIENDS_INTERFACE_VERSION: &[u8; 16] = b"SteamFriends018\0";
-pub const STEAMUTILS_INTERFACE_VERSION: &[u8; 14] = b"SteamUtils010\0";
+pub const STEAMUTILS_INTERFACE_VERSION: &[u8; 14] = b"SteamUtils011\0";
 pub const USE_CLANG_STDARG: u32 = 0;
 pub const RENAME_SECLUDE: u32 = 1;
 pub const RENAME_SWAP: u32 = 2;
 pub const RENAME_EXCL: u32 = 4;
 pub const RENAME_RESERVED1: u32 = 8;
 pub const RENAME_NOFOLLOW_ANY: u32 = 16;
+pub const RENAME_RESOLVE_BENEATH: u32 = 32;
 pub const SEEK_SET: u32 = 0;
 pub const SEEK_CUR: u32 = 1;
 pub const SEEK_END: u32 = 2;
@@ -614,7 +722,7 @@ pub const TMP_MAX: u32 = 308915776;
 pub const L_ctermid: u32 = 1024;
 pub const k_nMaxLobbyKeyLength: u32 = 255;
 pub const STEAMMATCHMAKING_INTERFACE_VERSION: &[u8; 20] = b"SteamMatchMaking009\0";
-pub const STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION: &[u8; 27] = b"SteamMatchMakingServers002\0";
+pub const STEAMMATCHMAKINGSERVERS_INTERFACE_VERSION: &[u8; 27] = b"SteamMatchMakingServers003\0";
 pub const STEAMPARTIES_INTERFACE_VERSION: &[u8; 16] = b"SteamParties002\0";
 pub const STEAMREMOTESTORAGE_INTERFACE_VERSION: &[u8; 40] =
     b"STEAMREMOTESTORAGE_INTERFACE_VERSION016\0";
@@ -635,7 +743,7 @@ pub const STEAM_INPUT_MAX_ORIGINS: u32 = 8;
 pub const STEAM_INPUT_MAX_ACTIVE_LAYERS: u32 = 16;
 pub const STEAM_INPUT_MIN_ANALOG_ACTION_DATA: f64 = -1.0;
 pub const STEAM_INPUT_MAX_ANALOG_ACTION_DATA: f64 = 1.0;
-pub const STEAMINPUT_INTERFACE_VERSION: &[u8; 14] = b"SteamInput006\0";
+pub const STEAMINPUT_INTERFACE_VERSION: &[u8; 14] = b"SteamInput007\0";
 pub const STEAM_CONTROLLER_MAX_COUNT: u32 = 16;
 pub const STEAM_CONTROLLER_MAX_ANALOG_ACTIONS: u32 = 24;
 pub const STEAM_CONTROLLER_MAX_DIGITAL_ACTIONS: u32 = 256;
@@ -699,7 +807,7 @@ pub const WINT_MAX: u32 = 2147483647;
 pub const SIG_ATOMIC_MIN: i32 = -2147483648;
 pub const SIG_ATOMIC_MAX: u32 = 2147483647;
 pub const STEAMNETWORKINGMESSAGES_INTERFACE_VERSION: &[u8; 27] = b"SteamNetworkingMessages002\0";
-pub const STEAMNETWORKINGSOCKETS_INTERFACE_VERSION: &[u8; 26] = b"SteamNetworkingSockets012\0";
+pub const STEAMNETWORKINGSOCKETS_INTERFACE_VERSION: &[u8; 26] = b"SteamNetworkingSockets013\0";
 pub const STEAMNETWORKINGUTILS_INTERFACE_VERSION: &[u8; 24] = b"SteamNetworkingUtils004\0";
 pub const STEAMGAMESERVER_INTERFACE_VERSION: &[u8; 19] = b"SteamGameServer015\0";
 pub const STEAMGAMESERVERSTATS_INTERFACE_VERSION: &[u8; 24] = b"SteamGameServerStats001\0";
@@ -1611,7 +1719,6 @@ pub enum CGameID_EGameIDType {
     k_EGameIDTypeApp = 0,
     k_EGameIDTypeGameMod = 1,
     k_EGameIDTypeShortcut = 2,
-    k_EGameIDTypeP2P = 3,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5367,6 +5474,28 @@ pub enum ETextFilteringContext {
     k_ETextFilteringContextChat = 2,
     k_ETextFilteringContextName = 3,
 }
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ESteamHardwareType {
+    k_ESteamHardwareTypeNone = 0,
+    k_ESteamHardwareTypeSteamDeck = 1,
+    k_ESteamHardwareTypeSteamMachine = 2,
+    k_ESteamHardwareTypeSteamFrame = 3,
+}
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ESteamHardwareDefaultConfig {
+    k_ESteamHardwareDefaultConfigNone = 0,
+    k_ESteamHardwareDefaultConfigLow = 1,
+    k_ESteamHardwareDefaultConfigMedium = 2,
+    k_ESteamHardwareDefaultConfigHigh = 3,
+    k_ESteamHardwareDefaultConfigMax = 4,
+    k_ESteamHardwareDefaultConfigSteamDeck = 5,
+    k_ESteamHardwareDefaultConfigSteamMachine = 6,
+    k_ESteamHardwareDefaultConfigSteamFrame = 7,
+}
 #[repr(C)]
 pub struct ISteamUtils__bindgen_vtable(::std::os::raw::c_void);
 #[repr(C)]
@@ -6214,6 +6343,10 @@ pub struct gameserveritem_t {
     pub m_szGameTags: [::std::os::raw::c_char; 128usize],
     #[doc = " steamID of the game server - invalid if it's doesn't have one (old server, or not connected to Steam)"]
     pub m_steamID: CSteamID,
+    #[doc = "< count of friends currently on server"]
+    pub m_nCurrentFriendCount: ::std::os::raw::c_int,
+    #[doc = "< total count of friends who have played on server"]
+    pub m_nTotalFriendCount: ::std::os::raw::c_int,
 }
 #[test]
 fn bindgen_test_layout_gameserveritem_t() {
@@ -6221,7 +6354,7 @@ fn bindgen_test_layout_gameserveritem_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<gameserveritem_t>(),
-        372usize,
+        380usize,
         concat!("Size of: ", stringify!(gameserveritem_t))
     );
     assert_eq!(
@@ -6409,6 +6542,26 @@ fn bindgen_test_layout_gameserveritem_t() {
             stringify!(m_steamID)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).m_nCurrentFriendCount) as usize - ptr as usize },
+        372usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(gameserveritem_t),
+            "::",
+            stringify!(m_nCurrentFriendCount)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).m_nTotalFriendCount) as usize - ptr as usize },
+        376usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(gameserveritem_t),
+            "::",
+            stringify!(m_nTotalFriendCount)
+        )
+    );
 }
 #[repr(u32)]
 #[non_exhaustive]
@@ -6545,6 +6698,32 @@ fn bindgen_test_layout_ISteamMatchmakingRulesResponse() {
         ::std::mem::align_of::<ISteamMatchmakingRulesResponse>(),
         8usize,
         concat!("Alignment of ", stringify!(ISteamMatchmakingRulesResponse))
+    );
+}
+#[repr(C)]
+pub struct ISteamMatchmakingServerFriendsResponse__bindgen_vtable(::std::os::raw::c_void);
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ISteamMatchmakingServerFriendsResponse {
+    pub vtable_: *const ISteamMatchmakingServerFriendsResponse__bindgen_vtable,
+}
+#[test]
+fn bindgen_test_layout_ISteamMatchmakingServerFriendsResponse() {
+    assert_eq!(
+        ::std::mem::size_of::<ISteamMatchmakingServerFriendsResponse>(),
+        8usize,
+        concat!(
+            "Size of: ",
+            stringify!(ISteamMatchmakingServerFriendsResponse)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ISteamMatchmakingServerFriendsResponse>(),
+        8usize,
+        concat!(
+            "Alignment of ",
+            stringify!(ISteamMatchmakingServerFriendsResponse)
+        )
     );
 }
 pub type HServerQuery = ::std::os::raw::c_int;
@@ -10641,6 +10820,17 @@ fn bindgen_test_layout_GlobalStatsReceived_t() {
     );
 }
 pub const k_cubAppProofOfPurchaseKeyMax: ::std::os::raw::c_int = 240;
+#[repr(u32)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum EGamePerformanceSetting {
+    k_EGamePerformanceSetting_NotSet = 0,
+    k_EGamePerformanceSetting_Low = 1,
+    k_EGamePerformanceSetting_Medium = 2,
+    k_EGamePerformanceSetting_High = 3,
+    k_EGamePerformanceSetting_Ultra = 4,
+    k_EGamePerformanceSetting_Custom = 5,
+}
 #[repr(C)]
 pub struct ISteamApps__bindgen_vtable(::std::os::raw::c_void);
 #[repr(C)]
@@ -12305,7 +12495,207 @@ pub enum EInputActionOrigin {
     k_EInputActionOrigin_Generic_MISC6 = 492,
     k_EInputActionOrigin_Generic_MISC7 = 493,
     k_EInputActionOrigin_Generic_MISC8 = 494,
-    k_EInputActionOrigin_Count = 495,
+    k_EInputActionOrigin_Switch2_A = 495,
+    k_EInputActionOrigin_Switch2_B = 496,
+    k_EInputActionOrigin_Switch2_X = 497,
+    k_EInputActionOrigin_Switch2_Y = 498,
+    k_EInputActionOrigin_Switch2_LeftBumper = 499,
+    k_EInputActionOrigin_Switch2_RightBumper = 500,
+    k_EInputActionOrigin_Switch2_Plus = 501,
+    k_EInputActionOrigin_Switch2_Minus = 502,
+    k_EInputActionOrigin_Switch2_Capture = 503,
+    k_EInputActionOrigin_Switch2_LeftTrigger_Pull = 504,
+    k_EInputActionOrigin_Switch2_LeftTrigger_Click = 505,
+    k_EInputActionOrigin_Switch2_RightTrigger_Pull = 506,
+    k_EInputActionOrigin_Switch2_RightTrigger_Click = 507,
+    k_EInputActionOrigin_Switch2_LeftStick_Move = 508,
+    k_EInputActionOrigin_Switch2_LeftStick_Click = 509,
+    k_EInputActionOrigin_Switch2_LeftStick_DPadNorth = 510,
+    k_EInputActionOrigin_Switch2_LeftStick_DPadSouth = 511,
+    k_EInputActionOrigin_Switch2_LeftStick_DPadWest = 512,
+    k_EInputActionOrigin_Switch2_LeftStick_DPadEast = 513,
+    k_EInputActionOrigin_Switch2_RightStick_Move = 514,
+    k_EInputActionOrigin_Switch2_RightStick_Click = 515,
+    k_EInputActionOrigin_Switch2_RightStick_DPadNorth = 516,
+    k_EInputActionOrigin_Switch2_RightStick_DPadSouth = 517,
+    k_EInputActionOrigin_Switch2_RightStick_DPadWest = 518,
+    k_EInputActionOrigin_Switch2_RightStick_DPadEast = 519,
+    k_EInputActionOrigin_Switch2_DPad_Move = 520,
+    k_EInputActionOrigin_Switch2_DPad_North = 521,
+    k_EInputActionOrigin_Switch2_DPad_South = 522,
+    k_EInputActionOrigin_Switch2_DPad_West = 523,
+    k_EInputActionOrigin_Switch2_DPad_East = 524,
+    k_EInputActionOrigin_Switch2_ProGyro_Move = 525,
+    k_EInputActionOrigin_Switch2_ProGyro_Pitch = 526,
+    k_EInputActionOrigin_Switch2_ProGyro_Yaw = 527,
+    k_EInputActionOrigin_Switch2_ProGyro_Roll = 528,
+    k_EInputActionOrigin_Switch2_GL = 529,
+    k_EInputActionOrigin_Switch2_GR = 530,
+    k_EInputActionOrigin_Switch2_C = 531,
+    k_EInputActionOrigin_Switch2_Reserved1 = 532,
+    k_EInputActionOrigin_Switch2_Reserved2 = 533,
+    k_EInputActionOrigin_Switch2_Reserved3 = 534,
+    k_EInputActionOrigin_Switch2_Reserved4 = 535,
+    k_EInputActionOrigin_Switch2_Reserved5 = 536,
+    k_EInputActionOrigin_Switch2_Reserved6 = 537,
+    k_EInputActionOrigin_Switch2_Reserved7 = 538,
+    k_EInputActionOrigin_Switch2_Reserved8 = 539,
+    k_EInputActionOrigin_Switch2_Reserved9 = 540,
+    k_EInputActionOrigin_Switch2_Reserved10 = 541,
+    k_EInputActionOrigin_SteamController2026_A = 542,
+    k_EInputActionOrigin_SteamController2026_B = 543,
+    k_EInputActionOrigin_SteamController2026_X = 544,
+    k_EInputActionOrigin_SteamController2026_Y = 545,
+    k_EInputActionOrigin_SteamController2026_L1 = 546,
+    k_EInputActionOrigin_SteamController2026_R1 = 547,
+    k_EInputActionOrigin_SteamController2026_Menu = 548,
+    k_EInputActionOrigin_SteamController2026_View = 549,
+    k_EInputActionOrigin_SteamController2026_LeftPad_Touch = 550,
+    k_EInputActionOrigin_SteamController2026_LeftPad_Swipe = 551,
+    k_EInputActionOrigin_SteamController2026_LeftPad_Click = 552,
+    k_EInputActionOrigin_SteamController2026_LeftPad_DPadNorth = 553,
+    k_EInputActionOrigin_SteamController2026_LeftPad_DPadSouth = 554,
+    k_EInputActionOrigin_SteamController2026_LeftPad_DPadWest = 555,
+    k_EInputActionOrigin_SteamController2026_LeftPad_DPadEast = 556,
+    k_EInputActionOrigin_SteamController2026_RightPad_Touch = 557,
+    k_EInputActionOrigin_SteamController2026_RightPad_Swipe = 558,
+    k_EInputActionOrigin_SteamController2026_RightPad_Click = 559,
+    k_EInputActionOrigin_SteamController2026_RightPad_DPadNorth = 560,
+    k_EInputActionOrigin_SteamController2026_RightPad_DPadSouth = 561,
+    k_EInputActionOrigin_SteamController2026_RightPad_DPadWest = 562,
+    k_EInputActionOrigin_SteamController2026_RightPad_DPadEast = 563,
+    k_EInputActionOrigin_SteamController2026_L2_SoftPull = 564,
+    k_EInputActionOrigin_SteamController2026_L2 = 565,
+    k_EInputActionOrigin_SteamController2026_R2_SoftPull = 566,
+    k_EInputActionOrigin_SteamController2026_R2 = 567,
+    k_EInputActionOrigin_SteamController2026_LeftStick_Move = 568,
+    k_EInputActionOrigin_SteamController2026_L3 = 569,
+    k_EInputActionOrigin_SteamController2026_LeftStick_DPadNorth = 570,
+    k_EInputActionOrigin_SteamController2026_LeftStick_DPadSouth = 571,
+    k_EInputActionOrigin_SteamController2026_LeftStick_DPadWest = 572,
+    k_EInputActionOrigin_SteamController2026_LeftStick_DPadEast = 573,
+    k_EInputActionOrigin_SteamController2026_LeftStick_Touch = 574,
+    k_EInputActionOrigin_SteamController2026_RightStick_Move = 575,
+    k_EInputActionOrigin_SteamController2026_R3 = 576,
+    k_EInputActionOrigin_SteamController2026_RightStick_DPadNorth = 577,
+    k_EInputActionOrigin_SteamController2026_RightStick_DPadSouth = 578,
+    k_EInputActionOrigin_SteamController2026_RightStick_DPadWest = 579,
+    k_EInputActionOrigin_SteamController2026_RightStick_DPadEast = 580,
+    k_EInputActionOrigin_SteamController2026_RightStick_Touch = 581,
+    k_EInputActionOrigin_SteamController2026_L4 = 582,
+    k_EInputActionOrigin_SteamController2026_R4 = 583,
+    k_EInputActionOrigin_SteamController2026_L5 = 584,
+    k_EInputActionOrigin_SteamController2026_R5 = 585,
+    k_EInputActionOrigin_SteamController2026_DPad_Move = 586,
+    k_EInputActionOrigin_SteamController2026_DPad_North = 587,
+    k_EInputActionOrigin_SteamController2026_DPad_South = 588,
+    k_EInputActionOrigin_SteamController2026_DPad_West = 589,
+    k_EInputActionOrigin_SteamController2026_DPad_East = 590,
+    k_EInputActionOrigin_SteamController2026_Gyro_Move = 591,
+    k_EInputActionOrigin_SteamController2026_Gyro_Pitch = 592,
+    k_EInputActionOrigin_SteamController2026_Gyro_Yaw = 593,
+    k_EInputActionOrigin_SteamController2026_Gyro_Roll = 594,
+    k_EInputActionOrigin_SteamController2026_LGrip = 595,
+    k_EInputActionOrigin_SteamController2026_RGrip = 596,
+    k_EInputActionOrigin_SteamController2026_Reserved1 = 597,
+    k_EInputActionOrigin_SteamController2026_Reserved2 = 598,
+    k_EInputActionOrigin_SteamController2026_Reserved3 = 599,
+    k_EInputActionOrigin_SteamController2026_Reserved4 = 600,
+    k_EInputActionOrigin_SteamController2026_Reserved5 = 601,
+    k_EInputActionOrigin_SteamController2026_Reserved6 = 602,
+    k_EInputActionOrigin_SteamController2026_Reserved7 = 603,
+    k_EInputActionOrigin_SteamController2026_Reserved8 = 604,
+    k_EInputActionOrigin_SteamController2026_Reserved9 = 605,
+    k_EInputActionOrigin_SteamController2026_Reserved10 = 606,
+    k_EInputActionOrigin_SteamController2026_Reserved11 = 607,
+    k_EInputActionOrigin_SteamController2026_Reserved12 = 608,
+    k_EInputActionOrigin_SteamController2026_Reserved13 = 609,
+    k_EInputActionOrigin_SteamController2026_Reserved14 = 610,
+    k_EInputActionOrigin_SteamController2026_Reserved15 = 611,
+    k_EInputActionOrigin_SteamController2026_Reserved16 = 612,
+    k_EInputActionOrigin_SteamController2026_Reserved17 = 613,
+    k_EInputActionOrigin_SteamController2026_Reserved18 = 614,
+    k_EInputActionOrigin_SteamController2026_Reserved19 = 615,
+    k_EInputActionOrigin_SteamController2026_Reserved20 = 616,
+    k_EInputActionOrigin_SteamFrameController_A_Click = 617,
+    k_EInputActionOrigin_SteamFrameController_A_Touch = 618,
+    k_EInputActionOrigin_SteamFrameController_B_Click = 619,
+    k_EInputActionOrigin_SteamFrameController_B_Touch = 620,
+    k_EInputActionOrigin_SteamFrameController_X_Click = 621,
+    k_EInputActionOrigin_SteamFrameController_X_Touch = 622,
+    k_EInputActionOrigin_SteamFrameController_Y_Click = 623,
+    k_EInputActionOrigin_SteamFrameController_Y_Touch = 624,
+    k_EInputActionOrigin_SteamFrameController_LeftTrigger_Pull = 625,
+    k_EInputActionOrigin_SteamFrameController_LeftTrigger_Click = 626,
+    k_EInputActionOrigin_SteamFrameController_LeftTrigger_Touch = 627,
+    k_EInputActionOrigin_SteamFrameController_RightTrigger_Pull = 628,
+    k_EInputActionOrigin_SteamFrameController_RightTrigger_Click = 629,
+    k_EInputActionOrigin_SteamFrameController_RightTrigger_Touch = 630,
+    k_EInputActionOrigin_SteamFrameController_Menu_Click = 631,
+    k_EInputActionOrigin_SteamFrameController_Menu_Touch = 632,
+    k_EInputActionOrigin_SteamFrameController_View_Click = 633,
+    k_EInputActionOrigin_SteamFrameController_View_Touch = 634,
+    k_EInputActionOrigin_SteamFrameController_LeftBumper_Click = 635,
+    k_EInputActionOrigin_SteamFrameController_LeftBumper_Touch = 636,
+    k_EInputActionOrigin_SteamFrameController_RightBumper_Click = 637,
+    k_EInputActionOrigin_SteamFrameController_RightBumper_Touch = 638,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_Move = 639,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_Click = 640,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_DPadNorth = 641,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_DPadSouth = 642,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_DPadWest = 643,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_DPadEast = 644,
+    k_EInputActionOrigin_SteamFrameController_LeftStick_Touch = 645,
+    k_EInputActionOrigin_SteamFrameController_RightStick_Move = 646,
+    k_EInputActionOrigin_SteamFrameController_RightStick_Click = 647,
+    k_EInputActionOrigin_SteamFrameController_RightStick_DPadNorth = 648,
+    k_EInputActionOrigin_SteamFrameController_RightStick_DPadSouth = 649,
+    k_EInputActionOrigin_SteamFrameController_RightStick_DPadWest = 650,
+    k_EInputActionOrigin_SteamFrameController_RightStick_DPadEast = 651,
+    k_EInputActionOrigin_SteamFrameController_RightStick_Touch = 652,
+    k_EInputActionOrigin_SteamFrameController_DPad_Move = 653,
+    k_EInputActionOrigin_SteamFrameController_DPad_North = 654,
+    k_EInputActionOrigin_SteamFrameController_DPad_South = 655,
+    k_EInputActionOrigin_SteamFrameController_DPad_West = 656,
+    k_EInputActionOrigin_SteamFrameController_DPad_East = 657,
+    k_EInputActionOrigin_SteamFrameController_DPad_Touch = 658,
+    k_EInputActionOrigin_SteamFrameController_LeftGyro_Move = 659,
+    k_EInputActionOrigin_SteamFrameController_LeftGyro_Pitch = 660,
+    k_EInputActionOrigin_SteamFrameController_LeftGyro_Yaw = 661,
+    k_EInputActionOrigin_SteamFrameController_LeftGyro_Roll = 662,
+    k_EInputActionOrigin_SteamFrameController_RightGyro_Move = 663,
+    k_EInputActionOrigin_SteamFrameController_RightGyro_Pitch = 664,
+    k_EInputActionOrigin_SteamFrameController_RightGyro_Yaw = 665,
+    k_EInputActionOrigin_SteamFrameController_RightGyro_Roll = 666,
+    k_EInputActionOrigin_SteamFrameController_LeftGrip_Pull = 667,
+    k_EInputActionOrigin_SteamFrameController_LeftGrip_Click = 668,
+    k_EInputActionOrigin_SteamFrameController_LeftGrip_Touch = 669,
+    k_EInputActionOrigin_SteamFrameController_RightGrip_Pull = 670,
+    k_EInputActionOrigin_SteamFrameController_RightGrip_Click = 671,
+    k_EInputActionOrigin_SteamFrameController_RightGrip_Touch = 672,
+    k_EInputActionOrigin_SteamFrameController_LeftThumbrest_Touch = 673,
+    k_EInputActionOrigin_SteamFrameController_RightThumbrest_Touch = 674,
+    k_EInputActionOrigin_SteamFrameController_Reserved1 = 675,
+    k_EInputActionOrigin_SteamFrameController_Reserved2 = 676,
+    k_EInputActionOrigin_SteamFrameController_Reserved3 = 677,
+    k_EInputActionOrigin_SteamFrameController_Reserved4 = 678,
+    k_EInputActionOrigin_SteamFrameController_Reserved5 = 679,
+    k_EInputActionOrigin_SteamFrameController_Reserved6 = 680,
+    k_EInputActionOrigin_SteamFrameController_Reserved7 = 681,
+    k_EInputActionOrigin_SteamFrameController_Reserved8 = 682,
+    k_EInputActionOrigin_SteamFrameController_Reserved9 = 683,
+    k_EInputActionOrigin_SteamFrameController_Reserved10 = 684,
+    k_EInputActionOrigin_SteamFrameController_Reserved11 = 685,
+    k_EInputActionOrigin_SteamFrameController_Reserved12 = 686,
+    k_EInputActionOrigin_SteamFrameController_Reserved13 = 687,
+    k_EInputActionOrigin_SteamFrameController_Reserved14 = 688,
+    k_EInputActionOrigin_SteamFrameController_Reserved15 = 689,
+    k_EInputActionOrigin_SteamFrameController_Reserved16 = 690,
+    k_EInputActionOrigin_SteamFrameController_Reserved17 = 691,
+    k_EInputActionOrigin_SteamFrameController_Reserved18 = 692,
+    k_EInputActionOrigin_SteamFrameController_Reserved19 = 693,
+    k_EInputActionOrigin_SteamFrameController_Reserved20 = 694,
+    k_EInputActionOrigin_Count = 695,
     k_EInputActionOrigin_MaximumPossibleValue = 32767,
 }
 #[repr(u32)]
@@ -12348,6 +12738,10 @@ pub enum EXboxOrigin {
 pub enum ESteamControllerPad {
     k_ESteamControllerPad_Left = 0,
     k_ESteamControllerPad_Right = 1,
+    k_ESteamControllerPad_Both = 2,
+    k_ESteamControllerGrip_Left = 3,
+    k_ESteamControllerGrip_Right = 4,
+    k_ESteamControllerGrip_Both = 5,
 }
 #[repr(u32)]
 #[non_exhaustive]
@@ -12384,7 +12778,11 @@ pub enum ESteamInputType {
     k_ESteamInputType_PS3Controller = 12,
     k_ESteamInputType_PS5Controller = 13,
     k_ESteamInputType_SteamDeckController = 14,
-    k_ESteamInputType_Count = 15,
+    k_ESteamInputType_SteamOSHandheld = 15,
+    k_ESteamInputType_Switch2ProController = 16,
+    k_ESteamInputType_SteamController2026 = 17,
+    k_ESteamInputType_SteamFrameControllerPair = 18,
+    k_ESteamInputType_Count = 19,
     k_ESteamInputType_MaximumPossibleValue = 255,
 }
 #[repr(u32)]
@@ -13631,7 +14029,207 @@ pub enum EControllerActionOrigin {
     k_EControllerActionOrigin_Generic_MISC6 = 472,
     k_EControllerActionOrigin_Generic_MISC7 = 473,
     k_EControllerActionOrigin_Generic_MISC8 = 474,
-    k_EControllerActionOrigin_Count = 475,
+    k_EControllerActionOrigin_Switch2_A = 475,
+    k_EControllerActionOrigin_Switch2_B = 476,
+    k_EControllerActionOrigin_Switch2_X = 477,
+    k_EControllerActionOrigin_Switch2_Y = 478,
+    k_EControllerActionOrigin_Switch2_LeftBumper = 479,
+    k_EControllerActionOrigin_Switch2_RightBumper = 480,
+    k_EControllerActionOrigin_Switch2_Plus = 481,
+    k_EControllerActionOrigin_Switch2_Minus = 482,
+    k_EControllerActionOrigin_Switch2_Capture = 483,
+    k_EControllerActionOrigin_Switch2_LeftTrigger_Pull = 484,
+    k_EControllerActionOrigin_Switch2_LeftTrigger_Click = 485,
+    k_EControllerActionOrigin_Switch2_RightTrigger_Pull = 486,
+    k_EControllerActionOrigin_Switch2_RightTrigger_Click = 487,
+    k_EControllerActionOrigin_Switch2_LeftStick_Move = 488,
+    k_EControllerActionOrigin_Switch2_LeftStick_Click = 489,
+    k_EControllerActionOrigin_Switch2_LeftStick_DPadNorth = 490,
+    k_EControllerActionOrigin_Switch2_LeftStick_DPadSouth = 491,
+    k_EControllerActionOrigin_Switch2_LeftStick_DPadWest = 492,
+    k_EControllerActionOrigin_Switch2_LeftStick_DPadEast = 493,
+    k_EControllerActionOrigin_Switch2_RightStick_Move = 494,
+    k_EControllerActionOrigin_Switch2_RightStick_Click = 495,
+    k_EControllerActionOrigin_Switch2_RightStick_DPadNorth = 496,
+    k_EControllerActionOrigin_Switch2_RightStick_DPadSouth = 497,
+    k_EControllerActionOrigin_Switch2_RightStick_DPadWest = 498,
+    k_EControllerActionOrigin_Switch2_RightStick_DPadEast = 499,
+    k_EControllerActionOrigin_Switch2_DPad_Move = 500,
+    k_EControllerActionOrigin_Switch2_DPad_North = 501,
+    k_EControllerActionOrigin_Switch2_DPad_South = 502,
+    k_EControllerActionOrigin_Switch2_DPad_West = 503,
+    k_EControllerActionOrigin_Switch2_DPad_East = 504,
+    k_EControllerActionOrigin_Switch2_ProGyro_Move = 505,
+    k_EControllerActionOrigin_Switch2_ProGyro_Pitch = 506,
+    k_EControllerActionOrigin_Switch2_ProGyro_Yaw = 507,
+    k_EControllerActionOrigin_Switch2_ProGyro_Roll = 508,
+    k_EControllerActionOrigin_Switch2_GL = 509,
+    k_EControllerActionOrigin_Switch2_GR = 510,
+    k_EControllerActionOrigin_Switch2_C = 511,
+    k_EControllerActionOrigin_Switch2_Reserved1 = 512,
+    k_EControllerActionOrigin_Switch2_Reserved2 = 513,
+    k_EControllerActionOrigin_Switch2_Reserved3 = 514,
+    k_EControllerActionOrigin_Switch2_Reserved4 = 515,
+    k_EControllerActionOrigin_Switch2_Reserved5 = 516,
+    k_EControllerActionOrigin_Switch2_Reserved6 = 517,
+    k_EControllerActionOrigin_Switch2_Reserved7 = 518,
+    k_EControllerActionOrigin_Switch2_Reserved8 = 519,
+    k_EControllerActionOrigin_Switch2_Reserved9 = 520,
+    k_EControllerActionOrigin_Switch2_Reserved10 = 521,
+    k_EControllerActionOrigin_SteamController2026_A = 522,
+    k_EControllerActionOrigin_SteamController2026_B = 523,
+    k_EControllerActionOrigin_SteamController2026_X = 524,
+    k_EControllerActionOrigin_SteamController2026_Y = 525,
+    k_EControllerActionOrigin_SteamController2026_L1 = 526,
+    k_EControllerActionOrigin_SteamController2026_R1 = 527,
+    k_EControllerActionOrigin_SteamController2026_Menu = 528,
+    k_EControllerActionOrigin_SteamController2026_View = 529,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_Touch = 530,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_Swipe = 531,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_Click = 532,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_DPadNorth = 533,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_DPadSouth = 534,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_DPadWest = 535,
+    k_EControllerActionOrigin_SteamController2026_LeftPad_DPadEast = 536,
+    k_EControllerActionOrigin_SteamController2026_RightPad_Touch = 537,
+    k_EControllerActionOrigin_SteamController2026_RightPad_Swipe = 538,
+    k_EControllerActionOrigin_SteamController2026_RightPad_Click = 539,
+    k_EControllerActionOrigin_SteamController2026_RightPad_DPadNorth = 540,
+    k_EControllerActionOrigin_SteamController2026_RightPad_DPadSouth = 541,
+    k_EControllerActionOrigin_SteamController2026_RightPad_DPadWest = 542,
+    k_EControllerActionOrigin_SteamController2026_RightPad_DPadEast = 543,
+    k_EControllerActionOrigin_SteamController2026_L2_SoftPull = 544,
+    k_EControllerActionOrigin_SteamController2026_L2 = 545,
+    k_EControllerActionOrigin_SteamController2026_R2_SoftPull = 546,
+    k_EControllerActionOrigin_SteamController2026_R2 = 547,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_Move = 548,
+    k_EControllerActionOrigin_SteamController2026_L3 = 549,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_DPadNorth = 550,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_DPadSouth = 551,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_DPadWest = 552,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_DPadEast = 553,
+    k_EControllerActionOrigin_SteamController2026_LeftStick_Touch = 554,
+    k_EControllerActionOrigin_SteamController2026_RightStick_Move = 555,
+    k_EControllerActionOrigin_SteamController2026_R3 = 556,
+    k_EControllerActionOrigin_SteamController2026_RightStick_DPadNorth = 557,
+    k_EControllerActionOrigin_SteamController2026_RightStick_DPadSouth = 558,
+    k_EControllerActionOrigin_SteamController2026_RightStick_DPadWest = 559,
+    k_EControllerActionOrigin_SteamController2026_RightStick_DPadEast = 560,
+    k_EControllerActionOrigin_SteamController2026_RightStick_Touch = 561,
+    k_EControllerActionOrigin_SteamController2026_L4 = 562,
+    k_EControllerActionOrigin_SteamController2026_R4 = 563,
+    k_EControllerActionOrigin_SteamController2026_L5 = 564,
+    k_EControllerActionOrigin_SteamController2026_R5 = 565,
+    k_EControllerActionOrigin_SteamController2026_DPad_Move = 566,
+    k_EControllerActionOrigin_SteamController2026_DPad_North = 567,
+    k_EControllerActionOrigin_SteamController2026_DPad_South = 568,
+    k_EControllerActionOrigin_SteamController2026_DPad_West = 569,
+    k_EControllerActionOrigin_SteamController2026_DPad_East = 570,
+    k_EControllerActionOrigin_SteamController2026_Gyro_Move = 571,
+    k_EControllerActionOrigin_SteamController2026_Gyro_Pitch = 572,
+    k_EControllerActionOrigin_SteamController2026_Gyro_Yaw = 573,
+    k_EControllerActionOrigin_SteamController2026_Gyro_Roll = 574,
+    k_EControllerActionOrigin_SteamController2026_LGrip = 575,
+    k_EControllerActionOrigin_SteamController2026_RGrip = 576,
+    k_EControllerActionOrigin_SteamController2026_Reserved1 = 577,
+    k_EControllerActionOrigin_SteamController2026_Reserved2 = 578,
+    k_EControllerActionOrigin_SteamController2026_Reserved3 = 579,
+    k_EControllerActionOrigin_SteamController2026_Reserved4 = 580,
+    k_EControllerActionOrigin_SteamController2026_Reserved5 = 581,
+    k_EControllerActionOrigin_SteamController2026_Reserved6 = 582,
+    k_EControllerActionOrigin_SteamController2026_Reserved7 = 583,
+    k_EControllerActionOrigin_SteamController2026_Reserved8 = 584,
+    k_EControllerActionOrigin_SteamController2026_Reserved9 = 585,
+    k_EControllerActionOrigin_SteamController2026_Reserved10 = 586,
+    k_EControllerActionOrigin_SteamController2026_Reserved11 = 587,
+    k_EControllerActionOrigin_SteamController2026_Reserved12 = 588,
+    k_EControllerActionOrigin_SteamController2026_Reserved13 = 589,
+    k_EControllerActionOrigin_SteamController2026_Reserved14 = 590,
+    k_EControllerActionOrigin_SteamController2026_Reserved15 = 591,
+    k_EControllerActionOrigin_SteamController2026_Reserved16 = 592,
+    k_EControllerActionOrigin_SteamController2026_Reserved17 = 593,
+    k_EControllerActionOrigin_SteamController2026_Reserved18 = 594,
+    k_EControllerActionOrigin_SteamController2026_Reserved19 = 595,
+    k_EControllerActionOrigin_SteamController2026_Reserved20 = 596,
+    k_EControllerActionOrigin_SteamFrameController_A_Click = 597,
+    k_EControllerActionOrigin_SteamFrameController_A_Touch = 598,
+    k_EControllerActionOrigin_SteamFrameController_B_Click = 599,
+    k_EControllerActionOrigin_SteamFrameController_B_Touch = 600,
+    k_EControllerActionOrigin_SteamFrameController_X_Click = 601,
+    k_EControllerActionOrigin_SteamFrameController_X_Touch = 602,
+    k_EControllerActionOrigin_SteamFrameController_Y_Click = 603,
+    k_EControllerActionOrigin_SteamFrameController_Y_Touch = 604,
+    k_EControllerActionOrigin_SteamFrameController_LeftTrigger_Pull = 605,
+    k_EControllerActionOrigin_SteamFrameController_LeftTrigger_Click = 606,
+    k_EControllerActionOrigin_SteamFrameController_LeftTrigger_Touch = 607,
+    k_EControllerActionOrigin_SteamFrameController_RightTrigger_Pull = 608,
+    k_EControllerActionOrigin_SteamFrameController_RightTrigger_Click = 609,
+    k_EControllerActionOrigin_SteamFrameController_RightTrigger_Touch = 610,
+    k_EControllerActionOrigin_SteamFrameController_Menu_Click = 611,
+    k_EControllerActionOrigin_SteamFrameController_Menu_Touch = 612,
+    k_EControllerActionOrigin_SteamFrameController_View_Click = 613,
+    k_EControllerActionOrigin_SteamFrameController_View_Touch = 614,
+    k_EControllerActionOrigin_SteamFrameController_LeftBumper_Click = 615,
+    k_EControllerActionOrigin_SteamFrameController_LeftBumper_Touch = 616,
+    k_EControllerActionOrigin_SteamFrameController_RightBumper_Click = 617,
+    k_EControllerActionOrigin_SteamFrameController_RightBumper_Touch = 618,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_Move = 619,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_Click = 620,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_DPadNorth = 621,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_DPadSouth = 622,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_DPadWest = 623,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_DPadEast = 624,
+    k_EControllerActionOrigin_SteamFrameController_LeftStick_Touch = 625,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_Move = 626,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_Click = 627,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_DPadNorth = 628,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_DPadSouth = 629,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_DPadWest = 630,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_DPadEast = 631,
+    k_EControllerActionOrigin_SteamFrameController_RightStick_Touch = 632,
+    k_EControllerActionOrigin_SteamFrameController_DPad_Move = 633,
+    k_EControllerActionOrigin_SteamFrameController_DPad_North = 634,
+    k_EControllerActionOrigin_SteamFrameController_DPad_South = 635,
+    k_EControllerActionOrigin_SteamFrameController_DPad_West = 636,
+    k_EControllerActionOrigin_SteamFrameController_DPad_East = 637,
+    k_EControllerActionOrigin_SteamFrameController_DPad_Touch = 638,
+    k_EControllerActionOrigin_SteamFrameController_LeftGyro_Move = 639,
+    k_EControllerActionOrigin_SteamFrameController_LeftGyro_Pitch = 640,
+    k_EControllerActionOrigin_SteamFrameController_LeftGyro_Yaw = 641,
+    k_EControllerActionOrigin_SteamFrameController_LeftGyro_Roll = 642,
+    k_EControllerActionOrigin_SteamFrameController_RightGyro_Move = 643,
+    k_EControllerActionOrigin_SteamFrameController_RightGyro_Pitch = 644,
+    k_EControllerActionOrigin_SteamFrameController_RightGyro_Yaw = 645,
+    k_EControllerActionOrigin_SteamFrameController_RightGyro_Roll = 646,
+    k_EControllerActionOrigin_SteamFrameController_LeftGrip_Pull = 647,
+    k_EControllerActionOrigin_SteamFrameController_LeftGrip_Click = 648,
+    k_EControllerActionOrigin_SteamFrameController_LeftGrip_Touch = 649,
+    k_EControllerActionOrigin_SteamFrameController_RightGrip_Pull = 650,
+    k_EControllerActionOrigin_SteamFrameController_RightGrip_Click = 651,
+    k_EControllerActionOrigin_SteamFrameController_RightGrip_Touch = 652,
+    k_EControllerActionOrigin_SteamFrameController_LeftThumbrest_Touch = 653,
+    k_EControllerActionOrigin_SteamFrameController_RightThumbrest_Touch = 654,
+    k_EControllerActionOrigin_SteamFrameController_Reserved1 = 655,
+    k_EControllerActionOrigin_SteamFrameController_Reserved2 = 656,
+    k_EControllerActionOrigin_SteamFrameController_Reserved3 = 657,
+    k_EControllerActionOrigin_SteamFrameController_Reserved4 = 658,
+    k_EControllerActionOrigin_SteamFrameController_Reserved5 = 659,
+    k_EControllerActionOrigin_SteamFrameController_Reserved6 = 660,
+    k_EControllerActionOrigin_SteamFrameController_Reserved7 = 661,
+    k_EControllerActionOrigin_SteamFrameController_Reserved8 = 662,
+    k_EControllerActionOrigin_SteamFrameController_Reserved9 = 663,
+    k_EControllerActionOrigin_SteamFrameController_Reserved10 = 664,
+    k_EControllerActionOrigin_SteamFrameController_Reserved11 = 665,
+    k_EControllerActionOrigin_SteamFrameController_Reserved12 = 666,
+    k_EControllerActionOrigin_SteamFrameController_Reserved13 = 667,
+    k_EControllerActionOrigin_SteamFrameController_Reserved14 = 668,
+    k_EControllerActionOrigin_SteamFrameController_Reserved15 = 669,
+    k_EControllerActionOrigin_SteamFrameController_Reserved16 = 670,
+    k_EControllerActionOrigin_SteamFrameController_Reserved17 = 671,
+    k_EControllerActionOrigin_SteamFrameController_Reserved18 = 672,
+    k_EControllerActionOrigin_SteamFrameController_Reserved19 = 673,
+    k_EControllerActionOrigin_SteamFrameController_Reserved20 = 674,
+    k_EControllerActionOrigin_Count = 675,
     k_EControllerActionOrigin_MaximumPossibleValue = 32767,
 }
 #[repr(u32)]
@@ -13738,6 +14336,8 @@ pub enum EUGCQuery {
     k_EUGCQuery_RankedByPlaytimeSessionsTrend = 17,
     k_EUGCQuery_RankedByLifetimePlaytimeSessions = 18,
     k_EUGCQuery_RankedByLastUpdatedDate = 19,
+    k_EUGCQuery_RankedByNumParentItems = 20,
+    k_EUGCQuery_RankedByNumParentCollections = 21,
 }
 #[repr(u32)]
 #[non_exhaustive]
@@ -13804,7 +14404,7 @@ pub enum EUGCContentDescriptorID {
     k_EUGCContentDescriptor_AnyMatureContent = 5,
 }
 pub const kNumUGCResultsPerPage: uint32 = 50;
-pub const k_cchDeveloperMetadataMax: uint32 = 5000;
+pub const k_cchDeveloperMetadataMax: uint32 = 10000;
 #[repr(C, packed(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct SteamUGCDetails_t {
@@ -22478,10 +23078,10 @@ extern "C" {
     ) -> uint32;
 }
 extern "C" {
-    pub fn SteamAPI_SteamUtils_v010() -> *mut ISteamUtils;
+    pub fn SteamAPI_SteamUtils_v011() -> *mut ISteamUtils;
 }
 extern "C" {
-    pub fn SteamAPI_SteamGameServerUtils_v010() -> *mut ISteamUtils;
+    pub fn SteamAPI_SteamGameServerUtils_v011() -> *mut ISteamUtils;
 }
 extern "C" {
     pub fn SteamAPI_ISteamUtils_GetSecondsSinceAppActive(self_: *mut ISteamUtils) -> uint32;
@@ -22648,9 +23248,6 @@ extern "C" {
     ) -> ESteamIPv6ConnectivityState;
 }
 extern "C" {
-    pub fn SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(self_: *mut ISteamUtils) -> bool;
-}
-extern "C" {
     pub fn SteamAPI_ISteamUtils_ShowFloatingGamepadTextInput(
         self_: *mut ISteamUtils,
         eKeyboardMode: EFloatingGamepadTextInputMode,
@@ -22668,6 +23265,19 @@ extern "C" {
 }
 extern "C" {
     pub fn SteamAPI_ISteamUtils_DismissGamepadTextInput(self_: *mut ISteamUtils) -> bool;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUtils_IsRunningOnSteamHardware(
+        self_: *mut ISteamUtils,
+    ) -> ESteamHardwareType;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUtils_GetSteamHardwareDefaultConfig(
+        self_: *mut ISteamUtils,
+    ) -> ESteamHardwareDefaultConfig;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamUtils_IsRunningUnderProton(self_: *mut ISteamUtils) -> bool;
 }
 extern "C" {
     pub fn SteamAPI_SteamMatchmaking_v009() -> *mut ISteamMatchmaking;
@@ -23020,7 +23630,25 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn SteamAPI_SteamMatchmakingServers_v002() -> *mut ISteamMatchmakingServers;
+    pub fn SteamAPI_ISteamMatchmakingServerFriendsResponse_AddFriendToList(
+        self_: *mut ISteamMatchmakingServerFriendsResponse,
+        steamID: uint64_steamid,
+        pchName: *const ::std::os::raw::c_char,
+        bCurrentlyConnected: bool,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamMatchmakingServerFriendsResponse_FriendsFailedToRespond(
+        self_: *mut ISteamMatchmakingServerFriendsResponse,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamMatchmakingServerFriendsResponse_FriendsRefreshComplete(
+        self_: *mut ISteamMatchmakingServerFriendsResponse,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_SteamMatchmakingServers_v003() -> *mut ISteamMatchmakingServers;
 }
 extern "C" {
     pub fn SteamAPI_ISteamMatchmakingServers_RequestInternetServerList(
@@ -23140,6 +23768,14 @@ extern "C" {
         unIP: uint32,
         usPort: uint16,
         pRequestServersResponse: *mut ISteamMatchmakingRulesResponse,
+    ) -> HServerQuery;
+}
+extern "C" {
+    pub fn SteamAPI_ISteamMatchmakingServers_ServerFriends(
+        self_: *mut ISteamMatchmakingServers,
+        unIP: uint32,
+        usPort: uint16,
+        pRequestServersResponse: *mut ISteamMatchmakingServerFriendsResponse,
     ) -> HServerQuery;
 }
 extern "C" {
@@ -24130,6 +24766,19 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn SteamAPI_ISteamApps_SetGamePerformanceSetting(
+        self_: *mut ISteamApps,
+        setting: EGamePerformanceSetting,
+    );
+}
+extern "C" {
+    pub fn SteamAPI_ISteamApps_SetGameRenderResolution(
+        self_: *mut ISteamApps,
+        unWidth: uint32,
+        unHeight: uint32,
+    );
+}
+extern "C" {
     pub fn SteamAPI_SteamNetworking_v006() -> *mut ISteamNetworking;
 }
 extern "C" {
@@ -24585,7 +25234,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn SteamAPI_SteamInput_v006() -> *mut ISteamInput;
+    pub fn SteamAPI_SteamInput_v007() -> *mut ISteamInput;
 }
 extern "C" {
     pub fn SteamAPI_ISteamInput_Init(
@@ -26791,10 +27440,10 @@ extern "C" {
     ) -> ESteamNetworkingConnectionState;
 }
 extern "C" {
-    pub fn SteamAPI_SteamNetworkingSockets_SteamAPI_v012() -> *mut ISteamNetworkingSockets;
+    pub fn SteamAPI_SteamNetworkingSockets_SteamAPI_v013() -> *mut ISteamNetworkingSockets;
 }
 extern "C" {
-    pub fn SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v012() -> *mut ISteamNetworkingSockets;
+    pub fn SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v013() -> *mut ISteamNetworkingSockets;
 }
 extern "C" {
     pub fn SteamAPI_ISteamNetworkingSockets_CreateListenSocketIP(
@@ -26892,8 +27541,9 @@ extern "C" {
     pub fn SteamAPI_ISteamNetworkingSockets_SendMessages(
         self_: *mut ISteamNetworkingSockets,
         nMessages: ::std::os::raw::c_int,
-        pMessages: *const *mut SteamNetworkingMessage_t,
+        pMessages: *mut *mut SteamNetworkingMessage_t,
         pOutMessageNumberOrResult: *mut int64,
+        bDeleteFailedMessages: bool,
     );
 }
 extern "C" {
@@ -26947,8 +27597,8 @@ extern "C" {
         pOutConnection1: *mut HSteamNetConnection,
         pOutConnection2: *mut HSteamNetConnection,
         bUseNetworkLoopback: bool,
-        pIdentity1: *const SteamNetworkingIdentity,
-        pIdentity2: *const SteamNetworkingIdentity,
+        pPeerIdentity1: *const SteamNetworkingIdentity,
+        pPeerIdentity2: *const SteamNetworkingIdentity,
     ) -> bool;
 }
 extern "C" {
@@ -27819,6 +28469,12 @@ extern "C" {
     pub fn SteamAPI_servernetadr_t_Assign(self_: *mut servernetadr_t, that: *const servernetadr_t);
 }
 extern "C" {
+    pub fn SteamAPI_servernetadr_t_IsEqualTo(
+        self_: *mut servernetadr_t,
+        rhs: *const servernetadr_t,
+    ) -> bool;
+}
+extern "C" {
     pub fn SteamAPI_gameserveritem_t_Construct(self_: *mut gameserveritem_t);
 }
 extern "C" {
@@ -27831,6 +28487,12 @@ extern "C" {
         self_: *mut gameserveritem_t,
         pName: *const ::std::os::raw::c_char,
     );
+}
+extern "C" {
+    pub fn SteamAPI_gameserveritem_t_IsEqualTo(
+        self_: *mut gameserveritem_t,
+        rhs: *const gameserveritem_t,
+    ) -> bool;
 }
 extern "C" {
     pub fn SteamAPI_SteamNetworkingIPAddr_Clear(self_: *mut SteamNetworkingIPAddr);
