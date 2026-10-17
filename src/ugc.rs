@@ -1624,7 +1624,6 @@ pub struct QueryResults<'a> {
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ItemPreviewType {
     /// `url_or_video_id` is the URL of an image.
     Image,

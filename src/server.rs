@@ -546,7 +546,7 @@ impl Server {
     /// Returns an accessor to the steam utils interface
     pub fn utils(&self) -> Utils {
         unsafe {
-            let utils = sys::SteamAPI_SteamGameServerUtils_v010();
+            let utils = sys::SteamAPI_SteamGameServerUtils_v011();
             debug_assert!(!utils.is_null());
             Utils {
                 utils: utils,
@@ -580,7 +580,7 @@ impl Server {
 
     pub fn networking_sockets(&self) -> networking_sockets::NetworkingSockets {
         unsafe {
-            let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v012();
+            let sockets = sys::SteamAPI_SteamGameServerNetworkingSockets_SteamAPI_v013();
             debug_assert!(!sockets.is_null());
             networking_sockets::NetworkingSockets {
                 sockets,
