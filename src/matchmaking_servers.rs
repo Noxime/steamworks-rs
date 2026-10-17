@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 use std::ptr;
 use std::rc::Rc;
 use std::time::Duration;
@@ -257,6 +257,19 @@ matchmaking_servers_callback!(
 );
 
 matchmaking_servers_callback!(
+    ServerFriends;
+    _self;
+    ();
+    add_friend_to_list({}): (
+        steam_id: u64 => SteamId where { SteamId(steam_id) },
+        name: *const std::os::raw::c_char => &CStr where { CStr::from_ptr(name) },
+        currently_connected: bool => bool where { currently_connected }
+    ),
+    failed({ free_serverfriends(_self) }): (),
+    refresh_complete({ free_serverfriends(_self) }): ()
+);
+
+matchmaking_servers_callback!(
     ServerRules;
     _self;
     ();
@@ -470,6 +483,20 @@ impl MatchmakingServers {
                 self.mms,
                 ip.into(),
                 port,
+                callbacks.cast(),
+            );
+        }
+    }
+
+    /// Requests the list of friends who have played on a server.
+    pub fn server_friends(&self, addr: SocketAddrV4, callbacks: ServerFriendsCallbacks) {
+        unsafe {
+            let callbacks = create_serverfriends(callbacks);
+
+            sys::SteamAPI_ISteamMatchmakingServers_ServerFriends(
+                self.mms,
+                addr.ip().clone().into(),
+                addr.port(),
                 callbacks.cast(),
             );
         }

@@ -10,6 +10,37 @@ impl From<u32> for AppId {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum GamePerformanceSetting {
+    Low,
+    Medium,
+    High,
+    Ultra,
+    Custom,
+}
+
+impl From<GamePerformanceSetting> for sys::EGamePerformanceSetting {
+    fn from(setting: GamePerformanceSetting) -> Self {
+        match setting {
+            GamePerformanceSetting::Low => {
+                sys::EGamePerformanceSetting::k_EGamePerformanceSetting_Low
+            }
+            GamePerformanceSetting::Medium => {
+                sys::EGamePerformanceSetting::k_EGamePerformanceSetting_Medium
+            }
+            GamePerformanceSetting::High => {
+                sys::EGamePerformanceSetting::k_EGamePerformanceSetting_High
+            }
+            GamePerformanceSetting::Ultra => {
+                sys::EGamePerformanceSetting::k_EGamePerformanceSetting_Ultra
+            }
+            GamePerformanceSetting::Custom => {
+                sys::EGamePerformanceSetting::k_EGamePerformanceSetting_Custom
+            }
+        }
+    }
+}
+
 /// Access to the steam apps interface
 pub struct Apps {
     pub(crate) apps: *mut sys::ISteamApps,
@@ -169,6 +200,27 @@ impl Apps {
             let value = sys::SteamAPI_ISteamApps_GetLaunchQueryParam(self.apps, key.as_ptr());
             let value = CStr::from_ptr(value);
             value.to_string_lossy().into_owned()
+        }
+    }
+
+    /// Sets the performance preset selected for this game.
+    #[doc(alias = "SetGamePerformanceSetting")]
+    pub fn set_performance_setting(&self, setting: Option<GamePerformanceSetting>) {
+        let setting = setting.map_or(
+            sys::EGamePerformanceSetting::k_EGamePerformanceSetting_NotSet,
+            |s| s.into(),
+        );
+
+        unsafe {
+            sys::SteamAPI_ISteamApps_SetGamePerformanceSetting(self.apps, setting);
+        }
+    }
+
+    /// Sets the render resolution selected for this game.
+    #[doc(alias = "SetGameRenderResolution")]
+    pub fn set_render_resolution(&self, width: u32, height: u32) {
+        unsafe {
+            sys::SteamAPI_ISteamApps_SetGameRenderResolution(self.apps, width, height);
         }
     }
 }

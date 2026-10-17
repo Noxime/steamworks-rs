@@ -391,7 +391,7 @@ impl NetworkingSockets {
     /// value is placed into the array.  For example, the array will hold
     /// -k_EResultInvalidState if the connection was in an invalid state.
     /// See ISteamNetworkingSockets::SendMessageToConnection for possible
-    /// failure codes.
+    /// failure codes. Messages that fail to send are released by Steam.
     pub fn send_messages(
         &self,
         messages: impl IntoIterator<Item = NetworkingMessage>,
@@ -404,7 +404,7 @@ impl NetworkingSockets {
                 messages.len() as _,
                 messages.as_mut_ptr(),
                 results.as_mut_ptr(),
-                false,
+                true,
             );
             results
                 .into_iter()
@@ -522,7 +522,7 @@ impl ListenSocket {
                 messages.len() as _,
                 messages.as_mut_ptr(),
                 results.as_mut_ptr(),
-                false,
+                true,
             );
             // Error codes are returned as negative numbers, while positive numbers are message numbers
             results
