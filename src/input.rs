@@ -52,7 +52,7 @@ impl Input {
     }
 
     /// Returns a list of the currently connected controllers without allocating, and the count
-    /// 
+    ///
     /// Provided slice must be at least [`sys::STEAM_INPUT_MAX_COUNT`] elements.
     pub fn get_connected_controllers_slice(
         &self,
