@@ -224,7 +224,7 @@ impl AchievementHelper<'_> {
 
     fn internal_get_achievement_icon(&self, avoid_big_icons: bool) -> Option<(Vec<u8>, u32, u32)> {
         unsafe {
-            let utils: *mut sys::ISteamUtils = sys::SteamAPI_SteamUtils_v010();
+            let utils: *mut sys::ISteamUtils = sys::SteamAPI_SteamUtils_v011();
             let img = sys::SteamAPI_ISteamUserStats_GetAchievementIcon(
                 self.parent.user_stats,
                 self.name.as_ptr(),

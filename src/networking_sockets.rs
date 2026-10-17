@@ -383,7 +383,7 @@ impl NetworkingSockets {
     /// Use `set_channel()` to specify the lane for each message.
     ///
     /// This is the same as `ListenSocket::send_messages()` but callable without
-    /// a listen socket — works for both listener and dialer sides.
+    /// a listen socket - works for both listener and dialer sides.
     ///
     /// pOutMessageNumberOrResult is an optional array that will receive,
     /// for each message, the message number that was assigned to the message
@@ -396,14 +396,15 @@ impl NetworkingSockets {
         &self,
         messages: impl IntoIterator<Item = NetworkingMessage>,
     ) -> Vec<SteamResult<MessageNumber>> {
-        let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
+        let mut messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
         let mut results = vec![0; messages.len()];
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
                 self.sockets,
                 messages.len() as _,
-                messages.as_ptr(),
+                messages.as_mut_ptr(),
                 results.as_mut_ptr(),
+                false,
             );
             results
                 .into_iter()
@@ -513,14 +514,15 @@ impl ListenSocket {
         &self,
         messages: impl IntoIterator<Item = NetworkingMessage>,
     ) -> Vec<SteamResult<MessageNumber>> {
-        let messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
+        let mut messages: Vec<_> = messages.into_iter().map(|x| x.take_message()).collect();
         let mut results = vec![0; messages.len()];
         unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_SendMessages(
                 self.inner.sockets,
                 messages.len() as _,
-                messages.as_ptr(),
+                messages.as_mut_ptr(),
                 results.as_mut_ptr(),
+                false,
             );
             // Error codes are returned as negative numbers, while positive numbers are message numbers
             results

@@ -134,6 +134,24 @@ unsafe extern "C" fn c_warning_callback(level: i32, msg: *const c_char) {
     }
 }
 
+/// A specific hardware device
+///
+/// May also mean a device that is similar to the official valve offerings;
+/// Application running a Lenovo Go S may return [`HardwareType::SteamDeck`] as
+/// they are quite similar.
+#[doc(alias = "ESteamHardwareType")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum HardwareType {
+    /// Steam Deck
+    SteamDeck,
+    /// Steam Machine
+    SteamMachine,
+    /// Steam Frame
+    SteamFrame,
+    /// Any other device
+    Other(sys::ESteamHardwareType),
+}
+
 impl Utils {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
@@ -239,8 +257,39 @@ impl Utils {
     }
 
     /// Checks if Steam is running on a Steam Deck device.
+    #[deprecated = "Use [`Utils::hardware_type`] instead"]
     pub fn is_steam_running_on_steam_deck(&self) -> bool {
-        unsafe { sys::SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(self.utils) }
+        self.hardware_type() == Some(HardwareType::SteamDeck)
+    }
+
+    /// The detected hardware the application is running on.
+    ///
+    /// This function is intended for analytics and diagnostics. For hardware
+    /// capabilities, please use other APIs. For example, do not use this to check for VR mode:
+    ///
+    /// ```ignore
+    /// let vr_mode = utils.hardware_type() == Some(HardwareType::SteamFrame);
+    /// ```
+    /// Instead, call [`Utils::is_running_in_vr`]:
+    /// ```ignore
+    /// let vr_mode = utils.is_running_in_vr();
+    /// ```
+    #[doc(alias = "IsRunningOnSteamHardware")]
+    pub fn hardware_type(&self) -> Option<HardwareType> {
+        let raw = unsafe { sys::SteamAPI_ISteamUtils_IsRunningOnSteamHardware(self.utils) };
+        Some(match raw {
+            sys::ESteamHardwareType::k_ESteamHardwareTypeNone => return None,
+            sys::ESteamHardwareType::k_ESteamHardwareTypeSteamDeck => HardwareType::SteamDeck,
+            sys::ESteamHardwareType::k_ESteamHardwareTypeSteamMachine => HardwareType::SteamMachine,
+            sys::ESteamHardwareType::k_ESteamHardwareTypeSteamFrame => HardwareType::SteamFrame,
+            raw => HardwareType::Other(raw),
+        })
+    }
+
+    /// Checks if Steam is running in VR mode.
+    #[doc(alias = "IsSteamRunningInVR")]
+    pub fn is_running_in_vr(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUtils_IsSteamRunningInVR(self.utils) }
     }
 
     /// Activates the Big Picture text input dialog which only supports gamepad input.
@@ -337,5 +386,28 @@ impl SteamParamStringArray {
             m_nNumStrings: self.0.len() as i32,
             m_ppStrings: self.0.as_mut_ptr().cast(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(non_snake_case)]
+    use super::*;
+    use serial_test::serial;
+
+    #[test]
+    #[serial]
+    fn call_IsSteamRunningInVR() {
+        let client = Client::init().unwrap();
+        let utils = client.utils();
+        let _ = utils.is_running_in_vr();
+    }
+
+    #[test]
+    #[serial]
+    fn call_IsRunningOnSteamHardware() {
+        let client = Client::init().unwrap();
+        let utils = client.utils();
+        let _ = utils.hardware_type();
     }
 }
