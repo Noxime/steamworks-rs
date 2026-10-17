@@ -6,7 +6,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::fs::{self};
     use std::path::{Path, PathBuf};
 
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_path = Path::new(&out_dir)
+        .ancestors()
+        .nth(3)
+        .expect("Could not find target directory")
+        .to_path_buf();
     let sdk_loc = if let Ok(sdk_loc) = env::var("STEAM_SDK_LOCATION") {
         Path::new(&sdk_loc).to_path_buf()
     } else {
