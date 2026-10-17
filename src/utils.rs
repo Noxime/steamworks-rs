@@ -152,6 +152,41 @@ pub enum HardwareType {
     Other(sys::ESteamHardwareType),
 }
 
+/// A default performance configuration for the current hardware.
+#[doc(alias = "ESteamHardwareDefaultConfig")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum HardwareDefaultConfig {
+    Low,
+    Medium,
+    High,
+    Max,
+    /// Configuration tuned for a specific device
+    SpecificHardware(HardwareType),
+    Other(sys::ESteamHardwareDefaultConfig),
+}
+
+impl HardwareDefaultConfig {
+    fn from_raw(config: sys::ESteamHardwareDefaultConfig) -> Option<Self> {
+        Some(match config {
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigNone => return None,
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigLow => Self::Low,
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigMedium => Self::Medium,
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigHigh => Self::High,
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigMax => Self::Max,
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigSteamDeck => {
+                Self::SpecificHardware(HardwareType::SteamDeck)
+            }
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigSteamMachine => {
+                Self::SpecificHardware(HardwareType::SteamMachine)
+            }
+            sys::ESteamHardwareDefaultConfig::k_ESteamHardwareDefaultConfigSteamFrame => {
+                Self::SpecificHardware(HardwareType::SteamFrame)
+            }
+            other => Self::Other(other),
+        })
+    }
+}
+
 impl Utils {
     /// Returns the app ID of the current process
     pub fn app_id(&self) -> AppId {
@@ -284,6 +319,17 @@ impl Utils {
             sys::ESteamHardwareType::k_ESteamHardwareTypeSteamFrame => HardwareType::SteamFrame,
             raw => HardwareType::Other(raw),
         })
+    }
+
+    /// Returns Steam's recommended default performance configuration for this device.
+    pub fn hardware_default_config(&self) -> Option<HardwareDefaultConfig> {
+        let raw = unsafe { sys::SteamAPI_ISteamUtils_GetSteamHardwareDefaultConfig(self.utils) };
+        HardwareDefaultConfig::from_raw(raw)
+    }
+
+    /// Returns whether the game is running under Proton.
+    pub fn is_running_under_proton(&self) -> bool {
+        unsafe { sys::SteamAPI_ISteamUtils_IsRunningUnderProton(self.utils) }
     }
 
     /// Checks if Steam is running in VR mode.
