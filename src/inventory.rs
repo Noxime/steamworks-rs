@@ -171,8 +171,9 @@ impl InventoryResult {
         }
     }
 
-    /// Serializes the result so a trusted third party can verify it with
-    /// `ISteamInventory::DeserializeResult`.
+    /// Serializes the result so another player can verify it with
+    /// [`Inventory::deserialize_result`]. Steam signs the set; it cannot be
+    /// forged or replayed across sessions, and it expires after an hour.
     pub fn serialize(&self) -> Option<Vec<u8>> {
         unsafe {
             let mut len: u32 = 0;
@@ -226,12 +227,20 @@ unsafe fn read_string(
 
 type PendingCallback = Box<dyn FnOnce(Result<InventoryResult, SteamError>) + Send + 'static>;
 
+/// A parked request. `expired_ok` delivers a `k_EResultExpired` result as a
+/// result rather than an error: for a deserialized result that status means
+/// "verified, but maybe out of date", and its items are still readable.
+struct Pending {
+    cb: PendingCallback,
+    expired_ok: bool,
+}
+
 /// Requests whose results have not been reported yet, keyed by result handle.
 /// Lives in [`Inner`] so the dispatcher is registered once per client.
 #[derive(Default)]
 pub(crate) struct PendingResults {
     registered: AtomicBool,
-    map: Mutex<HashMap<sys::SteamInventoryResult_t, PendingCallback>>,
+    map: Mutex<HashMap<sys::SteamInventoryResult_t, Pending>>,
 }
 
 struct InventoryResultReady {
@@ -299,13 +308,15 @@ impl Inventory {
         let handle = unsafe {
             register_callback::<InventoryResultReady, _>(&self.inner, move |ready| {
                 let Some(inner) = weak.upgrade() else { return };
-                let cb = inner
+                let pending = inner
                     .inventory_results
                     .map
                     .lock()
                     .unwrap()
                     .remove(&ready.handle);
-                let Some(cb) = cb else { return };
+                let Some(Pending { cb, expired_ok }) = pending else {
+                    return;
+                };
                 let result = InventoryResult {
                     inventory: inventory as *mut sys::ISteamInventory,
                     handle: ready.handle,
@@ -313,6 +324,7 @@ impl Inventory {
                 };
                 match to_steam_result(ready.result) {
                     Ok(()) => cb(Ok(result)),
+                    Err(SteamError::Expired) if expired_ok => cb(Ok(result)),
                     Err(err) => {
                         drop(result);
                         cb(Err(err));
@@ -338,7 +350,72 @@ impl Inventory {
             cb(Err(SteamError::Generic));
             return;
         }
-        pending.insert(handle, Box::new(cb));
+        pending.insert(
+            handle,
+            Pending {
+                cb: Box::new(cb),
+                expired_ok: false,
+            },
+        );
+    }
+
+    /// Verifies a result another player serialized with
+    /// [`InventoryResult::serialize`] and reports it like any other request.
+    ///
+    /// Steam always accepts the call and reports the verdict through the
+    /// result's status, so the status is read at once: a result that is
+    /// already final is delivered immediately, and one still pending is parked
+    /// for `SteamInventoryResultReady_t` like every other request. Either way
+    /// `k_EResultExpired` is delivered as a result — the signature verified but
+    /// the set is over an hour old — so read [`InventoryResult::status`] and
+    /// [`InventoryResult::check_steam_id`] before trusting it.
+    pub fn deserialize_result<F>(&self, buffer: &[u8], cb: F)
+    where
+        F: FnOnce(Result<InventoryResult, SteamError>) + Send + 'static,
+    {
+        let mut pending = self.inner.inventory_results.map.lock().unwrap();
+        let mut handle = sys::k_SteamInventoryResultInvalid;
+        let ok = unsafe {
+            sys::SteamAPI_ISteamInventory_DeserializeResult(
+                self.inventory,
+                &mut handle,
+                buffer.as_ptr() as *const _,
+                buffer.len() as u32,
+                false,
+            )
+        };
+        if !ok || handle == sys::k_SteamInventoryResultInvalid {
+            drop(pending);
+            cb(Err(SteamError::Generic));
+            return;
+        }
+        let result = InventoryResult {
+            inventory: self.inventory,
+            handle,
+            _inner: self.inner.clone(),
+        };
+        match result.status() {
+            Err(SteamError::Pending) => {
+                // The dispatcher builds its own owner for the handle; this one must not destroy it.
+                std::mem::forget(result);
+                pending.insert(
+                    handle,
+                    Pending {
+                        cb: Box::new(cb),
+                        expired_ok: true,
+                    },
+                );
+            }
+            Ok(()) | Err(SteamError::Expired) => {
+                drop(pending);
+                cb(Ok(result));
+            }
+            Err(err) => {
+                drop(pending);
+                drop(result);
+                cb(Err(err));
+            }
+        }
     }
 
     /// Requests the current user's entire inventory.
