@@ -286,19 +286,18 @@ pub struct GameRichPresenceJoinRequested {
     /// method.
     pub friend_steam_id: SteamId,
     /// the connect string, holding custom data to join a game or friend
+    ///
+    /// The string is set by whoever sent the invite or rich presence, so it is not
+    /// guaranteed to be UTF-8: invalid sequences are replaced with `U+FFFD`.
     pub connect: String,
 }
 
 impl_callback!(cb: GameRichPresenceJoinRequested_t => GameRichPresenceJoinRequested {
     // Convert from &[i8] to &[u8] because c_char in C is signed.
-    // Technically, this C string does not have to be UTF-8, but I think for all realistic uses it will be.
+    // The connect string comes from another user, so it may lack a NUL terminator or
+    // hold invalid UTF-8; neither may panic here.
     let as_bytes = cb.m_rgchConnect.map(|c| c as u8);
-    let connect = CStr::from_bytes_until_nul(&as_bytes)
-        .expect("Connect string payload was not a valid C string");
-    let connect = connect
-        .to_str()
-        .expect("Connect string payload was not valid UTF-8")
-        .to_string();
+    let connect = crate::string_from_c_buffer(&as_bytes);
 
     let friend_steam_id = SteamId::from_raw(cb.m_steamIDFriend.m_steamid.m_unAll64Bits);
 
@@ -514,4 +513,51 @@ pub enum FriendState {
     Snooze,
     LookingToTrade,
     LookingToPlay,
+}
+
+#[cfg(test)]
+mod untrusted_input_join_tests {
+    use super::*;
+
+    const FRIEND: u64 = 76561197960287930;
+
+    /// Decodes a `GameRichPresenceJoinRequested_t` whose connect buffer starts with `connect`.
+    fn join_requested(connect: &[u8]) -> GameRichPresenceJoinRequested {
+        // All zeroes is a valid `GameRichPresenceJoinRequested_t`: a steam id and a `c_char` array.
+        let mut raw: sys::GameRichPresenceJoinRequested_t = unsafe { std::mem::zeroed() };
+        raw.m_steamIDFriend.m_steamid.m_unAll64Bits = FRIEND;
+        for (dst, src) in raw.m_rgchConnect.iter_mut().zip(connect) {
+            *dst = *src as c_char;
+        }
+        unsafe {
+            GameRichPresenceJoinRequested::from_raw(
+                (&mut raw as *mut sys::GameRichPresenceJoinRequested_t).cast(),
+            )
+        }
+    }
+
+    #[test]
+    fn connect_string_with_invalid_utf8_is_decoded_lossily() {
+        let request = join_requested(b"+connect \xff\xfe1.2.3.4");
+        assert_eq!(request.connect, "+connect \u{fffd}\u{fffd}1.2.3.4");
+        assert_eq!(request.friend_steam_id.raw(), FRIEND);
+    }
+
+    #[test]
+    fn connect_string_without_nul_uses_the_whole_buffer() {
+        let request = join_requested(&[b'a'; 256]);
+        assert_eq!(request.connect, "a".repeat(256));
+    }
+
+    #[test]
+    fn connect_string_ends_at_the_first_nul() {
+        let request = join_requested(b"+connect 1.2.3.4\0+connect 6.6.6.6");
+        assert_eq!(request.connect, "+connect 1.2.3.4");
+    }
+
+    #[test]
+    fn connect_string_that_is_valid_is_unchanged() {
+        let request = join_requested("+connect [::1]:27015 ünïcode".as_bytes());
+        assert_eq!(request.connect, "+connect [::1]:27015 ünïcode");
+    }
 }

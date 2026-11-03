@@ -75,6 +75,17 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     }
 }
 
+/// Decodes a fixed-size `char` buffer that Steam filled in.
+///
+/// The string ends at the first NUL, or at the end of the buffer if there is none,
+/// and invalid UTF-8 is replaced with `U+FFFD`. Some of these buffers hold text that
+/// other users chose (connect strings, invite payloads), and nothing guarantees a NUL
+/// or valid UTF-8, so decoding must neither panic nor read past the buffer.
+pub(crate) fn string_from_c_buffer(buffer: &[u8]) -> String {
+    let bytes = CStr::from_bytes_until_nul(buffer).map_or(buffer, CStr::to_bytes);
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
 // A note about thread-safety:
 // The steam api is assumed to be thread safe unless
 // the documentation for a method states otherwise,
