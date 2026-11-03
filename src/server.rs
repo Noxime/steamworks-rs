@@ -17,6 +17,18 @@ pub struct Server {
 unsafe impl Send for Server {}
 unsafe impl Sync for Server {}
 
+extern "C" {
+    // `BeginAuthSession` with its `EBeginAuthSessionResult` returned as an integer, as in
+    // `User::begin_authentication_session`.
+    #[link_name = "SteamAPI_ISteamGameServer_BeginAuthSession"]
+    fn game_server_begin_auth_session(
+        server: *mut sys::ISteamGameServer,
+        auth_ticket: *const c_void,
+        auth_ticket_len: std::os::raw::c_int,
+        steam_id: sys::uint64_steamid,
+    ) -> u32;
+}
+
 /// Used to set the mode that a gameserver will run in
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ServerMode {
@@ -272,31 +284,13 @@ impl Server {
         ticket: &[u8],
     ) -> Result<(), AuthSessionError> {
         unsafe {
-            let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
+            let res = game_server_begin_auth_session(
                 self.server,
                 ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
-            Err(match res {
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
-                    AuthSessionError::InvalidTicket
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
-                    AuthSessionError::DuplicateRequest
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
-                    AuthSessionError::InvalidVersion
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
-                    AuthSessionError::GameMismatch
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
-                    AuthSessionError::ExpiredTicket
-                }
-                _ => unreachable!(),
-            })
+            begin_auth_session_result(res)
         }
     }
 

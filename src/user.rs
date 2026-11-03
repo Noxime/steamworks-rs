@@ -139,31 +139,13 @@ impl User {
         ticket: &[u8],
     ) -> Result<(), AuthSessionError> {
         unsafe {
-            let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
+            let res = user_begin_auth_session(
                 self.user,
                 ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
-            Err(match res {
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
-                    AuthSessionError::InvalidTicket
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
-                    AuthSessionError::DuplicateRequest
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
-                    AuthSessionError::InvalidVersion
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
-                    AuthSessionError::GameMismatch
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
-                    AuthSessionError::ExpiredTicket
-                }
-                _ => unreachable!(),
-            })
+            begin_auth_session_result(res)
         }
     }
 
@@ -225,6 +207,43 @@ impl User {
             }
         }
     }
+}
+
+extern "C" {
+    // `BeginAuthSession` with its `EBeginAuthSessionResult` returned as an integer: a
+    // result code newer than the bindings must not be materialized as their Rust enum,
+    // which would be undefined behaviour. C enums in the Steamworks SDK are 32 bits wide.
+    #[link_name = "SteamAPI_ISteamUser_BeginAuthSession"]
+    fn user_begin_auth_session(
+        user: *mut sys::ISteamUser,
+        auth_ticket: *const c_void,
+        auth_ticket_len: std::os::raw::c_int,
+        steam_id: sys::uint64_steamid,
+    ) -> u32;
+}
+
+/// Converts the raw `EBeginAuthSessionResult` that `BeginAuthSession` returned.
+///
+/// A result unknown to these bindings fails closed as `InvalidTicket`.
+pub(crate) fn begin_auth_session_result(raw: u32) -> Result<(), AuthSessionError> {
+    use sys::EBeginAuthSessionResult as R;
+    Err(match raw {
+        x if x == R::k_EBeginAuthSessionResultOK as u32 => return Ok(()),
+        x if x == R::k_EBeginAuthSessionResultInvalidTicket as u32 => {
+            AuthSessionError::InvalidTicket
+        }
+        x if x == R::k_EBeginAuthSessionResultDuplicateRequest as u32 => {
+            AuthSessionError::DuplicateRequest
+        }
+        x if x == R::k_EBeginAuthSessionResultInvalidVersion as u32 => {
+            AuthSessionError::InvalidVersion
+        }
+        x if x == R::k_EBeginAuthSessionResultGameMismatch as u32 => AuthSessionError::GameMismatch,
+        x if x == R::k_EBeginAuthSessionResultExpiredTicket as u32 => {
+            AuthSessionError::ExpiredTicket
+        }
+        _ => AuthSessionError::InvalidTicket,
+    })
 }
 
 /// Errors from `begin_authentication_session`
@@ -721,6 +740,40 @@ mod untrusted_input_validate_ticket_tests {
         assert!(matches!(
             validate(k_EAuthSessionResponseAuthTicketNetworkIdentityFailure as u32).response,
             Err(AuthSessionValidateError::AuthTicketNetworkIdentityFailure)
+        ));
+    }
+}
+
+#[cfg(test)]
+mod untrusted_input_begin_auth_session_tests {
+    use super::*;
+
+    #[test]
+    fn begin_auth_session_result_unknown_to_these_bindings_fails_closed() {
+        assert!(matches!(
+            begin_auth_session_result(6),
+            Err(AuthSessionError::InvalidTicket)
+        ));
+        assert!(matches!(
+            begin_auth_session_result(u32::MAX),
+            Err(AuthSessionError::InvalidTicket)
+        ));
+    }
+
+    #[test]
+    fn begin_auth_session_results_known_to_these_bindings_are_unchanged() {
+        use sys::EBeginAuthSessionResult::*;
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultOK as u32),
+            Ok(())
+        ));
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultDuplicateRequest as u32),
+            Err(AuthSessionError::DuplicateRequest)
+        ));
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultExpiredTicket as u32),
+            Err(AuthSessionError::ExpiredTicket)
         ));
     }
 }
