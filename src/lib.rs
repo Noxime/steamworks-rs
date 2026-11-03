@@ -71,7 +71,8 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     match result {
         // sys::EResult::k_EResultNone => Ok(()), TODO: I'm not sure if this is considered a success
         sys::EResult::k_EResultOK => Ok(()),
-        error => Err(error.try_into().unwrap()),
+        // `k_EResultNone`, and any code added to the bindings but not to `SteamError`.
+        error => Err(error.try_into().unwrap_or(SteamError::Generic)),
     }
 }
 
