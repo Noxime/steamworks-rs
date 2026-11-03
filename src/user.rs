@@ -139,31 +139,13 @@ impl User {
         ticket: &[u8],
     ) -> Result<(), AuthSessionError> {
         unsafe {
-            let res = sys::SteamAPI_ISteamUser_BeginAuthSession(
+            let res = user_begin_auth_session(
                 self.user,
                 ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
-            Err(match res {
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
-                    AuthSessionError::InvalidTicket
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
-                    AuthSessionError::DuplicateRequest
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
-                    AuthSessionError::InvalidVersion
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
-                    AuthSessionError::GameMismatch
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
-                    AuthSessionError::ExpiredTicket
-                }
-                _ => unreachable!(),
-            })
+            begin_auth_session_result(res)
         }
     }
 
@@ -225,6 +207,43 @@ impl User {
             }
         }
     }
+}
+
+extern "C" {
+    // `BeginAuthSession` with its `EBeginAuthSessionResult` returned as an integer: a
+    // result code newer than the bindings must not be materialized as their Rust enum,
+    // which would be undefined behaviour. C enums in the Steamworks SDK are 32 bits wide.
+    #[link_name = "SteamAPI_ISteamUser_BeginAuthSession"]
+    fn user_begin_auth_session(
+        user: *mut sys::ISteamUser,
+        auth_ticket: *const c_void,
+        auth_ticket_len: std::os::raw::c_int,
+        steam_id: sys::uint64_steamid,
+    ) -> u32;
+}
+
+/// Converts the raw `EBeginAuthSessionResult` that `BeginAuthSession` returned.
+///
+/// A result unknown to these bindings fails closed as `InvalidTicket`.
+pub(crate) fn begin_auth_session_result(raw: u32) -> Result<(), AuthSessionError> {
+    use sys::EBeginAuthSessionResult as R;
+    Err(match raw {
+        x if x == R::k_EBeginAuthSessionResultOK as u32 => return Ok(()),
+        x if x == R::k_EBeginAuthSessionResultInvalidTicket as u32 => {
+            AuthSessionError::InvalidTicket
+        }
+        x if x == R::k_EBeginAuthSessionResultDuplicateRequest as u32 => {
+            AuthSessionError::DuplicateRequest
+        }
+        x if x == R::k_EBeginAuthSessionResultInvalidVersion as u32 => {
+            AuthSessionError::InvalidVersion
+        }
+        x if x == R::k_EBeginAuthSessionResultGameMismatch as u32 => AuthSessionError::GameMismatch,
+        x if x == R::k_EBeginAuthSessionResultExpiredTicket as u32 => {
+            AuthSessionError::ExpiredTicket
+        }
+        _ => AuthSessionError::InvalidTicket,
+    })
 }
 
 /// Errors from `begin_authentication_session`
@@ -305,10 +324,10 @@ pub struct AuthSessionTicketResponse {
     pub result: SteamResult,
 }
 
-impl_callback!(cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
+impl_callback!(raw cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
     Self {
-        ticket: AuthTicket(cb.m_hAuthTicket),
-        result: to_steam_result(cb.m_eResult),
+        ticket: AuthTicket(std::ptr::addr_of!((*cb).m_hAuthTicket).read_unaligned()),
+        result: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
     }
 });
 
@@ -345,12 +364,12 @@ pub struct TicketForWebApiResponse {
     pub ticket: Vec<u8>,
 }
 
-impl_callback!(cb: GetTicketForWebApiResponse_t => TicketForWebApiResponse {
+impl_callback!(raw cb: GetTicketForWebApiResponse_t => TicketForWebApiResponse {
     Self {
-        ticket_handle: AuthTicket(cb.m_hAuthTicket),
-        result: to_steam_result(cb.m_eResult),
-        ticket_len: cb.m_cubTicket,
-        ticket: cb.m_rgubTicket.to_vec(),
+        ticket_handle: AuthTicket(std::ptr::addr_of!((*cb).m_hAuthTicket).read_unaligned()),
+        result: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
+        ticket_len: std::ptr::addr_of!((*cb).m_cubTicket).read_unaligned(),
+        ticket: std::ptr::addr_of!((*cb).m_rgubTicket).read_unaligned().to_vec(),
     }
 });
 
@@ -367,46 +386,56 @@ pub struct ValidateAuthTicketResponse {
     pub owner_steam_id: SteamId,
 }
 
-impl_callback!(cb: ValidateAuthTicketResponse_t => ValidateAuthTicketResponse {
+impl_callback!(raw cb: ValidateAuthTicketResponse_t => ValidateAuthTicketResponse {
+    let steam_id = std::ptr::addr_of!((*cb).m_SteamID).read_unaligned();
+    let owner_steam_id = std::ptr::addr_of!((*cb).m_OwnerSteamID).read_unaligned();
+    let response = read_raw_enum(std::ptr::addr_of!((*cb).m_eAuthSessionResponse));
     Self {
-        steam_id: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
-        owner_steam_id: SteamId(cb.m_OwnerSteamID.m_steamid.m_unAll64Bits),
-        response: match cb.m_eAuthSessionResponse {
-            sys::EAuthSessionResponse::k_EAuthSessionResponseOK => Ok(()),
-            sys::EAuthSessionResponse::k_EAuthSessionResponseUserNotConnectedToSteam => {
-                Err(AuthSessionValidateError::UserNotConnectedToSteam)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseNoLicenseOrExpired => {
-                Err(AuthSessionValidateError::NoLicenseOrExpired)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseVACBanned => {
-                Err(AuthSessionValidateError::VACBanned)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseLoggedInElseWhere => {
-                Err(AuthSessionValidateError::LoggedInElseWhere)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseVACCheckTimedOut => {
-                Err(AuthSessionValidateError::VACCheckTimedOut)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketCanceled => {
-                Err(AuthSessionValidateError::AuthTicketCancelled)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed => {
-                Err(AuthSessionValidateError::AuthTicketInvalidAlreadyUsed)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketInvalid => {
-                Err(AuthSessionValidateError::AuthTicketInvalid)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponsePublisherIssuedBan => {
-                Err(AuthSessionValidateError::PublisherIssuedBan)
-            }
-            sys::EAuthSessionResponse::k_EAuthSessionResponseAuthTicketNetworkIdentityFailure => {
-                Err(AuthSessionValidateError::AuthTicketNetworkIdentityFailure)
-            }
-            _ => unreachable!(),
-        },
+        steam_id: SteamId(steam_id.m_steamid.m_unAll64Bits),
+        owner_steam_id: SteamId(owner_steam_id.m_steamid.m_unAll64Bits),
+        response: auth_session_validate_result(response),
     }
 });
+
+/// Converts the raw `EAuthSessionResponse` of a `ValidateAuthTicketResponse_t`.
+///
+/// A response unknown to these bindings fails closed as `AuthTicketInvalid`: Steam may
+/// add response codes, and a ticket must never pass on a code nobody checked.
+fn auth_session_validate_result(raw: u32) -> Result<(), AuthSessionValidateError> {
+    use sys::EAuthSessionResponse as R;
+    Err(match raw {
+        x if x == R::k_EAuthSessionResponseOK as u32 => return Ok(()),
+        x if x == R::k_EAuthSessionResponseUserNotConnectedToSteam as u32 => {
+            AuthSessionValidateError::UserNotConnectedToSteam
+        }
+        x if x == R::k_EAuthSessionResponseNoLicenseOrExpired as u32 => {
+            AuthSessionValidateError::NoLicenseOrExpired
+        }
+        x if x == R::k_EAuthSessionResponseVACBanned as u32 => AuthSessionValidateError::VACBanned,
+        x if x == R::k_EAuthSessionResponseLoggedInElseWhere as u32 => {
+            AuthSessionValidateError::LoggedInElseWhere
+        }
+        x if x == R::k_EAuthSessionResponseVACCheckTimedOut as u32 => {
+            AuthSessionValidateError::VACCheckTimedOut
+        }
+        x if x == R::k_EAuthSessionResponseAuthTicketCanceled as u32 => {
+            AuthSessionValidateError::AuthTicketCancelled
+        }
+        x if x == R::k_EAuthSessionResponseAuthTicketInvalidAlreadyUsed as u32 => {
+            AuthSessionValidateError::AuthTicketInvalidAlreadyUsed
+        }
+        x if x == R::k_EAuthSessionResponseAuthTicketInvalid as u32 => {
+            AuthSessionValidateError::AuthTicketInvalid
+        }
+        x if x == R::k_EAuthSessionResponsePublisherIssuedBan as u32 => {
+            AuthSessionValidateError::PublisherIssuedBan
+        }
+        x if x == R::k_EAuthSessionResponseAuthTicketNetworkIdentityFailure as u32 => {
+            AuthSessionValidateError::AuthTicketNetworkIdentityFailure
+        }
+        _ => AuthSessionValidateError::AuthTicketInvalid,
+    })
+}
 
 // Called when a microtransaction authorization response is received
 #[derive(Clone, Debug)]
@@ -442,9 +471,9 @@ pub struct SteamServersDisconnected {
     pub reason: SteamResult,
 }
 
-impl_callback!(cb: SteamServersDisconnected_t => SteamServersDisconnected {
+impl_callback!(raw cb: SteamServersDisconnected_t => SteamServersDisconnected {
     Self {
-        reason: to_steam_result(cb.m_eResult),
+        reason: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
     }
 });
 
@@ -458,10 +487,10 @@ pub struct SteamServerConnectFailure {
     pub still_retrying: bool,
 }
 
-impl_callback!(cb: SteamServerConnectFailure_t => SteamServerConnectFailure {
+impl_callback!(raw cb: SteamServerConnectFailure_t => SteamServerConnectFailure {
     Self {
-        reason: to_steam_result(cb.m_eResult),
-        still_retrying: cb.m_bStillRetrying,
+        reason: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
+        still_retrying: std::ptr::addr_of!((*cb).m_bStillRetrying).read_unaligned(),
     }
 });
 
@@ -516,4 +545,235 @@ pub enum UserHasLicense {
     DoesNotHaveLicense,
     /// The user has not been authenticated.
     NoAuth,
+}
+
+#[cfg(test)]
+mod untrusted_input_user_eresult_tests {
+    use super::*;
+    use std::mem::{offset_of, MaybeUninit};
+
+    /// An `EResult` value newer than these bindings.
+    const UNKNOWN_ERESULT: u32 = 0x7fff;
+
+    /// Runs `C::from_raw` on an all-zero `T` whose 32-bit C enum at `offset` holds `value`.
+    ///
+    /// The value is written as a plain integer, so no out-of-range enum is ever created here.
+    ///
+    /// # Safety
+    ///
+    /// `T` must be the sys struct of `C`, valid when zeroed, with a 32-bit field at `offset`.
+    unsafe fn decode<T, C: Callback>(offset: usize, value: u32) -> C {
+        let mut raw = MaybeUninit::<T>::zeroed();
+        raw.as_mut_ptr()
+            .cast::<u8>()
+            .add(offset)
+            .cast::<u32>()
+            .write_unaligned(value);
+        C::from_raw(raw.as_mut_ptr().cast())
+    }
+
+    fn disconnected(value: u32) -> SteamServersDisconnected {
+        unsafe {
+            decode::<sys::SteamServersDisconnected_t, _>(
+                offset_of!(sys::SteamServersDisconnected_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn connect_failure(value: u32) -> SteamServerConnectFailure {
+        unsafe {
+            decode::<sys::SteamServerConnectFailure_t, _>(
+                offset_of!(sys::SteamServerConnectFailure_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn ticket_response(value: u32) -> AuthSessionTicketResponse {
+        unsafe {
+            decode::<sys::GetAuthSessionTicketResponse_t, _>(
+                offset_of!(sys::GetAuthSessionTicketResponse_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn web_api_ticket_response(value: u32) -> TicketForWebApiResponse {
+        unsafe {
+            decode::<sys::GetTicketForWebApiResponse_t, _>(
+                offset_of!(sys::GetTicketForWebApiResponse_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    #[test]
+    fn servers_disconnected_with_ok_is_ok() {
+        let ok = sys::EResult::k_EResultOK as u32;
+        assert_eq!(disconnected(ok).reason, Ok(()));
+    }
+
+    #[test]
+    fn servers_disconnected_with_none_is_a_generic_error() {
+        let none = sys::EResult::k_EResultNone as u32;
+        assert_eq!(disconnected(none).reason, Err(SteamError::Generic));
+    }
+
+    #[test]
+    fn servers_disconnected_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            disconnected(UNKNOWN_ERESULT).reason,
+            Err(SteamError::Generic)
+        );
+    }
+
+    #[test]
+    fn servers_disconnected_with_known_eresult_is_unchanged() {
+        let no_connection = sys::EResult::k_EResultNoConnection as u32;
+        assert_eq!(
+            disconnected(no_connection).reason,
+            Err(SteamError::NoConnection)
+        );
+    }
+
+    #[test]
+    fn server_connect_failure_with_ok_is_ok_and_none_is_a_generic_error() {
+        let ok = sys::EResult::k_EResultOK as u32;
+        let none = sys::EResult::k_EResultNone as u32;
+        assert_eq!(connect_failure(ok).reason, Ok(()));
+        assert_eq!(connect_failure(none).reason, Err(SteamError::Generic));
+    }
+
+    #[test]
+    fn server_connect_failure_with_unknown_eresult_is_a_generic_error() {
+        let failure = connect_failure(UNKNOWN_ERESULT);
+        assert_eq!(failure.reason, Err(SteamError::Generic));
+        assert!(!failure.still_retrying);
+    }
+
+    #[test]
+    fn auth_session_ticket_response_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            ticket_response(UNKNOWN_ERESULT).result,
+            Err(SteamError::Generic)
+        );
+        assert_eq!(
+            ticket_response(sys::EResult::k_EResultOK as u32).result,
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn web_api_ticket_response_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            web_api_ticket_response(UNKNOWN_ERESULT).result,
+            Err(SteamError::Generic)
+        );
+    }
+}
+
+#[cfg(test)]
+mod untrusted_input_validate_ticket_tests {
+    use super::*;
+    use std::mem::{offset_of, MaybeUninit};
+
+    const USER: u64 = 76561197960287930;
+    const OWNER: u64 = 76561197960265729;
+
+    /// Decodes a `ValidateAuthTicketResponse_t` whose response field holds `response`.
+    ///
+    /// The response is written as a plain integer, so no out-of-range enum is ever created here.
+    fn validate(response: u32) -> ValidateAuthTicketResponse {
+        let mut raw = MaybeUninit::<sys::ValidateAuthTicketResponse_t>::zeroed();
+        let base = raw.as_mut_ptr().cast::<u8>();
+        unsafe {
+            base.add(offset_of!(sys::ValidateAuthTicketResponse_t, m_SteamID))
+                .cast::<u64>()
+                .write_unaligned(USER);
+            base.add(offset_of!(
+                sys::ValidateAuthTicketResponse_t,
+                m_OwnerSteamID
+            ))
+            .cast::<u64>()
+            .write_unaligned(OWNER);
+            base.add(offset_of!(
+                sys::ValidateAuthTicketResponse_t,
+                m_eAuthSessionResponse
+            ))
+            .cast::<u32>()
+            .write_unaligned(response);
+            ValidateAuthTicketResponse::from_raw(raw.as_mut_ptr().cast())
+        }
+    }
+
+    #[test]
+    fn auth_session_response_unknown_to_these_bindings_fails_closed() {
+        let answer = validate(11);
+        assert!(matches!(
+            answer.response,
+            Err(AuthSessionValidateError::AuthTicketInvalid)
+        ));
+        assert_eq!(answer.steam_id.raw(), USER);
+        assert_eq!(answer.owner_steam_id.raw(), OWNER);
+    }
+
+    #[test]
+    fn auth_session_response_far_out_of_range_fails_closed() {
+        assert!(matches!(
+            validate(u32::MAX).response,
+            Err(AuthSessionValidateError::AuthTicketInvalid)
+        ));
+    }
+
+    #[test]
+    fn auth_session_responses_known_to_these_bindings_are_unchanged() {
+        use sys::EAuthSessionResponse::*;
+        assert!(matches!(
+            validate(k_EAuthSessionResponseOK as u32).response,
+            Ok(())
+        ));
+        assert!(matches!(
+            validate(k_EAuthSessionResponseVACBanned as u32).response,
+            Err(AuthSessionValidateError::VACBanned)
+        ));
+        assert!(matches!(
+            validate(k_EAuthSessionResponseAuthTicketNetworkIdentityFailure as u32).response,
+            Err(AuthSessionValidateError::AuthTicketNetworkIdentityFailure)
+        ));
+    }
+}
+
+#[cfg(test)]
+mod untrusted_input_begin_auth_session_tests {
+    use super::*;
+
+    #[test]
+    fn begin_auth_session_result_unknown_to_these_bindings_fails_closed() {
+        assert!(matches!(
+            begin_auth_session_result(6),
+            Err(AuthSessionError::InvalidTicket)
+        ));
+        assert!(matches!(
+            begin_auth_session_result(u32::MAX),
+            Err(AuthSessionError::InvalidTicket)
+        ));
+    }
+
+    #[test]
+    fn begin_auth_session_results_known_to_these_bindings_are_unchanged() {
+        use sys::EBeginAuthSessionResult::*;
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultOK as u32),
+            Ok(())
+        ));
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultDuplicateRequest as u32),
+            Err(AuthSessionError::DuplicateRequest)
+        ));
+        assert!(matches!(
+            begin_auth_session_result(k_EBeginAuthSessionResultExpiredTicket as u32),
+            Err(AuthSessionError::ExpiredTicket)
+        ));
+    }
 }

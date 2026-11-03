@@ -564,3 +564,29 @@ impl SteamAPIInitError {
         }
     }
 }
+
+#[cfg(test)]
+mod untrusted_input_eresult_tests {
+    use super::*;
+
+    #[test]
+    fn eresult_none_is_a_generic_error() {
+        assert_eq!(
+            crate::to_steam_result(sys::EResult::k_EResultNone),
+            Err(SteamError::Generic)
+        );
+    }
+
+    #[test]
+    fn eresult_ok_and_fail_are_unchanged() {
+        assert_eq!(crate::to_steam_result(sys::EResult::k_EResultOK), Ok(()));
+        assert_eq!(
+            crate::to_steam_result(sys::EResult::k_EResultFail),
+            Err(SteamError::Generic)
+        );
+        assert_eq!(
+            crate::to_steam_result(sys::EResult::k_EResultTryLater),
+            Err(SteamError::TryLater)
+        );
+    }
+}
