@@ -305,10 +305,10 @@ pub struct AuthSessionTicketResponse {
     pub result: SteamResult,
 }
 
-impl_callback!(cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
+impl_callback!(raw cb: GetAuthSessionTicketResponse_t => AuthSessionTicketResponse {
     Self {
-        ticket: AuthTicket(cb.m_hAuthTicket),
-        result: to_steam_result(cb.m_eResult),
+        ticket: AuthTicket(std::ptr::addr_of!((*cb).m_hAuthTicket).read_unaligned()),
+        result: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
     }
 });
 
@@ -345,12 +345,12 @@ pub struct TicketForWebApiResponse {
     pub ticket: Vec<u8>,
 }
 
-impl_callback!(cb: GetTicketForWebApiResponse_t => TicketForWebApiResponse {
+impl_callback!(raw cb: GetTicketForWebApiResponse_t => TicketForWebApiResponse {
     Self {
-        ticket_handle: AuthTicket(cb.m_hAuthTicket),
-        result: to_steam_result(cb.m_eResult),
-        ticket_len: cb.m_cubTicket,
-        ticket: cb.m_rgubTicket.to_vec(),
+        ticket_handle: AuthTicket(std::ptr::addr_of!((*cb).m_hAuthTicket).read_unaligned()),
+        result: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
+        ticket_len: std::ptr::addr_of!((*cb).m_cubTicket).read_unaligned(),
+        ticket: std::ptr::addr_of!((*cb).m_rgubTicket).read_unaligned().to_vec(),
     }
 });
 
@@ -442,9 +442,9 @@ pub struct SteamServersDisconnected {
     pub reason: SteamResult,
 }
 
-impl_callback!(cb: SteamServersDisconnected_t => SteamServersDisconnected {
+impl_callback!(raw cb: SteamServersDisconnected_t => SteamServersDisconnected {
     Self {
-        reason: to_steam_result(cb.m_eResult),
+        reason: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
     }
 });
 
@@ -458,10 +458,10 @@ pub struct SteamServerConnectFailure {
     pub still_retrying: bool,
 }
 
-impl_callback!(cb: SteamServerConnectFailure_t => SteamServerConnectFailure {
+impl_callback!(raw cb: SteamServerConnectFailure_t => SteamServerConnectFailure {
     Self {
-        reason: to_steam_result(cb.m_eResult),
-        still_retrying: cb.m_bStillRetrying,
+        reason: crate::steam_result_from_raw(read_raw_enum(std::ptr::addr_of!((*cb).m_eResult))),
+        still_retrying: std::ptr::addr_of!((*cb).m_bStillRetrying).read_unaligned(),
     }
 });
 
@@ -516,4 +516,130 @@ pub enum UserHasLicense {
     DoesNotHaveLicense,
     /// The user has not been authenticated.
     NoAuth,
+}
+
+#[cfg(test)]
+mod untrusted_input_user_eresult_tests {
+    use super::*;
+    use std::mem::{offset_of, MaybeUninit};
+
+    /// An `EResult` value newer than these bindings.
+    const UNKNOWN_ERESULT: u32 = 0x7fff;
+
+    /// Runs `C::from_raw` on an all-zero `T` whose 32-bit C enum at `offset` holds `value`.
+    ///
+    /// The value is written as a plain integer, so no out-of-range enum is ever created here.
+    ///
+    /// # Safety
+    ///
+    /// `T` must be the sys struct of `C`, valid when zeroed, with a 32-bit field at `offset`.
+    unsafe fn decode<T, C: Callback>(offset: usize, value: u32) -> C {
+        let mut raw = MaybeUninit::<T>::zeroed();
+        raw.as_mut_ptr()
+            .cast::<u8>()
+            .add(offset)
+            .cast::<u32>()
+            .write_unaligned(value);
+        C::from_raw(raw.as_mut_ptr().cast())
+    }
+
+    fn disconnected(value: u32) -> SteamServersDisconnected {
+        unsafe {
+            decode::<sys::SteamServersDisconnected_t, _>(
+                offset_of!(sys::SteamServersDisconnected_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn connect_failure(value: u32) -> SteamServerConnectFailure {
+        unsafe {
+            decode::<sys::SteamServerConnectFailure_t, _>(
+                offset_of!(sys::SteamServerConnectFailure_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn ticket_response(value: u32) -> AuthSessionTicketResponse {
+        unsafe {
+            decode::<sys::GetAuthSessionTicketResponse_t, _>(
+                offset_of!(sys::GetAuthSessionTicketResponse_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    fn web_api_ticket_response(value: u32) -> TicketForWebApiResponse {
+        unsafe {
+            decode::<sys::GetTicketForWebApiResponse_t, _>(
+                offset_of!(sys::GetTicketForWebApiResponse_t, m_eResult),
+                value,
+            )
+        }
+    }
+
+    #[test]
+    fn servers_disconnected_with_ok_is_ok() {
+        let ok = sys::EResult::k_EResultOK as u32;
+        assert_eq!(disconnected(ok).reason, Ok(()));
+    }
+
+    #[test]
+    fn servers_disconnected_with_none_is_a_generic_error() {
+        let none = sys::EResult::k_EResultNone as u32;
+        assert_eq!(disconnected(none).reason, Err(SteamError::Generic));
+    }
+
+    #[test]
+    fn servers_disconnected_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            disconnected(UNKNOWN_ERESULT).reason,
+            Err(SteamError::Generic)
+        );
+    }
+
+    #[test]
+    fn servers_disconnected_with_known_eresult_is_unchanged() {
+        let no_connection = sys::EResult::k_EResultNoConnection as u32;
+        assert_eq!(
+            disconnected(no_connection).reason,
+            Err(SteamError::NoConnection)
+        );
+    }
+
+    #[test]
+    fn server_connect_failure_with_ok_is_ok_and_none_is_a_generic_error() {
+        let ok = sys::EResult::k_EResultOK as u32;
+        let none = sys::EResult::k_EResultNone as u32;
+        assert_eq!(connect_failure(ok).reason, Ok(()));
+        assert_eq!(connect_failure(none).reason, Err(SteamError::Generic));
+    }
+
+    #[test]
+    fn server_connect_failure_with_unknown_eresult_is_a_generic_error() {
+        let failure = connect_failure(UNKNOWN_ERESULT);
+        assert_eq!(failure.reason, Err(SteamError::Generic));
+        assert!(!failure.still_retrying);
+    }
+
+    #[test]
+    fn auth_session_ticket_response_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            ticket_response(UNKNOWN_ERESULT).result,
+            Err(SteamError::Generic)
+        );
+        assert_eq!(
+            ticket_response(sys::EResult::k_EResultOK as u32).result,
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn web_api_ticket_response_with_unknown_eresult_is_a_generic_error() {
+        assert_eq!(
+            web_api_ticket_response(UNKNOWN_ERESULT).result,
+            Err(SteamError::Generic)
+        );
+    }
 }

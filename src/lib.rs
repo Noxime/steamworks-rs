@@ -76,6 +76,17 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     }
 }
 
+/// Converts the raw `EResult` of a callback, like [`to_steam_result`].
+///
+/// `k_EResultNone` and codes unknown to these bindings become [`SteamError::Generic`].
+pub(crate) fn steam_result_from_raw(raw: u32) -> SteamResult {
+    match SteamError::try_from(i64::from(raw)) {
+        Ok(error) => Err(error),
+        Err(InvalidSteamError::Ok) => Ok(()),
+        Err(InvalidSteamError::Unknown(_)) => Err(SteamError::Generic),
+    }
+}
+
 /// Decodes a fixed-size `char` buffer that Steam filled in.
 ///
 /// The string ends at the first NUL, or at the end of the buffer if there is none,

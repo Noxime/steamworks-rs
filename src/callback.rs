@@ -195,6 +195,37 @@ macro_rules! impl_callback {
             }
         }
     };
+    // For callbacks with C enum fields: `$fn_arg_name` is a pointer to the struct
+    // instead of a copy of it, so each field is read on its own and enum fields can be
+    // read as integers with `read_raw_enum`. Copying the whole struct would already
+    // create the out-of-range enum value.
+    (raw $fn_arg_name:ident: $sys_ty:ident => $callback_ty:ident $from_raw_impl:tt) => {
+        pastey::item! {
+            unsafe impl Callback for $callback_ty {
+                const ID: i32 = steamworks_sys::[<$sys_ty _ k_iCallback>] as i32;
+
+                unsafe fn from_raw(raw: *mut c_void) -> Self {
+                    let $fn_arg_name = raw.cast::<steamworks_sys::$sys_ty>().cast_const();
+                    $from_raw_impl
+                }
+            }
+        }
+    };
+}
+
+/// Reads a C enum field of a callback struct as the integer Steam stored in it.
+///
+/// The bindings model C enums as Rust enums, but Steam may send values that are newer
+/// than the bindings (Steam adds `EResult` codes over time). Materializing such a value
+/// as the Rust enum is undefined behaviour, so it is read as a `u32` and decoded by
+/// the caller. Every C enum in the Steamworks SDK is 32 bits wide.
+///
+/// # Safety
+///
+/// `field` must point to readable memory holding the field; it may be unaligned.
+pub(crate) unsafe fn read_raw_enum<E>(field: *const E) -> u32 {
+    const { assert!(std::mem::size_of::<E>() == std::mem::size_of::<u32>()) };
+    field.cast::<u32>().read_unaligned()
 }
 
 #[must_use = "The callback handle must be kept alive for the callback to be called"]
