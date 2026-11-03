@@ -348,21 +348,12 @@ impl Friend {
         }
     }
 
+    /// Returns the friend's persona state.
+    ///
+    /// A state unknown to these bindings is reported as `FriendState::Offline`.
     pub fn state(&self) -> FriendState {
-        unsafe {
-            let state = sys::SteamAPI_ISteamFriends_GetFriendPersonaState(self.friends, self.id.0);
-            match state {
-                sys::EPersonaState::k_EPersonaStateOffline => FriendState::Offline,
-                sys::EPersonaState::k_EPersonaStateOnline => FriendState::Online,
-                sys::EPersonaState::k_EPersonaStateInvisible => FriendState::Invisible,
-                sys::EPersonaState::k_EPersonaStateBusy => FriendState::Busy,
-                sys::EPersonaState::k_EPersonaStateAway => FriendState::Away,
-                sys::EPersonaState::k_EPersonaStateSnooze => FriendState::Snooze,
-                sys::EPersonaState::k_EPersonaStateLookingToPlay => FriendState::LookingToPlay,
-                sys::EPersonaState::k_EPersonaStateLookingToTrade => FriendState::LookingToTrade,
-                _ => unreachable!(),
-            }
-        }
+        let state = unsafe { friends_get_friend_persona_state(self.friends, self.id.0) };
+        friend_state(state)
     }
 
     /// Returns information about the game the player is current playing if any
@@ -515,6 +506,35 @@ pub enum FriendState {
     LookingToPlay,
 }
 
+extern "C" {
+    // `GetFriendPersonaState` with its `EPersonaState` returned as an integer: a state
+    // newer than the bindings must not be materialized as their Rust enum, which would
+    // be undefined behaviour. C enums in the Steamworks SDK are 32 bits wide.
+    #[link_name = "SteamAPI_ISteamFriends_GetFriendPersonaState"]
+    fn friends_get_friend_persona_state(
+        friends: *mut sys::ISteamFriends,
+        friend: sys::uint64_steamid,
+    ) -> u32;
+}
+
+/// Converts the raw `EPersonaState` that `GetFriendPersonaState` returned.
+///
+/// `k_EPersonaStateMax` and states unknown to these bindings become `Offline`.
+fn friend_state(raw: u32) -> FriendState {
+    use sys::EPersonaState as S;
+    match raw {
+        x if x == S::k_EPersonaStateOffline as u32 => FriendState::Offline,
+        x if x == S::k_EPersonaStateOnline as u32 => FriendState::Online,
+        x if x == S::k_EPersonaStateInvisible as u32 => FriendState::Invisible,
+        x if x == S::k_EPersonaStateBusy as u32 => FriendState::Busy,
+        x if x == S::k_EPersonaStateAway as u32 => FriendState::Away,
+        x if x == S::k_EPersonaStateSnooze as u32 => FriendState::Snooze,
+        x if x == S::k_EPersonaStateLookingToPlay as u32 => FriendState::LookingToPlay,
+        x if x == S::k_EPersonaStateLookingToTrade as u32 => FriendState::LookingToTrade,
+        _ => FriendState::Offline,
+    }
+}
+
 #[cfg(test)]
 mod untrusted_input_join_tests {
     use super::*;
@@ -559,5 +579,59 @@ mod untrusted_input_join_tests {
     fn connect_string_that_is_valid_is_unchanged() {
         let request = join_requested("+connect [::1]:27015 ünïcode".as_bytes());
         assert_eq!(request.connect, "+connect [::1]:27015 ünïcode");
+    }
+}
+
+#[cfg(test)]
+mod untrusted_input_persona_state_tests {
+    use super::*;
+
+    #[test]
+    fn known_persona_states_are_unchanged() {
+        let known = [
+            (
+                sys::EPersonaState::k_EPersonaStateOffline,
+                FriendState::Offline,
+            ),
+            (
+                sys::EPersonaState::k_EPersonaStateOnline,
+                FriendState::Online,
+            ),
+            (sys::EPersonaState::k_EPersonaStateBusy, FriendState::Busy),
+            (sys::EPersonaState::k_EPersonaStateAway, FriendState::Away),
+            (
+                sys::EPersonaState::k_EPersonaStateSnooze,
+                FriendState::Snooze,
+            ),
+            (
+                sys::EPersonaState::k_EPersonaStateLookingToTrade,
+                FriendState::LookingToTrade,
+            ),
+            (
+                sys::EPersonaState::k_EPersonaStateLookingToPlay,
+                FriendState::LookingToPlay,
+            ),
+            (
+                sys::EPersonaState::k_EPersonaStateInvisible,
+                FriendState::Invisible,
+            ),
+        ];
+        for (raw, state) in known {
+            assert_eq!(friend_state(raw as u32), state);
+        }
+    }
+
+    #[test]
+    fn persona_state_max_is_offline() {
+        assert_eq!(
+            friend_state(sys::EPersonaState::k_EPersonaStateMax as u32),
+            FriendState::Offline
+        );
+    }
+
+    #[test]
+    fn persona_state_unknown_to_these_bindings_is_offline() {
+        assert_eq!(friend_state(9), FriendState::Offline);
+        assert_eq!(friend_state(u32::MAX), FriendState::Offline);
     }
 }
