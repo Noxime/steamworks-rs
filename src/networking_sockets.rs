@@ -1,3 +1,4 @@
+use crate::networking_types::{NetworkingConfigData, NetworkingConfigValue};
 use crate::{networking_sockets_callback, networking_types::NetConnectionRealTimeLaneStatus};
 use crate::{
     networking_types::{
@@ -5,7 +6,7 @@ use crate::{
         NetConnectionRealTimeInfo, NetworkingAvailability, NetworkingAvailabilityError,
         NetworkingConfigEntry, NetworkingIdentity, NetworkingMessage, SendFlags, SteamIpAddr,
     },
-    SteamError,
+    Client, SteamError,
 };
 use crate::{CallbackHandle, Inner, SteamResult};
 #[cfg(test)]
@@ -17,7 +18,10 @@ use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use sys::SteamNetworkingMessage_t;
 
-use crate::networking_types::{AppNetConnectionEnd, NetConnectionEvent};
+use crate::{
+    networking_types::{AppNetConnectionEnd, NetConnectionEvent},
+    networking_utils::NetworkingUtils,
+};
 use steamworks_sys as sys;
 
 /// Access to the steam networking sockets interface
@@ -30,6 +34,15 @@ unsafe impl Send for NetworkingSockets {}
 unsafe impl Sync for NetworkingSockets {}
 
 impl NetworkingSockets {
+    pub(crate) fn root_client(&self) -> Client {
+        Client::from_inner(self.inner.clone())
+    }
+
+    /// Utility to access `NetworkingUtils` from `NetworkingSockets` without holding a reference to Client
+    pub fn networking_utils(&self) -> NetworkingUtils {
+        self.root_client().networking_utils()
+    }
+
     /// Creates a "server" socket that listens for clients to connect to by calling ConnectByIPAddress, over ordinary UDP (IPv4 or IPv6)
     ///
     /// You must select a specific local port to listen on and set it as the port field of the local address.
@@ -50,13 +63,16 @@ impl NetworkingSockets {
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
         let local_address = SteamIpAddr::from(local_address);
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketIP(
                 self.sockets,
                 local_address.as_ptr(),
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
@@ -94,12 +110,15 @@ impl NetworkingSockets {
     ) -> Result<NetConnection, InvalidHandle> {
         let handle = unsafe {
             let address = SteamIpAddr::from(address);
-            let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+            // options owns the CString of config entries, if we don't keep them alive raw_options
+            // will point at freed memory
+            let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+            let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectByIPAddress(
                 self.sockets,
                 address.as_ptr(),
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamNetConnection_Invalid {
@@ -141,13 +160,16 @@ impl NetworkingSockets {
         local_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P(
                 self.sockets,
                 local_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
@@ -175,13 +197,16 @@ impl NetworkingSockets {
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<NetConnection, InvalidHandle> {
         let handle = unsafe {
-            let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+            // options owns the CString of config entries, if we don't keep them alive raw_options
+            // will point at freed memory
+            let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+            let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectP2P(
                 self.sockets,
                 identity_remote.as_ptr(),
                 remote_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamNetConnection_Invalid {
@@ -213,13 +238,16 @@ impl NetworkingSockets {
         local_virtual_port: u32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateHostedDedicatedServerListenSocket(
                 self.sockets,
                 local_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
@@ -435,6 +463,10 @@ pub struct ListenSocket {
 }
 
 impl ListenSocket {
+    pub(crate) fn root_client(&self) -> Client {
+        Client::from_inner(self.inner.inner.clone())
+    }
+
     pub(crate) fn new(
         handle: sys::HSteamListenSocket,
         sockets: *mut sys::ISteamNetworkingSockets,
@@ -458,6 +490,56 @@ impl ListenSocket {
             inner: inner_socket,
             _callback_handle: callback_handle,
             receiver,
+        }
+    }
+
+    /// Sets a config value for this listener, and every child `NetConnection` if applicable.
+    ///
+    /// Returns true if the setting was successfully applied.
+    ///
+    /// Every setting that is not set at the `ListenSocket` level will taken from its parents
+    /// in order, e.g. the global parameters. Alternatively, if a single `NetConnection` created from
+    /// a `ListenSocket` does not have its setting set, it will take by default the `ListenSocket` parameters.
+    pub fn set_config_value(&self, config_entry: NetworkingConfigEntry) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .set_config_value_internal(
+                    self.inner.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_ListenSocket,
+                    config_entry,
+                )
+        }
+    }
+
+    /// Unsets a config value for this listener.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .unset_config_value_internal(
+                    self.inner.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_ListenSocket,
+                    value,
+                )
+        }
+    }
+
+    /// Get a config value applied for this ListenSocket.
+    pub fn get_config_value(
+        &self,
+        value: NetworkingConfigValue,
+    ) -> Result<NetworkingConfigData, ()> {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .get_config_value_internal(
+                    self.inner.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_ListenSocket,
+                    value,
+                )
         }
     }
 
@@ -646,6 +728,58 @@ impl NetConnection {
             message_buffer: Vec::new(),
             is_handled: false,
         }
+    }
+
+    /// Sets a config value for this specific net connection.
+    ///
+    /// Returns true if the setting was successfully applied.
+    /// Every setting that is not set at the `NetConnection` level will taken from its parents
+    /// in order, e.g. the listen socket, then global parameters.
+    pub fn set_config_value(&self, config_entry: NetworkingConfigEntry) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .set_config_value_internal(
+                    self.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Connection,
+                    config_entry,
+                )
+        }
+    }
+
+    /// Unsets a config value for this specific net connection.
+    ///
+    /// Returns true if the setting was successfully unset.
+    pub fn unset_config_value(&self, value: NetworkingConfigValue) -> bool {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .unset_config_value_internal(
+                    self.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Connection,
+                    value,
+                )
+        }
+    }
+
+    /// Get a config value applied for this NetConnection.
+    pub fn get_config_value(
+        &self,
+        value: NetworkingConfigValue,
+    ) -> Result<NetworkingConfigData, ()> {
+        unsafe {
+            self.root_client()
+                .networking_utils()
+                .get_config_value_internal(
+                    self.handle,
+                    sys::ESteamNetworkingConfigScope::k_ESteamNetworkingConfig_Connection,
+                    value,
+                )
+        }
+    }
+
+    pub(crate) fn root_client(&self) -> Client {
+        Client::from_inner(self.inner.clone())
     }
 
     pub fn info(&self) -> Result<NetConnectionInfo, InvalidHandle> {
