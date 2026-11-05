@@ -1580,6 +1580,12 @@ pub(crate) enum NetConnectionError {
 #[derive(Clone)]
 pub struct NetworkingConfigEntry {
     pub(crate) inner: sys::SteamNetworkingConfigValue_t,
+    /// Owns the buffer `inner.m_val.m_string` points to, since steam only saves the pointer.
+    ///
+    /// It needs an Arc so if .clone() is not, inner does not point to invalid memory
+    // Needs allow(unused) because the CString is never read... at least by rust code
+    #[allow(unused)]
+    owned_string: Option<Arc<CString>>,
 }
 
 impl NetworkingConfigEntry {
@@ -1610,7 +1616,10 @@ impl NetworkingConfigEntry {
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry { inner: config }
+            NetworkingConfigEntry {
+                inner: config,
+                owned_string: None,
+            }
         }
     }
 
@@ -1624,7 +1633,10 @@ impl NetworkingConfigEntry {
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry { inner: config }
+            NetworkingConfigEntry {
+                inner: config,
+                owned_string: None,
+            }
         }
     }
 
@@ -1638,7 +1650,10 @@ impl NetworkingConfigEntry {
                 value_type.into(),
                 value,
             );
-            NetworkingConfigEntry { inner: config }
+            NetworkingConfigEntry {
+                inner: config,
+                owned_string: None,
+            }
         }
     }
 
@@ -1647,20 +1662,17 @@ impl NetworkingConfigEntry {
 
         let mut config = Self::new_uninitialized_config_value();
         unsafe {
-            let c_str = CString::new(value).expect("Rust string could not be converted");
+            let c_str = Arc::new(CString::new(value).expect("Rust string could not be converted"));
             sys::SteamAPI_SteamNetworkingConfigValue_t_SetString(
                 &mut config,
                 value_type.into(),
                 c_str.as_ptr(),
             );
-            NetworkingConfigEntry { inner: config }
+            NetworkingConfigEntry {
+                inner: config,
+                owned_string: Some(c_str),
+            }
         }
-    }
-}
-
-impl From<NetworkingConfigEntry> for sys::SteamNetworkingConfigValue_t {
-    fn from(entry: NetworkingConfigEntry) -> sys::SteamNetworkingConfigValue_t {
-        entry.inner
     }
 }
 
