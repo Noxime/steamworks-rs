@@ -139,9 +139,15 @@ impl NetworkingUtils {
         scope: sys::ESteamNetworkingConfigScope,
         config_entry: NetworkingConfigEntry,
     ) -> bool {
-        // FIXME: unfortunately I can't seem to make set_config_value work for strings...
-        // I can retrieve them with `get_config_value`, and it works for floats and ints, sure,
-        // but I can't edit string values specifically.
+        // Strings are a special case: steam expects the `*const c_char` directly,
+        // every other type expects a pointer to the value (including _Ptr type).
+        let value_ptr = if config_entry.inner.m_eDataType
+            == sys::ESteamNetworkingConfigDataType::k_ESteamNetworkingConfig_String
+        {
+            config_entry.inner.m_val.m_string as *const c_void
+        } else {
+            &config_entry.inner.m_val as *const _ as *const c_void
+        };
         unsafe {
             sys::SteamAPI_ISteamNetworkingUtils_SetConfigValue(
                 self.utils,
@@ -149,7 +155,7 @@ impl NetworkingUtils {
                 scope,
                 scope_handle as isize,
                 config_entry.inner.m_eDataType,
-                &config_entry.inner.m_val as *const _ as *const c_void,
+                value_ptr,
             )
         }
     }

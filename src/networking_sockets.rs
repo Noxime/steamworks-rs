@@ -63,13 +63,16 @@ impl NetworkingSockets {
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
         let local_address = SteamIpAddr::from(local_address);
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketIP(
                 self.sockets,
                 local_address.as_ptr(),
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
@@ -107,12 +110,15 @@ impl NetworkingSockets {
     ) -> Result<NetConnection, InvalidHandle> {
         let handle = unsafe {
             let address = SteamIpAddr::from(address);
-            let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+            // options owns the CString of config entries, if we don't keep them alive raw_options
+            // will point at freed memory
+            let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+            let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectByIPAddress(
                 self.sockets,
                 address.as_ptr(),
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamNetConnection_Invalid {
@@ -154,13 +160,16 @@ impl NetworkingSockets {
         local_virtual_port: i32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateListenSocketP2P(
                 self.sockets,
                 local_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
@@ -188,13 +197,16 @@ impl NetworkingSockets {
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<NetConnection, InvalidHandle> {
         let handle = unsafe {
-            let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+            // options owns the CString of config entries, if we don't keep them alive raw_options
+            // will point at freed memory
+            let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+            let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
             sys::SteamAPI_ISteamNetworkingSockets_ConnectP2P(
                 self.sockets,
                 identity_remote.as_ptr(),
                 remote_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamNetConnection_Invalid {
@@ -226,13 +238,16 @@ impl NetworkingSockets {
         local_virtual_port: u32,
         options: impl IntoIterator<Item = NetworkingConfigEntry>,
     ) -> Result<ListenSocket, InvalidHandle> {
-        let options: Vec<_> = options.into_iter().map(|x| x.into()).collect();
+        // options owns the CString of config entries, if we don't keep them alive raw_options
+        // will point at freed memory
+        let options: Vec<NetworkingConfigEntry> = options.into_iter().collect();
+        let raw_options: Vec<_> = options.iter().map(|x| x.inner).collect();
         let handle = unsafe {
             sys::SteamAPI_ISteamNetworkingSockets_CreateHostedDedicatedServerListenSocket(
                 self.sockets,
                 local_virtual_port as _,
-                options.len() as _,
-                options.as_ptr(),
+                raw_options.len() as _,
+                raw_options.as_ptr(),
             )
         };
         if handle == sys::k_HSteamListenSocket_Invalid {
