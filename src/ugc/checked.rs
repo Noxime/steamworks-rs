@@ -795,52 +795,34 @@ impl QueryHandle {
 }
 
 impl QueryResults<'_> {
-    fn check_index(&self, index: u32) -> Result<(), UgcError> {
-        if index >= self.num_results_returned {
-            Err(UgcError::OutOfBounds {
-                index,
-                returned: self.num_results_returned,
-            })
-        } else {
-            Ok(())
-        }
-    }
-
     /// Reads one complete detail record, retaining failures instead of skipping it.
     /// Use `get_id_checked` with ID-only queries.
     pub fn get_checked(&self, index: u32) -> Result<QueryResult, UgcError> {
-        self.check_index(index)?;
-        let mut details = MaybeUninit::<sys::SteamUGCDetails_t>::zeroed();
-        if !unsafe {
-            sys::SteamAPI_ISteamUGC_GetQueryUGCResult(
-                self.ugc,
-                self.handle,
-                index,
-                details.as_mut_ptr(),
-            )
-        } {
-            return Err(UgcError::ItemReadFailed { index });
-        }
-        unsafe { wire::details(details.as_ptr().cast()) }
+        read_detail(
+            index,
+            self.num_results_returned,
+            |p| unsafe {
+                sys::SteamAPI_ISteamUGC_GetQueryUGCResult(self.ugc, self.handle, index, p)
+            },
+            |p| unsafe { wire::details(p) },
+        )
     }
 
     /// Reads only the ID. Does not inspect unspecified ID-only detail fields.
     pub fn get_id_checked(&self, index: u32) -> Result<PublishedFileId, UgcError> {
-        self.check_index(index)?;
-        let mut details = MaybeUninit::<sys::SteamUGCDetails_t>::zeroed();
-        if !unsafe {
-            sys::SteamAPI_ISteamUGC_GetQueryUGCResult(
-                self.ugc,
-                self.handle,
-                index,
-                details.as_mut_ptr(),
-            )
-        } {
-            return Err(UgcError::ItemReadFailed { index });
-        }
-        Ok(PublishedFileId(unsafe {
-            std::ptr::addr_of!((*details.as_ptr()).m_nPublishedFileId).read_unaligned()
-        }))
+        read_detail(
+            index,
+            self.num_results_returned,
+            |p| unsafe {
+                sys::SteamAPI_ISteamUGC_GetQueryUGCResult(self.ugc, self.handle, index, p)
+            },
+            |p| {
+                Ok(PublishedFileId(unsafe {
+                    std::ptr::addr_of!((*p.cast::<sys::SteamUGCDetails_t>()).m_nPublishedFileId)
+                        .read_unaligned()
+                }))
+            },
+        )
     }
 
     /// Visits every index, preserving its error rather than filtering it out.
@@ -849,10 +831,103 @@ impl QueryResults<'_> {
     }
 }
 
+fn read_detail<T>(
+    index: u32,
+    returned: u32,
+    fill: impl FnOnce(*mut sys::SteamUGCDetails_t) -> bool,
+    decode: impl FnOnce(*const u8) -> Result<T, UgcError>,
+) -> Result<T, UgcError> {
+    if index >= returned {
+        return Err(UgcError::OutOfBounds { index, returned });
+    }
+    let mut details = MaybeUninit::<sys::SteamUGCDetails_t>::zeroed();
+    if !fill(details.as_mut_ptr()) {
+        return Err(UgcError::ItemReadFailed { index });
+    }
+    decode(details.as_ptr().cast())
+}
+
 #[cfg(test)]
 mod checked_ugc_operation_tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+    #[test]
+    fn strict_reader_does_not_decode_failed_native_output() {
+        let r: Result<(), UgcError> = read_detail(
+            0,
+            1,
+            |p| {
+                unsafe {
+                    std::ptr::addr_of_mut!((*p).m_eResult)
+                        .cast::<u32>()
+                        .write_unaligned(u32::MAX);
+                }
+                false
+            },
+            |_| panic!("must not decode a failed native output"),
+        );
+        assert!(matches!(r, Err(UgcError::ItemReadFailed { index: 0 })));
+    }
+
+    #[test]
+    fn strict_reader_distinguishes_item_status_from_native_failure() {
+        let r = read_detail(
+            0,
+            1,
+            |p| {
+                unsafe {
+                    std::ptr::addr_of_mut!((*p).m_eResult)
+                        .cast::<u32>()
+                        .write_unaligned(3);
+                }
+                true
+            },
+            |p| unsafe { wire::details(p) },
+        );
+        assert!(matches!(r, Err(UgcError::Steam { code: 3, .. })));
+    }
+
+    #[test]
+    fn id_only_reader_ignores_unavailable_details_even_if_they_are_invalid() {
+        let id = read_detail(
+            0,
+            1,
+            |p| {
+                unsafe {
+                    p.cast::<u8>()
+                        .write_bytes(0xff, size_of::<sys::SteamUGCDetails_t>());
+                    std::ptr::addr_of_mut!((*p).m_nPublishedFileId).write_unaligned(99);
+                }
+                true
+            },
+            |p| {
+                Ok(PublishedFileId(unsafe {
+                    std::ptr::addr_of!((*p.cast::<sys::SteamUGCDetails_t>()).m_nPublishedFileId)
+                        .read_unaligned()
+                }))
+            },
+        )
+        .unwrap();
+        assert_eq!(id, PublishedFileId(99));
+    }
+
+    #[test]
+    fn strict_reader_checks_bounds_before_calling_native() {
+        let r: Result<(), UgcError> = read_detail(
+            1,
+            1,
+            |_| panic!("out of bounds"),
+            |_| panic!("out of bounds"),
+        );
+        assert!(matches!(
+            r,
+            Err(UgcError::OutOfBounds {
+                index: 1,
+                returned: 1
+            })
+        ));
+    }
 
     #[test]
     fn bad_string_never_reaches_native_and_native_false_is_recoverable() {
