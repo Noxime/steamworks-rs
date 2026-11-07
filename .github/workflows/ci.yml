@@ -50,6 +50,17 @@ jobs:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"
 
+      - name: Checked UGC offline regressions
+        run: cargo test --lib checked_ugc
+
+      - name: Compile native UGC layout probe
+        if: runner.os != 'Windows'
+        run: c++ -std=c++11 -I steamworks-sys/lib/steam/public tests/checked_ugc_layout.cpp -o target/checked-ugc-layout
+
+      - name: Compare UGC layouts to SDK headers
+        if: runner.os != 'Windows'
+        run: STEAMWORKS_ABI_PROBE="$PWD/target/checked-ugc-layout" cargo test --test checked_ugc_abi -- --ignored
+
       - uses: actions-rs/cargo@v1
         if: ${{ matrix.toolchain == 'stable' || matrix.toolchain == 'nightly' }}
         with:
@@ -58,3 +69,16 @@ jobs:
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"
+
+  miri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Miri
+        run: |
+          rustup toolchain install nightly --profile minimal --component miri --component rust-src
+          cargo +nightly miri setup
+      - name: Interpret checked UGC regressions
+        run: cargo +nightly miri test --lib checked_ugc
+        env:
+          MIRIFLAGS: "-Zmiri-strict-provenance -Zmiri-symbolic-alignment-check"

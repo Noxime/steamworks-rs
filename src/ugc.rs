@@ -4,9 +4,11 @@ use std::error;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::marker;
-use std::mem;
 use std::os::raw::c_char;
 use std::path::Path;
+
+mod checked;
+pub use checked::*;
 
 pub const RESULTS_PER_PAGE: u32 = sys::kNumUGCResultsPerPage as u32;
 
@@ -421,6 +423,7 @@ bitflags! {
         const NEEDS_UPDATE = 8;
         const DOWNLOADING = 16;
         const DOWNLOAD_PENDING = 32;
+        const DISABLED_LOCALLY = 64;
     }
 }
 
@@ -492,13 +495,12 @@ pub struct DownloadItemResult {
     pub error: Option<SteamError>,
 }
 
-impl_callback!(cb: DownloadItemResult_t => DownloadItemResult {
-    Self {
-        app_id: AppId(cb.m_unAppID),
-        published_file_id: PublishedFileId(cb.m_nPublishedFileId),
-        error: to_steam_result(cb.m_eResult).err(),
+unsafe impl Callback for DownloadItemResult {
+    const ID: i32 = sys::DownloadItemResult_t_k_iCallback as i32;
+    unsafe fn from_raw(raw: *mut c_void) -> Self {
+        checked::decode_download(raw.cast())
     }
-});
+}
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
@@ -561,25 +563,7 @@ impl UGC {
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
-        unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_CreateItem(self.ugc, app_id.0, file_type.into());
-            register_call_result::<sys::CreateItemResult_t, _>(
-                &self.inner,
-                api_call,
-                move |v, io_error| {
-                    cb(if io_error {
-                        Err(SteamError::IOFailure)
-                    } else {
-                        crate::to_steam_result(v.m_eResult).map(|_| {
-                            (
-                                PublishedFileId(v.m_nPublishedFileId),
-                                v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
-                            )
-                        })
-                    })
-                },
-            );
-        }
+        checked::legacy_call(cb, |cb| self.create_item_with_handle(app_id, file_type, cb));
     }
 
     /// Starts an item update process
@@ -601,40 +585,20 @@ impl UGC {
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
-        unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SubscribeItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::RemoteStorageSubscribePublishedFileResult_t, _>(
-                &self.inner,
-                api_call,
-                move |v, io_error| {
-                    cb(if io_error {
-                        Err(SteamError::IOFailure)
-                    } else {
-                        crate::to_steam_result(v.m_eResult)
-                    })
-                },
-            );
-        }
+        checked::legacy_call(
+            move |r: Result<PublishedFileId, SteamError>| cb(r.map(|_| ())),
+            |cb| self.subscribe_item_with_result(published_file_id, cb),
+        );
     }
 
     pub fn unsubscribe_item<F>(&self, published_file_id: PublishedFileId, cb: F)
     where
         F: FnOnce(Result<(), SteamError>) + 'static + Send,
     {
-        unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_UnsubscribeItem(self.ugc, published_file_id.0);
-            register_call_result::<sys::RemoteStorageUnsubscribePublishedFileResult_t, _>(
-                &self.inner,
-                api_call,
-                move |v, io_error| {
-                    cb(if io_error {
-                        Err(SteamError::IOFailure)
-                    } else {
-                        crate::to_steam_result(v.m_eResult)
-                    })
-                },
-            );
-        }
+        checked::legacy_call(
+            move |r: Result<PublishedFileId, SteamError>| cb(r.map(|_| ())),
+            |cb| self.unsubscribe_item_with_result(published_file_id, cb),
+        );
     }
 
     /// Gets the publisher file IDs of all currently subscribed items.
@@ -652,7 +616,7 @@ impl UGC {
                 count,
                 include_locally_disabled,
             );
-            debug_assert!(count == gotten_count);
+            data.truncate((gotten_count as usize).min(data.len()));
             data.into_iter().map(|v| PublishedFileId(v)).collect()
         }
     }
@@ -660,7 +624,7 @@ impl UGC {
     pub fn item_state(&self, item: PublishedFileId) -> ItemState {
         unsafe {
             let state = sys::SteamAPI_ISteamUGC_GetItemState(self.ugc, item.0);
-            ItemState::from_bits_truncate(state)
+            ItemState::from_bits_retain(state)
         }
     }
 
@@ -1121,33 +1085,7 @@ impl UpdateHandle {
     where
         F: FnOnce(Result<(PublishedFileId, bool), SteamError>) + 'static + Send,
     {
-        use std::ptr;
-        unsafe {
-            let change_note = change_note.and_then(|v| CString::new(v).ok());
-            let note = change_note.as_ref().map_or(ptr::null(), |v| v.as_ptr());
-            let api_call = sys::SteamAPI_ISteamUGC_SubmitItemUpdate(self.ugc, self.handle, note);
-            register_call_result::<sys::SubmitItemUpdateResult_t, _>(
-                &self.inner,
-                api_call,
-                move |v, io_error| {
-                    cb(if io_error {
-                        Err(SteamError::IOFailure)
-                    } else {
-                        to_steam_result(v.m_eResult).map(|()| {
-                            (
-                                PublishedFileId(v.m_nPublishedFileId),
-                                v.m_bUserNeedsToAcceptWorkshopLegalAgreement,
-                            )
-                        })
-                    })
-                },
-            );
-        }
-        UpdateWatchHandle {
-            ugc: self.ugc,
-            _inner: self.inner,
-            handle: self.handle,
-        }
+        self.submit_legacy(change_note, cb)
     }
 }
 
@@ -1164,36 +1102,8 @@ unsafe impl Sync for UpdateWatchHandle {}
 
 impl UpdateWatchHandle {
     pub fn progress(&self) -> (UpdateStatus, u64, u64) {
-        unsafe {
-            let mut progress = 0;
-            let mut total = 0;
-            let status = sys::SteamAPI_ISteamUGC_GetItemUpdateProgress(
-                self.ugc,
-                self.handle,
-                &mut progress,
-                &mut total,
-            );
-            let status = match status {
-                sys::EItemUpdateStatus::k_EItemUpdateStatusInvalid => UpdateStatus::Invalid,
-                sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingConfig => {
-                    UpdateStatus::PreparingConfig
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusPreparingContent => {
-                    UpdateStatus::PreparingContent
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingContent => {
-                    UpdateStatus::UploadingContent
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusUploadingPreviewFile => {
-                    UpdateStatus::UploadingPreviewFile
-                }
-                sys::EItemUpdateStatus::k_EItemUpdateStatusCommittingChanges => {
-                    UpdateStatus::CommittingChanges
-                }
-                _ => unreachable!(),
-            };
-            (status, progress, total)
-        }
+        self.progress_checked()
+            .unwrap_or((UpdateStatus::Invalid, 0, 0))
     }
 }
 
@@ -1536,44 +1446,11 @@ impl QueryHandle {
     }
 
     /// Sends the query to Steam and calls the provided callback with the results when completed.
-    pub fn fetch<F>(mut self, cb: F)
+    pub fn fetch<F>(self, cb: F)
     where
         F: for<'a> FnOnce(Result<QueryResults<'a>, SteamError>) + 'static + Send,
     {
-        let ugc = self.ugc;
-        let inner = Arc::clone(&self.inner);
-        let handle = self.handle.take().unwrap();
-        mem::drop(self);
-
-        unsafe {
-            let api_call = sys::SteamAPI_ISteamUGC_SendQueryUGCRequest(ugc, handle);
-            register_call_result::<sys::SteamUGCQueryCompleted_t, _>(
-                &inner,
-                api_call,
-                move |v, io_error| {
-                    let ugc = sys::SteamAPI_SteamUGC_v021();
-                    if io_error {
-                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
-                        cb(Err(SteamError::IOFailure));
-                        return;
-                    } else if let Err(error) = to_steam_result(v.m_eResult) {
-                        sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(ugc, handle);
-                        cb(Err(error));
-                        return;
-                    }
-
-                    let result = QueryResults {
-                        ugc,
-                        handle,
-                        num_results_returned: v.m_unNumResultsReturned,
-                        num_results_total: v.m_unTotalMatchingResults,
-                        was_cached: v.m_bCachedData,
-                        _phantom: Default::default(),
-                    };
-                    cb(Ok(result));
-                },
-            );
-        }
+        self.fetch_legacy(cb);
     }
 
     /// Runs the query, only fetching the total number of results.
@@ -1602,8 +1479,8 @@ impl QueryHandle {
 
         self.fetch(move |res| {
             cb(res.map(|qr| {
-                qr.iter()
-                    .filter_map(|v| v.map(|v| PublishedFileId(v.published_file_id.0)))
+                (0..qr.returned_results())
+                    .filter_map(|i| qr.get_id_checked(i).ok())
                     .collect::<Vec<_>>()
             }))
         })
@@ -1618,6 +1495,7 @@ pub struct QueryResults<'a> {
     num_results_total: u32,
     was_cached: bool,
     _phantom: marker::PhantomData<&'a sys::ISteamUGC>,
+    _lease: Arc<checked::QueryLease>,
 }
 
 /// The kind of an [`AdditionalPreview`], mirroring Steam's `EItemPreviewType`.
@@ -1670,13 +1548,6 @@ pub struct AdditionalPreview {
     pub preview_type: ItemPreviewType,
 }
 
-impl<'a> Drop for QueryResults<'a> {
-    fn drop(&mut self) {
-        unsafe {
-            sys::SteamAPI_ISteamUGC_ReleaseQueryUGCRequest(self.ugc, self.handle);
-        }
-    }
-}
 impl<'a> QueryResults<'a> {
     /// Were these results retreived from a cache?
     pub fn was_cached(&self) -> bool {
@@ -1815,71 +1686,7 @@ impl<'a> QueryResults<'a> {
     ///
     /// Returns None if index was out of bounds.
     pub fn get(&self, index: u32) -> Option<QueryResult> {
-        if index >= self.num_results_returned {
-            return None;
-        }
-
-        unsafe {
-            let mut raw_details: sys::SteamUGCDetails_t = mem::zeroed();
-            let ok = sys::SteamAPI_ISteamUGC_GetQueryUGCResult(
-                self.ugc,
-                self.handle,
-                index,
-                &mut raw_details,
-            );
-            debug_assert!(ok);
-
-            if to_steam_result(raw_details.m_eResult).is_err() {
-                return None;
-            }
-
-            let tags = CStr::from_ptr(raw_details.m_rgchTags.as_ptr())
-                .to_string_lossy()
-                .split(',')
-                .map(|s| String::from(s))
-                .collect::<Vec<_>>();
-
-            Some(QueryResult {
-                published_file_id: PublishedFileId(raw_details.m_nPublishedFileId),
-                creator_app_id: if raw_details.m_nCreatorAppID != 0 {
-                    Some(AppId(raw_details.m_nCreatorAppID))
-                } else {
-                    None
-                },
-                consumer_app_id: if raw_details.m_nConsumerAppID != 0 {
-                    Some(AppId(raw_details.m_nConsumerAppID))
-                } else {
-                    None
-                },
-                title: CStr::from_ptr(raw_details.m_rgchTitle.as_ptr())
-                    .to_string_lossy()
-                    .into_owned(),
-                description: CStr::from_ptr(raw_details.m_rgchDescription.as_ptr())
-                    .to_string_lossy()
-                    .into_owned(),
-                owner: SteamId(raw_details.m_ulSteamIDOwner),
-                time_created: raw_details.m_rtimeCreated,
-                time_updated: raw_details.m_rtimeUpdated,
-                time_added_to_user_list: raw_details.m_rtimeAddedToUserList,
-                visibility: raw_details.m_eVisibility.into(),
-                banned: raw_details.m_bBanned,
-                accepted_for_use: raw_details.m_bAcceptedForUse,
-                url: CStr::from_ptr(raw_details.m_rgchURL.as_ptr())
-                    .to_string_lossy()
-                    .into_owned(),
-                num_upvotes: raw_details.m_unVotesUp,
-                num_downvotes: raw_details.m_unVotesDown,
-                score: raw_details.m_flScore,
-                num_children: raw_details.m_unNumChildren,
-                tags,
-                tags_truncated: raw_details.m_bTagsTruncated,
-                file_name: CStr::from_ptr(raw_details.m_pchFileName.as_ptr())
-                    .to_string_lossy()
-                    .into_owned(),
-                file_type: raw_details.m_eFileType.into(),
-                file_size: raw_details.m_nFileSize.max(0) as u32,
-            })
-        }
+        self.get_checked(index).ok()
     }
 
     /// Returns an iterator that runs over all the fetched results

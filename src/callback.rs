@@ -8,6 +8,12 @@ use crate::sys;
 
 use std::sync::{Arc, Weak};
 
+mod call_result;
+#[cfg(test)]
+pub(crate) use call_result::checked_ugc_delivery_tests::test_inner;
+pub(crate) use call_result::{register_raw_call_result, CallResultEntry, CallResultFailure};
+pub use call_result::{CallResultHandle, CancelOutcome};
+
 /// A sum type over all possible callback results
 #[derive(Debug)]
 pub enum CallbackResult {
@@ -225,11 +231,16 @@ pub(crate) unsafe fn register_call_result<C, F>(
 ) where
     F: for<'a> FnOnce(&'a C, bool) + 'static + Send,
 {
-    inner.callbacks.call_results.lock().unwrap().insert(
+    register_raw_call_result(
+        inner,
         api_call,
-        Box::new(move |param, failed| {
+        std::mem::size_of::<C>(),
+        None,
+        move |param, failure| {
             let value = param.cast::<C>().read_unaligned();
-            f(&value, failed)
-        }),
-    );
+            f(&value, failure.is_some())
+        },
+        None,
+    )
+    .detach();
 }

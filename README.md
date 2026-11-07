@@ -68,6 +68,17 @@ fn main() {
 }
 ```
 
+## Checked Workshop operations
+
+UGC also provides checked configuration, required tag groups, favorites and user
+votes, strict result readers, and handle-owned asynchronous delivery. See the
+[ownership and compatibility guide](docs/checked-ugc.md) and the read-only
+[`checked_workshop` example](examples/checked_workshop.rs).
+
+Cancelling a result handle stops pending user delivery; it does not undo a Steam
+operation or cancel an upload. Existing convenience methods remain available and
+continue tracking completion automatically.
+
 ## Features
 `serde`: This feature enables serialization and deserialization of some types with `serde`.
 `image`: This feature allows accessing image data like icons with `image` crate.

@@ -69,9 +69,8 @@ pub type SteamResult<T = ()> = Result<T, SteamError>;
 /// Convert a raw result to a Rust [`Result`] type.
 pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     match result {
-        // sys::EResult::k_EResultNone => Ok(()), TODO: I'm not sure if this is considered a success
         sys::EResult::k_EResultOK => Ok(()),
-        error => Err(error.try_into().unwrap()),
+        error => Err(error.try_into().unwrap_or(SteamError::Generic)),
     }
 }
 
@@ -105,8 +104,26 @@ struct Inner {
 
 struct Callbacks {
     callbacks: Mutex<HashMap<i32, Box<dyn FnMut(*mut c_void) + Send + 'static>>>,
-    call_results:
-        Mutex<HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>>,
+    call_results: Mutex<HashMap<sys::SteamAPICall_t, CallResultEntry>>,
+}
+
+impl Callbacks {
+    fn take_call_result(&self, call: sys::SteamAPICall_t) -> Option<CallResultEntry> {
+        self.call_results.lock().unwrap().remove(&call)
+    }
+}
+
+impl Drop for Inner {
+    fn drop(&mut self) {
+        // Drain native leases while Manager still owns the initialized SDK.
+        let entries = std::mem::take(
+            self.callbacks
+                .call_results
+                .get_mut()
+                .unwrap_or_else(|p| p.into_inner()),
+        );
+        drop(entries);
+    }
 }
 
 impl Inner {
@@ -158,32 +175,61 @@ impl Inner {
             let mut callback = std::mem::zeroed();
             let mut apicall_result = Vec::new();
             while sys::SteamAPI_ManualDispatch_GetNextCallback(pipe, &mut callback) {
+                struct FreeCallback(sys::HSteamPipe);
+                impl Drop for FreeCallback {
+                    fn drop(&mut self) {
+                        unsafe {
+                            sys::SteamAPI_ManualDispatch_FreeLastCallback(self.0);
+                        }
+                    }
+                }
+                let _free = FreeCallback(pipe);
                 if callback.m_iCallback == sys::SteamAPICallCompleted_t_k_iCallback as i32 {
+                    if callback.m_cubParam as usize
+                        != std::mem::size_of::<sys::SteamAPICallCompleted_t>()
+                    {
+                        continue;
+                    }
                     let apicall = callback
                         .m_pubParam
                         .cast::<sys::SteamAPICallCompleted_t>()
                         .read_unaligned();
-                    apicall_result.resize(apicall.m_cubParam as usize, 0u8);
+                    let entry = self.callbacks.take_call_result(apicall.m_hAsyncCall);
+                    let Some(entry) = entry else {
+                        continue;
+                    };
+                    // The registry guard is gone before invoking or dropping user code.
+                    let valid = entry.matches(apicall.m_iCallback, apicall.m_cubParam as usize);
+                    apicall_result.clear();
+                    apicall_result.resize(entry.size, 0u8);
                     let mut failed = false;
-                    if sys::SteamAPI_ManualDispatch_GetAPICallResult(
-                        pipe,
-                        apicall.m_hAsyncCall,
-                        apicall_result.as_mut_ptr().cast(),
-                        apicall.m_cubParam as _,
-                        apicall.m_iCallback,
-                        &mut failed,
-                    ) {
-                        let mut call_results = self.callbacks.call_results.lock().unwrap();
-                        // The &{val} pattern here is to avoid taking a reference to a packed field
-                        // Since the value here is Copy, we can just copy it and borrow the copy
-                        if let Some(cb) = call_results.remove(&{ apicall.m_hAsyncCall }) {
-                            cb(apicall_result.as_mut_ptr().cast(), failed);
-                        }
+                    let retrieved = valid
+                        && sys::SteamAPI_ManualDispatch_GetAPICallResult(
+                            pipe,
+                            apicall.m_hAsyncCall,
+                            apicall_result.as_mut_ptr().cast(),
+                            entry.size as _,
+                            apicall.m_iCallback,
+                            &mut failed,
+                        );
+                    let failure = if !valid {
+                        Some(CallResultFailure::InvalidPayload)
+                    } else if !retrieved {
+                        Some(CallResultFailure::Retrieval)
+                    } else if failed {
+                        Some(CallResultFailure::Transport)
+                    } else {
+                        None
+                    };
+                    if failure.is_some() {
+                        // Legacy typed handlers receive a zeroed failure value,
+                        // never a partially written native result.
+                        apicall_result.fill(0);
                     }
+                    entry.complete(apicall_result.as_mut_ptr().cast(), failure);
                 } else {
                     callback_handler(callback.m_iCallback, callback.m_pubParam.cast());
                 }
-                sys::SteamAPI_ManualDispatch_FreeLastCallback(pipe);
             }
         }
     }
@@ -552,6 +598,8 @@ impl Client {
 enum Manager {
     Client,
     Server,
+    #[cfg(test)]
+    Test(Arc<std::sync::atomic::AtomicBool>),
 }
 
 impl Manager {
@@ -560,6 +608,8 @@ impl Manager {
         match self {
             Manager::Client => unsafe { sys::SteamAPI_GetHSteamPipe() },
             Manager::Server => unsafe { sys::SteamGameServer_GetHSteamPipe() },
+            #[cfg(test)]
+            Manager::Test(_) => 0,
         }
     }
 }
@@ -571,6 +621,8 @@ impl Drop for Manager {
         match self {
             Manager::Client => unsafe { sys::SteamAPI_Shutdown() },
             Manager::Server => unsafe { sys::SteamGameServer_Shutdown() },
+            #[cfg(test)]
+            Manager::Test(stopped) => stopped.store(true, std::sync::atomic::Ordering::SeqCst),
         }
     }
 }
