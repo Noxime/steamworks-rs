@@ -376,6 +376,9 @@ impl UGC {
 
     /// Reads the install path with a caller-selected byte capacity.
     /// Native rejection does not distinguish unavailable content from a small buffer.
+    /// Steam can also report success with truncated output. Empty paths and a
+    /// terminator in the last byte are rejected; allow an extra spare byte even
+    /// for an exactly fitting path, or retry with a larger capacity.
     pub fn item_install_info_with_capacity(
         &self,
         item: PublishedFileId,
@@ -408,11 +411,27 @@ impl UGC {
             "GetItemInstallInfo",
         )?;
         Ok(InstallInfo {
-            folder: wire::text(&folder, "install path")?,
+            folder: install_folder(&folder)?,
             size_on_disk: size,
             timestamp,
         })
     }
+}
+
+fn install_folder(folder: &[c_char]) -> Result<String, UgcError> {
+    let end = folder
+        .iter()
+        .position(|&c| c == 0)
+        .ok_or(UgcError::InvalidPayload("unterminated install path"))?;
+    // Some Steam clients return true after copying only capacity - 1 bytes.
+    // Exact fit is indistinguishable from truncation, so reject both rather
+    // than hand the caller a different filesystem path as a successful read.
+    if end == 0 || end + 1 >= folder.len() {
+        return Err(UgcError::InvalidPayload(
+            "empty or possibly truncated install path; increase capacity",
+        ));
+    }
+    wire::text(folder, "install path")
 }
 
 fn read_subscriptions(
@@ -852,6 +871,18 @@ mod checked_ugc_operation_tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
+    #[test]
+    fn install_path_requires_nonempty_terminated_output_with_spare_capacity() {
+        for bytes in [b"".as_slice(), b"\0", b"\0\0", b"C:\\abc", b"C:\\abc\0"] {
+            let chars: Vec<_> = bytes.iter().map(|&b| b as c_char).collect();
+            assert!(matches!(
+                install_folder(&chars),
+                Err(UgcError::InvalidPayload(_))
+            ));
+        }
+        let chars: Vec<_> = b"C:\\abc\0\0".iter().map(|&b| b as c_char).collect();
+        assert_eq!(install_folder(&chars).unwrap(), "C:\\abc");
+    }
     #[test]
     fn strict_reader_does_not_decode_failed_native_output() {
         let r: Result<(), UgcError> = read_detail(

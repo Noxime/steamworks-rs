@@ -40,6 +40,12 @@ Local subscription counts are not an atomic server snapshot. Equal counts cannot
 detect an equal-sized replacement, and missing locally cached IDs do not prove
 that the user unsubscribed. Include locally disabled items when needed.
 
+For `item_install_info_with_capacity`, allow spare capacity after the path's NUL
+terminator. Some Steam clients report success even when truncating the path.
+The checked reader rejects empty output and a terminator in the last byte;
+an exactly fitting path must also be retried with a larger buffer because it
+cannot be distinguished from truncation.
+
 ## Compatibility
 
 Legacy asynchronous methods continue tracking completion even when their return
