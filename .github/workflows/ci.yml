@@ -50,6 +50,9 @@ jobs:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-C debuginfo=0"
 
+      - name: Call result dispatch regression
+        run: cargo test --lib tests::call_result_can_register_another_result -- --exact
+
       - uses: actions-rs/cargo@v1
         if: ${{ matrix.toolchain == 'stable' || matrix.toolchain == 'nightly' }}
         with:

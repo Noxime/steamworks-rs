@@ -109,6 +109,16 @@ struct Callbacks {
         Mutex<HashMap<sys::SteamAPICall_t, Box<dyn FnOnce(*mut c_void, bool) + Send + 'static>>>,
 }
 
+impl Callbacks {
+    fn dispatch_call_result(&self, api_call: sys::SteamAPICall_t, data: *mut c_void, failed: bool) {
+        // Release the registry lock before user code can register another call result.
+        let cb = self.call_results.lock().unwrap().remove(&api_call);
+        if let Some(cb) = cb {
+            cb(data, failed);
+        }
+    }
+}
+
 impl Inner {
     /// Runs any currently pending callbacks
     ///
@@ -173,12 +183,11 @@ impl Inner {
                         apicall.m_iCallback,
                         &mut failed,
                     ) {
-                        let mut call_results = self.callbacks.call_results.lock().unwrap();
-                        // The &{val} pattern here is to avoid taking a reference to a packed field
-                        // Since the value here is Copy, we can just copy it and borrow the copy
-                        if let Some(cb) = call_results.remove(&{ apicall.m_hAsyncCall }) {
-                            cb(apicall_result.as_mut_ptr().cast(), failed);
-                        }
+                        self.callbacks.dispatch_call_result(
+                            apicall.m_hAsyncCall,
+                            apicall_result.as_mut_ptr().cast(),
+                            failed,
+                        );
                     }
                 } else {
                     callback_handler(callback.m_iCallback, callback.m_pubParam.cast());
@@ -770,6 +779,37 @@ mod tests {
     use serial_test::serial;
 
     use super::*;
+
+    #[test]
+    fn call_result_can_register_another_result() {
+        let callbacks = Arc::new(Callbacks {
+            callbacks: Mutex::new(HashMap::new()),
+            call_results: Mutex::new(HashMap::new()),
+        });
+        let registry = Arc::downgrade(&callbacks);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        callbacks.call_results.lock().unwrap().insert(
+            1,
+            Box::new(move |data, failed| {
+                assert!(data.is_null());
+                assert!(failed);
+                let registry = registry.upgrade().unwrap();
+                // Fail immediately if dispatch holds the lock, rather than hanging the test.
+                let mut results = registry.call_results.try_lock().unwrap();
+                assert!(!results.contains_key(&1));
+                results.insert(2, Box::new(move |_, failed| sender.send(failed).unwrap()));
+            }),
+        );
+
+        callbacks.dispatch_call_result(1, std::ptr::null_mut(), true);
+        // A consumed result must not run again or remove the newly registered result.
+        callbacks.dispatch_call_result(1, std::ptr::null_mut(), true);
+        callbacks.dispatch_call_result(2, std::ptr::null_mut(), false);
+        assert!(!receiver.try_recv().unwrap());
+        callbacks.dispatch_call_result(2, std::ptr::null_mut(), false);
+        assert!(receiver.try_recv().is_err());
+        assert!(callbacks.call_results.lock().unwrap().is_empty());
+    }
 
     #[test]
     #[serial]
