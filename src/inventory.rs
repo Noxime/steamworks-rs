@@ -12,6 +12,20 @@
 //! `SteamInventoryResultReady_t` callback is owned by this module and is not
 //! exposed for manual registration; [`InventoryFullUpdate`] and
 //! [`InventoryDefinitionUpdate`] are.
+//!
+//! # Observed service behaviour
+//!
+//! These notes were measured against the live Steam service, not taken from
+//! the documentation.
+//!
+//! - Writes ([`exchange_items`](Inventory::exchange_items),
+//!   [`generate_items`](Inventory::generate_items)) are queued, not rejected:
+//!   about 7 writes per second per client, shared by both calls. Past that,
+//!   latency rises (median about 1 s at 12-30 in flight) and Steam never
+//!   answers with a rate-limit error.
+//! - For definitions with `auto_stack`, every grant lands in the oldest stack
+//!   (lowest instance id) of that definition.
+//! - [`ItemDetails::quantity`] is 16-bit and wraps; see its documentation.
 
 use super::*;
 use std::collections::HashMap;
@@ -57,6 +71,12 @@ impl ItemFlags {
 pub struct ItemDetails {
     pub item_id: ItemInstanceId,
     pub definition: ItemDefId,
+    /// The stack size as Steam reports it in `SteamItemDetails_t::m_unQuantity`,
+    /// which is 16-bit. Steam does not cap a stack at 65,535 (stacks past
+    /// 2^32 were measured), so past 65,535 this wraps modulo 65,536 (90,001
+    /// reads 24,465), through `get_all_items`, a write's result and a
+    /// serialized result alike. The item's `quantity` property, read with
+    /// [`InventoryResult::item_property`], is the true figure.
     pub quantity: u16,
     pub flags: ItemFlags,
 }
@@ -154,6 +174,10 @@ impl InventoryResult {
 
     /// A dynamic property of the item at `index` in [`items`](Self::items).
     /// With `None` for the name, returns the comma-separated property names.
+    ///
+    /// The `quantity` property is the true stack size, unlike
+    /// [`ItemDetails::quantity`]. Right after a write, a read result can lack
+    /// `quantity` for the write's own rows.
     pub fn item_property(&self, index: u32, name: Option<&str>) -> Option<String> {
         let name = name.map(|n| CString::new(n).ok()).unwrap_or(None);
         let name_ptr = name.as_ref().map_or(std::ptr::null(), |n| n.as_ptr());
@@ -174,6 +198,10 @@ impl InventoryResult {
     /// Serializes the result so another player can verify it with
     /// [`Inventory::deserialize_result`]. Steam signs the set; it cannot be
     /// forged or replayed across sessions, and it expires after an hour.
+    ///
+    /// Serializing a [`consume_item`](Inventory::consume_item) result signs
+    /// the emptied row at quantity 0 with the consumed flag. A proof still
+    /// verifies after its item has been consumed.
     pub fn serialize(&self) -> Option<Vec<u8>> {
         unsafe {
             let mut len: u32 = 0;
@@ -419,6 +447,9 @@ impl Inventory {
     }
 
     /// Requests the current user's entire inventory.
+    ///
+    /// Answered from the client's cache: a write's new instances appear
+    /// seconds later, while the write's own result is current.
     pub fn get_all_items<F>(&self, cb: F)
     where
         F: FnOnce(Result<InventoryResult, SteamError>) + Send + 'static,
@@ -430,6 +461,8 @@ impl Inventory {
     }
 
     /// Requests the given item instances.
+    ///
+    /// Lags a write similarly (about 15 s for a freshly made item).
     pub fn get_items_by_id<F>(&self, ids: &[ItemInstanceId], cb: F)
     where
         F: FnOnce(Result<InventoryResult, SteamError>) + Send + 'static,
@@ -450,6 +483,9 @@ impl Inventory {
 
     /// Consumes `quantity` of an item instance. Only works for items whose
     /// definition allows it.
+    ///
+    /// `quantity` is a `u32` and acts on the real quantity, not the wrapped
+    /// 16-bit read.
     pub fn consume_item<F>(&self, item: ItemInstanceId, quantity: u32, cb: F)
     where
         F: FnOnce(Result<InventoryResult, SteamError>) + Send + 'static,
@@ -465,6 +501,9 @@ impl Inventory {
     /// Crafts: destroys the given quantities of the `destroy` instances and
     /// generates the `generate` definitions, as one atomic exchange that must
     /// match an `exchange` recipe in the itemdefs.
+    ///
+    /// The `generate` list must be exactly one item at quantity 1. An
+    /// exchange's bundle is not capped in size.
     pub fn exchange_items<F>(
         &self,
         generate: &[(ItemDefId, u32)],
@@ -495,6 +534,9 @@ impl Inventory {
     }
 
     /// Grants items directly. Only available to developers of the app.
+    ///
+    /// One call is capped somewhere between 100 and 1,000 units (1,000 fails
+    /// with `k_EResultFail`).
     pub fn generate_items<F>(&self, items: &[(ItemDefId, u32)], cb: F)
     where
         F: FnOnce(Result<InventoryResult, SteamError>) + Send + 'static,
@@ -517,6 +559,11 @@ impl Inventory {
 
     /// Moves `quantity` from one stack to another, or to a new stack when
     /// `dest` is `None`.
+    ///
+    /// `quantity` is a `u32` and acts on the real quantity. With `dest` as
+    /// `None` (`k_SteamItemInstanceIDInvalid`) the units split into a new
+    /// instance that stays separate. Asking for more than the stack holds
+    /// fails with `k_EResultFail` and moves nothing.
     pub fn transfer_item_quantity<F>(
         &self,
         source: ItemInstanceId,
@@ -600,6 +647,9 @@ impl Inventory {
 
     /// The ids of every loaded item definition, or `None` when definitions
     /// have not been loaded yet.
+    ///
+    /// Lists only `item` definitions, never bundles or generators (their
+    /// properties read null).
     pub fn item_definition_ids(&self) -> Option<Vec<ItemDefId>> {
         unsafe {
             let mut count: u32 = 0;
