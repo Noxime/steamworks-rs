@@ -149,6 +149,7 @@ impl Server {
                     independent_connections: Default::default(),
                     connection_callback: Default::default(),
                 }),
+                inventory_results: Default::default(),
             });
             Ok((
                 Server {

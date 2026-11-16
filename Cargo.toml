@@ -26,6 +26,7 @@ members = [
     "examples/networking-messages",
     "examples/networking-sockets",
     "examples/game-server",
+    "examples/inventory",
 ]
 
 [dependencies]
