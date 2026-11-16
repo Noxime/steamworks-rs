@@ -17,6 +17,18 @@ pub struct Server {
 unsafe impl Send for Server {}
 unsafe impl Sync for Server {}
 
+extern "C" {
+    // `BeginAuthSession` with its `EBeginAuthSessionResult` returned as an integer, as in
+    // `User::begin_authentication_session`.
+    #[link_name = "SteamAPI_ISteamGameServer_BeginAuthSession"]
+    fn game_server_begin_auth_session(
+        server: *mut sys::ISteamGameServer,
+        auth_ticket: *const c_void,
+        auth_ticket_len: std::os::raw::c_int,
+        steam_id: sys::uint64_steamid,
+    ) -> u32;
+}
+
 /// Used to set the mode that a gameserver will run in
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ServerMode {
@@ -272,31 +284,13 @@ impl Server {
         ticket: &[u8],
     ) -> Result<(), AuthSessionError> {
         unsafe {
-            let res = sys::SteamAPI_ISteamGameServer_BeginAuthSession(
+            let res = game_server_begin_auth_session(
                 self.server,
                 ticket.as_ptr().cast(),
                 ticket.len() as _,
                 user.0,
             );
-            Err(match res {
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultOK => return Ok(()),
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidTicket => {
-                    AuthSessionError::InvalidTicket
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultDuplicateRequest => {
-                    AuthSessionError::DuplicateRequest
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultInvalidVersion => {
-                    AuthSessionError::InvalidVersion
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultGameMismatch => {
-                    AuthSessionError::GameMismatch
-                }
-                sys::EBeginAuthSessionResult::k_EBeginAuthSessionResultExpiredTicket => {
-                    AuthSessionError::ExpiredTicket
-                }
-                _ => unreachable!(),
-            })
+            begin_auth_session_result(res)
         }
     }
 
@@ -697,25 +691,31 @@ pub enum DenyReason {
 
 impl From<sys::EDenyReason> for DenyReason {
     fn from(r: sys::EDenyReason) -> Self {
-        match r {
-            sys::EDenyReason::k_EDenyInvalid => DenyReason::Invalid,
-            sys::EDenyReason::k_EDenyInvalidVersion => DenyReason::InvalidVersion,
-            sys::EDenyReason::k_EDenyGeneric => DenyReason::Generic,
-            sys::EDenyReason::k_EDenyNotLoggedOn => DenyReason::NotLoggedOn,
-            sys::EDenyReason::k_EDenyNoLicense => DenyReason::NoLicense,
-            sys::EDenyReason::k_EDenyCheater => DenyReason::Cheater,
-            sys::EDenyReason::k_EDenyLoggedInElseWhere => DenyReason::LoggedInElseWhere,
-            sys::EDenyReason::k_EDenyUnknownText => DenyReason::UnknownText,
-            sys::EDenyReason::k_EDenyIncompatibleAnticheat => DenyReason::IncompatibleAnticheat,
-            sys::EDenyReason::k_EDenyMemoryCorruption => DenyReason::MemoryCorruption,
-            sys::EDenyReason::k_EDenyIncompatibleSoftware => DenyReason::IncompatibleSoftware,
-            sys::EDenyReason::k_EDenySteamConnectionLost => DenyReason::SteamConnectionLost,
-            sys::EDenyReason::k_EDenySteamConnectionError => DenyReason::SteamConnectionError,
-            sys::EDenyReason::k_EDenySteamResponseTimedOut => DenyReason::SteamResponseTimedOut,
-            sys::EDenyReason::k_EDenySteamValidationStalled => DenyReason::SteamValidationStalled,
-            sys::EDenyReason::k_EDenySteamOwnerLeftGuestUser => DenyReason::SteamOwnerLeftGuestUser,
-            _ => DenyReason::Invalid,
-        }
+        deny_reason_from_raw(r as u32)
+    }
+}
+
+/// Converts a raw `EDenyReason`; a reason unknown to these bindings is `Invalid`.
+fn deny_reason_from_raw(raw: u32) -> DenyReason {
+    use sys::EDenyReason as R;
+    match raw {
+        x if x == R::k_EDenyInvalid as u32 => DenyReason::Invalid,
+        x if x == R::k_EDenyInvalidVersion as u32 => DenyReason::InvalidVersion,
+        x if x == R::k_EDenyGeneric as u32 => DenyReason::Generic,
+        x if x == R::k_EDenyNotLoggedOn as u32 => DenyReason::NotLoggedOn,
+        x if x == R::k_EDenyNoLicense as u32 => DenyReason::NoLicense,
+        x if x == R::k_EDenyCheater as u32 => DenyReason::Cheater,
+        x if x == R::k_EDenyLoggedInElseWhere as u32 => DenyReason::LoggedInElseWhere,
+        x if x == R::k_EDenyUnknownText as u32 => DenyReason::UnknownText,
+        x if x == R::k_EDenyIncompatibleAnticheat as u32 => DenyReason::IncompatibleAnticheat,
+        x if x == R::k_EDenyMemoryCorruption as u32 => DenyReason::MemoryCorruption,
+        x if x == R::k_EDenyIncompatibleSoftware as u32 => DenyReason::IncompatibleSoftware,
+        x if x == R::k_EDenySteamConnectionLost as u32 => DenyReason::SteamConnectionLost,
+        x if x == R::k_EDenySteamConnectionError as u32 => DenyReason::SteamConnectionError,
+        x if x == R::k_EDenySteamResponseTimedOut as u32 => DenyReason::SteamResponseTimedOut,
+        x if x == R::k_EDenySteamValidationStalled as u32 => DenyReason::SteamValidationStalled,
+        x if x == R::k_EDenySteamOwnerLeftGuestUser as u32 => DenyReason::SteamOwnerLeftGuestUser,
+        _ => DenyReason::Invalid,
     }
 }
 
@@ -729,16 +729,17 @@ pub struct GSClientDeny {
     pub optional_text: String,
 }
 
-impl_callback!(cb: GSClientDeny_t => GSClientDeny {
-    let deny_text = unsafe {
-        let cstr = CStr::from_ptr(cb.m_rgchOptionalText.as_ptr() as *const c_char);
-        cstr.to_string_lossy().to_owned().into_owned()
-    };
+impl_callback!(raw cb: GSClientDeny_t => GSClientDeny {
+    // The text is not guaranteed to be NUL-terminated within its 128 bytes, so it must
+    // not be read with `CStr::from_ptr`.
+    let text = std::ptr::addr_of!((*cb).m_rgchOptionalText).read_unaligned().map(|c| c as u8);
+    let user = std::ptr::addr_of!((*cb).m_SteamID).read_unaligned();
+    let deny_reason = read_raw_enum(std::ptr::addr_of!((*cb).m_eDenyReason));
 
     GSClientDeny {
-        user: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
-        deny_reason: DenyReason::from(cb.m_eDenyReason),
-        optional_text: deny_text,
+        user: SteamId(user.m_steamid.m_unAll64Bits),
+        deny_reason: deny_reason_from_raw(deny_reason),
+        optional_text: crate::string_from_c_buffer(&text),
     }
 });
 
@@ -751,10 +752,12 @@ pub struct GSClientKick {
     pub deny_reason: DenyReason,
 }
 
-impl_callback!(cb: GSClientKick_t => GSClientKick {
+impl_callback!(raw cb: GSClientKick_t => GSClientKick {
+    let user = std::ptr::addr_of!((*cb).m_SteamID).read_unaligned();
+    let deny_reason = read_raw_enum(std::ptr::addr_of!((*cb).m_eDenyReason));
     Self {
-        user: SteamId(cb.m_SteamID.m_steamid.m_unAll64Bits),
-        deny_reason: DenyReason::from(cb.m_eDenyReason),
+        user: SteamId(user.m_steamid.m_unAll64Bits),
+        deny_reason: deny_reason_from_raw(deny_reason),
     }
 });
 
@@ -777,3 +780,81 @@ impl_callback!(cb: GSClientGroupStatus_t => GSClientGroupStatus {
         officer: cb.m_bOfficer,
     }
 });
+
+#[cfg(test)]
+mod untrusted_input_client_deny_tests {
+    use super::*;
+    use std::mem::{offset_of, MaybeUninit};
+
+    const USER: u64 = 76561197960287930;
+
+    /// Decodes a `GSClientDeny_t` with `reason` and an optional text buffer starting with `text`.
+    ///
+    /// Both are written as plain bytes, so no out-of-range enum is ever created here.
+    fn deny(reason: u32, text: &[u8]) -> GSClientDeny {
+        let mut raw = MaybeUninit::<sys::GSClientDeny_t>::zeroed();
+        let base = raw.as_mut_ptr().cast::<u8>();
+        let text_offset = offset_of!(sys::GSClientDeny_t, m_rgchOptionalText);
+        unsafe {
+            base.add(offset_of!(sys::GSClientDeny_t, m_SteamID))
+                .cast::<u64>()
+                .write_unaligned(USER);
+            base.add(offset_of!(sys::GSClientDeny_t, m_eDenyReason))
+                .cast::<u32>()
+                .write_unaligned(reason);
+            std::ptr::copy_nonoverlapping(
+                text.as_ptr(),
+                base.add(text_offset),
+                text.len().min(128),
+            );
+            GSClientDeny::from_raw(raw.as_mut_ptr().cast())
+        }
+    }
+
+    /// Decodes a `GSClientKick_t` with `reason`.
+    fn kick(reason: u32) -> GSClientKick {
+        let mut raw = MaybeUninit::<sys::GSClientKick_t>::zeroed();
+        let base = raw.as_mut_ptr().cast::<u8>();
+        unsafe {
+            base.add(offset_of!(sys::GSClientKick_t, m_eDenyReason))
+                .cast::<u32>()
+                .write_unaligned(reason);
+            GSClientKick::from_raw(raw.as_mut_ptr().cast())
+        }
+    }
+
+    #[test]
+    fn client_deny_text_without_nul_stays_inside_the_buffer() {
+        let denied = deny(sys::EDenyReason::k_EDenyGeneric as u32, &[b'x'; 128]);
+        assert_eq!(denied.optional_text, "x".repeat(128));
+        assert_eq!(denied.user.raw(), USER);
+    }
+
+    #[test]
+    fn client_deny_text_with_invalid_utf8_is_decoded_lossily() {
+        let denied = deny(sys::EDenyReason::k_EDenyGeneric as u32, b"bad \xff text\0");
+        assert_eq!(denied.optional_text, "bad \u{fffd} text");
+    }
+
+    #[test]
+    fn client_deny_reason_unknown_to_these_bindings_is_invalid() {
+        let denied = deny(99, b"\0");
+        assert_eq!(denied.deny_reason, DenyReason::Invalid);
+        assert_eq!(denied.optional_text, "");
+    }
+
+    #[test]
+    fn client_deny_reason_known_to_these_bindings_is_unchanged() {
+        let denied = deny(sys::EDenyReason::k_EDenyCheater as u32, b"\0");
+        assert_eq!(denied.deny_reason, DenyReason::Cheater);
+    }
+
+    #[test]
+    fn client_kick_reason_unknown_to_these_bindings_is_invalid() {
+        assert_eq!(kick(99).deny_reason, DenyReason::Invalid);
+        assert_eq!(
+            kick(sys::EDenyReason::k_EDenyNoLicense as u32).deny_reason,
+            DenyReason::NoLicense
+        );
+    }
+}

@@ -71,8 +71,31 @@ pub(crate) fn to_steam_result(result: sys::EResult) -> SteamResult {
     match result {
         // sys::EResult::k_EResultNone => Ok(()), TODO: I'm not sure if this is considered a success
         sys::EResult::k_EResultOK => Ok(()),
-        error => Err(error.try_into().unwrap()),
+        // `k_EResultNone`, and any code added to the bindings but not to `SteamError`.
+        error => Err(error.try_into().unwrap_or(SteamError::Generic)),
     }
+}
+
+/// Converts the raw `EResult` of a callback, like [`to_steam_result`].
+///
+/// `k_EResultNone` and codes unknown to these bindings become [`SteamError::Generic`].
+pub(crate) fn steam_result_from_raw(raw: u32) -> SteamResult {
+    match SteamError::try_from(i64::from(raw)) {
+        Ok(error) => Err(error),
+        Err(InvalidSteamError::Ok) => Ok(()),
+        Err(InvalidSteamError::Unknown(_)) => Err(SteamError::Generic),
+    }
+}
+
+/// Decodes a fixed-size `char` buffer that Steam filled in.
+///
+/// The string ends at the first NUL, or at the end of the buffer if there is none,
+/// and invalid UTF-8 is replaced with `U+FFFD`. Some of these buffers hold text that
+/// other users chose (connect strings, invite payloads), and nothing guarantees a NUL
+/// or valid UTF-8, so decoding must neither panic nor read past the buffer.
+pub(crate) fn string_from_c_buffer(buffer: &[u8]) -> String {
+    let bytes = CStr::from_bytes_until_nul(buffer).map_or(buffer, CStr::to_bytes);
+    String::from_utf8_lossy(bytes).into_owned()
 }
 
 // A note about thread-safety:
